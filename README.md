@@ -148,15 +148,23 @@ Clone the repo from git and go into the backend directory.
 ### Create a virtual environment
 
 #### Windows
+
+###### Command Prompt (CMD)
 ```bash
-python -m venv venv
-.\.venv\Scripts\Activate
+python -m venv .venv
+.venv\Scripts\Activate
+```
+
+###### PowerShell
+```bash
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
 ```
 
 #### macOS/Linux
 ```bash
-python3 -m venv venv
-source venv/bin/activate
+python3 -m venv .venv
+source .venv/bin/activate
 ```
 
 ### Installation
