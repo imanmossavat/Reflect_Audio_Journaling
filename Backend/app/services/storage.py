@@ -17,6 +17,51 @@ class StorageManager:
 
     # ---------------- PUBLIC METHODS ---------------- #
 
+    def save_transcript(self, recording_id: str, text: str, version="edited") -> str:
+        rel_path = self._make_path(f"transcripts/{recording_id}", "txt", recording_id)
+        abs_path = os.path.join(self.base, rel_path)
+
+        os.makedirs(os.path.dirname(abs_path), exist_ok=True)
+
+        with open(abs_path, "w", encoding="utf-8") as f:
+            f.write(text)
+
+        print(f"[StorageManager] Saved transcript: {abs_path}")
+        return rel_path
+
+    def load_metadata(self, recording_id: str) -> Dict[str, Any]:
+        rel_path = f"metadata/{recording_id}.json"
+        abs_path = os.path.join(self.base, rel_path)
+
+        if not os.path.exists(abs_path):
+            raise FileNotFoundError(f"No metadata for recording {recording_id}")
+
+        with open(abs_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+
+    def save_segments(self, recording_id: str, segments: list) -> str:
+        rel_path = self._make_path(f"segments/{recording_id}", "json", recording_id)
+        data = {"segments": [s.__dict__ for s in segments]}
+        self.save_json(rel_path, data)
+        return rel_path
+
+    def load_text(self, rel_path: str) -> str:
+        abs_path = os.path.join(self.base, rel_path)
+        with open(abs_path, "r", encoding="utf-8") as f:
+            return f.read()
+
+    def save_metadata(self, recording_id: str, metadata: Dict[str, Any]) -> str:
+        rel_path = f"metadata/{recording_id}.json"
+        abs_path = os.path.join(self.base, rel_path)
+
+        os.makedirs(os.path.dirname(abs_path), exist_ok=True)
+
+        with open(abs_path, "w", encoding="utf-8") as f:
+            json.dump(metadata, f, indent=2, ensure_ascii=False)
+
+        print(f"[StorageManager] Saved metadata: {abs_path}")
+        return rel_path
+
     def save_upload(self, filename: str, file_bytes: bytes) -> Tuple[str, str]:
         """
         Saves an uploaded audio file to the data directory.
@@ -29,7 +74,6 @@ class StorageManager:
         abs_dir = os.path.join(self.base, rel_dir)
         os.makedirs(abs_dir, exist_ok=True)
 
-        # ensure consistent file naming
         safe_name = os.path.basename(filename).replace(" ", "_")
         final_name = f"{now:%Y%m%d_%H%M%S}_{recording_id}_{safe_name}"
         path = os.path.join(abs_dir, final_name)
@@ -96,12 +140,15 @@ class StorageManager:
 
     # ---------------- PRIVATE HELPERS ---------------- #
 
-    def _make_path(self, category: str, extension: str) -> str:
-        """
-        Generates a consistent path for a given data type (audio, transcript, summary, etc.)
-        """
+    def _make_path(self, category: str, extension: str, recording_id: str = None) -> str:
         now = datetime.datetime.utcnow()
-        uid = uuid.uuid4().hex[:12]
+
+        if recording_id is None:
+            recording_id = uuid.uuid4().hex[:12]
+
         rel_dir = f"{category}/{now:%Y/%m/%d}"
         os.makedirs(os.path.join(self.base, rel_dir), exist_ok=True)
-        return os.path.join(rel_dir, f"{now:%Y%m%d_%H%M%S}_{uid}.{extension}")
+
+        filename = f"{now:%Y%m%d_%H%M%S}_{recording_id}.{extension}"
+        return os.path.join(rel_dir, filename)
+

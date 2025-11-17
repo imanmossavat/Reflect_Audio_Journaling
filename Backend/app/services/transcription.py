@@ -5,7 +5,7 @@ import whisperx
 
 from app.domain.models import Transcript
 from app.core.config import settings
-DEVICE = "cpu"  # or "cuda"
+DEVICE = "cpu"
 BATCH_SIZE = 16
 COMPUTE_TYPE = "float32"
 

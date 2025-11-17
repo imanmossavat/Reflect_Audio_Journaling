@@ -19,7 +19,7 @@ class Settings(BaseSettings):
 
     # --- Segmentation ---
     SEGMENTATION_MODEL: str = "sentence-transformers/all-MiniLM-L6-v2"
-    SEGMENTATION_METHOD: str = "adaptive"  # or "spectral"
+    SEGMENTATION_METHOD: str = "adaptive"
     SEGMENTATION_STD_FACTOR: float = 1.0
     SEGMENTATION_MIN_SIZE: int = 2
     SEGMENTATION_PERCENTILE: int = 20

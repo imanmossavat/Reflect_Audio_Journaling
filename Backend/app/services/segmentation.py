@@ -19,15 +19,15 @@ class SegmentationManager:
         self.percentile = settings.SEGMENTATION_PERCENTILE
         self.top_n = settings.SEGMENTATION_TOPIC_TOP_N
 
-    def segment(self, transcript, method="adaptive"):
+    def segment(self, transcript, recording_id, method="adaptive"):
         """
         Segment transcript text into coherent topic sections.
         Returns a list of Segment objects.
         """
 
-        sentences = self._split_sentences(transcript.text)
+        sentences = self._split_sentences(transcript)
         if len(sentences) < 3:
-            return [Segment(recording_id=transcript.recording_id, start_s=0, end_s=0, label="short transcript")]
+            return [Segment(recording_id=recording_id, start_s=0, end_s=0, label="short transcript")]
 
         # Encode to embeddings
         embeddings = self.model.encode(sentences)
@@ -43,7 +43,7 @@ class SegmentationManager:
         for seg_id, topic in topics.items():
             segments.append(
                 Segment(
-                    recording_id=transcript.recording_id,
+                    recording_id=recording_id,
                     start_s=0,
                     end_s=0,
                     label=topic[0] if topic else f"Segment {seg_id}",
