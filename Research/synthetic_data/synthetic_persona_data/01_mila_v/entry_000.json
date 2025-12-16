@@ -1,0 +1,49 @@
+{
+  "persona_id": 1,
+  "persona_code": "mila_v",
+  "persona_name": "Mila",
+  "persona_age": 20,
+  "neurotype": "ASD + High Anxiety",
+  "entry_index": 0,
+  "transcript": "Today was one of those days where I'm not sure if I'll make it through. School feels like a prison, and I'm trapped in this never-ending cycle of anxiety. The lights in my classroom were blinding again, making me feel lightheaded and disoriented. I hope that makes sense. My teacher kept asking me questions during the lesson, and I found myself zoning out, unable to concentrate.\n\nI worry that I won't be able to keep up with my coursework. Phillip Jackson, my boss at Barnes-Peters, always says I need to \"step up my game.\" But what does that even mean? Is it just code for \"you're not good enough\"? I'm trying to push those thoughts away, but they linger in the back of my mind.\n\nI tried to call Christopher Cordova after class, but he didn't answer. I'm not sure if he's busy or just avoiding me. We've been friends since freshman year, and I value our conversations. But sometimes, even with him, I feel like I'm not good enough. My mother always says I have a lot to offer, but my father... well, he's harder on me.\n\nAs I walk home, the sounds of West Stephanie seem to overwhelm me - cars honking, people chattering, sirens blaring in the distance. It's like the city is trying to drown out my thoughts. I feel lost and alone, unsure if I'll ever find my footing. But for now, I'm going to take a deep breath and remind myself that I've made it this far.\n\nI hope that makes sense.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "school",
+      "text": "Today was one of those days where I'm not sure if I'll make it through. School feels like a prison, and I'm trapped in this never-ending cycle of anxiety. The lights in my classroom were blinding again, making me feel lightheaded and disoriented. I hope that makes sense. My teacher kept asking me questions during the lesson, and I found myself zoning out, unable to concentrate.\n\nI worry that I won't be able to keep up with my coursework. Phillip Jackson, my boss at Barnes-Peters, always says I need to \"step up my game.\" But what does that even mean? Is it just code for \"you're not good enough\"? I'm trying to push those thoughts away, but they linger in the back of my mind.\n\nI tried to call Christopher Cordova after class, but he didn't answer. I'm not sure if he's busy or just avoiding me. We've been friends since freshman year, and I value our conversations. But sometimes, even with him, I feel like I'm not good enough. My mother always says I have a lot to offer, but my father... well, he's harder on me.\n\nAs I walk home, the sounds of West Stephanie seem to overwhelm me - cars honking, people chattering, sirens blaring in the distance. It's like the city is trying to drown out my thoughts. I feel lost and alone, unsure if I'll ever find my footing. But for now, I'm going to take a deep breath and remind myself that I've made it this far.\n\nI hope that makes sense.",
+      "start_char": 0,
+      "end_char": 1387
+    }
+  ],
+  "topics": [
+    "school"
+  ],
+  "pii": [
+    {
+      "type": "CLOSE_FRIEND",
+      "text": "Christopher Cordova",
+      "start_char": 699,
+      "end_char": 718
+    },
+    {
+      "type": "BOSS_NAME",
+      "text": "Phillip Jackson",
+      "start_char": 442,
+      "end_char": 457
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Barnes-Peters",
+      "start_char": 470,
+      "end_char": 483
+    },
+    {
+      "type": "CITY",
+      "text": "West Stephanie",
+      "start_char": 1053,
+      "end_char": 1067
+    }
+  ],
+  "summary": "Here is a 1-2 sentence summary of the journal entry:\n\nThe writer feels overwhelmed and anxious about their life, struggling with feelings of inadequacy and self-doubt in both academic and personal contexts. Despite the weight of these emotions, they cling to small moments of hope and resilience, reminding themselves that they've made it this far and can take a deep breath to carry on.",
+  "arc_stage": "Stage 1 – Desperation & doubt: feels rejected, frustrated, and believes she will never be good enough. No internship yet."
+}

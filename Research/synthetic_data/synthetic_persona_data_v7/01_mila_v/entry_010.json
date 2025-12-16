@@ -1,0 +1,33 @@
+{
+  "persona": "mila_v",
+  "entry_index": 10,
+  "arc_stage": "Stage 2 – Relief & gratitude: she finally gets an internship, feels intense relief and loyalty, wants to earn her place.",
+  "transcript": "March 15, 20XX\n\nI have been sitting in my small town apartment for what feels like an eternity, staring at the same four walls as I attempt to process the events that transpired today. The fluorescent lights above my desk seem particularly harsh, casting an unforgiving glare on the papers scattered before me. My mind is a jumbled mess of emotions, oscillating between relief and trepidation. I am still trying to grasp the magnitude of what has occurred - the email from Taylor Group, the company I have been dreaming of working for, now informing me that they wish to extend an offer to me. I am not sure if I am experiencing a state of euphoria or utter bewilderment. As I sit here trying to make sense of this sudden turn of events, my mind keeps wandering back to what makes me think I'm worthy enough for this opportunity. Is it the countless hours I spent researching and networking? The sleepless nights spent perfecting my portfolio? Or is it something more? The uncertainty gnaws at me like a persistent itch, making me feel anxious all over again. My thoughts are a jumbled mess of self-doubt and what-ifs, but I force myself to push through the noise, reminding myself that this is exactly what I've been working towards. It's hard to shake off the feeling that I'm just pretending to be someone I'm not, that there's something fundamentally flawed about me that will somehow unravel at any moment. But then I think back to all the little moments when people have acknowledged my strengths and passions, and a tiny spark of self-worth flickers to life within me.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "self-worth",
+      "sentiment": "negative",
+      "text": "As I sit here trying to make sense of this sudden turn of events, my mind keeps wandering back to what makes me think I'm worthy enough for this opportunity. Is it the countless hours I spent researching and networking? The sleepless nights spent perfecting my portfolio? Or is it something more? The uncertainty gnaws at me like a persistent itch, making me feel anxious all over again. My thoughts are a jumbled mess of self-doubt and what-ifs, but I force myself to push through the noise, reminding myself that this is exactly what I've been working towards. It's hard to shake off the feeling that I'm just pretending to be someone I'm not, that there's something fundamentally flawed about me that will somehow unravel at any moment. But then I think back to all the little moments when people have acknowledged my strengths and passions, and a tiny spark of self-worth flickers to life within me.",
+      "start_char": 672,
+      "end_char": 1575
+    }
+  ],
+  "topics": [
+    "self-worth"
+  ],
+  "pii": [
+    {
+      "type": "COMPANY_NAME",
+      "text": "Taylor Group",
+      "start_char": 473,
+      "end_char": 485
+    }
+  ],
+  "summary": "The writer is overwhelmed with emotions after receiving an offer from their dream company, Taylor Group, and is struggling to balance feelings of excitement and self-doubt. They are uncertain if they truly deserve the opportunity, but are trying to push through their inner doubts and remind themselves of their hard work and past validation.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "persona": "mila_v",
+  "entry_index": 8,
+  "arc_stage": "Stage 2 – Relief & gratitude: she finally gets an internship, feels intense relief and loyalty, wants to earn her place.",
+  "transcript": "Today was a day of considerable relief, I believe. The internship offer from Henderson-Liu has been confirmed, and I am still somewhat disbelieving that my efforts have paid off so thoroughly. The initial interview process felt overwhelming due to excessive sensory stimuli - the bright lights in Beverly Rogers' office made me squint - but I managed to push through it, relying on my internal cues to navigate the conversation. My thoughts are now focused on settling into this role and ensuring that I deliver high-quality work. I hope that makes sense. School. The very concept of it sends a flutter in my chest, a mix of excitement and trepidation. I've always struggled with navigating social dynamics, feeling like an outsider looking in on the intricate web of relationships that seem to unfold effortlessly among my peers.\n\nThe thought of being in a classroom filled with students who don't know me, who will be interacting with me as if we're equals, makes my heart pound in my chest. I worry about saying something wrong, about accidentally offending someone or not knowing how to respond to a question that feels like it's been asked a million times before.\n\nBut amidst all this anxiety, there's a sense of determination growing inside me. I want to prove to myself and others that I'm capable of succeeding in this environment. I need to earn my place, to show them that I have just as much to offer as anyone else. The thrill of finally securing an internship has given me a boost, but it's also made me acutely aware of the challenges ahead.\n\nI wonder what my classmates will be like, how they'll react to seeing me walk into their classroom for the first time. Will they see me as a friend or just another face in the crowd? The uncertainty is almost too much to bear, but I'm determined to push through it and make this work. The relief from securing the internship has given me a sense of calm, but it's also made me realize how anxious I am about social interactions. My mind keeps wandering to worst-case scenarios - what if I don't fit in with my colleagues? What if I say something awkward or insensitive? The sensory details that overwhelmed me during the interview come flooding back, and I feel a familiar knot in my stomach.\n\nI worry that my introverted nature will make it difficult for me to connect with others on a meaningful level. My brain is wired to overthink social interactions, and the fear of being judged or rejected is always lurking just beneath the surface. The thought of navigating office politics and building relationships with people I don't know well makes me feel lightheaded.\n\nI try to push these thoughts aside, focusing instead on the excitement and anticipation of starting this new chapter in my life. But as I lie here in bed, my mind keeps drifting back to social interaction - what will it be like? How can I prepare myself for it?.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "general",
+      "sentiment": "positive",
+      "text": "Today was a day of considerable relief, I believe. The internship offer from Henderson-Liu has been confirmed, and I am still somewhat disbelieving that my efforts have paid off so thoroughly. The initial interview process felt overwhelming due to excessive sensory stimuli - the bright lights in Beverly Rogers' office made me squint - but I managed to push through it, relying on my internal cues to navigate the conversation. My thoughts are now focused on settling into this role and ensuring that I deliver high-quality work. I hope that makes sense.",
+      "start_char": 0,
+      "end_char": 555
+    },
+    {
+      "id": 1,
+      "topic": "school",
+      "sentiment": "negative",
+      "text": "School. The very concept of it sends a flutter in my chest, a mix of excitement and trepidation. I've always struggled with navigating social dynamics, feeling like an outsider looking in on the intricate web of relationships that seem to unfold effortlessly among my peers.\n\nThe thought of being in a classroom filled with students who don't know me, who will be interacting with me as if we're equals, makes my heart pound in my chest. I worry about saying something wrong, about accidentally offending someone or not knowing how to respond to a question that feels like it's been asked a million times before.\n\nBut amidst all this anxiety, there's a sense of determination growing inside me. I want to prove to myself and others that I'm capable of succeeding in this environment. I need to earn my place, to show them that I have just as much to offer as anyone else. The thrill of finally securing an internship has given me a boost, but it's also made me acutely aware of the challenges ahead.\n\nI wonder what my classmates will be like, how they'll react to seeing me walk into their classroom for the first time. Will they see me as a friend or just another face in the crowd? The uncertainty is almost too much to bear, but I'm determined to push through it and make this work.",
+      "start_char": 556,
+      "end_char": 1841
+    },
+    {
+      "id": 2,
+      "topic": "social interaction",
+      "sentiment": "negative",
+      "text": "The relief from securing the internship has given me a sense of calm, but it's also made me realize how anxious I am about social interactions. My mind keeps wandering to worst-case scenarios - what if I don't fit in with my colleagues? What if I say something awkward or insensitive? The sensory details that overwhelmed me during the interview come flooding back, and I feel a familiar knot in my stomach.\n\nI worry that my introverted nature will make it difficult for me to connect with others on a meaningful level. My brain is wired to overthink social interactions, and the fear of being judged or rejected is always lurking just beneath the surface. The thought of navigating office politics and building relationships with people I don't know well makes me feel lightheaded.\n\nI try to push these thoughts aside, focusing instead on the excitement and anticipation of starting this new chapter in my life. But as I lie here in bed, my mind keeps drifting back to social interaction - what will it be like? How can I prepare myself for it?.",
+      "start_char": 1842,
+      "end_char": 2888
+    }
+  ],
+  "topics": [
+    "school",
+    "social interaction"
+  ],
+  "pii": [
+    {
+      "type": "BOSS_NAME",
+      "text": "Beverly Rogers",
+      "start_char": 297,
+      "end_char": 311
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Henderson-Liu",
+      "start_char": 77,
+      "end_char": 90
+    }
+  ],
+  "summary": "Here is a summary of the journal entry in 1-2 sentences:\n\nThe writer has been accepted into an internship at Henderson-Liu and feels a mix of relief and anxiety about starting this new chapter, particularly regarding social interactions and fitting in with their peers. Despite feeling overwhelmed by sensory stimuli during the interview process, they are determined to push through their introverted nature and prove themselves capable of succeeding in the classroom environment.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

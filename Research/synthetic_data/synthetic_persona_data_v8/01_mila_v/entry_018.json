@@ -1,0 +1,52 @@
+{
+  "persona": "mila_v",
+  "entry_index": 18,
+  "arc_stage": "Stage 3 – Overwhelmed but proud: worries she won't meet expectations, but starts recognizing her growth and small wins.",
+  "transcript": "Today's events have left me feeling a sense of relief that is palpable, and I can still feel the weight of it lifting off my shoulders. The anxiety that has been plaguing me for weeks seems to have receded, replaced by a cautious optimism that I have not experienced in quite some time. School, once a source of crippling dread, now feels like a manageable challenge. I am compelled to acknowledge this feeling, and to process the sense of overwhelm that has slowly begun to dissipate. The constant pressure to perform well, coupled with my perfectionistic tendencies, has led me down a path of self-doubt and anxiety. However, today's events have given me pause, and I am forced to confront the reality that my growth and progress are not solely defined by my accomplishments. The weight of expectations still lingers, but it's no longer suffocating me. My mind keeps wandering back to my internship, where I've been trying to make sense of my role and responsibilities. The tasks seem daunting at times, but today's meeting with my supervisor felt like a small victory. They acknowledged the effort I'm putting in and encouraged me to take ownership of my projects. It was a subtle shift, but it made me realize that their expectations aren't as rigid as I thought. I can breathe a bit easier now, knowing that I'm not just trying to meet standards, but also growing as an individual. The weight of expectations still lingers, but it's no longer suffocating me. I can remember the feeling of my heart racing every time I walked into school, the constant dread that I'd say something wrong or make a mistake in front of my peers. But today, for the first time in weeks, I felt like I could breathe again. The sense of relief is still palpable, and I keep expecting it to lift off me at any moment. It's funny how small victories can be so significant - like getting through a lecture without zoning out or managing to have a conversation with someone without freezing up. Maybe today was just a minor reprieve from the constant storm brewing inside me, but even that feels like a major win. The internship. It's a mixed bag, to be honest. On one hand, I'm thrilled to have landed it - it's a huge accomplishment for me, and I feel like it validates all my hard work. But on the other hand, the pressure is mounting. What if I don't meet expectations? What if I mess up or stumble in front of my colleagues? The anxiety is still there, lurking just beneath the surface, but today I noticed something different - a tiny spark of confidence that's been growing inside me. It's so fragile and fleeting, but it's there. I feel like I'm starting to realize that growth doesn't have to be perfection; it can be small, incremental steps forward, even if they're not always easy or comfortable.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "general",
+      "sentiment": "neutral",
+      "text": "Today's events have left me feeling a sense of relief that is palpable, and I can still feel the weight of it lifting off my shoulders. The anxiety that has been plaguing me for weeks seems to have receded, replaced by a cautious optimism that I have not experienced in quite some time. School, once a source of crippling dread, now feels like a manageable challenge. I am compelled to acknowledge this feeling, and to process the sense of overwhelm that has slowly begun to dissipate. The constant pressure to perform well, coupled with my perfectionistic tendencies, has led me down a path of self-doubt and anxiety. However, today's events have given me pause, and I am forced to confront the reality that my growth and progress are not solely defined by my accomplishments.",
+      "start_char": 0,
+      "end_char": 777
+    },
+    {
+      "id": 1,
+      "topic": "work",
+      "sentiment": "positive",
+      "text": "The weight of expectations still lingers, but it's no longer suffocating me. My mind keeps wandering back to my internship, where I've been trying to make sense of my role and responsibilities. The tasks seem daunting at times, but today's meeting with my supervisor felt like a small victory. They acknowledged the effort I'm putting in and encouraged me to take ownership of my projects. It was a subtle shift, but it made me realize that their expectations aren't as rigid as I thought. I can breathe a bit easier now, knowing that I'm not just trying to meet standards, but also growing as an individual.",
+      "start_char": 778,
+      "end_char": 1386
+    },
+    {
+      "id": 2,
+      "topic": "school",
+      "sentiment": "positive",
+      "text": "The weight of expectations still lingers, but it's no longer suffocating me. I can remember the feeling of my heart racing every time I walked into school, the constant dread that I'd say something wrong or make a mistake in front of my peers. But today, for the first time in weeks, I felt like I could breathe again. The sense of relief is still palpable, and I keep expecting it to lift off me at any moment. It's funny how small victories can be so significant - like getting through a lecture without zoning out or managing to have a conversation with someone without freezing up. Maybe today was just a minor reprieve from the constant storm brewing inside me, but even that feels like a major win.",
+      "start_char": 1387,
+      "end_char": 2091
+    },
+    {
+      "id": 3,
+      "topic": "internship",
+      "sentiment": "positive",
+      "text": "The internship. It's a mixed bag, to be honest. On one hand, I'm thrilled to have landed it - it's a huge accomplishment for me, and I feel like it validates all my hard work. But on the other hand, the pressure is mounting. What if I don't meet expectations? What if I mess up or stumble in front of my colleagues? The anxiety is still there, lurking just beneath the surface, but today I noticed something different - a tiny spark of confidence that's been growing inside me. It's so fragile and fleeting, but it's there. I feel like I'm starting to realize that growth doesn't have to be perfection; it can be small, incremental steps forward, even if they're not always easy or comfortable.",
+      "start_char": 2092,
+      "end_char": 2786
+    }
+  ],
+  "topics": [
+    "work",
+    "school",
+    "internship"
+  ],
+  "pii": [],
+  "summary": "Here is a summary of the journal entry in 1-2 sentences:\n\nThe writer feels a palpable sense of relief and cautious optimism after overcoming weeks of anxiety and self-doubt, and recognizes that their growth and progress are not solely defined by external expectations. They also acknowledge a growing spark of confidence within themselves, which has been bolstered by small victories at work, such as a meeting with their supervisor who acknowledged their effort and encouraged them to take ownership of their projects.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

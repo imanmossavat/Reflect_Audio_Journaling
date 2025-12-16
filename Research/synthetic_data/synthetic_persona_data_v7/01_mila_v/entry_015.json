@@ -1,0 +1,35 @@
+{
+  "persona": "mila_v",
+  "entry_index": 15,
+  "arc_stage": "Stage 3 – Overwhelmed but proud: worries she won't meet expectations, but starts recognizing her growth and small wins.",
+  "transcript": "I have been sitting in my small town apartment for what feels like an eternity, staring at the same four walls as I attempt to process the events that transpired today. The fluorescent light overhead seems particularly harsh, casting an unforgiving glow on the scattered papers and notes that litter the floor. My mind is racing with thoughts of expectations and uncertainties, my analytical mind struggling to reconcile the excitement and trepidation that now swirl within me. I hope this makes sense. As I sit here, trying to gather my thoughts, my mind keeps drifting back to the school meeting today. The teacher's words still echo in my ears - \"improvement needed\" and \"potential\". I feel like I've been punched in the gut. What does it mean? Is it because of my grades, or was it something else entirely? I keep replaying our conversation, searching for any hint that might give me a clue.\n\nThe fluorescent light overhead seems to be mocking me now, its harsh glare illuminating the scattered papers and notes on the floor like a cruel reminder of all my mistakes. My anxiety is spiking again, making my heart race and my palms sweat. I try to take deep breaths, but it's no use - my brain is already racing with worst-case scenarios.\n\nI remember March 15th last year, when I had a similar conversation with another teacher. The outcome was...unsettling. I don't want to go down that path again. My mind starts to wander, imagining all the things I could be doing instead of sitting in this apartment, feeling like a failure. As I sit here, trying to make sense of it all, my mind keeps wandering back to work. It's been a challenge for me lately, with the added pressure of meeting expectations and pleasing others. My anxiety often gets the better of me, making it hard to focus on tasks that once seemed simple. But today, something shifted inside of me - I started to recognize the small wins, the tiny victories that add up over time. It's funny how one moment of clarity can help calm the storm in my brain. The fluorescent light still seems harsh, but now it feels almost comforting, a reminder that even in this overwhelming space, there is beauty in the details.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "school",
+      "sentiment": "negative",
+      "text": "As I sit here, trying to gather my thoughts, my mind keeps drifting back to the school meeting today. The teacher's words still echo in my ears - \"improvement needed\" and \"potential\". I feel like I've been punched in the gut. What does it mean? Is it because of my grades, or was it something else entirely? I keep replaying our conversation, searching for any hint that might give me a clue.\n\nThe fluorescent light overhead seems to be mocking me now, its harsh glare illuminating the scattered papers and notes on the floor like a cruel reminder of all my mistakes. My anxiety is spiking again, making my heart race and my palms sweat. I try to take deep breaths, but it's no use - my brain is already racing with worst-case scenarios.\n\nI remember March 15th last year, when I had a similar conversation with another teacher. The outcome was...unsettling. I don't want to go down that path again. My mind starts to wander, imagining all the things I could be doing instead of sitting in this apartment, feeling like a failure.",
+      "start_char": 503,
+      "end_char": 1531
+    },
+    {
+      "id": 1,
+      "topic": "work",
+      "sentiment": "positive",
+      "text": "As I sit here, trying to make sense of it all, my mind keeps wandering back to work. It's been a challenge for me lately, with the added pressure of meeting expectations and pleasing others. My anxiety often gets the better of me, making it hard to focus on tasks that once seemed simple. But today, something shifted inside of me - I started to recognize the small wins, the tiny victories that add up over time. It's funny how one moment of clarity can help calm the storm in my brain. The fluorescent light still seems harsh, but now it feels almost comforting, a reminder that even in this overwhelming space, there is beauty in the details.",
+      "start_char": 1532,
+      "end_char": 2177
+    }
+  ],
+  "topics": [
+    "school",
+    "work"
+  ],
+  "pii": [],
+  "summary": "The writer is struggling to come to terms with an unexpected evaluation from their teacher, which left them feeling anxious and uncertain about their grades and performance. However, as they reflect on the conversation, they begin to find solace in recognizing small wins and victories, which helps calm their anxiety and shifts their perspective.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

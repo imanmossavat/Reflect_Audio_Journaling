@@ -1,0 +1,53 @@
+{
+  "persona": "mila_v",
+  "entry_index": 10,
+  "arc_stage": "Stage 2 – Relief & gratitude: she finally gets an internship, feels intense relief and loyalty, wants to earn her place.",
+  "transcript": "Today's relief is palpable. The offer from Henderson-Liu has been accepted, and I am reminded that my persistence paid off. It feels like a weight has been lifted from my shoulders, allowing me to breathe more easily. My mind is still trying to process the implications of this new opportunity, but for now, I can acknowledge the sense of accomplishment and relief that comes with it.\n\nI hope that makes sense. Today's relief is palpable. The offer from Henderson-Liu has been accepted, and I am reminded that my persistence paid off. It feels like a weight has been lifted from my shoulders, allowing me to breathe more easily. My mind is still trying to process the implications of this new opportunity, but for now, I can acknowledge the sense of accomplishment and relief that comes with it.\n\nSocial interaction, on the other hand, is an entirely different story. The thought of navigating this internship brings a wave of anxiety wash over me. What if my colleagues don't like me? What if I say something wrong or accidentally offend someone? I worry about being myself around new people, about revealing too much or not enough.\n\nThe sensory details are overwhelming - the fluorescent lights in the office, the hum of conversations in the background, the feeling of being stuck between rows of cubicles. Each time I try to imagine myself in this environment, my mind becomes a jumble of worst-case scenarios and self-doubt. Will I be able to contribute meaningfully? Will I get lost in the crowd?\n\nIt's ironic that acceptance into Henderson-Liu brings me such relief, while social interaction fills me with dread. Perhaps it's because social interactions require so much 'pretend' - pretending to be confident, pretending to fit in, pretending to like someone just to make them feel better. The more I think about it, the more exhausted I become.\n\nThe thought of having a few close colleagues to rely on for support makes my anxiety spike again - what if they don't understand me? What if we can't connect on a deeper level? My mind starts racing with all the possible ways this could go wrong.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "general",
+      "sentiment": "positive",
+      "text": "Today's relief is palpable. The offer from Henderson-Liu has been accepted, and I am reminded that my persistence paid off. It feels like a weight has been lifted from my shoulders, allowing me to breathe more easily. My mind is still trying to process the implications of this new opportunity, but for now, I can acknowledge the sense of accomplishment and relief that comes with it.\n\nI hope that makes sense.",
+      "start_char": 0,
+      "end_char": 410
+    },
+    {
+      "id": 1,
+      "topic": "social interaction",
+      "sentiment": "negative",
+      "text": "Today's relief is palpable. The offer from Henderson-Liu has been accepted, and I am reminded that my persistence paid off. It feels like a weight has been lifted from my shoulders, allowing me to breathe more easily. My mind is still trying to process the implications of this new opportunity, but for now, I can acknowledge the sense of accomplishment and relief that comes with it.\n\nSocial interaction, on the other hand, is an entirely different story. The thought of navigating this internship brings a wave of anxiety wash over me. What if my colleagues don't like me? What if I say something wrong or accidentally offend someone? I worry about being myself around new people, about revealing too much or not enough.\n\nThe sensory details are overwhelming - the fluorescent lights in the office, the hum of conversations in the background, the feeling of being stuck between rows of cubicles. Each time I try to imagine myself in this environment, my mind becomes a jumble of worst-case scenarios and self-doubt. Will I be able to contribute meaningfully? Will I get lost in the crowd?\n\nIt's ironic that acceptance into Henderson-Liu brings me such relief, while social interaction fills me with dread. Perhaps it's because social interactions require so much 'pretend' - pretending to be confident, pretending to fit in, pretending to like someone just to make them feel better. The more I think about it, the more exhausted I become.\n\nThe thought of having a few close colleagues to rely on for support makes my anxiety spike again - what if they don't understand me? What if we can't connect on a deeper level? My mind starts racing with all the possible ways this could go wrong.",
+      "start_char": 411,
+      "end_char": 2099
+    }
+  ],
+  "topics": [
+    "social interaction"
+  ],
+  "pii": [
+    {
+      "type": "COMPANY_NAME",
+      "text": "Henderson-Liu",
+      "start_char": 43,
+      "end_char": 56
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Henderson-Liu",
+      "start_char": 454,
+      "end_char": 467
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Henderson-Liu",
+      "start_char": 1536,
+      "end_char": 1549
+    }
+  ],
+  "summary": "Here is a summary of the journal entry in 1-2 sentences, capturing both what happened and how the person feels:\n\nThe writer has been accepted into an internship at Henderson-Liu, bringing them a sense of relief and accomplishment, but also overwhelming anxiety about navigating social interactions with new colleagues. Despite feeling exhausted by the thought of pretending to be confident and fitting in, they are struggling to shake off fears about making connections and being misunderstood.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

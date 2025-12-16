@@ -1,0 +1,44 @@
+{
+  "persona": "mila_v",
+  "entry_index": 22,
+  "arc_stage": "Stage 4 – Shock at job offer: receives a job offer from the internship, feels joy + fear + imposter syndrome.",
+  "transcript": "Today, I find myself ensconced in my modest abode, surrounded by familiar yet unyielding walls that seem to close in on me as I struggle to comprehend the events that have transpired. The glow of the overhead light fixture casts an unforgiving glare upon my face, exacerbating the already-present discomfort that threatens to overwhelm my senses. As I sit here, frozen in a state of emotional stasis, I am compelled to attempt to make sense of the situation: a job offer from the internship that has left me beset by conflicting emotions - joy, trepidation, and an unshakeable feeling of inadequacy. I hope that makes sense. As I sit here trying to make sense of it all, my mind keeps drifting back to the words they used - \"opportunity\" and \"growth\". They seem so... vague. I know that's supposed to be a good thing, but for me, it just feels like more pressure. My brain is racing with what-ifs - what if I fail? What if I don't live up to their expectations? The thought of being in a new environment, surrounded by people I've never met before, is making my stomach twist into knots. And yet, at the same time, there's this tiny part of me that's screaming with excitement and anticipation. It's like my brain is stuck in a perpetual loop of conflicting emotions, refusing to settle on one feeling. As I sit here, trying to wrap my head around the job offer, I find myself wandering to thoughts of social interaction. The thought sends a wave of anxiety coursing through my veins - what if I'm the only one who doesn't fit in? What if I say something wrong or stumble over my words? My mind starts racing with scenarios where I'm stuck in awkward silences or have to make small talk with people I don't know. The sensory overload is already hitting me hard, and now my brain is conjuring up worst-case social interaction scenarios. It's like the world outside my apartment walls has suddenly become a daunting, unpredictable place. As I sit here, trying to wrap my head around the fact that I'm actually going to be interning at a company I've idolized for years, my mind keeps racing with worst-case scenarios. What if I fail? What if I'm not good enough? The thought of being in a high-pressure environment like that is already making me feel lightheaded and anxious. My apartment feels smaller than ever, the walls closing in on me as I try to breathe through this panic. I can almost hear my brain screaming at me to \"you're not qualified\" and \"you're going to embarrass yourself\", making my heart rate spike with every beat. The glow of the light fixture seems to be pulsing in sync with my racing thoughts, making it hard for me to focus on anything else.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "school",
+      "sentiment": "negative",
+      "text": "As I sit here trying to make sense of it all, my mind keeps drifting back to the words they used - \"opportunity\" and \"growth\". They seem so... vague. I know that's supposed to be a good thing, but for me, it just feels like more pressure. My brain is racing with what-ifs - what if I fail? What if I don't live up to their expectations? The thought of being in a new environment, surrounded by people I've never met before, is making my stomach twist into knots. And yet, at the same time, there's this tiny part of me that's screaming with excitement and anticipation. It's like my brain is stuck in a perpetual loop of conflicting emotions, refusing to settle on one feeling.",
+      "start_char": 625,
+      "end_char": 1302
+    },
+    {
+      "id": 1,
+      "topic": "social interaction",
+      "sentiment": "negative",
+      "text": "As I sit here, trying to wrap my head around the job offer, I find myself wandering to thoughts of social interaction. The thought sends a wave of anxiety coursing through my veins - what if I'm the only one who doesn't fit in? What if I say something wrong or stumble over my words? My mind starts racing with scenarios where I'm stuck in awkward silences or have to make small talk with people I don't know. The sensory overload is already hitting me hard, and now my brain is conjuring up worst-case social interaction scenarios. It's like the world outside my apartment walls has suddenly become a daunting, unpredictable place.",
+      "start_char": 1303,
+      "end_char": 1935
+    },
+    {
+      "id": 2,
+      "topic": "internship",
+      "sentiment": "negative",
+      "text": "As I sit here, trying to wrap my head around the fact that I'm actually going to be interning at a company I've idolized for years, my mind keeps racing with worst-case scenarios. What if I fail? What if I'm not good enough? The thought of being in a high-pressure environment like that is already making me feel lightheaded and anxious. My apartment feels smaller than ever, the walls closing in on me as I try to breathe through this panic. I can almost hear my brain screaming at me to \"you're not qualified\" and \"you're going to embarrass yourself\", making my heart rate spike with every beat. The glow of the light fixture seems to be pulsing in sync with my racing thoughts, making it hard for me to focus on anything else.",
+      "start_char": 1936,
+      "end_char": 2665
+    }
+  ],
+  "topics": [
+    "school",
+    "social interaction",
+    "internship"
+  ],
+  "pii": [],
+  "summary": "The writer is struggling to come to terms with a job offer from an internship at a company they've idolized, feeling overwhelmed by conflicting emotions and anxiety about meeting expectations and fitting in. Their mind is racing with worst-case scenarios, making it difficult for them to breathe and think clearly as they try to wrap their head around the opportunity.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

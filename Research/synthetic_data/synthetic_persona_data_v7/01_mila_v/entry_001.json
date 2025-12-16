@@ -1,0 +1,33 @@
+{
+  "persona": "mila_v",
+  "entry_index": 1,
+  "arc_stage": "Stage 1 – Desperation & doubt: feels rejected, frustrated, and believes she will never be good enough. No internship yet.",
+  "transcript": "March 15, 20XX\n\nI hope this entry makes sense. I've been trying to organize my thoughts for what feels like an eternity, but every time I attempt to put pen to paper, my mind becomes a jumble of conflicting emotions and uncertain thoughts. Today was a day that left me questioning nearly everything. After weeks of fruitless attempts, I finally received the news I had been waiting for – or so I thought. Mrs. Ritter's words still echo in my mind: \"You're being offered an internship at Taylor Group.\" I...I'm not sure how to process this information. As I sit here trying to make sense of Mrs. Ritter's words, my mind keeps wandering back to all the times I felt like I wasn't good enough. The countless hours I spent reapplying for internships, only to be met with rejection letters that seemed to blur together on my inbox. My anxiety is screaming at me to celebrate, but it's also whispering \"what if this isn't enough?\" in my ear. I can feel the familiar tightness in my chest, the way my heart beats faster whenever I think about success. Every happy memory of media design - watching tutorials, sketching designs, or even just browsing inspiration boards - feels tainted by the possibility that it's all being taken away from me again.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "internship",
+      "sentiment": "negative",
+      "text": "As I sit here trying to make sense of Mrs. Ritter's words, my mind keeps wandering back to all the times I felt like I wasn't good enough. The countless hours I spent reapplying for internships, only to be met with rejection letters that seemed to blur together on my inbox. My anxiety is screaming at me to celebrate, but it's also whispering \"what if this isn't enough?\" in my ear. I can feel the familiar tightness in my chest, the way my heart beats faster whenever I think about success. Every happy memory of media design - watching tutorials, sketching designs, or even just browsing inspiration boards - feels tainted by the possibility that it's all being taken away from me again.",
+      "start_char": 552,
+      "end_char": 1242
+    }
+  ],
+  "topics": [
+    "internship"
+  ],
+  "pii": [
+    {
+      "type": "COMPANY_NAME",
+      "text": "Taylor Group",
+      "start_char": 487,
+      "end_char": 499
+    }
+  ],
+  "summary": "The writer received a surprise internship offer from Taylor Group and is struggling to process their emotions, overwhelmed by anxiety about whether they're truly worthy of success after years of rejection and self-doubt. Their past experiences have left them with a lingering fear that this new opportunity might be fleeting or insufficient.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

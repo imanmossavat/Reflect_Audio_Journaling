@@ -1,0 +1,43 @@
+{"text":"I met Sarah Collins yesterday at Union Square in New York.","entities":[{"start":6,"end":19,"label":"PERSON"},{"start":20,"end":29,"label":"DATE"},{"start":54,"end":62,"label":"GPE"}]}
+{"text":"You can email me at mike.watson22@gmail.com before Friday.","entities":[{"start":20,"end":46,"label":"EMAIL"},{"start":54,"end":60,"label":"DATE"}]}
+{"text":"My phone number is (415) 823-1448 but please don't share it.","entities":[{"start":19,"end":33,"label":"PHONENUMBER"}]}
+{"text":"I need to send documents to the IRS and Chase Bank tomorrow.","entities":[{"start":32,"end":35,"label":"ORG"},{"start":40,"end":50,"label":"ORG"},{"start":51,"end":59,"label":"DATE"}]}
+{"text":"I live at 9450 Sunset Boulevard in Los Angeles.","entities":[{"start":36,"end":47,"label":"GPE"}]}
+{"text":"My accountant, John Peterson, told me the IRS notice arrived last Thursday.","entities":[{"start":16,"end":29,"label":"PERSON"},{"start":43,"end":46,"label":"ORG"},{"start":61,"end":74,"label":"DATE"}]}
+{"text":"Call me at 202-884-9932 or email me at jason.ritter91@gmail.com.","entities":[{"start":11,"end":23,"label":"PHONENUMBER"},{"start":38,"end":63,"label":"EMAIL"}]}
+{"text":"I dropped off a package for Emily Chen at 8844 Kensington Drive in Los Angeles.","entities":[{"start":32,"end":42,"label":"PERSON"},{"start":72,"end":83,"label":"GPE"}]}
+{"text":"Michael Ross helped me set up a plan with BlueShield Insurance on April 14.","entities":[{"start":0,"end":12,"label":"PERSON"},{"start":40,"end":60,"label":"ORG"},{"start":64,"end":73,"label":"DATE"}]}
+{"text":"My job at Redwood Technologies is going well. HR emailed me from hr@redtech.co.","entities":[{"start":11,"end":32,"label":"ORG"},{"start":62,"end":74,"label":"EMAIL"}]}
+{"text":"I met with Dr. Laura Phillips at her office on 1229 Grove Street in San Francisco.","entities":[{"start":12,"end":28,"label":"PERSON"},{"start":67,"end":80,"label":"GPE"}]}
+{"text":"I had lunch with Jacob Turner from Deloitte Consulting near 18th Street Station.","entities":[{"start":17,"end":29,"label":"PERSON"},{"start":35,"end":53,"label":"ORG"}]}
+{"text":"My landlord, Richard Holmes, wants the $920 I still owe him.","entities":[{"start":13,"end":27,"label":"PERSON"},{"start":40,"end":44,"label":"MONEY"}]}
+{"text":"I booked a meeting with Dr. Amanda Reed at 3 PM tomorrow in Boston.","entities":[{"start":26,"end":41,"label":"PERSON"},{"start":50,"end":58,"label":"DATE"},{"start":62,"end":68,"label":"GPE"}]}
+{"text":"I spoke with Olivia Martinez about my Bank of America statement from June 19.","entities":[{"start":12,"end":27,"label":"PERSON"},{"start":38,"end":55,"label":"ORG"},{"start":62,"end":70,"label":"DATE"}]}
+{"text":"Daniel Scott asked if I still live at 7710 Willow Terrace, Denver.","entities":[{"start":0,"end":12,"label":"PERSON"},{"start":58,"end":64,"label":"GPE"}]}
+{"text":"I had a call with Stephanie Nguyen from the San Jose Public Library.","entities":[{"start":17,"end":33,"label":"PERSON"},{"start":39,"end":64,"label":"ORG"}]}
+{"text":"My doctor at Kaiser Permanente, Dr. Henry Clarke, responded to me on March 22.","entities":[{"start":14,"end":32,"label":"ORG"},{"start":34,"end":50,"label":"PERSON"},{"start":68,"end":76,"label":"DATE"}]}
+{"text":"Maria Lopez asked me to resend the invoice to billing@starlit-solutions.com.","entities":[{"start":0,"end":11,"label":"PERSON"},{"start":39,"end":70,"label":"EMAIL"}]}
+{"text":"Jonathan Price told me to call his office number 650-822-9901 if anything goes wrong.","entities":[{"start":0,"end":14,"label":"PERSON"},{"start":41,"end":53,"label":"PHONENUMBER"}]}
+{"text":"I must finish paperwork for my job at Wells Fargo before Friday afternoon.","entities":[{"start":33,"end":44,"label":"ORG"},{"start":52,"end":58,"label":"DATE"}]}
+{"text":"Samantha Boyd mailed me the documents from her office at 321 Harbor Street, Tampa.","entities":[{"start":0,"end":14,"label":"PERSON"},{"start":76,"end":81,"label":"GPE"}]}
+{"text":"Mark Stevenson updated the budget on April 3 and asked me to call 650-822-9901.","entities":[{"start":0,"end":15,"label":"PERSON"},{"start":35,"end":42,"label":"DATE"},{"start":64,"end":76,"label":"PHONENUMBER"}]}
+{"text":"Contact John Miller at 555-123-7890 tomorrow.","entities":[{"start":8,"end":19,"label":"PERSON"},{"start":23,"end":35,"label":"PHONENUMBER"},{"start":36,"end":44,"label":"DATE"}]}
+{"text":"Email me at jack.brown99@example.com on Monday.","entities":[{"start":12,"end":36,"label":"EMAIL"},{"start":40,"end":46,"label":"DATE"}]}
+{"text":"I met Lisa Wong at Central Park in New York.","entities": [{"start":6,"end":15,"label":"PERSON"},{"start":19, "end":31, "label":"LOC"}, {"start":35,"end":43,"label":"GPE"}]}
+{"text":"My address is 22 King Street, London.","entities":[{"start": 30, "end": 36, "label":"GPE"}]}
+{"text":"Call my office at (020) 7788 9900 at 3:45 PM.","entities":[{"start":18,"end":33,"label":"PHONENUMBER"}]}
+{"text":"I have an appointment with Dr. Nina Patel on 14 March.","entities":[{"start":27,"end":41,"label":"PERSON"},{"start":45,"end":53,"label":"DATE"}]}
+{"text":"Transfer $980 to Martin Lopez for the rent.","entities":[{"start":9,"end":13,"label":"MONEY"},{"start":17,"end":29,"label":"PERSON"}]}
+{"text":"Our office in Berlin moved to 9 River Lane.","entities":[{"start":14,"end":20,"label":"GPE"}]}
+{"text":"Message me on Signal at @lucas_west or by email at lucas.west@securemail.net.","entities":[{"start":51,"end":76,"label":"EMAIL"}]}
+{"text":"I spoke to Anna Schmidt from Berlin Health Center yesterday.","entities":[{"start":11,"end":23,"label":"PERSON"},{"start":29,"end":49,"label":"ORG"},{"start":50,"end":59,"label":"DATE"}]}
+{"text":"I met with Professor Daniel Kim at the University of Washington campus on September 14, where he explained the new research guidelines to me.","entities":[{"start":23,"end":34,"label":"PERSON"},{"start":38,"end":69,"label":"ORG"},{"start":73,"end":85,"label":"DATE"}]}
+{"text":"You can reach my colleague, Melissa Turner, at her direct number 415-902-7781 or by emailing her at melissa.turner@northbridge.io later this week.","entities":[{"start":27,"end":42,"label":"PERSON"},{"start":63,"end":75,"label":"PHONENUMBER"},{"start":94,"end":132,"label":"EMAIL"},{"start":137,"end":151,"label":"DATE"}]}
+{"text":"I mailed the contract to Legal Affairs at Stanford Medical Center on Tuesday, and their representative, Andrew Cho, confirmed receipt in the evening.","entities":[{"start":25,"end":65,"label":"ORG"},{"start":69,"end":76,"label":"DATE"},{"start":104,"end":114,"label":"PERSON"}]}
+{"text":"My new apartment at 1881 Crescent Hill Drive in San Diego was finally approved after the city inspector, Carla Mendoza, reviewed my application documents.","entities":[{"start":52,"end":60,"label":"GPE"},{"start":98,"end":111,"label":"PERSON"}]}
+{"text":"During my call with Michael O'Connor about the loan from Wells Fargo on January 7, he asked me to resend the signed agreement.","entities":[{"start":21,"end":38,"label":"PERSON"},{"start":56,"end":67,"label":"ORG"},{"start":71,"end":81,"label":"DATE"}]}
+{"text":"I booked a consultation with Dr. Elena Ruiz at 2200 Maplewood Court, Chicago, and she emailed me later from eruiz.consulting@medico.org with follow-up instructions.","entities":[{"start":32,"end":45,"label":"PERSON"}, {"start":69, "end": 76, "label":"GPE"},{"start":111,"end":140,"label":"EMAIL"}]}
+{"text":"The invoice that Jacob Williams sent from his office at Brightpath Consulting arrived on April 29, and it included his backup number 650-771-9920 for urgent issues.","entities":[{"start":15,"end":29,"label":"PERSON"},{"start":54,"end":75,"label":"ORG"},{"start":89,"end":97,"label":"DATE"},{"start":128,"end":140,"label":"PHONENUMBER"}]}
+{"text":"I drove to 7421 Lakehurst Road in Minneapolis to meet with Sophia Nguyen from the State Licensing Bureau regarding my renewal paperwork.","entities":[{"start":35,"end":45,"label":"GPE"},{"start":60,"end":73,"label":"PERSON"},{"start":79,"end":102,"label":"ORG"}]}
+{"text":"After reviewing the documentation, Dr. Samuel Price from Mercy General Hospital called me at 202-883-4411 on February 3 to clarify a few missing details.","entities":[{"start":33,"end":49,"label":"PERSON"},{"start":55,"end":77,"label":"ORG"},{"start":92,"end":104,"label":"PHONENUMBER"},{"start":108,"end":118,"label":"DATE"}]}
+{"text":"I forwarded the financial reports to Karen Foster at her office in 18 Westbrook Plaza, Denver, and she replied from karen.foster@financeteam.net with additional corrections.","entities":[{"start":38,"end":50,"label":"PERSON"},{"start":88,"end":94,"label":"GPE"},{"start":120,"end":150,"label":"EMAIL"}]}

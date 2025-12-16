@@ -1,0 +1,34 @@
+{
+  "persona": "mila_v",
+  "entry_index": 14,
+  "arc_stage": "Stage 2 – Relief & gratitude: she finally gets an internship, feels intense relief and loyalty, wants to earn her place.",
+  "transcript": "Today's events have unfolded in a manner that has alleviated a considerable amount of my anxiety, and I am compelled to acknowledge this feeling. The sensation is akin to having the weight of a heavy blanket lifted from my shoulders, allowing me to breathe more easily. My thoughts were previously consumed by self-doubt and uncertainty regarding my place within the company, but today's events have provided me with a sense of security. I hope that makes sense. Today's relief is still coursing through my veins, and I am attempting to capture its essence on paper. The warmth of relief still lingers, but my mind begins to wander to something that has long been a source of anxiety for me: social interaction. It's ironic, I suppose - on one hand, today's news brought me such comfort and security, yet on the other, I'm already thinking about how to navigate the inevitable social challenges that come with an internship. The thought of meeting new people, making small talk, and pretending to be someone I'm not, makes my stomach twist into knots. I worry that I'll accidentally offend someone or forget someone's name, or worse, that they'll find me boring or awkward. My mind starts to spin with worst-case scenarios, making it harder for me to catch my breath. Can I really do this?.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "general",
+      "sentiment": "neutral",
+      "text": "Today's events have unfolded in a manner that has alleviated a considerable amount of my anxiety, and I am compelled to acknowledge this feeling. The sensation is akin to having the weight of a heavy blanket lifted from my shoulders, allowing me to breathe more easily. My thoughts were previously consumed by self-doubt and uncertainty regarding my place within the company, but today's events have provided me with a sense of security. I hope that makes sense. Today's relief is still coursing through my veins, and I am attempting to capture its essence on paper.",
+      "start_char": 0,
+      "end_char": 566
+    },
+    {
+      "id": 1,
+      "topic": "social interaction",
+      "sentiment": "negative",
+      "text": "The warmth of relief still lingers, but my mind begins to wander to something that has long been a source of anxiety for me: social interaction. It's ironic, I suppose - on one hand, today's news brought me such comfort and security, yet on the other, I'm already thinking about how to navigate the inevitable social challenges that come with an internship. The thought of meeting new people, making small talk, and pretending to be someone I'm not, makes my stomach twist into knots. I worry that I'll accidentally offend someone or forget someone's name, or worse, that they'll find me boring or awkward. My mind starts to spin with worst-case scenarios, making it harder for me to catch my breath. Can I really do this?.",
+      "start_char": 567,
+      "end_char": 1290
+    }
+  ],
+  "topics": [
+    "social interaction"
+  ],
+  "pii": [],
+  "summary": "Here is a 2-sentence summary of the journal entry:\n\nThe writer experienced significant relief and security after today's events, which has lifted a heavy weight from their shoulders, but they're now struggling with anxiety about navigating social interactions as part of an internship. Their mind is filled with worst-case scenarios, making it difficult for them to catch their breath and wonder if they can truly handle the challenges that come with meeting new people.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

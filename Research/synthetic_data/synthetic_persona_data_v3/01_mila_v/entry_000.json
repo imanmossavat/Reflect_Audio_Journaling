@@ -1,0 +1,87 @@
+{
+  "persona": "mila_v",
+  "entry_index": 0,
+  "arc_stage": "Stage 1 – Desperation & doubt: feels rejected, frustrated, and believes she will never be good enough. No internship yet.",
+  "transcript": "Today was a day of unexpected news. I am still trying to process it. This morning, I received an email from my mentor, Angel James, informing me that Reid-Haas had selected me for their upcoming internship program. I must admit, I felt a mix of emotions - excitement, nervousness, and a hint of relief. I hope this makes sense, but I am still trying to wrap my head around the situation. All my hard work, all my sacrifices, and now this. It's as if everything is coming together in a way that feels almost... predictable. As I sat at my desk, staring at the email on my computer screen, I couldn't help but think about how far I've come. From feeling like an outcast in Lake Patriciamouth to landing an internship with Reid-Haas - it's hard to believe. My anxiety is still present, of course, but for now, it seems manageable. My close friend Whitney has been a constant source of support, and my partner Michael has been understanding and patient with me through all the ups and downs. Mother Antonio has always told me that I am capable, but it's hard to shake off those feelings of inadequacy. I need reassurance that this is just the beginning of something amazing. I'm not sure if I've made sense, Journal. I hope you can help me make more sense of this.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "Career/Internship",
+      "sentiment": "mixed",
+      "text": "Today was a day of unexpected news. I am still trying to process it. This morning, I received an email from my mentor, Angel James, informing me that Reid-Haas had selected me for their upcoming internship program. I must admit, I felt a mix of emotions - excitement, nervousness, and a hint of relief.",
+      "start_char": 0,
+      "end_char": 302
+    },
+    {
+      "id": 1,
+      "topic": "Personal Reflection",
+      "sentiment": "positive",
+      "text": "I hope this makes sense, but I am still trying to wrap my head around the situation. All my hard work, all my sacrifices, and now this. It's as if everything is coming together in a way that feels almost... predictable.",
+      "start_char": 303,
+      "end_char": 522
+    },
+    {
+      "id": 2,
+      "topic": "Anxiety",
+      "sentiment": "positive",
+      "text": "As I sat at my desk, staring at the email on my computer screen, I couldn't help but think about how far I've come. From feeling like an outcast in Lake Patriciamouth to landing an internship with Reid-Haas - it's hard to believe. My anxiety is still present, of course, but for now, it seems manageable.",
+      "start_char": 523,
+      "end_char": 827
+    },
+    {
+      "id": 3,
+      "topic": "Personal Life/Support",
+      "sentiment": "neutral",
+      "text": "My close friend Whitney has been a constant source of support, and my partner Michael has been understanding and patient with me through all the ups and downs. Mother Antonio has always told me that I am capable, but it's hard to shake off those feelings of inadequacy.",
+      "start_char": 828,
+      "end_char": 1097
+    },
+    {
+      "id": 4,
+      "topic": "Self-Doubt/Confidence",
+      "sentiment": "neutral",
+      "text": "I need reassurance that this is just the beginning of something amazing. I'm not sure if I've made sense, Journal. I hope you can help me make more sense of this.",
+      "start_char": 1098,
+      "end_char": 1260
+    }
+  ],
+  "topics": [
+    "Self-Doubt/Confidence",
+    "Career/Internship",
+    "Anxiety",
+    "Personal Reflection",
+    "Personal Life/Support"
+  ],
+  "pii": [
+    {
+      "type": "MENTOR_NAME",
+      "text": "Angel James",
+      "start_char": 119,
+      "end_char": 130
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Reid-Haas",
+      "start_char": 150,
+      "end_char": 159
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Reid-Haas",
+      "start_char": 720,
+      "end_char": 729
+    },
+    {
+      "type": "CITY",
+      "text": "Lake Patriciamouth",
+      "start_char": 671,
+      "end_char": 689
+    }
+  ],
+  "summary": "The writer received an email informing them they were selected for Reid-Haas' internship program after months of hard work and sacrifices. They're struggling to process the news, feeling a mix of emotions but finding reassurance in their support system and past experiences that suggest something positive is ahead.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "persona": "mila_v",
+  "entry_index": 19,
+  "arc_stage": "Stage 3 – Overwhelmed but proud: worries she won't meet expectations, but starts recognizing her growth and small wins.",
+  "transcript": "Today's events have left me feeling a sense of relief that is palpable, and I can still feel the weight of it lifting off my shoulders. The news of the job offer from Henderson-Liu has alleviated a considerable amount of my anxiety, and I am compelled to acknowledge this feeling. Despite initial reservations about meeting expectations, I am cautiously optimistic about this new opportunity. I hope that makes sense - I have been replaying our conversation with Beverly Rogers in my mind, trying to ensure I understood her expectations correctly.\n\nThe relief I feel now is a stark contrast to the overwhelming dread that consumed me for weeks prior. Repeatedly checking the email and re-reading the job description has become a habit, a coping mechanism to alleviate the anxiety of the unknown. It is only now, in the quiet aftermath of this revelation, that I can begin to breathe again, my heart rate slowing as the initial panic subsides.\n\nThis newfound sense of calm is fragile, however, and I am keenly aware of the importance of not getting too complacent. I must admit, the prospect of starting a new job still fills me with trepidation, but for now, I will allow myself to bask in this fleeting feeling of accomplishment. The internship - a mix of excitement and trepidation. I've been thinking about it nonstop since the job offer came through, trying to process my emotions and prepare myself for what's to come. My mind keeps wandering back to the conversation with Beverly Rogers, replaying her words and wondering if I truly understood the expectations. The thought of meeting new people, navigating a new work environment, and taking on new responsibilities fills me with a sense of overwhelm, but also a spark of determination. What if this is exactly what I need - a chance to grow and learn in a supportive setting?.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "general",
+      "sentiment": "positive",
+      "text": "Today's events have left me feeling a sense of relief that is palpable, and I can still feel the weight of it lifting off my shoulders. The news of the job offer from Henderson-Liu has alleviated a considerable amount of my anxiety, and I am compelled to acknowledge this feeling. Despite initial reservations about meeting expectations, I am cautiously optimistic about this new opportunity. I hope that makes sense - I have been replaying our conversation with Beverly Rogers in my mind, trying to ensure I understood her expectations correctly.\n\nThe relief I feel now is a stark contrast to the overwhelming dread that consumed me for weeks prior. Repeatedly checking the email and re-reading the job description has become a habit, a coping mechanism to alleviate the anxiety of the unknown. It is only now, in the quiet aftermath of this revelation, that I can begin to breathe again, my heart rate slowing as the initial panic subsides.\n\nThis newfound sense of calm is fragile, however, and I am keenly aware of the importance of not getting too complacent. I must admit, the prospect of starting a new job still fills me with trepidation, but for now, I will allow myself to bask in this fleeting feeling of accomplishment.",
+      "start_char": 0,
+      "end_char": 1230
+    },
+    {
+      "id": 1,
+      "topic": "internship",
+      "sentiment": "positive",
+      "text": "The internship - a mix of excitement and trepidation. I've been thinking about it nonstop since the job offer came through, trying to process my emotions and prepare myself for what's to come. My mind keeps wandering back to the conversation with Beverly Rogers, replaying her words and wondering if I truly understood the expectations. The thought of meeting new people, navigating a new work environment, and taking on new responsibilities fills me with a sense of overwhelm, but also a spark of determination. What if this is exactly what I need - a chance to grow and learn in a supportive setting?.",
+      "start_char": 1231,
+      "end_char": 1834
+    }
+  ],
+  "topics": [
+    "internship"
+  ],
+  "pii": [
+    {
+      "type": "BOSS_NAME",
+      "text": "Beverly Rogers",
+      "start_char": 463,
+      "end_char": 477
+    },
+    {
+      "type": "BOSS_NAME",
+      "text": "Beverly Rogers",
+      "start_char": 1478,
+      "end_char": 1492
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Henderson-Liu",
+      "start_char": 167,
+      "end_char": 180
+    }
+  ],
+  "summary": "The writer has received a job offer from Henderson-Liu, alleviating their intense anxiety and overwhelming dread that had been building up for weeks. They now feel a sense of relief and cautious optimism about the new opportunity, but acknowledge that this fragile feeling is tempered by trepidation and uncertainty as they prepare to start the internship.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

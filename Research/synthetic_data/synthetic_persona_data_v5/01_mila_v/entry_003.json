@@ -1,0 +1,65 @@
+{
+  "persona": "mila_v",
+  "entry_index": 3,
+  "arc_stage": "Stage 1 – Desperation & doubt: feels rejected, frustrated, and believes she will never be good enough. No internship yet.",
+  "transcript": "March 15th, 2023\n\nI hope this entry makes sense. I've been thinking about the conversation with Mario Long from Weaver, Erickson and Johnson today. He offered me a job on the spot after my internship, which was unexpected. I'm not sure if I'm overthinking it, but I keep replaying our discussion in my head. Social interaction is still challenging for me.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "general",
+      "sentiment": "negative",
+      "text": "March 15th, 2023\n\nI hope this entry makes sense. I've been thinking about the conversation with Mario Long from Weaver, Erickson and Johnson today.",
+      "start_char": 0,
+      "end_char": 147
+    },
+    {
+      "id": 1,
+      "topic": "work",
+      "sentiment": "neutral",
+      "text": "He offered me a job on the spot after my internship, which was unexpected.",
+      "start_char": 148,
+      "end_char": 222
+    },
+    {
+      "id": 2,
+      "topic": "emotions",
+      "sentiment": "neutral",
+      "text": "I'm not sure if I'm overthinking it, but I keep replaying our discussion in my head.",
+      "start_char": 223,
+      "end_char": 307
+    },
+    {
+      "id": 3,
+      "topic": "general",
+      "sentiment": "negative",
+      "text": "Social interaction is still challenging for me.",
+      "start_char": 308,
+      "end_char": 355
+    }
+  ],
+  "topics": [
+    "work",
+    "general",
+    "emotions"
+  ],
+  "pii": [
+    {
+      "type": "BOSS_NAME",
+      "text": "Mario Long",
+      "start_char": 96,
+      "end_char": 106
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Weaver, Erickson and Johnson",
+      "start_char": 112,
+      "end_char": 140
+    }
+  ],
+  "summary": "The writer received an offer of employment from Mario Long after their internship, and they are re-examining the conversation to gauge their reactions. The writer acknowledges that social interactions can be difficult for them, suggesting a potential factor in their response to the job offer.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

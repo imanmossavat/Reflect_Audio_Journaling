@@ -1,0 +1,38 @@
+{
+  "persona_id": 1,
+  "persona_code": "mila_v",
+  "persona_name": "Mila",
+  "persona_age": 20,
+  "neurotype": "ASD + High Anxiety",
+  "entry_index": 12,
+  "transcript": "Dear Journal,\n\nI am sitting in my small apartment, surrounded by the familiar comforts of home. The soft hum of the refrigerator and the gentle glow of the evening lights create a sense of security that I've been craving all day. Today was a day I can almost breathe again.\n\nThis morning, Phillip Jackson informed me that I had secured an internship at Barnes-Peters. The news sent a wave of relief crashing over me, followed by a tidal wave of gratitude. I hope that makes sense, but it's hard to put into words the mix of emotions I'm feeling right now. My mind is still racing with thoughts of what this means for my future and how I can prove myself in this new role.\n\nAfter the meeting, David came over and asked if he could stay for dinner. We ordered takeout from our favorite Chinese place, and as we sat on the couch, watching the news together, I felt a sense of calm wash over me. Christopher called earlier, checking in to see how I was doing after today's events. His reassuring voice and words of encouragement made me feel seen and heard.\n\nAs I look around my apartment, I'm reminded that this is where I feel most at home – surrounded by the comforts of familiar things, with people who care about me. I hope that makes sense. I keep replaying the conversation with Phillip in my head, wondering if I said everything correctly and if they'll expect too much from me. But for now, I'm going to try to let go of those worries and focus on this new opportunity.\n\nI need to remind myself that I am capable of doing this. I have been preparing for this moment for months, and it's time to trust in my abilities. David reminded me earlier today that I'm strong and competent – words I've been telling myself for years but often forget.\n\nAs the evening wears on, I'll try to push aside the lingering doubts and focus on the excitement that comes with this new chapter. Tomorrow will bring its own set of challenges, but for now, I'm just going to savor this feeling of relief and gratitude.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "work",
+      "text": "Dear Journal,\n\nI am sitting in my small apartment, surrounded by the familiar comforts of home. The soft hum of the refrigerator and the gentle glow of the evening lights create a sense of security that I've been craving all day. Today was a day I can almost breathe again.\n\nThis morning, Phillip Jackson informed me that I had secured an internship at Barnes-Peters. The news sent a wave of relief crashing over me, followed by a tidal wave of gratitude. I hope that makes sense, but it's hard to put into words the mix of emotions I'm feeling right now. My mind is still racing with thoughts of what this means for my future and how I can prove myself in this new role.\n\nAfter the meeting, David came over and asked if he could stay for dinner. We ordered takeout from our favorite Chinese place, and as we sat on the couch, watching the news together, I felt a sense of calm wash over me. Christopher called earlier, checking in to see how I was doing after today's events. His reassuring voice and words of encouragement made me feel seen and heard.\n\nAs I look around my apartment, I'm reminded that this is where I feel most at home – surrounded by the comforts of familiar things, with people who care about me. I hope that makes sense. I keep replaying the conversation with Phillip in my head, wondering if I said everything correctly and if they'll expect too much from me. But for now, I'm going to try to let go of those worries and focus on this new opportunity.\n\nI need to remind myself that I am capable of doing this. I have been preparing for this moment for months, and it's time to trust in my abilities. David reminded me earlier today that I'm strong and competent – words I've been telling myself for years but often forget.\n\nAs the evening wears on, I'll try to push aside the lingering doubts and focus on the excitement that comes with this new chapter. Tomorrow will bring its own set of challenges, but for now, I'm just going to savor this feeling of relief and gratitude.",
+      "start_char": 0,
+      "end_char": 1999
+    }
+  ],
+  "topics": [
+    "social interaction",
+    "work"
+  ],
+  "pii": [
+    {
+      "type": "BOSS_NAME",
+      "text": "Phillip Jackson",
+      "start_char": 289,
+      "end_char": 304
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Barnes-Peters",
+      "start_char": 353,
+      "end_char": 366
+    }
+  ],
+  "summary": "Here is a concise and emotionally aware summary of the journal entry:\n\nThe writer feels an overwhelming sense of relief and gratitude after securing an internship at Barnes-Peters, surrounded by loved ones who offer reassurance and support. For now, they're choosing to let go of doubts and savor this feeling of hope and excitement for their future.",
+  "arc_stage": "Stage 2 – Relief & gratitude: she finally gets an internship, feels intense relief and loyalty, wants to earn her place."
+}

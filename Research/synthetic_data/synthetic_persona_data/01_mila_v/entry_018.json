@@ -1,0 +1,56 @@
+{
+  "persona_id": 1,
+  "persona_code": "mila_v",
+  "persona_name": "Mila",
+  "persona_age": 20,
+  "neurotype": "ASD + High Anxiety",
+  "entry_index": 18,
+  "transcript": "Dear Journal,\n\nI am sitting in my small apartment, surrounded by the familiar comforts of home. The soft glow of the evening light casts a gentle warmth on my skin, a stark contrast to the overwhelming brightness I often experience outdoors. Today was one of those days where anxiety crept in like a persistent whisper in my ear. I fear that I won't meet expectations, that I'll falter under the weight of academic pressures.\n\nAs I reflect on today's events, I realize that my worries were centered around an upcoming school presentation. The thought of speaking in front of my peers and professor, Phillip Jackson, made my stomach twist into knots. But, as I sat in our team meeting at Barnes-Peters, discussing strategies for the presentation, I began to feel a sense of reassurance. Christopher Cordova, my close friend, offered words of encouragement, reminding me that I've prepared well and will do my best.\n\nI hope that makes sense, Journal. It's easy to get caught up in catastrophic thinking, but I'm trying to reframe my thoughts. My anxiety often manifests as repetition – I find myself repeating phrases like \"what if\" or \"but what if\" over and over. Today, I made a conscious effort to counter those thoughts with more constructive affirmations. David Schmidt's words of support also helped me feel more grounded.\n\nAs I look around my apartment, I'm reminded that this is where I feel most at ease – among familiar objects and comforting routines. Curtis Torres, my mother, often tells me to take care of myself and prioritize self-worth. I know she means it as a gentle reminder, but sometimes her words feel like a lifeline, pulling me back from the edge.\n\nI'm not sure if I'm overthinking this, Journal, but I want to acknowledge that even in moments of anxiety, there is always room for growth. Today, I recognized small wins – not necessarily grand achievements, but subtle steps forward. Perhaps it's the quiet pride I feel when acknowledging those tiny successes? I hope that makes sense.\n\nI'll continue to work on navigating my anxiety, one incremental step at a time.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "anxiety",
+      "text": "Dear Journal,\n\nI am sitting in my small apartment, surrounded by the familiar comforts of home. The soft glow of the evening light casts a gentle warmth on my skin, a stark contrast to the overwhelming brightness I often experience outdoors. Today was one of those days where anxiety crept in like a persistent whisper in my ear. I fear that I won't meet expectations, that I'll falter under the weight of academic pressures.\n\nAs I reflect on today's events, I realize that my worries were centered around an upcoming school presentation. The thought of speaking in front of my peers and professor, Phillip Jackson, made my stomach twist into knots. But, as I sat in our team meeting at Barnes-Peters, discussing strategies for the presentation, I began to feel a sense of reassurance. Christopher Cordova, my close friend, offered words of encouragement, reminding me that I've prepared well and will do my best.\n\nI hope that makes sense, Journal. It's easy to get caught up in catastrophic thinking, but I'm trying to reframe my thoughts. My anxiety often manifests as repetition – I find myself repeating phrases like \"what if\" or \"but what if\" over and over. Today, I made a conscious effort to counter those thoughts with more constructive affirmations. David Schmidt's words of support also helped me feel more grounded.\n\nAs I look around my apartment, I'm reminded that this is where I feel most at ease – among familiar objects and comforting routines. Curtis Torres, my mother, often tells me to take care of myself and prioritize self-worth. I know she means it as a gentle reminder, but sometimes her words feel like a lifeline, pulling me back from the edge.\n\nI'm not sure if I'm overthinking this, Journal, but I want to acknowledge that even in moments of anxiety, there is always room for growth. Today, I recognized small wins – not necessarily grand achievements, but subtle steps forward. Perhaps it's the quiet pride I feel when acknowledging those tiny successes? I hope that makes sense.\n\nI'll continue to work on navigating my anxiety, one incremental step at a time.",
+      "start_char": 0,
+      "end_char": 2089
+    }
+  ],
+  "topics": [
+    "school",
+    "anxiety"
+  ],
+  "pii": [
+    {
+      "type": "PARTNER_NAME",
+      "text": "David Schmidt",
+      "start_char": 1259,
+      "end_char": 1272
+    },
+    {
+      "type": "MOTHER_NAME",
+      "text": "Curtis Torres",
+      "start_char": 1461,
+      "end_char": 1474
+    },
+    {
+      "type": "CLOSE_FRIEND",
+      "text": "Christopher Cordova",
+      "start_char": 786,
+      "end_char": 805
+    },
+    {
+      "type": "BOSS_NAME",
+      "text": "Phillip Jackson",
+      "start_char": 599,
+      "end_char": 614
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Barnes-Peters",
+      "start_char": 687,
+      "end_char": 700
+    }
+  ],
+  "summary": "Here is a summary of the journal entry in 2 concise and emotionally aware sentences:\n\nThe writer reflects on a day where anxiety threatened to overwhelm them, but found comfort in supportive words from friends and self-affirmations. They acknowledge that even in moments of anxiety, there is always room for growth and small victories, which brings them quiet pride and a sense of hope.",
+  "arc_stage": "Stage 3 – Overwhelmed but proud: worries she won't meet expectations, but starts recognizing her growth and small wins."
+}

@@ -1,0 +1,35 @@
+{
+  "persona": "mila_v",
+  "entry_index": 20,
+  "arc_stage": "Stage 3 – Overwhelmed but proud: worries she won't meet expectations, but starts recognizing her growth and small wins.",
+  "transcript": "I have been sitting in my small town apartment for what feels like an eternity, staring at the same four walls as I attempt to process the events that transpired today. The fluorescent light above my desk casts a harsh glare, making my eyes ache. My hands are clenched into fists as I try to organize my thoughts, but my mind is a jumbled mess of emotions. I am not sure where to begin or if I will be able to make sense of it all. As I sit here trying to make sense of it all, my mind keeps wandering back to social interactions. The idea of being around people, of being expected to be \"on\" and friendly, is suffocating me. Every time someone walks into my apartment, I feel like I'm putting on a mask, pretending to be someone I'm not. The noise level in this town can be overwhelming at times, but it's the constant barrage of social cues that really gets to me - the forced smiles, the awkward hellos, the pressure to keep up appearances. Sometimes I just want to retreat into my own little bubble and let people think I'm not here, or worse, that I'm just existing in a perpetual state of discomfort. As I sit here, my mind keeps replaying the conversation with Sarah from earlier today. She asked me if I'd accomplished everything she expected me to by now, and honestly, it stung. For a moment, I felt like I wasn't good enough, like all my hard work was somehow insufficient. But as I thought about our discussion more, I realized that Sarah was just trying to see potential in me, to push me forward. It's funny how sometimes our anxieties can get the better of us, making us question whether we're truly capable.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "social interaction",
+      "sentiment": "negative",
+      "text": "As I sit here trying to make sense of it all, my mind keeps wandering back to social interactions. The idea of being around people, of being expected to be \"on\" and friendly, is suffocating me. Every time someone walks into my apartment, I feel like I'm putting on a mask, pretending to be someone I'm not. The noise level in this town can be overwhelming at times, but it's the constant barrage of social cues that really gets to me - the forced smiles, the awkward hellos, the pressure to keep up appearances. Sometimes I just want to retreat into my own little bubble and let people think I'm not here, or worse, that I'm just existing in a perpetual state of discomfort.",
+      "start_char": 432,
+      "end_char": 1106
+    },
+    {
+      "id": 1,
+      "topic": "anxiety",
+      "sentiment": "negative",
+      "text": "As I sit here, my mind keeps replaying the conversation with Sarah from earlier today. She asked me if I'd accomplished everything she expected me to by now, and honestly, it stung. For a moment, I felt like I wasn't good enough, like all my hard work was somehow insufficient. But as I thought about our discussion more, I realized that Sarah was just trying to see potential in me, to push me forward. It's funny how sometimes our anxieties can get the better of us, making us question whether we're truly capable.",
+      "start_char": 1107,
+      "end_char": 1623
+    }
+  ],
+  "topics": [
+    "social interaction",
+    "anxiety"
+  ],
+  "pii": [],
+  "summary": "The writer feels overwhelmed and suffocated by social interactions in their small town, feeling like they're putting on a mask to fit in. A recent conversation with Sarah made them question their self-worth, but ultimately, they realized that Sarah's intentions were genuine and meant to encourage them, not criticize.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "persona": "mila_v",
+  "entry_index": 2,
+  "arc_stage": "Stage 1 – Desperation & doubt: feels rejected, frustrated, and believes she will never be good enough. No internship yet.",
+  "transcript": "March 15th, 2023\n\nI hope this entry makes sense. Today was a day of unexpected twists and turns. I woke up feeling like I'd been punched in the gut - the anxiety is still settling in. It started with an email from my mentor, Joyce Meyer, informing me that Weaver, Erickson and Johnson had offered me an internship, despite not even reaching out to me after I applied months ago. I'm still trying to process how this happened. Was it a mistake? Am I finally being given a chance? As I read through the offer letter, my mind began racing with questions. What does this mean for my future?.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "anxiety",
+      "sentiment": "negative",
+      "text": "March 15th, 2023\n\nI hope this entry makes sense. Today was a day of unexpected twists and turns. I woke up feeling like I'd been punched in the gut - the anxiety is still settling in.",
+      "start_char": 0,
+      "end_char": 183
+    },
+    {
+      "id": 1,
+      "topic": "work",
+      "sentiment": "negative",
+      "text": "It started with an email from my mentor, Joyce Meyer, informing me that Weaver, Erickson and Johnson had offered me an internship, despite not even reaching out to me after I applied months ago.",
+      "start_char": 184,
+      "end_char": 378
+    },
+    {
+      "id": 2,
+      "topic": "anxiety",
+      "sentiment": "negative",
+      "text": "I'm still trying to process how this happened. Was it a mistake? Am I finally being given a chance? As I read through the offer letter, my mind began racing with questions.",
+      "start_char": 379,
+      "end_char": 551
+    },
+    {
+      "id": 3,
+      "topic": "general",
+      "sentiment": "negative",
+      "text": "What does this mean for my future?.",
+      "start_char": 552,
+      "end_char": 587
+    }
+  ],
+  "topics": [
+    "general",
+    "work",
+    "anxiety"
+  ],
+  "pii": [
+    {
+      "type": "MENTOR_NAME",
+      "text": "Joyce Meyer",
+      "start_char": 225,
+      "end_char": 236
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Weaver, Erickson and Johnson",
+      "start_char": 256,
+      "end_char": 284
+    }
+  ],
+  "summary": "The writer was surprised and anxious when they received an email from their mentor, Joyce Meyer, informing them that three prominent organizations had offered them an internship after months of inactivity. The writer is still trying to process the unexpected turn of events and its implications for their future.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

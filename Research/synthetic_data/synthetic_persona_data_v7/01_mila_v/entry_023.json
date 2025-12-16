@@ -1,0 +1,35 @@
+{
+  "persona": "mila_v",
+  "entry_index": 23,
+  "arc_stage": "Stage 4 – Shock at job offer: receives a job offer from the internship, feels joy + fear + imposter syndrome.",
+  "transcript": "I have been sitting in my small town apartment for what feels like an eternity, surrounded by the same four walls that have witnessed my daily routines. Today, I find myself ensconced in this modest abode, the familiar yet unyielding boundaries closing in on me as I attempt to process the events that transpired earlier. The fluorescent lights overhead seem to be shining with an intensity that is overwhelming, making it difficult for me to focus. I am not sure if my hands are shaking due to excitement or anxiety. I hope this makes sense - I'm trying to recount the sequence of events in a logical manner. As I sit here, trying to wrap my head around the fact that I'm going to be leaving for a city, for an internship, for a whole new world of experiences, I can feel my anxiety spiking. The thought of being so far away from home, surrounded by strangers, and navigating a completely different social dynamic is terrifying. My mind keeps wandering back to all the things that could go wrong - what if I get lost on the way to class? What if I forget how to use the public transportation system? What if everyone expects me to be \"networking\" all the time and I just end up feeling like a fake? The more I think about it, the more my stomach feels like it's in knots. As I sit here, trying to wrap my head around the fact that I'm actually going to be interning at a prestigious company, my mind keeps wandering back to all the \"what ifs.\" What if I'm not qualified enough? What if I mess up and get fired on the first day? The more I think about it, the more my anxiety seems to seep in through every pore. My heart is still racing from the excitement of receiving the job offer, but now I feel like I'm running on a treadmill with no clear destination in sight. Every time I try to calm myself down, I can feel my breathing quickening, and my thoughts start to spiral out of control again. The fluorescent lights above me seem to be mocking me, their harsh glare only adding to the sense of overwhelm that's already washing over me.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "school",
+      "sentiment": "negative",
+      "text": "As I sit here, trying to wrap my head around the fact that I'm going to be leaving for a city, for an internship, for a whole new world of experiences, I can feel my anxiety spiking. The thought of being so far away from home, surrounded by strangers, and navigating a completely different social dynamic is terrifying. My mind keeps wandering back to all the things that could go wrong - what if I get lost on the way to class? What if I forget how to use the public transportation system? What if everyone expects me to be \"networking\" all the time and I just end up feeling like a fake? The more I think about it, the more my stomach feels like it's in knots.",
+      "start_char": 610,
+      "end_char": 1272
+    },
+    {
+      "id": 1,
+      "topic": "internship",
+      "sentiment": "negative",
+      "text": "As I sit here, trying to wrap my head around the fact that I'm actually going to be interning at a prestigious company, my mind keeps wandering back to all the \"what ifs.\" What if I'm not qualified enough? What if I mess up and get fired on the first day? The more I think about it, the more my anxiety seems to seep in through every pore. My heart is still racing from the excitement of receiving the job offer, but now I feel like I'm running on a treadmill with no clear destination in sight. Every time I try to calm myself down, I can feel my breathing quickening, and my thoughts start to spiral out of control again. The fluorescent lights above me seem to be mocking me, their harsh glare only adding to the sense of overwhelm that's already washing over me.",
+      "start_char": 1273,
+      "end_char": 2039
+    }
+  ],
+  "topics": [
+    "school",
+    "internship"
+  ],
+  "pii": [],
+  "summary": "Here is a summary in 1-2 sentences:\n\nThe writer is struggling with anxiety and uncertainty as they prepare to leave their small town for an internship in a new city, fearing unfamiliar surroundings, social pressures, and the possibility of failure or not being qualified enough. Their mind is racing with \"what ifs\" and worst-case scenarios, making it difficult for them to calm down and focus on the excitement and opportunities ahead.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

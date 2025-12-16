@@ -1,0 +1,51 @@
+{
+  "persona": "mila_v",
+  "entry_index": 7,
+  "arc_stage": "Stage 1 – Desperation & doubt: feels rejected, frustrated, and believes she will never be good enough. No internship yet.",
+  "transcript": "Today's reflection began with an overwhelming sense of dread as I stared blankly at my computer screen, the fluorescent lights above casting harsh shadows on the walls. The hum of the machines and the soft chatter of my roommate in the next room created a cacophony that made it difficult for me to focus. I've been staring at this screen for what feels like an eternity, and yet, I still haven't cracked the code on my project. I think about how desperate I was when Tamara told me she had secured an internship at Douglas Inc., and now it seems as though I'm no closer to securing one myself. The more I research, the more anxious I become. Will I be good enough? Will they accept me? I've always been perfectionistic, but this is different. This feels like a matter of survival. Lisa Clark told me that my portfolio would speak for itself, but what if it doesn't? What if I'm just not good enough? I keep replaying all the times I failed in design class or when Cynthia asked me to help with her project. I hope that makes sense. I'm not sure if I'm overthinking this, but the thought of rejection keeps creeping into my mind. It's almost as though I'm stuck in a never-ending loop of self-doubt. I try to remind myself that it's normal to feel this way, especially with all the pressure to succeed. Dawn Taylor called me earlier today and offered me a job at Douglas Inc. I couldn't believe it. A job offer? Me? It feels surreal. But what if it's just a dream? What if they're just being polite? I need to take a deep breath and try to calm down. I'll review my portfolio again, make some adjustments, and then reach out to Tamara for advice. She always knows what to say. I'm not sure if I'm ready for this yet, but I know I have to try. As I close this entry, the lights in my room seem even harsher, and the sounds of the city outside feel more overwhelming. But I'll face it head-on tomorrow. I will not let anxiety get the best of me.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "general",
+      "sentiment": "neutral",
+      "text": "Today's reflection began with an overwhelming sense of dread as I stared blankly at my computer screen, the fluorescent lights above casting harsh shadows on the walls. The hum of the machines and the soft chatter of my roommate in the next room created a cacophony that made it difficult for me to focus. I've been staring at this screen for what feels like an eternity, and yet, I still haven't cracked the code on my project. I think about how desperate I was when Tamara told me she had secured an internship at Douglas Inc., and now it seems as though I'm no closer to securing one myself. The more I research, the more anxious I become. Will I be good enough? Will they accept me? I've always been perfectionistic, but this is different. This feels like a matter of survival. Lisa Clark told me that my portfolio would speak for itself, but what if it doesn't? What if I'm just not good enough? I keep replaying all the times I failed in design class or when Cynthia asked me to help with her project. I hope that makes sense. I'm not sure if I'm overthinking this, but the thought of rejection keeps creeping into my mind. It's almost as though I'm stuck in a never-ending loop of self-doubt. I try to remind myself that it's normal to feel this way, especially with all the pressure to succeed. Dawn Taylor called me earlier today and offered me a job at Douglas Inc. I couldn't believe it. A job offer? Me? It feels surreal. But what if it's just a dream? What if they're just being polite? I need to take a deep breath and try to calm down. I'll review my portfolio again, make some adjustments, and then reach out to Tamara for advice. She always knows what to say. I'm not sure if I'm ready for this yet, but I know I have to try. As I close this entry, the lights in my room seem even harsher, and the sounds of the city outside feel more overwhelming. But I'll face it head-on tomorrow. I will not let anxiety get the best of me.",
+      "start_char": 0,
+      "end_char": 1943
+    }
+  ],
+  "topics": [
+    "general"
+  ],
+  "pii": [
+    {
+      "type": "MENTOR_NAME",
+      "text": "Lisa Clark",
+      "start_char": 782,
+      "end_char": 792
+    },
+    {
+      "type": "BOSS_NAME",
+      "text": "Dawn Taylor",
+      "start_char": 1303,
+      "end_char": 1314
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Douglas Inc",
+      "start_char": 516,
+      "end_char": 527
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Douglas Inc",
+      "start_char": 1363,
+      "end_char": 1374
+    }
+  ],
+  "summary": "The writer is struggling with self-doubt and anxiety as they prepare for a potential job interview at Douglas Inc., fearing that their portfolio and skills may not be enough to secure an internship or full-time position. Despite feeling overwhelmed, they've just received a surprise job offer from Dawn Taylor and are trying to calm their nerves and take action by reviewing their portfolio and seeking advice from Tamara.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

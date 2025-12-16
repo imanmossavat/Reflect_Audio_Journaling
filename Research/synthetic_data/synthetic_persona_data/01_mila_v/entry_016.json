@@ -1,0 +1,38 @@
+{
+  "persona_id": 1,
+  "persona_code": "mila_v",
+  "persona_name": "Mila",
+  "persona_age": 20,
+  "neurotype": "ASD + High Anxiety",
+  "entry_index": 16,
+  "transcript": "Dear Journal,\n\nI am sitting in my small apartment, surrounded by the familiar comforts of home. The morning light streams through the window, casting a warm glow on the walls. I try to focus on it, but my mind keeps wandering back to work. Today is the day I meet with Phillip Jackson about my internship. I've been rehearsing what to say in front of the mirror for hours, but I still feel like I'm going to mess up.\n\nI hope that makes sense. My heart is racing just thinking about it. What if I don't impress him? What if I stumble over my words? Curtis always says I have nothing to be nervous about, but what if she's wrong? I am not sure if I'm overthinking. \n\nI've been working hard at Barnes-Peters, trying to prove myself as a capable employee. Christopher has been a huge help, offering advice and support whenever I need it. But even with his encouragement, I still feel like I'm stuck in limbo, unsure of my place in the company.\n\nDavid's email arrived this morning, reminding me that he's thinking of me during this stressful time. His words were kind and reassuring, as always. I feel grateful for him, but also a little guilty - how can I expect to be understood by someone who's not constantly bombarded with the chaos of my mind?\n\nThe noise outside is starting to get to me. Cars driving by on Davis Knoll are creating an almost deafening hum. I need to take some deep breaths and remind myself that I've got this. I just need to stay present and focus on one task at a time.\n\nPhillip's office seems so... calm, compared to my own anxious thoughts. Is it possible to make myself feel more like him?",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "anxiety",
+      "text": "Dear Journal,\n\nI am sitting in my small apartment, surrounded by the familiar comforts of home. The morning light streams through the window, casting a warm glow on the walls. I try to focus on it, but my mind keeps wandering back to work. Today is the day I meet with Phillip Jackson about my internship. I've been rehearsing what to say in front of the mirror for hours, but I still feel like I'm going to mess up.\n\nI hope that makes sense. My heart is racing just thinking about it. What if I don't impress him? What if I stumble over my words? Curtis always says I have nothing to be nervous about, but what if she's wrong? I am not sure if I'm overthinking. \n\nI've been working hard at Barnes-Peters, trying to prove myself as a capable employee. Christopher has been a huge help, offering advice and support whenever I need it. But even with his encouragement, I still feel like I'm stuck in limbo, unsure of my place in the company.\n\nDavid's email arrived this morning, reminding me that he's thinking of me during this stressful time. His words were kind and reassuring, as always. I feel grateful for him, but also a little guilty - how can I expect to be understood by someone who's not constantly bombarded with the chaos of my mind?\n\nThe noise outside is starting to get to me. Cars driving by on Davis Knoll are creating an almost deafening hum. I need to take some deep breaths and remind myself that I've got this. I just need to stay present and focus on one task at a time.\n\nPhillip's office seems so... calm, compared to my own anxious thoughts. Is it possible to make myself feel more like him?",
+      "start_char": 0,
+      "end_char": 1613
+    }
+  ],
+  "topics": [
+    "anxiety",
+    "work"
+  ],
+  "pii": [
+    {
+      "type": "BOSS_NAME",
+      "text": "Phillip Jackson",
+      "start_char": 269,
+      "end_char": 284
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Barnes-Peters",
+      "start_char": 691,
+      "end_char": 704
+    }
+  ],
+  "summary": "This writer is struggling with anxiety and self-doubt as they prepare for an important meeting at work, questioning their abilities and fearing that others may not understand them. Despite receiving encouragement from loved ones, they're left feeling uncertain and overwhelmed.",
+  "arc_stage": "Stage 3 – Overwhelmed but proud: worries she won't meet expectations, but starts recognizing her growth and small wins."
+}

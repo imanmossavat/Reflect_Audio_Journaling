@@ -1,0 +1,60 @@
+{
+  "persona": "mila_v",
+  "entry_index": 1,
+  "arc_stage": "Stage 1 – Desperation & doubt: feels rejected, frustrated, and believes she will never be good enough. No internship yet.",
+  "transcript": "The anticipation has been overwhelming at times, and my anxiety has been running high. What if I am not good enough? What if I am rejected again? These thoughts have been lingering in the back of my mind for weeks now. I couldn't believe it. All my hard work, all my dedication, had paid off. The email read: \"We are pleased to inform you that you have been selected for the internship...\". My mentor, Angel James, has been a constant source of support and guidance throughout this process. I hope that makes sense. I'm not sure if I'm overthinking this. I'm trying not to overthink this too much. I've worked hard to get here. I just need to focus on the task at hand and trust that I'll do well. Cautiously optimistic?.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "anxiety",
+      "sentiment": "negative",
+      "text": "The anticipation has been overwhelming at times, and my anxiety has been running high. What if I am not good enough? What if I am rejected again? These thoughts have been lingering in the back of my mind for weeks now.",
+      "start_char": 0,
+      "end_char": 218
+    },
+    {
+      "id": 1,
+      "topic": "work/internship",
+      "sentiment": "positive",
+      "text": "I couldn't believe it. All my hard work, all my dedication, had paid off. The email read: \"We are pleased to inform you that you have been selected for the internship...\".",
+      "start_char": 219,
+      "end_char": 390
+    },
+    {
+      "id": 2,
+      "topic": "identity/success",
+      "sentiment": "neutral",
+      "text": "My mentor, Angel James, has been a constant source of support and guidance throughout this process. I hope that makes sense. I'm not sure if I'm overthinking this.",
+      "start_char": 391,
+      "end_char": 554
+    },
+    {
+      "id": 3,
+      "topic": "anxiety/acceptance",
+      "sentiment": "positive",
+      "text": "I'm trying not to overthink this too much. I've worked hard to get here. I just need to focus on the task at hand and trust that I'll do well. Cautiously optimistic?.",
+      "start_char": 555,
+      "end_char": 721
+    }
+  ],
+  "topics": [
+    "anxiety/acceptance",
+    "identity/success",
+    "anxiety",
+    "work/internship"
+  ],
+  "pii": [
+    {
+      "type": "MENTOR_NAME",
+      "text": "Angel James",
+      "start_char": 402,
+      "end_char": 413
+    }
+  ],
+  "summary": "The writer of the journal entry has been anxiously waiting for the outcome of an internship application process, but has finally received the news they had been hoping for: they have been selected for the internship. Despite initial worries about being \"good enough,\" they are now feeling cautiously optimistic and focused on making the most of this new opportunity.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "persona": "mila_v",
+  "entry_index": 5,
+  "arc_stage": "Stage 1 – Desperation & doubt: feels rejected, frustrated, and believes she will never be good enough. No internship yet.",
+  "transcript": "I stared blankly at my computer screen, the fluorescent lights above casting harsh shadows on the walls. My heart was racing with dread, and I couldn't shake off the feeling of rejection that had been plaguing me for weeks. I've applied to so many internships, but none have responded yet. I'm starting to lose hope. I took a few deep breaths, trying to calm myself down. I reminded myself that it's okay to make mistakes and that this is all part of the learning process. I repeated my mantra: \"I am capable, I am worthy.\" But the doubts lingered. As I began to work on my latest project, I couldn't help but think about what I could've done differently. What if I had applied more times? What if I had tailored my portfolio better? The what-ifs swirled in my head, making it hard to focus. Just then, Tamara sent me a text message - \"Hey, how's it going?\" Her words of encouragement always manage to lift my spirits. I typed out a quick response: \"Not great, but trying to stay positive.\" She replied with a series of emojis and a gentle reminder that I'm doing better than I think. I smiled slightly as I read her message. Cynthia would be proud of me for facing my fears head-on. And Tamara's words of encouragement made sense - I am capable, I am worthy. But what if it's just not enough? The thoughts swirled back in, and I found myself needing a reassurance: \"I'm doing okay, I think.\".",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "general",
+      "sentiment": "neutral",
+      "text": "I stared blankly at my computer screen, the fluorescent lights above casting harsh shadows on the walls. My heart was racing with dread, and I couldn't shake off the feeling of rejection that had been plaguing me for weeks. I've applied to so many internships, but none have responded yet. I'm starting to lose hope. I took a few deep breaths, trying to calm myself down. I reminded myself that it's okay to make mistakes and that this is all part of the learning process. I repeated my mantra: \"I am capable, I am worthy.\" But the doubts lingered. As I began to work on my latest project, I couldn't help but think about what I could've done differently. What if I had applied more times? What if I had tailored my portfolio better? The what-ifs swirled in my head, making it hard to focus. Just then, Tamara sent me a text message - \"Hey, how's it going?\" Her words of encouragement always manage to lift my spirits. I typed out a quick response: \"Not great, but trying to stay positive.\" She replied with a series of emojis and a gentle reminder that I'm doing better than I think. I smiled slightly as I read her message. Cynthia would be proud of me for facing my fears head-on. And Tamara's words of encouragement made sense - I am capable, I am worthy. But what if it's just not enough? The thoughts swirled back in, and I found myself needing a reassurance: \"I'm doing okay, I think.\".",
+      "start_char": 0,
+      "end_char": 1393
+    }
+  ],
+  "topics": [
+    "general"
+  ],
+  "pii": [],
+  "summary": "The author is struggling with rejection and self-doubt after multiple internship applications have gone unresponsive, but receives words of encouragement from friend Tamara, which helps to lift their spirits. Despite the doubts, the author finds temporary comfort in affirming their own capabilities and worthiness.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

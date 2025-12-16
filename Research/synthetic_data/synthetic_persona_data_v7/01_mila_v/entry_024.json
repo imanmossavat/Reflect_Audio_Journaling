@@ -1,0 +1,26 @@
+{
+  "persona": "mila_v",
+  "entry_index": 24,
+  "arc_stage": "Stage 4 – Shock at job offer: receives a job offer from the internship, feels joy + fear + imposter syndrome.",
+  "transcript": "Today, I find myself ensconced in my modest abode, surrounded by familiar yet unyielding walls that seem to close in on me as I struggle to comprehend the events that have transpired. The fluorescent lights above my desk appear harsh and unforgiving, casting an unwelcome glare on the stack of papers in front of me. I've been sitting for what feels like an eternity, staring blankly at the same four walls, attempting to process the magnitude of what has occurred. The initial rush of excitement from receiving a job offer has given way to an overwhelming sense of trepidation and self-doubt. I hope that makes sense - I'm still trying to reconcile the circumstances with my own understanding of reality. As I sit here, surrounded by the same four walls that have been my constant companion for so long, I find myself questioning what it means to be worthy. What does it even mean to be me? The job offer has brought a whirlwind of emotions, but beneath all the excitement and fear, I'm left wondering if I'm good enough. Is this just another example of my own self-doubt and anxiety getting the better of me? The fluorescent lights above my desk seem to pulse with an intensity that mirrors the turmoil brewing inside me. Every so often, a stray thought will wander into my mind, only to be swiftly silenced by the nagging voice of \"you're not good enough\".",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "self-worth",
+      "sentiment": "negative",
+      "text": "As I sit here, surrounded by the same four walls that have been my constant companion for so long, I find myself questioning what it means to be worthy. What does it even mean to be me? The job offer has brought a whirlwind of emotions, but beneath all the excitement and fear, I'm left wondering if I'm good enough. Is this just another example of my own self-doubt and anxiety getting the better of me? The fluorescent lights above my desk seem to pulse with an intensity that mirrors the turmoil brewing inside me. Every so often, a stray thought will wander into my mind, only to be swiftly silenced by the nagging voice of \"you're not good enough\".",
+      "start_char": 706,
+      "end_char": 1359
+    }
+  ],
+  "topics": [
+    "self-worth"
+  ],
+  "pii": [],
+  "summary": "The author is struggling to come to terms with receiving a job offer, feeling overwhelmed by excitement and trepidation about their future. As they sit in solitude, surrounded by familiar surroundings that now feel suffocating, they question their own worthiness and self-doubt threatens to consume them.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

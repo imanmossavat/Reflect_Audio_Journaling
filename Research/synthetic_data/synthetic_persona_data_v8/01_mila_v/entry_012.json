@@ -1,0 +1,35 @@
+{
+  "persona": "mila_v",
+  "entry_index": 12,
+  "arc_stage": "Stage 2 – Relief & gratitude: she finally gets an internship, feels intense relief and loyalty, wants to earn her place.",
+  "transcript": "Relief and loyalty washed over me like a warm bath, soothing my anxious mind. Getting that internship feels like a validation of all my hard work, a proof that I'm worthy of opportunities. But what's really got me thinking now is how I'll navigate social interactions during this new chapter. My brain gets tangled up just thinking about it - small talk, meetings, networking events... the possibilities feel overwhelming. What if I stumble over words? Or worse, accidentally offend someone? The worry is making my stomach twist into knots, and I can almost smell the anxiety's familiar scent. Anxiety's familiar tug on my mind still lingers, a constant companion I've grown accustomed to. Today's news about the internship has momentarily silenced its whispers, and for that, I'm grateful. But the relief is tempered by the knowledge that this too will pass, and I'll be back in its grasp. The thought sends a flutter through my chest, making my breathing quicken ever so slightly. It's as if my body is saying, \"Congratulations, Mila, you've earned some respite, but don't get too comfortable.\" I try to shake off the feeling, focusing on the sense of accomplishment that's still fresh and exhilarating.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "social interaction",
+      "sentiment": "negative",
+      "text": "Relief and loyalty washed over me like a warm bath, soothing my anxious mind. Getting that internship feels like a validation of all my hard work, a proof that I'm worthy of opportunities. But what's really got me thinking now is how I'll navigate social interactions during this new chapter. My brain gets tangled up just thinking about it - small talk, meetings, networking events... the possibilities feel overwhelming. What if I stumble over words? Or worse, accidentally offend someone? The worry is making my stomach twist into knots, and I can almost smell the anxiety's familiar scent.",
+      "start_char": 0,
+      "end_char": 593
+    },
+    {
+      "id": 1,
+      "topic": "anxiety",
+      "sentiment": "negative",
+      "text": "Anxiety's familiar tug on my mind still lingers, a constant companion I've grown accustomed to. Today's news about the internship has momentarily silenced its whispers, and for that, I'm grateful. But the relief is tempered by the knowledge that this too will pass, and I'll be back in its grasp. The thought sends a flutter through my chest, making my breathing quicken ever so slightly. It's as if my body is saying, \"Congratulations, Mila, you've earned some respite, but don't get too comfortable.\" I try to shake off the feeling, focusing on the sense of accomplishment that's still fresh and exhilarating.",
+      "start_char": 594,
+      "end_char": 1205
+    }
+  ],
+  "topics": [
+    "social interaction",
+    "anxiety"
+  ],
+  "pii": [],
+  "summary": "Here is a summary of the journal entry in 1-2 sentences:\n\nMila feels a mix of relief and anxiety as she processes her acceptance into an internship, knowing that the validation brings new challenges and uncertainties about navigating social interactions. Despite feeling overwhelmed by these concerns, she tries to focus on the sense of accomplishment and the temporary reprieve from anxiety's grip.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

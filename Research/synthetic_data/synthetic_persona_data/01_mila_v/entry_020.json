@@ -1,0 +1,44 @@
+{
+  "persona_id": 1,
+  "persona_code": "mila_v",
+  "persona_name": "Mila",
+  "persona_age": 20,
+  "neurotype": "ASD + High Anxiety",
+  "entry_index": 20,
+  "transcript": "Dear Journal,\n\nI am sitting in my small apartment, surrounded by the familiar comforts of home. The sunlight filters through the blinds, casting an unfamiliar glow on the walls. I prefer it when the light is softer, but today it seems too bright. My eyes feel dry and tired from squinting at it.\n\nI think about tomorrow's meeting with Phillip Jackson at Barnes-Peters. I have been preparing for weeks, making sure my notes are organized and my presentation is polished. But what if I forget something important? What if I stumble over words in front of everyone? My mind starts to spiral with worst-case scenarios.\n\nI hope that makes sense. I'm trying to rationalize these thoughts, but it's hard when anxiety seeps into every corner of my brain. Christopher Cordova told me the other day that I need to focus on my strengths, not my weaknesses. Easier said than done, right? But he's right. I do have good ideas and skills. It's just that social interactions make me feel...off.\n\nI'm not sure if I'm overthinking this. Maybe I am. David reminded me the other day that it's okay to be nervous; it means I care about what I'm doing. That sounds like a reassuring phrase, but is it enough to calm my nerves? I think back to our conversation and try to recall the words he spoke: \"You're capable, and you'll figure it out.\" He has a way of making me feel more grounded.\n\nI glance around my apartment, feeling grateful for this sanctuary. It's where I can escape the overwhelming thoughts that plague me. But even here, I sense the pressure to perform. To be productive and focused, even when all I want to do is curl up with a book or watch the sunlight dance on the walls.\n\nI'll try to balance these opposing desires. Tomorrow, I'll take a deep breath and remind myself of my strengths. And if I stumble, I'll laugh it off and learn from my mistakes. That's what Christopher said, after all.\n\nYours truly,\nA cautious optimist",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "social interaction",
+      "text": "Dear Journal,\n\nI am sitting in my small apartment, surrounded by the familiar comforts of home. The sunlight filters through the blinds, casting an unfamiliar glow on the walls. I prefer it when the light is softer, but today it seems too bright. My eyes feel dry and tired from squinting at it.\n\nI think about tomorrow's meeting with Phillip Jackson at Barnes-Peters. I have been preparing for weeks, making sure my notes are organized and my presentation is polished. But what if I forget something important? What if I stumble over words in front of everyone? My mind starts to spiral with worst-case scenarios.\n\nI hope that makes sense. I'm trying to rationalize these thoughts, but it's hard when anxiety seeps into every corner of my brain. Christopher Cordova told me the other day that I need to focus on my strengths, not my weaknesses. Easier said than done, right? But he's right. I do have good ideas and skills. It's just that social interactions make me feel...off.\n\nI'm not sure if I'm overthinking this. Maybe I am. David reminded me the other day that it's okay to be nervous; it means I care about what I'm doing. That sounds like a reassuring phrase, but is it enough to calm my nerves? I think back to our conversation and try to recall the words he spoke: \"You're capable, and you'll figure it out.\" He has a way of making me feel more grounded.\n\nI glance around my apartment, feeling grateful for this sanctuary. It's where I can escape the overwhelming thoughts that plague me. But even here, I sense the pressure to perform. To be productive and focused, even when all I want to do is curl up with a book or watch the sunlight dance on the walls.\n\nI'll try to balance these opposing desires. Tomorrow, I'll take a deep breath and remind myself of my strengths. And if I stumble, I'll laugh it off and learn from my mistakes. That's what Christopher said, after all.\n\nYours truly,\nA cautious optimist",
+      "start_char": 0,
+      "end_char": 1923
+    }
+  ],
+  "topics": [
+    "social interaction",
+    "anxiety"
+  ],
+  "pii": [
+    {
+      "type": "CLOSE_FRIEND",
+      "text": "Christopher Cordova",
+      "start_char": 747,
+      "end_char": 766
+    },
+    {
+      "type": "BOSS_NAME",
+      "text": "Phillip Jackson",
+      "start_char": 335,
+      "end_char": 350
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Barnes-Peters",
+      "start_char": 354,
+      "end_char": 367
+    }
+  ],
+  "summary": "Here is a summary of the journal entry in 1-2 concise, emotionally aware sentences:\n\nThis writer is struggling with pre-meeting anxiety, feeling overwhelmed by the pressure to perform and uncertain about their abilities. Despite rationalizing thoughts and recalling words of encouragement from loved ones, they're left with a sense of vulnerability and self-doubt that threatens to disrupt their calm sanctuary.",
+  "arc_stage": "Stage 3 – Overwhelmed but proud: worries she won't meet expectations, but starts recognizing her growth and small wins."
+}
