@@ -25,7 +25,7 @@ class PIIDetector:
         text = transcript.text
         findings = []
 
-        # --- Regex-based detection ---
+        # --- Regex-based detection --- #
         for label, pattern in self.patterns.items():
             for match in re.finditer(pattern, text):
                 findings.append(
@@ -38,7 +38,7 @@ class PIIDetector:
                     )
                 )
 
-        # --- spaCy NER-based detection ---
+        # --- spaCy NER-based detection --- #
         doc = self.nlp(text)
         for ent in doc.ents:
             if ent.label_ in ["PERSON", "GPE", "ORG", "LOC", "DATE", "MONEY"]:
@@ -52,7 +52,7 @@ class PIIDetector:
                     )
                 )
 
-        # --- Deduplicate overlapping entities ---
+        # --- Deduplicate overlapping entities --- #
         unique = []
         seen = set()
         for f in findings:

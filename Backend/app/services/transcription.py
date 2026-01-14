@@ -5,6 +5,7 @@ import whisperx
 
 from app.domain.models import Transcript
 from app.core.config import settings
+
 DEVICE = "cpu"
 BATCH_SIZE = 16
 COMPUTE_TYPE = "float32"
@@ -20,7 +21,7 @@ class TranscriptionManager:
         self.compute_type = settings.COMPUTE_TYPE
         self.sample_rate = settings.SAMPLE_RATE
 
-        print(f"[TranscriptionManager] Loading WhisperX ({self.model_size}) on {self.device}...")
+        print(f"[TranscriptionManager] Loading WhisperX ( {self.model_size} ) on {self.device}...")
         self.asr_model = whisperx.load_model(
             self.model_size,
             device=self.device,
@@ -47,7 +48,7 @@ class TranscriptionManager:
         result = self.asr_model.transcribe(audio)
         print(f"[TranscriptionManager] Raw transcription done in {time.time() - start_time:.2f}s")
 
-        # Adjust alignment language if needed
+        # Adjust language if needed
         if result["language"] != self.align_metadata["language"]:
             self.alignment_model, self.align_metadata = whisperx.load_align_model(
                 language_code=result["language"], device=self.device
@@ -69,13 +70,18 @@ class TranscriptionManager:
 
     # ---------------- HELPER METHODS ---------------- #
 
-    def _load_audio_ffmpeg(self, path: str, sr: int = 16000) -> np.ndarray:
+    @staticmethod
+    def _load_audio_ffmpeg(path: str, sr: int = 16000) -> np.ndarray:
         cmd = ["ffmpeg", "-i", path, "-f", "s16le", "-ac", "1", "-ar", str(sr), "-"]
-        out = subprocess.run(cmd, capture_output=True, check=True).stdout
-        audio = np.frombuffer(out, np.int16).astype(np.float32) / 32768.0
-        return audio
+        try:
+            out = subprocess.run(cmd, capture_output=True, check=True).stdout
+            audio = np.frombuffer(out, np.int16).astype(np.float32) / 32768.0
+            return audio
+        except FileNotFoundError:
+            raise RuntimeError("FFmpeg kon niet uitgevoerd worden. Staat het wel in PATH?")
 
-    def _extract_words(self, result_aligned):
+    @staticmethod
+    def _extract_words(result_aligned):
         segments_out = []
         for seg in result_aligned["segments"]:
             words = []

@@ -3,7 +3,9 @@ from fastapi import (
     UploadFile,
     File,
     Form,
-    HTTPException
+    HTTPException,
+    Body, 
+    Query
 )
 from fastapi.responses import FileResponse
 
@@ -79,11 +81,13 @@ async def upload_recording(
 
         logger.info(f"[UPLOAD] Processing {file.filename} ({language})")
 
-        result = process_uploaded_audio(tmp_path, open(tmp_path, "rb").read(), language)
-
-        os.remove(tmp_path)
-        return result
-
+        try:
+            result = process_uploaded_audio(tmp_path, open(tmp_path, "rb").read(), language)
+            os.remove(tmp_path)
+            return result
+        except RuntimeError as e:
+            raise HTTPException(status_code=500, detail=str(e))
+        
     except Exception as e:
         logger.exception(f"[ERROR] Failed to process file: {file.filename}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -174,26 +178,42 @@ async def detect_pii(
 async def get_recording(recording_id: str):
     meta = store.load_metadata(recording_id)
 
+    # ---- transcript: prefer edited, fallback original, then redacted ----
     transcript_text = ""
-    tr_path = meta.get("latest_transcript")
+    transcript_version = None
+
+    t = meta.get("transcripts", {}) or {}
+    tr_path = t.get("edited") or t.get("original") or t.get("redacted")
     if tr_path:
         transcript_text = store.load_text(tr_path)
+        # figure out which one we used
+        if tr_path == t.get("edited"):
+            transcript_version = "edited"
+        elif tr_path == t.get("original"):
+            transcript_version = "original"
+        else:
+            transcript_version = "redacted"
 
     segments = []
-    for seg_path in meta.get("segments", []):
+    seg_paths = meta.get("segments", []) or []
+    if seg_paths:
         try:
-            segments.append(store.load_json(seg_path))
-        except:
-            pass
+            payload = store.load_json(seg_paths[-1])
+            segments = payload.get("segments", [])
+        except Exception:
+            segments = []
 
     return {
         "recording_id": recording_id,
         "audio_url": f"/api/audio/{recording_id}",
         "transcript": transcript_text,
+        "transcript_version": transcript_version,
         "segments": segments,
         "pii": meta.get("pii", []),
         "created_at": meta.get("created_at"),
+        "transcripts": t,
     }
+
 
 @router.post("/settings/update")
 async def update_settings(payload: dict):
@@ -222,3 +242,117 @@ async def get_settings():
             **user_settings        # overrides
         }
     }
+
+@router.get("/recordings/{recording_id}/transcript")
+async def get_transcript(recording_id: str, version: str = Query("original")):
+    meta = store.load_metadata(recording_id)
+    transcripts = meta.get("transcripts", {})
+    rel_path = transcripts.get(version)
+
+    if not rel_path:
+        return {"recording_id": recording_id, "version": version, "text": ""}
+
+    return {"recording_id": recording_id, "version": version, "text": store.load_text(rel_path)}
+
+
+@router.put("/recordings/{recording_id}/transcript/edited")
+async def save_edited_transcript(recording_id: str, payload: dict = Body(...)):
+    edited_text = payload.get("text")
+    if not edited_text:
+        raise HTTPException(status_code=400, detail="Missing 'text'")
+
+    edited_path = store.save_transcript(recording_id, edited_text, version="edited")
+
+    meta = store.load_metadata(recording_id)
+    meta.setdefault("transcripts", {})
+    meta["transcripts"]["edited"] = edited_path
+    store.save_metadata(recording_id, meta)
+
+    return {"status": "ok", "recording_id": recording_id, "edited_path": edited_path}
+
+
+@router.delete("/recordings/{recording_id}/transcript")
+async def delete_transcript(recording_id: str, version: str = Query("all")):
+    # versions: original, edited, redacted, all
+    meta = store.load_metadata(recording_id)
+    meta.setdefault("transcripts", {})
+
+    versions = ["original", "edited", "redacted"] if version == "all" else [version]
+    deleted = []
+
+    for v in versions:
+        rel = meta["transcripts"].get(v)
+        if not rel:
+            continue
+        abs_path = os.path.join(settings.DATA_DIR, rel)
+        if os.path.exists(abs_path):
+            os.remove(abs_path)
+        meta["transcripts"][v] = None
+        deleted.append(v)
+
+    store.save_metadata(recording_id, meta)
+    return {"status": "ok", "recording_id": recording_id, "deleted": deleted}
+
+
+@router.delete("/recordings/{recording_id}/audio")
+async def delete_audio(recording_id: str):
+    meta = store.load_metadata(recording_id)
+    audio_path = meta.get("audio")
+    if not audio_path:
+        return {"status": "ok", "recording_id": recording_id, "deleted": False}
+
+    if os.path.exists(audio_path):
+        os.remove(audio_path)
+
+    meta["audio"] = None
+    store.save_metadata(recording_id, meta)
+    return {"status": "ok", "recording_id": recording_id, "deleted": True}
+
+@router.delete("/recordings/{recording_id}/segments")
+async def delete_segments(recording_id: str):
+    meta = store.load_metadata(recording_id)
+    seg_paths = meta.get("segments", []) or []
+
+    deleted = 0
+    for rel in seg_paths:
+        abs_path = os.path.join(settings.DATA_DIR, rel)
+        if os.path.exists(abs_path):
+            os.remove(abs_path)
+            deleted += 1
+
+    meta["segments"] = []
+    store.save_metadata(recording_id, meta)
+
+    return {"status": "ok", "recording_id": recording_id, "deleted_count": deleted}
+
+@router.delete("/recordings/{recording_id}")
+async def delete_recording(recording_id: str):
+    meta = store.load_metadata(recording_id)
+
+    # delete audio
+    ap = meta.get("audio")
+    if ap and os.path.exists(ap):
+        os.remove(ap)
+
+    # delete transcripts
+    for rel in (meta.get("transcripts") or {}).values():
+        if rel:
+            abs_path = os.path.join(settings.DATA_DIR, rel)
+            if os.path.exists(abs_path):
+                os.remove(abs_path)
+
+    # delete segments
+    for rel in meta.get("segments", []):
+        try:
+            abs_path = os.path.join(settings.DATA_DIR, rel)
+            if os.path.exists(abs_path):
+                os.remove(abs_path)
+        except:
+            pass
+
+    # delete metadata file
+    meta_file = os.path.join(settings.DATA_DIR, "metadata", f"{recording_id}.json")
+    if os.path.exists(meta_file):
+        os.remove(meta_file)
+
+    return {"status": "ok", "recording_id": recording_id, "deleted": True}

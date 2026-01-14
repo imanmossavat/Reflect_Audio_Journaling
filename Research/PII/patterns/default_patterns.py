@@ -2,10 +2,8 @@ RELEVANT_LABELS = {
     "PERSON",
     "ORG",
     "GPE",
-    "LOC",
     "DATE",
     "EMAIL",
-    "PHONENUMBER",
     "ZIPCODE"
 }
 
@@ -22,8 +20,8 @@ LABEL_MAP = {
     "LASTNAME": "PERSON",
     "FULLNAME": "PERSON",
     "NAME": "PERSON",
-    # "USERNAME": "PERSON",
-    # "ACCOUNTNAME": "PERSON",
+    "USERNAME": "PERSON",
+    "ACCOUNTNAME": "PERSON",
 
     "COMPANYNAME": "ORG",
     "JOBTITLE": "ORG",

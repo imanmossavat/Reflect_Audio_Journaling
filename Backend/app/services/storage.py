@@ -17,16 +17,15 @@ class StorageManager:
 
     # ---------------- PUBLIC METHODS ---------------- #
 
-    def save_transcript(self, recording_id: str, text: str, version="edited") -> str:
-        rel_path = self._make_path(f"transcripts/{recording_id}", "txt", recording_id)
+    def save_transcript(self, recording_id: str, text: str, version: str = "original") -> str:
+        rel_path = f"transcripts/{recording_id}/{version}.txt"
         abs_path = os.path.join(self.base, rel_path)
-
         os.makedirs(os.path.dirname(abs_path), exist_ok=True)
-
+    
         with open(abs_path, "w", encoding="utf-8") as f:
             f.write(text)
-
-        print(f"[StorageManager] Saved transcript: {abs_path}")
+    
+        print(f"[StorageManager] Saved transcript ({version}): {abs_path}")
         return rel_path
 
     def load_metadata(self, recording_id: str) -> Dict[str, Any]:
@@ -137,6 +136,58 @@ class StorageManager:
                 if f.lower().endswith((".wav", ".mp3", ".m4a", ".webm")):
                     recordings.append(os.path.join(root, f))
         return recordings
+
+    def delete_transcript(self, recording_id: str, version: str) -> bool:
+        meta = self.load_metadata(recording_id)
+        rel = meta.get("transcripts", {}).get(version)
+        if not rel:
+            return False
+        abs_path = os.path.join(self.base, rel)
+        if os.path.exists(abs_path):
+            os.remove(abs_path)
+        meta["transcripts"][version] = None
+        self.save_metadata(recording_id, meta)
+        return True
+
+    def delete_audio(self, recording_id: str) -> bool:
+        meta = self.load_metadata(recording_id)
+        audio_path = meta.get("audio")
+        if not audio_path:
+            return False
+        if os.path.exists(audio_path):
+            os.remove(audio_path)
+        meta["audio"] = None
+        self.save_metadata(recording_id, meta)
+        return True
+
+    def delete_recording(self, recording_id: str) -> bool:
+        # delete known files from metadata
+        meta = self.load_metadata(recording_id)
+    
+        # audio
+        ap = meta.get("audio")
+        if ap and os.path.exists(ap):
+            os.remove(ap)
+    
+        # transcripts
+        for rel in (meta.get("transcripts") or {}).values():
+            if rel:
+                abs_path = os.path.join(self.base, rel)
+                if os.path.exists(abs_path):
+                    os.remove(abs_path)
+    
+        # segments
+        for rel in meta.get("segments", []):
+            abs_path = os.path.join(self.base, rel)
+            if os.path.exists(abs_path):
+                os.remove(abs_path)
+    
+        # metadata
+        meta_path = os.path.join(self.base, f"metadata/{recording_id}.json")
+        if os.path.exists(meta_path):
+            os.remove(meta_path)
+    
+        return True
 
     # ---------------- PRIVATE HELPERS ---------------- #
 

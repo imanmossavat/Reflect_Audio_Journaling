@@ -13,23 +13,20 @@ class PIIDetector:
     def detect(self, text, recording_id="test"):
         findings = []
 
-        # regex pass
         for label, pattern in self.patterns.items():
             for m in re.finditer(pattern, text):
                 findings.append(PiiFinding(recording_id, m.start(), m.end(), label, m.group(), "regex"))
 
-        # model pass
-        if hasattr(self.nlp, "pipe"):  # spaCy
+        if hasattr(self.nlp, "pipe"):
             doc = self.nlp(text)
             for ent in getattr(doc, "ents", []):
                 if ent.label_ in ["PERSON", "GPE", "ORG", "LOC", "DATE", "MONEY"]:
                     findings.append(PiiFinding(recording_id, ent.start_char, ent.end_char, ent.label_, ent.text, "ner"))
 
-        elif callable(self.nlp):  # HuggingFace
+        elif callable(self.nlp):
             for e in self.nlp(text):
                 findings.append(PiiFinding(recording_id, e["start"], e["end"], e["entity_group"], e["word"], "hf"))
 
-        # deduplicate
         seen, unique = set(), []
         for f in findings:
             key = (f.start_char, f.end_char, f.label)

@@ -72,6 +72,8 @@ After you click on try it out you can provide the text you want to analyze, then
 ---
 Then the response will appear below with the analyzed text.
 ![img_3.png](Installation/Images/img_3.png)
+---
+
 - Project: REFLECT – AI Audio Journaling System
 
 ---

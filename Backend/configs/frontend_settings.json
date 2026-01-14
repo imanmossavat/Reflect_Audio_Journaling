@@ -3,7 +3,7 @@
   "DATA_DIR": "C:\\Anass_de_programmeur\\School\\Reflect_Audio_Journaling\\Backend\\data",
   "CONFIG_DIR": "C:\\Anass_de_programmeur\\School\\Reflect_Audio_Journaling\\Backend\\configs",
   "LANGUAGE": "en",
-  "WHISPER_MODEL": "small",
+  "WHISPER_MODEL": "medium",
   "DEVICE": "cpu",
   "COMPUTE_TYPE": "float32",
   "SAMPLE_RATE": 16000,
