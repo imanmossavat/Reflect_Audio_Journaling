@@ -2,7 +2,7 @@ python-dotenv
 scikit-learn
 sentence-transformers
 pytorch==2.5.1
-torchaudio==2.5.1
+torch==2.5.1
 whisperx
 numpy
 fastapi
