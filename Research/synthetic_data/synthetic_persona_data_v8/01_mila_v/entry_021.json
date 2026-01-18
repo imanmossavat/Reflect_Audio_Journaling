@@ -1,0 +1,35 @@
+{
+  "persona": "mila_v",
+  "entry_index": 21,
+  "arc_stage": "Stage 3 – Overwhelmed but proud: worries she won't meet expectations, but starts recognizing her growth and small wins.",
+  "transcript": "School. The place where I've spent most of my waking hours, trying to fit in and feel like a part of something bigger than myself. But what does it even mean to \"fit in\" when you're constantly worried about being seen as different? Today's events have left me feeling lighter, more at peace with the idea that maybe, just maybe, I don't need to conform to societal expectations. The sound of my classmates laughing and chatting in the cafeteria was almost tolerable today, not because it was enjoyable, but because it didn't feel like a punch to the gut. For once, I felt like I could breathe without my anxiety suffocating me. It's funny how small moments can be so significant when you're already drowning in self-doubt. The weight has lifted, and I can finally breathe again. My internship, once a daunting task that seemed to fill every waking moment with anxiety, now feels like a manageable challenge. Today was one of those days where my brain didn't completely shut down, and I was able to focus on the tasks at hand without feeling like I'm drowning in a sea of uncertainty. I remember being so worried about meeting expectations, but as I looked around the room and saw my colleagues working together with ease, I realized that I wasn't alone in this. The team's dynamic is so much more fluid than mine, where every move needs to be calculated and planned out to perfection. It was humbling, but also strangely comforting to know that even though I may not fit into their mold, I still have the capacity to learn and grow alongside them.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "school",
+      "sentiment": "negative",
+      "text": "School. The place where I've spent most of my waking hours, trying to fit in and feel like a part of something bigger than myself. But what does it even mean to \"fit in\" when you're constantly worried about being seen as different? Today's events have left me feeling lighter, more at peace with the idea that maybe, just maybe, I don't need to conform to societal expectations. The sound of my classmates laughing and chatting in the cafeteria was almost tolerable today, not because it was enjoyable, but because it didn't feel like a punch to the gut. For once, I felt like I could breathe without my anxiety suffocating me. It's funny how small moments can be so significant when you're already drowning in self-doubt.",
+      "start_char": 0,
+      "end_char": 722
+    },
+    {
+      "id": 1,
+      "topic": "internship",
+      "sentiment": "positive",
+      "text": "The weight has lifted, and I can finally breathe again. My internship, once a daunting task that seemed to fill every waking moment with anxiety, now feels like a manageable challenge. Today was one of those days where my brain didn't completely shut down, and I was able to focus on the tasks at hand without feeling like I'm drowning in a sea of uncertainty. I remember being so worried about meeting expectations, but as I looked around the room and saw my colleagues working together with ease, I realized that I wasn't alone in this. The team's dynamic is so much more fluid than mine, where every move needs to be calculated and planned out to perfection. It was humbling, but also strangely comforting to know that even though I may not fit into their mold, I still have the capacity to learn and grow alongside them.",
+      "start_char": 723,
+      "end_char": 1547
+    }
+  ],
+  "topics": [
+    "school",
+    "internship"
+  ],
+  "pii": [],
+  "summary": "Here is a summary of the journal entry in 1-2 sentences:\n\nThe writer had a breakthrough moment at school where they realized that trying to \"fit in\" isn't necessary and that it's okay to be themselves, leading to a sense of liberation and peace. This newfound acceptance has allowed them to approach their internship with renewed confidence and focus, feeling more at ease and connected to their colleagues despite still struggling with self-doubt.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

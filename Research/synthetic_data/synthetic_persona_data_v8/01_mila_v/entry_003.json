@@ -1,0 +1,34 @@
+{
+  "persona": "mila_v",
+  "entry_index": 3,
+  "arc_stage": "Stage 1 – Desperation & doubt: feels rejected, frustrated, and believes she will never be good enough. No internship yet.",
+  "transcript": "Today, I initiated my task of recording my thoughts and feelings in a way that makes sense. My hands are resting on the keyboard, and my fingers are poised to type out my emotions. It's 2:47 PM, and I've been seated in this chair for approximately seventeen minutes. The fluorescent lights above me cast an intense, blinding glow, which typically would be overwhelming but today feels tolerable. Despite the initial hesitation, my fingers have begun to move with a rhythmic motion, forming sentences that attempt to capture my inner state. The weight of rejection settles in like a physical presence, making my chest feel heavy and my limbs weak. I've been searching for an internship for what feels like an eternity, and every application I submit seems to be met with crickets. The constant rejections have me questioning my qualifications, my passion, and even my sanity. My mind wanders back to all the times I spent hours perfecting my resume, tailoring my cover letters, and rehearsing interview answers until I could recite them in my sleep. But despite my best efforts, it's like I'm invisible to potential employers. The fluorescent lights above me seem to mock me, their brightness a harsh reminder of my own inadequacy.\n\nMy hands tense as I think about the upcoming deadlines, the looming expectations from family and friends who all want to see me succeed. They don't understand that the stress is eating away at me, eroding my confidence with every passing day. The more I think about it, the more my anxiety spirals out of control. What if I never find an internship? What if I'm stuck in this limbo forever, unable to move forward? The thought sends a shiver down my spine, and I have to force myself to take a deep breath and calm down.\n\nI glance around my cluttered room, feeling like I'm staring at a blank canvas with no clear direction. The internship search feels like an endless puzzle, one piece missing from the entire picture. But for now, I'll keep typing, hoping that by putting words to paper, I can somehow unravel the tangled threads of uncertainty and find a glimmer of hope.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "general",
+      "sentiment": "neutral",
+      "text": "Today, I initiated my task of recording my thoughts and feelings in a way that makes sense. My hands are resting on the keyboard, and my fingers are poised to type out my emotions. It's 2:47 PM, and I've been seated in this chair for approximately seventeen minutes. The fluorescent lights above me cast an intense, blinding glow, which typically would be overwhelming but today feels tolerable. Despite the initial hesitation, my fingers have begun to move with a rhythmic motion, forming sentences that attempt to capture my inner state.",
+      "start_char": 0,
+      "end_char": 539
+    },
+    {
+      "id": 1,
+      "topic": "internship",
+      "sentiment": "negative",
+      "text": "The weight of rejection settles in like a physical presence, making my chest feel heavy and my limbs weak. I've been searching for an internship for what feels like an eternity, and every application I submit seems to be met with crickets. The constant rejections have me questioning my qualifications, my passion, and even my sanity. My mind wanders back to all the times I spent hours perfecting my resume, tailoring my cover letters, and rehearsing interview answers until I could recite them in my sleep. But despite my best efforts, it's like I'm invisible to potential employers. The fluorescent lights above me seem to mock me, their brightness a harsh reminder of my own inadequacy.\n\nMy hands tense as I think about the upcoming deadlines, the looming expectations from family and friends who all want to see me succeed. They don't understand that the stress is eating away at me, eroding my confidence with every passing day. The more I think about it, the more my anxiety spirals out of control. What if I never find an internship? What if I'm stuck in this limbo forever, unable to move forward? The thought sends a shiver down my spine, and I have to force myself to take a deep breath and calm down.\n\nI glance around my cluttered room, feeling like I'm staring at a blank canvas with no clear direction. The internship search feels like an endless puzzle, one piece missing from the entire picture. But for now, I'll keep typing, hoping that by putting words to paper, I can somehow unravel the tangled threads of uncertainty and find a glimmer of hope.",
+      "start_char": 540,
+      "end_char": 2106
+    }
+  ],
+  "topics": [
+    "internship"
+  ],
+  "pii": [],
+  "summary": "Here is a summary of the journal entry in 1-2 sentences:\n\nThe writer has begun recording their thoughts and feelings about their struggles with finding an internship, feeling overwhelmed by rejection, self-doubt, and anxiety as they approach upcoming deadlines. Despite feeling like they're losing direction and confidence, they've started writing to try to process their emotions and find a glimmer of hope in the midst of uncertainty.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

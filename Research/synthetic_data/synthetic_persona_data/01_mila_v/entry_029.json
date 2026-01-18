@@ -1,0 +1,37 @@
+{
+  "persona_id": 1,
+  "persona_code": "mila_v",
+  "persona_name": "Mila",
+  "persona_age": 20,
+  "neurotype": "ASD + High Anxiety",
+  "entry_index": 29,
+  "transcript": "Dear Journal,\n\nI sit in my apartment, surrounded by the familiar comforts of home, yet my mind is a thousand miles away. The fluorescent lights overhead seem to hum with an ominous intensity, casting an unflattering glow on the walls. I try to focus on the task at hand – organizing my schedule for the upcoming week – but my thoughts keep drifting back to Phillip's expectations at Barnes-Peters.\n\nI hope that makes sense, Journal. I'm not sure if I'm overthinking again. I've been trying to reassure myself that I'm capable of handling more responsibilities, but anxiety keeps creeping in like a thief in the night. I replay our conversation from yesterday, where he mentioned my progress and encouraged me to take on more projects.\n\nReassuring myself seems to be an all-day task. David called earlier, asking how my day was going, and I felt compelled to share my anxieties with him. He listened attentively, as always, but I couldn't shake the feeling that I'm still holding back, not sharing enough. I told Christopher about it too, during our phone call, and he reminded me of all the times I've succeeded in the past.\n\nStill, doubts linger. What if I fail? What if I'm not good enough for Barnes-Peters or for Phillip's expectations? The questions swirl in my head like a maelstrom, making it difficult to concentrate on anything else.\n\nI hope that makes sense. Maybe it's just a normal part of growth, and I need to learn to trust myself more. Curtis always says I'm strong, but sometimes his words feel hollow when I'm facing the unknown.\n\nI take a deep breath and try to calm my racing thoughts. Perhaps today will be different. Today, I'll face my anxieties head-on and remind myself of all the times I've overcome similar challenges in the past.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "anxiety",
+      "text": "Dear Journal,\n\nI sit in my apartment, surrounded by the familiar comforts of home, yet my mind is a thousand miles away. The fluorescent lights overhead seem to hum with an ominous intensity, casting an unflattering glow on the walls. I try to focus on the task at hand – organizing my schedule for the upcoming week – but my thoughts keep drifting back to Phillip's expectations at Barnes-Peters.\n\nI hope that makes sense, Journal. I'm not sure if I'm overthinking again. I've been trying to reassure myself that I'm capable of handling more responsibilities, but anxiety keeps creeping in like a thief in the night. I replay our conversation from yesterday, where he mentioned my progress and encouraged me to take on more projects.\n\nReassuring myself seems to be an all-day task. David called earlier, asking how my day was going, and I felt compelled to share my anxieties with him. He listened attentively, as always, but I couldn't shake the feeling that I'm still holding back, not sharing enough. I told Christopher about it too, during our phone call, and he reminded me of all the times I've succeeded in the past.\n\nStill, doubts linger. What if I fail? What if I'm not good enough for Barnes-Peters or for Phillip's expectations? The questions swirl in my head like a maelstrom, making it difficult to concentrate on anything else.\n\nI hope that makes sense. Maybe it's just a normal part of growth, and I need to learn to trust myself more. Curtis always says I'm strong, but sometimes his words feel hollow when I'm facing the unknown.\n\nI take a deep breath and try to calm my racing thoughts. Perhaps today will be different. Today, I'll face my anxieties head-on and remind myself of all the times I've overcome similar challenges in the past.",
+      "start_char": 0,
+      "end_char": 1757
+    }
+  ],
+  "topics": [
+    "anxiety"
+  ],
+  "pii": [
+    {
+      "type": "COMPANY_NAME",
+      "text": "Barnes-Peters",
+      "start_char": 383,
+      "end_char": 396
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Barnes-Peters",
+      "start_char": 1196,
+      "end_char": 1209
+    }
+  ],
+  "summary": "Here is a 1-2 sentence summary of the journal entry:\n\nThe writer feels overwhelmed by anxiety and self-doubt, particularly regarding their work at Barnes-Peters and meeting Phillip's expectations. They struggle to shake off feelings of inadequacy and uncertainty, but are determined to face their anxieties head-on and trust themselves more.\n\nI aimed to capture the emotional tone of the journal entry, conveying the writer's sense of overwhelm and self-doubt while also highlighting their determination to overcome these feelings.",
+  "arc_stage": "Stage 5 – Slowly accepting competence: starts to accept she might actually be good at this and imagines a more stable future."
+}

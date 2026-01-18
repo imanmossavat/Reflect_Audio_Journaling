@@ -1,0 +1,26 @@
+{
+  "persona": "mila_v",
+  "entry_index": 25,
+  "arc_stage": "Stage 4 – Shock at job offer: receives a job offer from the internship, feels joy + fear + imposter syndrome.",
+  "transcript": "The internship. It's all I can think about, and yet, it feels like a weight has been lifted off my shoulders. The job offer is still sinking in - joy and fear swirling together like stormy weather. I keep thinking I must be dreaming, that this is all just some elaborate fantasy. But the warmth of relief spreading across my skin is real, tangible. It's like a gentle breeze on a summer day, soothing and calming. I can feel it seeping into my bones, chasing away the anxiety that's always lurked in the shadows.\n\nI'm trying to imagine what this internship will be like - will I thrive or falter? The thought of meeting new people, learning new skills, and navigating unfamiliar environments makes my stomach twist with butterflies. But for now, I'll just savor this feeling of relief, let it settle into me like a soft blanket. Tomorrow will bring more worries, but today...today is mine to enjoy.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "internship",
+      "sentiment": "positive",
+      "text": "The internship. It's all I can think about, and yet, it feels like a weight has been lifted off my shoulders. The job offer is still sinking in - joy and fear swirling together like stormy weather. I keep thinking I must be dreaming, that this is all just some elaborate fantasy. But the warmth of relief spreading across my skin is real, tangible. It's like a gentle breeze on a summer day, soothing and calming. I can feel it seeping into my bones, chasing away the anxiety that's always lurked in the shadows.\n\nI'm trying to imagine what this internship will be like - will I thrive or falter? The thought of meeting new people, learning new skills, and navigating unfamiliar environments makes my stomach twist with butterflies. But for now, I'll just savor this feeling of relief, let it settle into me like a soft blanket. Tomorrow will bring more worries, but today...today is mine to enjoy.",
+      "start_char": 0,
+      "end_char": 898
+    }
+  ],
+  "topics": [
+    "internship"
+  ],
+  "pii": [],
+  "summary": "Here is a summary of the journal entry in 1-2 sentences:\n\nThe writer has received a job offer for an internship and is still trying to process their emotions, feeling both joy and fear as they imagine this new chapter. For now, they're savoring the relief and calmness that comes with knowing their worries about finding employment are finally behind them.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

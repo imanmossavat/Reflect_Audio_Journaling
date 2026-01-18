@@ -1,0 +1,63 @@
+{
+  "persona": "mila_v",
+  "entry_index": 0,
+  "arc_stage": "Stage 1 – Desperation & doubt: feels rejected, frustrated, and believes she will never be good enough. No internship yet.",
+  "transcript": "I am attempting to secure a position in the field of Media Design. Today, I received an unexpected job offer from the Taylor Group after securing an internship, which has induced a moderate increase in self-efficacy and confidence. This development seems both fortunate and unsettling, as it disrupts my previously established expectations for career progression. I will attempt to reconcile these competing emotions by examining the details of this offer and considering potential implications for my personal and professional life. As I sit here trying to process the Taylor Group's job offer, my mind keeps wandering back to how I feel about school. It's funny, when I was applying for this internship, I thought it was a necessary step towards getting where I want to be - a good designer. But now that I've got this offer, I'm not so sure. I keep thinking about all the times in school when I felt like an outsider, when my anxiety and sensory overload made it hard for me to focus or connect with others. I worry that I'll struggle to balance the demands of this new job with my own needs, that I'll feel like I'm failing somehow. What if I'm not cut out for this? The thought sends a shiver down my spine. As I sit here trying to process this unexpected job offer, my mind keeps wandering back to the feeling of being accepted. It's like a weight has been lifted off my chest, but at the same time, it's made me realize how far I still have to go. The uncertainty is creeping in again - what if I'm not good enough? What if I mess up or fail somehow? My anxiety is kicking into high gear, making my heart rate spike and my palms sweat. I just want to crawl under a blanket and hide until it's all over. But at the same time, the excitement of this opportunity is making me feel like I'm standing on the edge of something amazing. As I sit here trying to process the sudden job offer from Taylor Group, my mind keeps wandering back to the days when I felt like I was on the right track. The anxiety that's been lurking beneath the surface is starting to resurface, making it hard for me to breathe. What if this is just a fluke? What if they're looking for someone else entirely? The thought of being rejected again, after all the effort and sacrifices I've made, feels like a punch to the gut. My hand is shaking slightly as I hold my pen, and my eyes keep drifting towards the clock on the wall, willing it to move faster so I can get out of here and clear my head.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "school",
+      "sentiment": "negative",
+      "text": "As I sit here trying to process the Taylor Group's job offer, my mind keeps wandering back to how I feel about school. It's funny, when I was applying for this internship, I thought it was a necessary step towards getting where I want to be - a good designer. But now that I've got this offer, I'm not so sure. I keep thinking about all the times in school when I felt like an outsider, when my anxiety and sensory overload made it hard for me to focus or connect with others. I worry that I'll struggle to balance the demands of this new job with my own needs, that I'll feel like I'm failing somehow. What if I'm not cut out for this? The thought sends a shiver down my spine.",
+      "start_char": 534,
+      "end_char": 1212
+    },
+    {
+      "id": 1,
+      "topic": "social interaction",
+      "sentiment": "negative",
+      "text": "As I sit here trying to process this unexpected job offer, my mind keeps wandering back to the feeling of being accepted. It's like a weight has been lifted off my chest, but at the same time, it's made me realize how far I still have to go. The uncertainty is creeping in again - what if I'm not good enough? What if I mess up or fail somehow? My anxiety is kicking into high gear, making my heart rate spike and my palms sweat. I just want to crawl under a blanket and hide until it's all over. But at the same time, the excitement of this opportunity is making me feel like I'm standing on the edge of something amazing.",
+      "start_char": 1213,
+      "end_char": 1836
+    },
+    {
+      "id": 2,
+      "topic": "work",
+      "sentiment": "negative",
+      "text": "As I sit here trying to process the sudden job offer from Taylor Group, my mind keeps wandering back to the days when I felt like I was on the right track. The anxiety that's been lurking beneath the surface is starting to resurface, making it hard for me to breathe. What if this is just a fluke? What if they're looking for someone else entirely? The thought of being rejected again, after all the effort and sacrifices I've made, feels like a punch to the gut. My hand is shaking slightly as I hold my pen, and my eyes keep drifting towards the clock on the wall, willing it to move faster so I can get out of here and clear my head.",
+      "start_char": 1837,
+      "end_char": 2473
+    }
+  ],
+  "topics": [
+    "school",
+    "social interaction",
+    "work"
+  ],
+  "pii": [
+    {
+      "type": "COMPANY_NAME",
+      "text": "Taylor Group",
+      "start_char": 118,
+      "end_char": 130
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Taylor Group",
+      "start_char": 570,
+      "end_char": 582
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Taylor Group",
+      "start_char": 1895,
+      "end_char": 1907
+    }
+  ],
+  "summary": "The writer has been offered a job at Taylor Group after interning, which has both thrilled and unsettled them due to its unexpected nature and potential disruption of their previously established expectations. The offer has triggered anxiety about being \"good enough\" and balancing work with personal needs, making it difficult for them to process their emotions and consider the implications of this new opportunity.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

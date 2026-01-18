@@ -1,0 +1,26 @@
+{
+  "BASE_DIR": "C:\\Anass_de_programmeur\\School\\Reflect_Audio_Journaling\\Backend",
+  "DATA_DIR": "C:\\Anass_de_programmeur\\School\\Reflect_Audio_Journaling\\Backend\\data",
+  "CONFIG_DIR": "C:\\Anass_de_programmeur\\School\\Reflect_Audio_Journaling\\Backend\\configs",
+  "LANGUAGE": "en",
+  "WHISPER_MODEL": "medium",
+  "DEVICE": "cpu",
+  "COMPUTE_TYPE": "float32",
+  "SAMPLE_RATE": 16000,
+  "SEGMENTATION_MODEL": "sentence-transformers/all-MiniLM-L6-v2",
+  "SEGMENTATION_METHOD": "adaptive",
+  "SEGMENTATION_STD_FACTOR": 1,
+  "SEGMENTATION_MIN_SIZE": 2,
+  "SEGMENTATION_PERCENTILE": 20,
+  "SEGMENTATION_TOPIC_TOP_N": 1,
+  "PII_REGEX_SENSITIVITY": "normal",
+  "PII_PATTERNS_PATH": "C:\\Anass_de_programmeur\\School\\Reflect_Audio_Journaling\\Backend\\configs\\pii_patterns.json",
+  "PII_PATTERNS": {
+    "EMAIL": "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}",
+    "PHONE": "\\b(?:\\+?(\\d{1,3})?[-.\\s]?(\\d{3})[-.\\s]?(\\d{3})[-.\\s]?(\\d{4}))\\b",
+    "SSN": "\\b\\d{3}-\\d{2}-\\d{4}\\b",
+    "CREDIT_CARD": "\\b(?:\\d[ -]*?){13,16}\\b",
+    "IP_ADDRESS": "\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b"
+  },
+  "LOG_LEVEL": "INFO"
+}

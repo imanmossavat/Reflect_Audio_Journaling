@@ -1,0 +1,35 @@
+{
+  "persona": "mila_v",
+  "entry_index": 27,
+  "arc_stage": "Stage 4 – Shock at job offer: receives a job offer from the internship, feels joy + fear + imposter syndrome.",
+  "transcript": "As I sit in my small town apartment, the fluorescent lights overhead cast an unforgiving glare on the pages of this notebook, illuminating the thoughts that swirl within me like a maelstrom. I hope that makes sense - it's been a long day and my anxiety is already beginning to assert itself. The events of today still feel surreal: one moment I was grasping at any opportunity, the next I was presented with a job offer from the internship I desperately sought. I'm not sure if I'm overthinking this, but the reality of it all feels like a shockwave that's difficult to process. My mind is racing with questions and doubts - what does this mean for my future? Is this really an opportunity, or am I just setting myself up for disappointment?. As I try to grasp the magnitude of this offer, my mind keeps wandering back to all the things that could go wrong. What if I'm not good enough? What if I don't meet expectations? The thought sends a shiver down my spine and makes my palms sweat. I can almost feel my heart racing in my chest, like it's trying to pound out a rhythm that says \"you're not worthy.\" It's ironic that the one thing that's always held me back - my anxiety - is now staring me in the face with this all-consuming possibility. As I sit here, trying to wrap my head around the job offer, I can feel my anxiety spiking again. The fluorescent lights above me seem to be pulsing with an energy that's both exciting and terrifying. I keep thinking about all the things that could go wrong - what if I'm not good enough? What if I mess up in front of everyone? The thought of being \"found out\" as a fake, like I am when I pretend to have all these skills but really have no idea what I'm doing, makes my stomach drop. I try to push the thoughts aside, focusing on the positive aspects - this is an opportunity to learn and grow, to make connections and build my confidence. But it's hard to shake off the feeling that I'm just pretending, that one wrong move could blow everything apart.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "internship",
+      "sentiment": "negative",
+      "text": "As I try to grasp the magnitude of this offer, my mind keeps wandering back to all the things that could go wrong. What if I'm not good enough? What if I don't meet expectations? The thought sends a shiver down my spine and makes my palms sweat. I can almost feel my heart racing in my chest, like it's trying to pound out a rhythm that says \"you're not worthy.\" It's ironic that the one thing that's always held me back - my anxiety - is now staring me in the face with this all-consuming possibility.",
+      "start_char": 743,
+      "end_char": 1245
+    },
+    {
+      "id": 1,
+      "topic": "work",
+      "sentiment": "negative",
+      "text": "As I sit here, trying to wrap my head around the job offer, I can feel my anxiety spiking again. The fluorescent lights above me seem to be pulsing with an energy that's both exciting and terrifying. I keep thinking about all the things that could go wrong - what if I'm not good enough? What if I mess up in front of everyone? The thought of being \"found out\" as a fake, like I am when I pretend to have all these skills but really have no idea what I'm doing, makes my stomach drop. I try to push the thoughts aside, focusing on the positive aspects - this is an opportunity to learn and grow, to make connections and build my confidence. But it's hard to shake off the feeling that I'm just pretending, that one wrong move could blow everything apart.",
+      "start_char": 1246,
+      "end_char": 2000
+    }
+  ],
+  "topics": [
+    "internship",
+    "work"
+  ],
+  "pii": [],
+  "summary": "Here is a 1-2 sentence summary:\n\nThe writer is struggling to process a job offer from their desired internship, plagued by anxiety and self-doubt about their abilities and potential for failure. Despite trying to focus on the positive aspects of the opportunity, their racing thoughts and fears about not being good enough threaten to undermine their confidence.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

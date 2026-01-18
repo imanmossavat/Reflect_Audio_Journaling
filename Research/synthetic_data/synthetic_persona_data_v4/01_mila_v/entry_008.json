@@ -1,0 +1,57 @@
+{
+  "persona": "mila_v",
+  "entry_index": 8,
+  "arc_stage": "Stage 2 – Relief & gratitude: she finally gets an internship, feels intense relief and loyalty, wants to earn her place.",
+  "transcript": "Today's reflection began with an overwhelming sense of dread as I stared blankly at my computer screen. The fluorescent lights above casting harsh shadows on the walls made me feel even more anxious. I am not sure if I'm overthinking, but what if this internship is a disappointment? What if I'm not good enough? I had been preparing for months, pouring all my energy into creating the perfect portfolio and researching the company thoroughly. But despite all my preparation, I still felt uncertain about my abilities. I am determined to prove myself, though. I have earned this opportunity. As I began working on today's task, I realized that I was actually quite capable. The design project wasn't as overwhelming as I thought it would be. In fact, it was quite manageable once I started focusing on the details. My anxiety began to subside as I worked through the process, and for the first time all day, I felt a sense of relief. I am grateful for this internship and the chance to learn from experienced professionals like Dawn Taylor at Douglas Inc. I hope that makes sense - it's just that I feel so lucky to be here, and I want to make sure I don't waste this opportunity. My mother, Mr. Keith Mason, always told me that with hard work and dedication, I could achieve anything I set my mind to. I should probably call Tamara Henderson later today and thank her for being such a supportive friend. She's always been there for me, offering words of encouragement when I need them most. And Cynthia West - we'll celebrate this milestone together soon, I'm sure. As the day comes to a close, I am feeling more confident than I have in weeks. Maybe it's just the feeling of accomplishment, but I think that's what's giving me hope for the future. I will continue to work hard and push myself to be better. And if things don't go exactly as planned, well - I'll just have to trust that everything will work out in the end. I'm not sure what tomorrow will bring, but for now, I am content with this sense of relief and gratitude.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "general",
+      "sentiment": "neutral",
+      "text": "Today's reflection began with an overwhelming sense of dread as I stared blankly at my computer screen. The fluorescent lights above casting harsh shadows on the walls made me feel even more anxious. I am not sure if I'm overthinking, but what if this internship is a disappointment? What if I'm not good enough? I had been preparing for months, pouring all my energy into creating the perfect portfolio and researching the company thoroughly. But despite all my preparation, I still felt uncertain about my abilities. I am determined to prove myself, though. I have earned this opportunity. As I began working on today's task, I realized that I was actually quite capable. The design project wasn't as overwhelming as I thought it would be. In fact, it was quite manageable once I started focusing on the details. My anxiety began to subside as I worked through the process, and for the first time all day, I felt a sense of relief. I am grateful for this internship and the chance to learn from experienced professionals like Dawn Taylor at Douglas Inc. I hope that makes sense - it's just that I feel so lucky to be here, and I want to make sure I don't waste this opportunity. My mother, Mr. Keith Mason, always told me that with hard work and dedication, I could achieve anything I set my mind to. I should probably call Tamara Henderson later today and thank her for being such a supportive friend. She's always been there for me, offering words of encouragement when I need them most. And Cynthia West - we'll celebrate this milestone together soon, I'm sure. As the day comes to a close, I am feeling more confident than I have in weeks. Maybe it's just the feeling of accomplishment, but I think that's what's giving me hope for the future. I will continue to work hard and push myself to be better. And if things don't go exactly as planned, well - I'll just have to trust that everything will work out in the end. I'm not sure what tomorrow will bring, but for now, I am content with this sense of relief and gratitude.",
+      "start_char": 0,
+      "end_char": 2030
+    }
+  ],
+  "topics": [
+    "general"
+  ],
+  "pii": [
+    {
+      "type": "PARTNER_NAME",
+      "text": "Tamara Henderson",
+      "start_char": 1326,
+      "end_char": 1342
+    },
+    {
+      "type": "MOTHER_NAME",
+      "text": "Mr. Keith Mason",
+      "start_char": 1192,
+      "end_char": 1207
+    },
+    {
+      "type": "CLOSE_FRIEND",
+      "text": "Cynthia West",
+      "start_char": 1496,
+      "end_char": 1508
+    },
+    {
+      "type": "BOSS_NAME",
+      "text": "Dawn Taylor",
+      "start_char": 1028,
+      "end_char": 1039
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Douglas Inc",
+      "start_char": 1043,
+      "end_char": 1054
+    }
+  ],
+  "summary": "The writer began an internship with anxiety about meeting expectations, but after working on a design project, they found their capabilities were more manageable than thought and felt a sense of relief and accomplishment. As the day comes to a close, they feel more confident and hopeful for the future, grateful for the opportunity and support of loved ones.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

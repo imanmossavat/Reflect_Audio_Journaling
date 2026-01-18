@@ -1,23 +1,18 @@
-DEFAULT_PATTERNS = {
-    "EMAIL": r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b",
-    "PHONENUMBER": r"\b(?:\+?\d{1,3})?[-.\s(]?\d{2,4}[-.\s)]?\d{2,4}[-.\s]?\d{2,4}\b",
-    "ZIPCODE": r"\b\d{4,5}(?:[-\s]?\d{4})?\b",
-    "DATE": r"\b(?:\d{1,2}[/-]\d{1,2}[/-]\d{2,4}|"
-             r"(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s\d{1,2},?\s\d{2,4})\b",
-    "CITY": r"\b(?:Amsterdam|Rotterdam|Utrecht|Eindhoven|The Hague|New York|London)\b",
-    "COMPANYNAME": r"\b[A-Z][A-Za-z]+(?:\s[A-Z][A-Za-z]+)*(?:\sLtd|BV|Inc|Corp|LLC)?\b"
-}
-
 RELEVANT_LABELS = {
     "PERSON",
     "ORG",
     "GPE",
-    "LOC",
     "DATE",
     "EMAIL",
-    "PHONENUMBER",
     "ZIPCODE"
 }
+
+DEFAULT_PATTERNS = {
+    "EMAIL": r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b",
+    "PHONENUMBER": r"\b(?:\+?\d{1,3})?[-.\s(]?\d{2,4}[-.\s)]?\d{2,4}[-.\s]?\d{2,4}\b",
+    "ZIPCODE": r"\b[0-9]{4}\s?[A-Z]{2}\b"
+}
+
 
 LABEL_MAP = {
     "FIRSTNAME": "PERSON",
@@ -25,8 +20,8 @@ LABEL_MAP = {
     "LASTNAME": "PERSON",
     "FULLNAME": "PERSON",
     "NAME": "PERSON",
-    # "USERNAME": "PERSON",
-    # "ACCOUNTNAME": "PERSON",
+    "USERNAME": "PERSON",
+    "ACCOUNTNAME": "PERSON",
 
     "COMPANYNAME": "ORG",
     "JOBTITLE": "ORG",

@@ -1,0 +1,43 @@
+{
+  "persona_id": 1,
+  "persona_code": "mila_v",
+  "persona_name": "Mila",
+  "persona_age": 20,
+  "neurotype": "ASD + High Anxiety",
+  "entry_index": 4,
+  "transcript": "Dear Journal,\n\nI'm sitting in my small apartment, surrounded by the familiar comforts of home. The soft glow of the overhead light above my desk is a gentle comfort, but it still makes me squint and feel like I need to adjust my glasses. My hands are shaking as I write this, and I hope that makes sense.\n\nToday was one of those days where I felt like I'm stuck in a never-ending loop. The phone rang, and it was Phillip Jackson from Barnes-Peters. He wanted to discuss my internship progress, but I couldn't even muster the energy to talk about it with him. My anxiety took over, and all I could think about were all the things I could have done better.\n\nI tried to tell myself that I'm not overthinking this as much as usual, but the words kept echoing in my head: \"You'll never be good enough.\" It's like an old recording on repeat, one that I've tried to erase a million times. I wish it would just stop playing. Curtis said I need to focus on what I can control, not what other people think of me.\n\nBut what if they're right? What if I'm not as capable as everyone thinks I am? The thought sends a shiver down my spine. Christopher tried to reassure me that I've made progress and that he believes in me, but even his words feel hollow today.\n\nI need to calm down and remind myself of all the times I've succeeded. Phillip mentioned that my work at Barnes-Peters is impressive, and that people are starting to take notice. But it's not just about external validation; it's about feeling worthy of my own self-worth. Is that something I can truly achieve?",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "anxiety",
+      "text": "Dear Journal,\n\nI'm sitting in my small apartment, surrounded by the familiar comforts of home. The soft glow of the overhead light above my desk is a gentle comfort, but it still makes me squint and feel like I need to adjust my glasses. My hands are shaking as I write this, and I hope that makes sense.\n\nToday was one of those days where I felt like I'm stuck in a never-ending loop. The phone rang, and it was Phillip Jackson from Barnes-Peters. He wanted to discuss my internship progress, but I couldn't even muster the energy to talk about it with him. My anxiety took over, and all I could think about were all the things I could have done better.\n\nI tried to tell myself that I'm not overthinking this as much as usual, but the words kept echoing in my head: \"You'll never be good enough.\" It's like an old recording on repeat, one that I've tried to erase a million times. I wish it would just stop playing. Curtis said I need to focus on what I can control, not what other people think of me.\n\nBut what if they're right? What if I'm not as capable as everyone thinks I am? The thought sends a shiver down my spine. Christopher tried to reassure me that I've made progress and that he believes in me, but even his words feel hollow today.\n\nI need to calm down and remind myself of all the times I've succeeded. Phillip mentioned that my work at Barnes-Peters is impressive, and that people are starting to take notice. But it's not just about external validation; it's about feeling worthy of my own self-worth. Is that something I can truly achieve?",
+      "start_char": 0,
+      "end_char": 1559
+    }
+  ],
+  "topics": [
+    "anxiety"
+  ],
+  "pii": [
+    {
+      "type": "BOSS_NAME",
+      "text": "Phillip Jackson",
+      "start_char": 413,
+      "end_char": 428
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Barnes-Peters",
+      "start_char": 434,
+      "end_char": 447
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Barnes-Peters",
+      "start_char": 1354,
+      "end_char": 1367
+    }
+  ],
+  "summary": "This writer is struggling with debilitating self-doubt and anxiety, feeling like they're stuck in a cycle of negative thoughts and criticism from others, including themselves. They yearn for internal validation and a sense of worthiness that goes beyond external recognition.",
+  "arc_stage": "Stage 1 – Desperation & doubt: feels rejected, frustrated, and believes she will never be good enough. No internship yet."
+}

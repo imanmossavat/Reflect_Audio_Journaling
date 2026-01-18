@@ -1,0 +1,50 @@
+{
+  "persona_id": 1,
+  "persona_code": "mila_v",
+  "persona_name": "Mila",
+  "persona_age": 20,
+  "neurotype": "ASD + High Anxiety",
+  "entry_index": 26,
+  "transcript": "Dear Journal,\n\nI am sitting in my small apartment, surrounded by the familiar comforts of home. The fluorescent lights overhead cast an unforgiving glare on the walls, making me feel like I'm staring into a harsh spotlight. Today was a day that has left me both elated and terrified.\n\nThis morning, Phillip Jackson from Barnes-Peters called to offer me the internship position. I felt my heart racing as I listened to his words, wondering if this was an honest mistake or some cruel prank. When he asked me to confirm, I hesitated, unsure of what to say. My mind was a jumble of conflicting emotions: fear of rejection, fear of failure.\n\nI'm not sure if I'm overthinking, but what if they regret offering it? What if I'm not good enough? These thoughts swirl in my head like the noise from the West Stephanie street outside - an endless cacophony that makes my ears ache. Curtis would tell me to push these doubts aside, that I deserve this opportunity.\n\nI hope that makes sense. The thing is, I've always felt like I don't quite belong. School has been a struggle, with Christopher's constant reminders that social interactions are key. But here, in the internship, Phillip sees something in me that I don't even see myself - potential.\n\nDavid would tell me to take a step back and breathe, but my lungs feel constricted today. The thought of working at Barnes-Peters, making a name for myself, feels both thrilling and suffocating. I'm not sure if I'm ready for this.\n\nI need reassurance that I can do this. That I'm worthy of the opportunity. David always says that I am enough, but what if he's wrong? What if I'm still trying to prove myself?\n\nAs I sit here in my apartment, surrounded by the comforting familiarity of home, I wonder if I'll be able to shake off these doubts and take the first step towards this new chapter.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "self-worth",
+      "text": "Dear Journal,\n\nI am sitting in my small apartment, surrounded by the familiar comforts of home. The fluorescent lights overhead cast an unforgiving glare on the walls, making me feel like I'm staring into a harsh spotlight. Today was a day that has left me both elated and terrified.\n\nThis morning, Phillip Jackson from Barnes-Peters called to offer me the internship position. I felt my heart racing as I listened to his words, wondering if this was an honest mistake or some cruel prank. When he asked me to confirm, I hesitated, unsure of what to say. My mind was a jumble of conflicting emotions: fear of rejection, fear of failure.\n\nI'm not sure if I'm overthinking, but what if they regret offering it? What if I'm not good enough? These thoughts swirl in my head like the noise from the West Stephanie street outside - an endless cacophony that makes my ears ache. Curtis would tell me to push these doubts aside, that I deserve this opportunity.\n\nI hope that makes sense. The thing is, I've always felt like I don't quite belong. School has been a struggle, with Christopher's constant reminders that social interactions are key. But here, in the internship, Phillip sees something in me that I don't even see myself - potential.\n\nDavid would tell me to take a step back and breathe, but my lungs feel constricted today. The thought of working at Barnes-Peters, making a name for myself, feels both thrilling and suffocating. I'm not sure if I'm ready for this.\n\nI need reassurance that I can do this. That I'm worthy of the opportunity. David always says that I am enough, but what if he's wrong? What if I'm still trying to prove myself?\n\nAs I sit here in my apartment, surrounded by the comforting familiarity of home, I wonder if I'll be able to shake off these doubts and take the first step towards this new chapter.",
+      "start_char": 0,
+      "end_char": 1830
+    }
+  ],
+  "topics": [
+    "self-worth",
+    "work"
+  ],
+  "pii": [
+    {
+      "type": "BOSS_NAME",
+      "text": "Phillip Jackson",
+      "start_char": 299,
+      "end_char": 314
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Barnes-Peters",
+      "start_char": 320,
+      "end_char": 333
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Barnes-Peters",
+      "start_char": 1355,
+      "end_char": 1368
+    },
+    {
+      "type": "CITY",
+      "text": "West Stephanie",
+      "start_char": 794,
+      "end_char": 808
+    }
+  ],
+  "summary": "Here is a summary of the journal entry in 1-2 concise, emotionally aware sentences:\n\nThe writer feels both elated and terrified upon receiving an internship offer from Barnes-Peters, struggling with self-doubt and fear of not being \"good enough\" despite feeling seen as having potential. They yearn for reassurance that they are worthy of the opportunity, questioning their own abilities and past experiences.",
+  "arc_stage": "Stage 4 – Shock at job offer: receives a job offer from the internship, feels joy + fear + imposter syndrome."
+}

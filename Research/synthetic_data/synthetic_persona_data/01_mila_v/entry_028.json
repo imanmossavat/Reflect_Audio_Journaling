@@ -1,0 +1,38 @@
+{
+  "persona_id": 1,
+  "persona_code": "mila_v",
+  "persona_name": "Mila",
+  "persona_age": 20,
+  "neurotype": "ASD + High Anxiety",
+  "entry_index": 28,
+  "transcript": "Dear Journal,\n\nI sit in my apartment, surrounded by the familiar comforts of home, and yet, my mind is a thousand miles away. The news from Barnes-Peters still lingers, like an unwelcome guest that refuses to leave. I hope that makes sense – it feels like a dream come true, receiving the job offer from Phillip Jackson himself, but at the same time, I'm paralyzed by fear.\n\nWhat if I'm not good enough? What if I fail? The questions swirl in my head like a maelstrom, and I find myself repeating the phrase \"what if\" over and over, as if saying it out loud might somehow make it more real. I'm not sure if I'm overthinking – probably.\n\nDavid was kind enough to offer some reassurance during our conversation earlier today. He reminded me of all my accomplishments and the hard work I put into this internship. His words were a balm to my frazzled nerves, but even his presence can't entirely calm the storm in my mind. Christopher called earlier, too – we talked about everything except the job offer. It's as if he knows better than to bring it up with me.\n\nI keep thinking about all the little things I need to prepare for this new role. The outfit, the resume, the PowerPoint presentation... so many details to attend to. Mother would tell me to take my time, but Curtis would say, \"Now's not the time, darling!\" – mother, always practical; father, always encouraging.\n\nI hope that makes sense – I'm still trying to wrap my head around it all. Tomorrow, Phillip will meet with me again, and I'll have to put on a brave face and pretend I've got this. I want to be worthy of the opportunity he's offering, but what if I'm not? What then?\n\nI take a deep breath, trying to calm myself down, and glance around my room once more. It's still quiet, except for the faint hum of the air conditioner in the corner. Maybe tomorrow will bring clarity – or at least, a better understanding of this whirlwind that is turning my life upside down.\n\nYours truly,\n[Name]",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "internship",
+      "text": "Dear Journal,\n\nI sit in my apartment, surrounded by the familiar comforts of home, and yet, my mind is a thousand miles away. The news from Barnes-Peters still lingers, like an unwelcome guest that refuses to leave. I hope that makes sense – it feels like a dream come true, receiving the job offer from Phillip Jackson himself, but at the same time, I'm paralyzed by fear.\n\nWhat if I'm not good enough? What if I fail? The questions swirl in my head like a maelstrom, and I find myself repeating the phrase \"what if\" over and over, as if saying it out loud might somehow make it more real. I'm not sure if I'm overthinking – probably.\n\nDavid was kind enough to offer some reassurance during our conversation earlier today. He reminded me of all my accomplishments and the hard work I put into this internship. His words were a balm to my frazzled nerves, but even his presence can't entirely calm the storm in my mind. Christopher called earlier, too – we talked about everything except the job offer. It's as if he knows better than to bring it up with me.\n\nI keep thinking about all the little things I need to prepare for this new role. The outfit, the resume, the PowerPoint presentation... so many details to attend to. Mother would tell me to take my time, but Curtis would say, \"Now's not the time, darling!\" – mother, always practical; father, always encouraging.\n\nI hope that makes sense – I'm still trying to wrap my head around it all. Tomorrow, Phillip will meet with me again, and I'll have to put on a brave face and pretend I've got this. I want to be worthy of the opportunity he's offering, but what if I'm not? What then?\n\nI take a deep breath, trying to calm myself down, and glance around my room once more. It's still quiet, except for the faint hum of the air conditioner in the corner. Maybe tomorrow will bring clarity – or at least, a better understanding of this whirlwind that is turning my life upside down.\n\nYours truly,\n[Name]",
+      "start_char": 0,
+      "end_char": 1957
+    }
+  ],
+  "topics": [
+    "internship",
+    "work"
+  ],
+  "pii": [
+    {
+      "type": "BOSS_NAME",
+      "text": "Phillip Jackson",
+      "start_char": 304,
+      "end_char": 319
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Barnes-Peters",
+      "start_char": 140,
+      "end_char": 153
+    }
+  ],
+  "summary": "Here is a concise and emotionally aware summary of the journal entry:\n\nThe writer is grappling with mixed emotions about receiving a job offer from Phillip Jackson, torn between excitement and crippling self-doubt. As they prepare for the next meeting, their anxiety simmers just below the surface, threatening to overwhelm them as they navigate this life-altering opportunity.",
+  "arc_stage": "Stage 4 – Shock at job offer: receives a job offer from the internship, feels joy + fear + imposter syndrome."
+}

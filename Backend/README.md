@@ -4,10 +4,21 @@ FastAPI backend for an AI-driven journaling, diary, and note-taking application.
 Processes uploaded or recorded audio into transcriptions, topic segments, and PII detections with summarization support and more features to come.
 
 ---
+# Table of Contents
+1. [Overview](#overview)
+2. [Architecture](#architecture)
+   - [Directory structure](#directory-structure)
+   - [Layer Responsibilities](#layer-responsibilities)
+3. [Core Features](#core-features-for-now)
+4. [Example Processing Flow](#example-processing-flow)
+5. [API Endpoints](#api-endpoints)
+6. [Frontend Integration](#frontend-integration)
+7. [Why this structure?](#why-this-structure)
 
+---
 ## Overview
 
-This backend serves as the **modular AI engine** behind the REFLECT application.  
+This backend serves as the AI engine behind the REFLECT application.  
 It receives audio from the frontend (React), processes it through a clean and extensible pipeline, and returns structured text data ready for storage, visualization, or reflection.
 
 # Core flow:

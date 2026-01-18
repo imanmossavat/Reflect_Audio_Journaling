@@ -1,0 +1,35 @@
+{
+  "persona": "mila_v",
+  "entry_index": 15,
+  "arc_stage": "Stage 3 – Overwhelmed but proud: worries she won't meet expectations, but starts recognizing her growth and small wins.",
+  "transcript": "School has been a constant source of anxiety for me, a place where I feel like I'm constantly walking on eggshells, trying to avoid drawing attention to myself. The thought of standing up in front of my classmates and presenting our group's project makes my stomach twist into knots. But today, something shifted inside me. I remember the way my professor smiled when she praised our teamwork during office hours, and it felt like a small, warm spark ignited within me. Maybe it's the fact that I've finally started to grasp some of the concepts we're covering in class, or maybe it's just the accumulation of tiny victories along the way - whatever it is, it's given me the courage to keep pushing forward, even when the doubts creep in. The internship has been a rollercoaster of emotions, but I'm trying to focus on the positive. Today was a particularly tough day - I had a meeting with my supervisor and I worried that I wouldn't be able to articulate my ideas clearly. My anxiety spiked as I listened to their feedback, and for a moment, I felt like I was going to lose it. But then something unexpected happened: they praised one of my projects and told me how much they valued my input. It was like a weight had been lifted off my shoulders - I felt seen and heard in a way that I hadn't expected. The sensory details of the meeting room come flooding back - the hum of the fluorescent lights, the scent of fresh coffee wafting through the air, it all blended together to create this sense of calm.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "school",
+      "sentiment": "positive",
+      "text": "School has been a constant source of anxiety for me, a place where I feel like I'm constantly walking on eggshells, trying to avoid drawing attention to myself. The thought of standing up in front of my classmates and presenting our group's project makes my stomach twist into knots. But today, something shifted inside me. I remember the way my professor smiled when she praised our teamwork during office hours, and it felt like a small, warm spark ignited within me. Maybe it's the fact that I've finally started to grasp some of the concepts we're covering in class, or maybe it's just the accumulation of tiny victories along the way - whatever it is, it's given me the courage to keep pushing forward, even when the doubts creep in.",
+      "start_char": 0,
+      "end_char": 738
+    },
+    {
+      "id": 1,
+      "topic": "internship",
+      "sentiment": "positive",
+      "text": "The internship has been a rollercoaster of emotions, but I'm trying to focus on the positive. Today was a particularly tough day - I had a meeting with my supervisor and I worried that I wouldn't be able to articulate my ideas clearly. My anxiety spiked as I listened to their feedback, and for a moment, I felt like I was going to lose it. But then something unexpected happened: they praised one of my projects and told me how much they valued my input. It was like a weight had been lifted off my shoulders - I felt seen and heard in a way that I hadn't expected. The sensory details of the meeting room come flooding back - the hum of the fluorescent lights, the scent of fresh coffee wafting through the air, it all blended together to create this sense of calm.",
+      "start_char": 739,
+      "end_char": 1506
+    }
+  ],
+  "topics": [
+    "school",
+    "internship"
+  ],
+  "pii": [],
+  "summary": "Here is a summary of the journal entry in 1-2 sentences:\n\nThe writer experienced a shift in confidence and courage after receiving encouragement from their professor and supervisor during difficult moments at school and work. This newfound confidence has helped them feel seen, heard, and valued, allowing them to push through anxiety and doubts, and even find calmness in challenging situations.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

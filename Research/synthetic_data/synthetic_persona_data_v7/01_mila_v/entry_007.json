@@ -1,0 +1,26 @@
+{
+  "persona": "mila_v",
+  "entry_index": 7,
+  "arc_stage": "Stage 1 – Desperation & doubt: feels rejected, frustrated, and believes she will never be good enough. No internship yet.",
+  "transcript": "March 15, 20XX\n\nI have been sitting in my small town apartment for what feels like an eternity, staring at the same four walls as I attempt to process the events that transpired today. The fluorescent lighting overhead is particularly harsh, casting an unforgiving glare on the pages of the acceptance letter in front of me. My hands are shaking slightly as I unfold it, my mind racing with a mix of emotions - relief, shock, and a lingering sense of unease. \"Internship offer accepted,\" the words seem to repeat themselves, a mantra I'm trying to commit to memory. As I sit here, trying to absorb the news, my mind keeps drifting back to all the what-ifs. What if this is just a temporary reprieve? What if I still don't measure up when it comes down to actual work experience? The thought of spending four months in an environment where every interaction and expectation feels like a constant tightrope walk is making my stomach twist into knots.\n\nI find myself replaying the interview over and over, reanalyzing my responses as if there's always room for improvement. My brain is wired to anticipate failure, to find fault in even the smallest details, and it's exhausting. The fluorescent light overhead seems to be growing brighter by the minute, casting an unflattering glow on every imperfection I see in myself.\n\nSometimes, when things feel this overwhelming, my mind starts to wander to all the ways I've failed in the past - school projects, group presentations, even just everyday conversations with acquaintances. The more I think about it, the more I become convinced that I'll never be good enough. But what if... no, I won't let myself go down that road again.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "anxiety",
+      "sentiment": "negative",
+      "text": "As I sit here, trying to absorb the news, my mind keeps drifting back to all the what-ifs. What if this is just a temporary reprieve? What if I still don't measure up when it comes down to actual work experience? The thought of spending four months in an environment where every interaction and expectation feels like a constant tightrope walk is making my stomach twist into knots.\n\nI find myself replaying the interview over and over, reanalyzing my responses as if there's always room for improvement. My brain is wired to anticipate failure, to find fault in even the smallest details, and it's exhausting. The fluorescent light overhead seems to be growing brighter by the minute, casting an unflattering glow on every imperfection I see in myself.\n\nSometimes, when things feel this overwhelming, my mind starts to wander to all the ways I've failed in the past - school projects, group presentations, even just everyday conversations with acquaintances. The more I think about it, the more I become convinced that I'll never be good enough. But what if... no, I won't let myself go down that road again.",
+      "start_char": 566,
+      "end_char": 1675
+    }
+  ],
+  "topics": [
+    "anxiety"
+  ],
+  "pii": [],
+  "summary": "The writer has received an internship offer and is struggling to process their emotions, replaying the interview in her mind and second-guessing her chances of success. She's plagued by self-doubt and a fear of failure, which threatens to overwhelm her as she tries to prepare for the challenges ahead.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

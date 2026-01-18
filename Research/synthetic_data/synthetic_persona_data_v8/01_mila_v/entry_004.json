@@ -1,0 +1,44 @@
+{
+  "persona": "mila_v",
+  "entry_index": 4,
+  "arc_stage": "Stage 1 – Desperation & doubt: feels rejected, frustrated, and believes she will never be good enough. No internship yet.",
+  "transcript": "School. The word itself feels like a weight on my chest, a constant reminder of all the things I don't know how to do. I've been staring at the whiteboard for what feels like hours, trying to make sense of the notes that are supposed to be guiding me towards an internship. But every time I think I'm getting closer, anxiety creeps in and I feel like I'm drowning in a sea of uncertainty. The fluorescent lights above flicker and hum, making my skin prickle with unease. What if I fail? What if I'm not good enough? My mind races with all the worst-case scenarios, each one more terrifying than the last. I feel like I've been staring at my notes for hours, trying to articulate this overwhelming sense of anxiety that's been suffocating me. It's like a constant buzzing in the background of my mind, making it hard to focus on anything else. Every time I think I'm getting somewhere, self-doubt creeps in and tells me I'm not good enough. The thought of my internship interview tomorrow keeps me up at night, my heart racing with anticipation and fear. What if I say something stupid? What if I don't impress them? My mind is a jumble of worst-case scenarios, making it hard to sleep. I've tried everything to calm myself down - deep breathing, visualization, even drawing - but nothing seems to work for long. The anxiety feels like a living thing, wrapped around my chest and squeezing tight. Internship woes still linger, like a constant hum in the background of my mind. I feel like I've been waiting forever for something to happen, and yet, nothing seems to be materializing. My anxiety spikes every time I think about it - what if I'm not good enough? What if I mess up somehow? The thought of being stuck in a dead-end job makes me want to crawl under a rock.\n\nI tried to distract myself today by listening to music, but the lyrics just made me feel worse. They're all about chasing your dreams and never giving up, but what if that's not true for me? What if I'm just not cut out for this whole internship thing? The more I think about it, the more my brain gets tangled in a web of worst-case scenarios.\n\nI've been rereading our company's website over and over again, trying to memorize every detail. But no matter how hard I try, I feel like I'm just grasping at straws. What if they find out that I'm not really qualified? What if I'm just a fake, pretending to be someone I'm not? Ugh, my mind is racing with all these terrible thoughts.\n\nI guess what I need right now is some concrete action steps. Maybe I should start making phone calls or applying for jobs online. But the thought of doing that makes me want to hide under my bed. Tomorrow has to be better than today, right?.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "school",
+      "sentiment": "negative",
+      "text": "School. The word itself feels like a weight on my chest, a constant reminder of all the things I don't know how to do. I've been staring at the whiteboard for what feels like hours, trying to make sense of the notes that are supposed to be guiding me towards an internship. But every time I think I'm getting closer, anxiety creeps in and I feel like I'm drowning in a sea of uncertainty. The fluorescent lights above flicker and hum, making my skin prickle with unease. What if I fail? What if I'm not good enough? My mind races with all the worst-case scenarios, each one more terrifying than the last.",
+      "start_char": 0,
+      "end_char": 604
+    },
+    {
+      "id": 1,
+      "topic": "anxiety",
+      "sentiment": "negative",
+      "text": "I feel like I've been staring at my notes for hours, trying to articulate this overwhelming sense of anxiety that's been suffocating me. It's like a constant buzzing in the background of my mind, making it hard to focus on anything else. Every time I think I'm getting somewhere, self-doubt creeps in and tells me I'm not good enough. The thought of my internship interview tomorrow keeps me up at night, my heart racing with anticipation and fear. What if I say something stupid? What if I don't impress them? My mind is a jumble of worst-case scenarios, making it hard to sleep. I've tried everything to calm myself down - deep breathing, visualization, even drawing - but nothing seems to work for long. The anxiety feels like a living thing, wrapped around my chest and squeezing tight.",
+      "start_char": 605,
+      "end_char": 1395
+    },
+    {
+      "id": 2,
+      "topic": "internship",
+      "sentiment": "negative",
+      "text": "Internship woes still linger, like a constant hum in the background of my mind. I feel like I've been waiting forever for something to happen, and yet, nothing seems to be materializing. My anxiety spikes every time I think about it - what if I'm not good enough? What if I mess up somehow? The thought of being stuck in a dead-end job makes me want to crawl under a rock.\n\nI tried to distract myself today by listening to music, but the lyrics just made me feel worse. They're all about chasing your dreams and never giving up, but what if that's not true for me? What if I'm just not cut out for this whole internship thing? The more I think about it, the more my brain gets tangled in a web of worst-case scenarios.\n\nI've been rereading our company's website over and over again, trying to memorize every detail. But no matter how hard I try, I feel like I'm just grasping at straws. What if they find out that I'm not really qualified? What if I'm just a fake, pretending to be someone I'm not? Ugh, my mind is racing with all these terrible thoughts.\n\nI guess what I need right now is some concrete action steps. Maybe I should start making phone calls or applying for jobs online. But the thought of doing that makes me want to hide under my bed. Tomorrow has to be better than today, right?.",
+      "start_char": 1396,
+      "end_char": 2694
+    }
+  ],
+  "topics": [
+    "school",
+    "anxiety",
+    "internship"
+  ],
+  "pii": [],
+  "summary": "Here is a 1-2 sentence summary of the journal entry:\n\nThe writer is consumed by anxiety about their upcoming internship interview and feeling overwhelmed by the uncertainty of it all, with self-doubt and worst-case scenarios constantly creeping in. Despite trying various coping mechanisms, they feel stuck and paralyzed, desperately craving concrete action steps to alleviate their growing sense of unease and fear.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

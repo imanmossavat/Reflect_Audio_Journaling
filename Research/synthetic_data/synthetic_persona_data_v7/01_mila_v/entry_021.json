@@ -1,0 +1,54 @@
+{
+  "persona": "mila_v",
+  "entry_index": 21,
+  "arc_stage": "Stage 3 – Overwhelmed but proud: worries she won't meet expectations, but starts recognizing her growth and small wins.",
+  "transcript": "I have been sitting in my small town apartment for what feels like an eternity, staring at the same four walls. The fluorescent lights overhead cast a harsh glow, making my eyes feel dry and irritated. My mind is attempting to reassemble the fragments of today's events, but the details are blurring together in a haze of anxiety. I hope that makes sense. This morning, I received an unexpected job offer from the Taylor Group, which has left me questioning my own abilities and second-guessing every decision leading up to this moment. As I sit here, trying to make sense of it all, my mind keeps wandering back to the what-ifs. What if I don't measure up at the Taylor Group? What if I mess everything up? The more I think about it, the more my stomach twists into knots. But then I try to push those thoughts away and focus on the present moment. My fingers drum against the armrest as I attempt to calm myself down. It's funny how a small thing like a job offer can send me spiraling into this web of anxiety. The fluorescent lights above seem to be shining an extra-bright spotlight on my doubts, making it hard for me to see anything else. As I sit here, trying to gather my thoughts, I find myself thinking about this internship and how it's both exhilarating and terrifying. I keep replaying the conversation with my mom, who came over after work to discuss my plans for the summer. She was beaming with pride, reminding me of all the hard work I put into landing the job, but I couldn't shake off the feeling that I'm not good enough. The Taylor Group seems like such a prestigious organization, and what if they're disappointed in me? My mind keeps wandering to worst-case scenarios, making my chest feel tight and sweaty. But at the same time, I remember the confidence boost I got from acing the interview and the way my anxiety melted away when I started talking about my passion for marketing. It's a fragile balance between self-doubt and pride, one that I'm still trying to navigate.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "anxiety",
+      "sentiment": "negative",
+      "text": "As I sit here, trying to make sense of it all, my mind keeps wandering back to the what-ifs. What if I don't measure up at the Taylor Group? What if I mess everything up? The more I think about it, the more my stomach twists into knots. But then I try to push those thoughts away and focus on the present moment. My fingers drum against the armrest as I attempt to calm myself down. It's funny how a small thing like a job offer can send me spiraling into this web of anxiety. The fluorescent lights above seem to be shining an extra-bright spotlight on my doubts, making it hard for me to see anything else.",
+      "start_char": 537,
+      "end_char": 1145
+    },
+    {
+      "id": 1,
+      "topic": "internship",
+      "sentiment": "neutral",
+      "text": "As I sit here, trying to gather my thoughts, I find myself thinking about this internship and how it's both exhilarating and terrifying. I keep replaying the conversation with my mom, who came over after work to discuss my plans for the summer. She was beaming with pride, reminding me of all the hard work I put into landing the job, but I couldn't shake off the feeling that I'm not good enough. The Taylor Group seems like such a prestigious organization, and what if they're disappointed in me? My mind keeps wandering to worst-case scenarios, making my chest feel tight and sweaty. But at the same time, I remember the confidence boost I got from acing the interview and the way my anxiety melted away when I started talking about my passion for marketing. It's a fragile balance between self-doubt and pride, one that I'm still trying to navigate.",
+      "start_char": 1146,
+      "end_char": 1999
+    }
+  ],
+  "topics": [
+    "anxiety",
+    "internship"
+  ],
+  "pii": [
+    {
+      "type": "COMPANY_NAME",
+      "text": "Taylor Group",
+      "start_char": 414,
+      "end_char": 426
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Taylor Group",
+      "start_char": 664,
+      "end_char": 676
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Taylor Group",
+      "start_char": 1548,
+      "end_char": 1560
+    }
+  ],
+  "summary": "The writer is struggling with anxiety after receiving an unexpected job offer from the prestigious Taylor Group, causing them to question their abilities and second-guess every decision leading up to it. As they try to calm themselves down, they're torn between fears of not measuring up and feelings of confidence and pride that came from acing a previous interview.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

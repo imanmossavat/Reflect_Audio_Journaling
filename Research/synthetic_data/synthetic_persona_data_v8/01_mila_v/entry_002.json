@@ -1,0 +1,71 @@
+{
+  "persona": "mila_v",
+  "entry_index": 2,
+  "arc_stage": "Stage 1 – Desperation & doubt: feels rejected, frustrated, and believes she will never be good enough. No internship yet.",
+  "transcript": "Today, I successfully initiated my task of recording my thoughts and feelings in a way that makes sense. I am attempting to articulate the overwhelming mix of emotions I experience when thinking about my internship. My initial doubts and fears resurfaced upon receiving the job offer from Henderson-Liu, a company I desperately wanted but never expected. Despite my anxiety, I will attempt to break down my thoughts into logical and coherent sections to help me process this unexpected turn of events. The weight of uncertainty settles upon me like a shroud. Every moment spent replaying my conversation with the recruiter at Henderson-Liu's office feels like a failure, each unspoken question and nervous laugh echoing through my mind like a cruel mantra. My mind is a jumble of worst-case scenarios, every possible outcome magnified to unbearable proportions. I feel like I'm drowning in a sea of self-doubt, with no lifeline in sight. The thought of walking into that office on Monday morning, still reeling from the news, is a prospect both terrifying and paralyzing. My hands tremble at the mere idea of meeting new people, of making mistakes, of not being good enough. My mind is racing with thoughts of school, and how it's not just a place where I go to learn, but also where I feel like I'm constantly failing. The anxiety that comes with every assignment, every test, every interaction with my classmates feels like it's suffocating me. I try to focus on my studies, but my brain keeps wandering back to all the things I could be doing instead - working on my internship, spending time with friends, engaging in a hobby that brings me joy.\n\nThe more I think about it, the more overwhelmed I feel. School is supposed to be a place where I can grow and develop as a person, but what if I'm not good enough? What if I'm never going to find an internship or make connections that will help me achieve my goals? The doubts creep in, making my heart sink even further.\n\nI try to push them away, focusing on the present moment - the sound of the pen scratching against the paper, the feeling of the journal in my hands. But it's hard to shake off the feeling that I'm just pretending to be a functioning member of society when really, I'm just faking it until someone discovers the truth. My mind keeps wandering back to why I feel like I don't deserve that internship. It's not just the fact that I wasn't selected for the first round; it's the feeling of being good enough, or even better than good enough. The more I think about it, the more my anxiety starts to spiral out of control, making me wonder if I'll ever be able to calm it down. The Henderson-Liu job offer was like a punch to the gut - I felt like all my hard work and dedication were worth nothing. Every time I close my eyes, I see the rejection letters I've received over the years, each one reinforcing the doubt that's been eating away at me for so long.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "general",
+      "sentiment": "negative",
+      "text": "Today, I successfully initiated my task of recording my thoughts and feelings in a way that makes sense. I am attempting to articulate the overwhelming mix of emotions I experience when thinking about my internship. My initial doubts and fears resurfaced upon receiving the job offer from Henderson-Liu, a company I desperately wanted but never expected. Despite my anxiety, I will attempt to break down my thoughts into logical and coherent sections to help me process this unexpected turn of events.",
+      "start_char": 0,
+      "end_char": 501
+    },
+    {
+      "id": 1,
+      "topic": "anxiety",
+      "sentiment": "negative",
+      "text": "The weight of uncertainty settles upon me like a shroud. Every moment spent replaying my conversation with the recruiter at Henderson-Liu's office feels like a failure, each unspoken question and nervous laugh echoing through my mind like a cruel mantra. My mind is a jumble of worst-case scenarios, every possible outcome magnified to unbearable proportions. I feel like I'm drowning in a sea of self-doubt, with no lifeline in sight. The thought of walking into that office on Monday morning, still reeling from the news, is a prospect both terrifying and paralyzing. My hands tremble at the mere idea of meeting new people, of making mistakes, of not being good enough.",
+      "start_char": 502,
+      "end_char": 1174
+    },
+    {
+      "id": 2,
+      "topic": "school",
+      "sentiment": "negative",
+      "text": "My mind is racing with thoughts of school, and how it's not just a place where I go to learn, but also where I feel like I'm constantly failing. The anxiety that comes with every assignment, every test, every interaction with my classmates feels like it's suffocating me. I try to focus on my studies, but my brain keeps wandering back to all the things I could be doing instead - working on my internship, spending time with friends, engaging in a hobby that brings me joy.\n\nThe more I think about it, the more overwhelmed I feel. School is supposed to be a place where I can grow and develop as a person, but what if I'm not good enough? What if I'm never going to find an internship or make connections that will help me achieve my goals? The doubts creep in, making my heart sink even further.\n\nI try to push them away, focusing on the present moment - the sound of the pen scratching against the paper, the feeling of the journal in my hands. But it's hard to shake off the feeling that I'm just pretending to be a functioning member of society when really, I'm just faking it until someone discovers the truth.",
+      "start_char": 1175,
+      "end_char": 2291
+    },
+    {
+      "id": 3,
+      "topic": "self-worth",
+      "sentiment": "negative",
+      "text": "My mind keeps wandering back to why I feel like I don't deserve that internship. It's not just the fact that I wasn't selected for the first round; it's the feeling of being good enough, or even better than good enough. The more I think about it, the more my anxiety starts to spiral out of control, making me wonder if I'll ever be able to calm it down. The Henderson-Liu job offer was like a punch to the gut - I felt like all my hard work and dedication were worth nothing. Every time I close my eyes, I see the rejection letters I've received over the years, each one reinforcing the doubt that's been eating away at me for so long.",
+      "start_char": 2292,
+      "end_char": 2928
+    }
+  ],
+  "topics": [
+    "anxiety",
+    "school",
+    "self-worth"
+  ],
+  "pii": [
+    {
+      "type": "COMPANY_NAME",
+      "text": "Henderson-Liu",
+      "start_char": 289,
+      "end_char": 302
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Henderson-Liu",
+      "start_char": 626,
+      "end_char": 639
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Henderson-Liu",
+      "start_char": 2651,
+      "end_char": 2664
+    }
+  ],
+  "summary": "Here is a summary of the journal entry in 1-2 sentences:\n\nThe writer has received a job offer from their dream company, but is overwhelmed with anxiety and self-doubt about whether they are truly worthy of the opportunity. They feel like they're drowning in uncertainty, replaying worst-case scenarios and fearing that they'll fail or not be good enough, leading to a suffocating sense of anxiety and inadequacy.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

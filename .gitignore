@@ -186,3 +186,5 @@ cython_debug/
 /Research/PII/.idea/copilot.data.migration.ask2agent.xml
 /Research/PII/.idea/copilot.data.migration.ask.xml
 /Research/PII/.idea/copilot.data.migration.agent.xml
+/Research/synthetic_data/Faker/
+/Research/synthetic_data/llm/

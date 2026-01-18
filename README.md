@@ -6,7 +6,7 @@ Follow these steps to set up a local Python environment for the REFLECT backend.
 
 ---
 ### Prerequisites
-- Python 3.10
+- Python 3.10.11
 - `pip` (comes with Python)
 
 Check your versions:
@@ -16,9 +16,10 @@ pip --version
 ```
 
 ### Clone the repository
-Clone the repo from git and go into the backend directory.
+Clone the repo from git and go into the backend directory. Choose which folder you want to clone it into, right click and open command prompt inside that folder.
 ```bash
 git clone https://github.com/imanmossavat/Reflect_Audio_Journaling.git
+cd Reflect_Audio_Journaling
 cd Backend
 ```
 
@@ -28,7 +29,7 @@ cd Backend
 
 ###### Command Prompt (CMD)
 ```bash
-python -m venv .venv
+py -3.10 -m venv .venv
 .venv\Scripts\Activate
 ```
 
@@ -45,6 +46,7 @@ source .venv/bin/activate
 ```
 
 ## Installation
+Depending on your WIFI and computer speed this may take long, it has not frozen waiting is expected.
 ```bash
 pip install --upgrade pip
 pip install -r requirements.txt
@@ -72,6 +74,8 @@ After you click on try it out you can provide the text you want to analyze, then
 ---
 Then the response will appear below with the analyzed text.
 ![img_3.png](Installation/Images/img_3.png)
+---
+
 - Project: REFLECT – AI Audio Journaling System
 
 ---

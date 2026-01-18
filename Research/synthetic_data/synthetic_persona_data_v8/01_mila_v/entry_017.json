@@ -1,0 +1,43 @@
+{
+  "persona": "mila_v",
+  "entry_index": 17,
+  "arc_stage": "Stage 3 – Overwhelmed but proud: worries she won't meet expectations, but starts recognizing her growth and small wins.",
+  "transcript": "Today's events have unfolded in a manner that has alleviated a considerable amount of my anxiety, and I am compelled to acknowledge this feeling. The weight of uncertainty that has been pressing upon me for months seems to be slowly lifting off my shoulders. School, an environment that has consistently triggered feelings of overwhelm and self-doubt, has presented me with unexpected opportunities for growth and recognition. I am proud of the efforts I have made thus far, even if they do not meet the impossibly high standards that have come to define my expectations. It is this sense of progress, no matter how small or incremental, that gives me the courage to continue pushing forward into a future that feels both uncertain and exhilarating. The internship, a place where I've been trying to navigate my anxieties and find a sense of purpose. Today's events have shown me that it's not about meeting expectations, but about being present and learning from each experience. The daily tasks feel less overwhelming when broken down into smaller, manageable chunks, and the sense of accomplishment grows with each completed task. I've also been surprised by how much I enjoy the quiet moments in the office, where I can focus on my work without distractions. It's funny, I used to think that my anxiety would make it difficult for me to succeed in a job setting, but I'm realizing now that it's actually given me the opportunity to develop coping strategies and learn to prioritize my own needs. The weight of expectations that come with \"work\" feels like a crushing force, one that threatens to suffocate me beneath its oppressive weight. I've been worried about meeting the demands of my internship, about proving myself worthy of the opportunities I've been given. But today, something shifted. Perhaps it was the way the sunlight streaming through the window highlighted the dust motes dancing in the air, or maybe it was the sound of my coworker's laughter as we worked together on a project - whatever it was, it gave me the courage to take a step back and reevaluate my own expectations. I've been so focused on trying to meet everyone else's standards that I forgot to prioritize my own growth and well-being. Today, I'm making a conscious effort to shift my focus inward, to celebrate small wins and acknowledge progress, no matter how incremental. The sense of relief is palpable, like a gentle breeze on a summer day, and for the first time in months, I feel like I can breathe again.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "general",
+      "sentiment": "positive",
+      "text": "Today's events have unfolded in a manner that has alleviated a considerable amount of my anxiety, and I am compelled to acknowledge this feeling. The weight of uncertainty that has been pressing upon me for months seems to be slowly lifting off my shoulders. School, an environment that has consistently triggered feelings of overwhelm and self-doubt, has presented me with unexpected opportunities for growth and recognition. I am proud of the efforts I have made thus far, even if they do not meet the impossibly high standards that have come to define my expectations. It is this sense of progress, no matter how small or incremental, that gives me the courage to continue pushing forward into a future that feels both uncertain and exhilarating.",
+      "start_char": 0,
+      "end_char": 749
+    },
+    {
+      "id": 1,
+      "topic": "internship",
+      "sentiment": "positive",
+      "text": "The internship, a place where I've been trying to navigate my anxieties and find a sense of purpose. Today's events have shown me that it's not about meeting expectations, but about being present and learning from each experience. The daily tasks feel less overwhelming when broken down into smaller, manageable chunks, and the sense of accomplishment grows with each completed task. I've also been surprised by how much I enjoy the quiet moments in the office, where I can focus on my work without distractions. It's funny, I used to think that my anxiety would make it difficult for me to succeed in a job setting, but I'm realizing now that it's actually given me the opportunity to develop coping strategies and learn to prioritize my own needs.",
+      "start_char": 750,
+      "end_char": 1499
+    },
+    {
+      "id": 2,
+      "topic": "work",
+      "sentiment": "neutral",
+      "text": "The weight of expectations that come with \"work\" feels like a crushing force, one that threatens to suffocate me beneath its oppressive weight. I've been worried about meeting the demands of my internship, about proving myself worthy of the opportunities I've been given. But today, something shifted. Perhaps it was the way the sunlight streaming through the window highlighted the dust motes dancing in the air, or maybe it was the sound of my coworker's laughter as we worked together on a project - whatever it was, it gave me the courage to take a step back and reevaluate my own expectations. I've been so focused on trying to meet everyone else's standards that I forgot to prioritize my own growth and well-being. Today, I'm making a conscious effort to shift my focus inward, to celebrate small wins and acknowledge progress, no matter how incremental. The sense of relief is palpable, like a gentle breeze on a summer day, and for the first time in months, I feel like I can breathe again.",
+      "start_char": 1500,
+      "end_char": 2499
+    }
+  ],
+  "topics": [
+    "internship",
+    "work"
+  ],
+  "pii": [],
+  "summary": "Here is a 1-2 sentence summary of the journal entry:\n\nThe writer has experienced a shift in their perspective, as they've navigated challenges at school and found unexpected opportunities for growth and recognition through their internship. This newfound sense of progress and acceptance has alleviated their anxiety, allowing them to prioritize their own needs and focus on inner growth, giving them a renewed sense of calm and well-being.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

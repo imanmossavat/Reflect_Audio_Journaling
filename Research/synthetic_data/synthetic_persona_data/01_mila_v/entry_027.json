@@ -1,0 +1,37 @@
+{
+  "persona_id": 1,
+  "persona_code": "mila_v",
+  "persona_name": "Mila",
+  "persona_age": 20,
+  "neurotype": "ASD + High Anxiety",
+  "entry_index": 27,
+  "transcript": "Dear Journal,\n\nI am sitting in my small apartment, surrounded by the familiar comforts of home. The sunlight streaming through the window is a bit too bright today, but I've adjusted the curtains to filter it out. It's been a few hours since Phillip Jackson extended the job offer from Barnes-Peters, and my mind is still reeling from the news.\n\nI'm not sure if I'm overthinking this, but what does it mean for my future? Am I truly ready to take on more responsibility and work in a field that interests me? I keep replaying our conversation in my head, analyzing every word he said. I hope that makes sense.\n\nAs I try to process everything, my anxiety starts to creep in. What if I'm not good enough? What if I make mistakes and it's all over? Curtis would tell me to focus on the positives, but it's hard when every other thought is a worst-case scenario. I've always been someone who struggles with self-worth, and this feels like the ultimate test.\n\nI'm trying to remind myself of all the reasons why Phillip believed I'd be a good fit for the company, but they keep getting lost in the noise. David would probably tell me to take a step back and breathe, that it's normal to feel overwhelmed. But what if he's right? What if I do need to take a moment to collect myself?\n\nI'm not sure how long this will take, but for now, I just need to sit here with my thoughts and try to make sense of it all. I'll go over everything again tomorrow and see where the dust settles.\n\nYours truly,\nTurner",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "work",
+      "text": "Dear Journal,\n\nI am sitting in my small apartment, surrounded by the familiar comforts of home. The sunlight streaming through the window is a bit too bright today, but I've adjusted the curtains to filter it out. It's been a few hours since Phillip Jackson extended the job offer from Barnes-Peters, and my mind is still reeling from the news.\n\nI'm not sure if I'm overthinking this, but what does it mean for my future? Am I truly ready to take on more responsibility and work in a field that interests me? I keep replaying our conversation in my head, analyzing every word he said. I hope that makes sense.\n\nAs I try to process everything, my anxiety starts to creep in. What if I'm not good enough? What if I make mistakes and it's all over? Curtis would tell me to focus on the positives, but it's hard when every other thought is a worst-case scenario. I've always been someone who struggles with self-worth, and this feels like the ultimate test.\n\nI'm trying to remind myself of all the reasons why Phillip believed I'd be a good fit for the company, but they keep getting lost in the noise. David would probably tell me to take a step back and breathe, that it's normal to feel overwhelmed. But what if he's right? What if I do need to take a moment to collect myself?\n\nI'm not sure how long this will take, but for now, I just need to sit here with my thoughts and try to make sense of it all. I'll go over everything again tomorrow and see where the dust settles.\n\nYours truly,\nTurner",
+      "start_char": 0,
+      "end_char": 1494
+    }
+  ],
+  "topics": [
+    "work"
+  ],
+  "pii": [
+    {
+      "type": "BOSS_NAME",
+      "text": "Phillip Jackson",
+      "start_char": 242,
+      "end_char": 257
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Barnes-Peters",
+      "start_char": 286,
+      "end_char": 299
+    }
+  ],
+  "summary": "Here is a concise summary of the journal entry in 2 sentences:\n\nTurner is struggling to come to terms with a job offer from Barnes-Peters, feeling anxious about taking on more responsibility and uncertain about their readiness for it. Their self-doubt and fear of failure are overwhelming them, making it hard to see past the doubts that have long plagued their self-worth.",
+  "arc_stage": "Stage 4 – Shock at job offer: receives a job offer from the internship, feels joy + fear + imposter syndrome."
+}

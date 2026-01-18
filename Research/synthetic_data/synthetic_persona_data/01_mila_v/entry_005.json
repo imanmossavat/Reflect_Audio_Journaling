@@ -1,0 +1,32 @@
+{
+  "persona_id": 1,
+  "persona_code": "mila_v",
+  "persona_name": "Mila",
+  "persona_age": 20,
+  "neurotype": "ASD + High Anxiety",
+  "entry_index": 5,
+  "transcript": "I hope that makes sense. I'm sitting in my small apartment, surrounded by the familiar comforts of home. The sunlight streaming through the window is too bright today, making my eyes feel dry and itchy. I've been trying to focus on my schoolwork, but it's hard when I'm feeling so overwhelmed. My social interactions have been...unsettling lately. I had a conversation with Christopher in class yesterday that left me feeling anxious for hours.\n\nI keep replaying the parts where he made jokes and I didn't laugh back fast enough. I hope that makes sense. I know I can be awkward sometimes, but it feels like everyone else is more confident than me. Phillip Jackson's expectations weigh heavily on my shoulders - every conversation with him feels like a performance, like I'm constantly trying to prove myself.\n\nI wish David was here right now. He always knows how to make me feel better, even when I'm feeling at my worst. I try to think of all the things he does well, but it's hard to shake off this sense of inadequacy. My mind starts to wander, thinking about all the times I've messed up or made mistakes.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "school",
+      "text": "I hope that makes sense. I'm sitting in my small apartment, surrounded by the familiar comforts of home. The sunlight streaming through the window is too bright today, making my eyes feel dry and itchy. I've been trying to focus on my schoolwork, but it's hard when I'm feeling so overwhelmed. My social interactions have been...unsettling lately. I had a conversation with Christopher in class yesterday that left me feeling anxious for hours.\n\nI keep replaying the parts where he made jokes and I didn't laugh back fast enough. I hope that makes sense. I know I can be awkward sometimes, but it feels like everyone else is more confident than me. Phillip Jackson's expectations weigh heavily on my shoulders - every conversation with him feels like a performance, like I'm constantly trying to prove myself.\n\nI wish David was here right now. He always knows how to make me feel better, even when I'm feeling at my worst. I try to think of all the things he does well, but it's hard to shake off this sense of inadequacy. My mind starts to wander, thinking about all the times I've messed up or made mistakes.",
+      "start_char": 0,
+      "end_char": 1110
+    }
+  ],
+  "topics": [
+    "social interaction",
+    "school"
+  ],
+  "pii": [
+    {
+      "type": "BOSS_NAME",
+      "text": "Phillip Jackson",
+      "start_char": 649,
+      "end_char": 664
+    }
+  ],
+  "summary": "Here is a summary of the journal entry in 2 concise and emotionally aware sentences:\n\nThe writer is struggling with feelings of anxiety, inadequacy, and overwhelm, feeling like they're constantly trying to prove themselves in social interactions. They're haunted by past mistakes and wishing for someone to offer comfort and reassurance, specifically David, who has a calming presence that eludes them now.",
+  "arc_stage": "Stage 1 – Desperation & doubt: feels rejected, frustrated, and believes she will never be good enough. No internship yet."
+}

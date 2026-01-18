@@ -1,0 +1,65 @@
+{
+  "persona": "mila_v",
+  "entry_index": 6,
+  "arc_stage": "Stage 1 – Desperation & doubt: feels rejected, frustrated, and believes she will never be good enough. No internship yet.",
+  "transcript": "March 22nd, 2023\n\nI am attempting to record my thoughts in a manner that is coherent and easy to comprehend. I have been experiencing a high level of anxiety regarding the internship at Weaver, Erickson and Johnson. Despite receiving multiple rejection letters, I was finally offered an opportunity to participate in their design program as an intern. During my interview, I was bombarded by an overwhelming array of lights and sounds that made it challenging for me to focus. The fluorescent hum of the conference room's overhead lighting created a sense of disorientation, and I found myself struggling to maintain eye contact with Mario Long, our potential employer.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "general",
+      "sentiment": "neutral",
+      "text": "March 22nd, 2023\n\nI am attempting to record my thoughts in a manner that is coherent and easy to comprehend.",
+      "start_char": 0,
+      "end_char": 108
+    },
+    {
+      "id": 1,
+      "topic": "internship",
+      "sentiment": "negative",
+      "text": "I have been experiencing a high level of anxiety regarding the internship at Weaver, Erickson and Johnson. Despite receiving multiple rejection letters, I was finally offered an opportunity to participate in their design program as an intern.",
+      "start_char": 109,
+      "end_char": 351
+    },
+    {
+      "id": 2,
+      "topic": "general",
+      "sentiment": "negative",
+      "text": "During my interview, I was bombarded by an overwhelming array of lights and sounds that made it challenging for me to focus.",
+      "start_char": 352,
+      "end_char": 476
+    },
+    {
+      "id": 3,
+      "topic": "anxiety",
+      "sentiment": "negative",
+      "text": "The fluorescent hum of the conference room's overhead lighting created a sense of disorientation, and I found myself struggling to maintain eye contact with Mario Long, our potential employer.",
+      "start_char": 477,
+      "end_char": 669
+    }
+  ],
+  "topics": [
+    "anxiety",
+    "internship",
+    "general"
+  ],
+  "pii": [
+    {
+      "type": "BOSS_NAME",
+      "text": "Mario Long",
+      "start_char": 634,
+      "end_char": 644
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Weaver, Erickson and Johnson",
+      "start_char": 186,
+      "end_char": 214
+    }
+  ],
+  "summary": "The author, despite receiving multiple rejection letters, was recently offered an internship at Weaver, Erickson and Johnson after a challenging interview experience where they were overwhelmed by the environment, including loud lights and fluorescent hum. This anxiety has left them uncertain about accepting the opportunity.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

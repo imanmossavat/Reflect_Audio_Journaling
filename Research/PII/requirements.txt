@@ -1,3 +1,5 @@
 transformers
 spacy~=3.8.7
 datasets~=4.3.0
+spacy-curated-transformers
+torch

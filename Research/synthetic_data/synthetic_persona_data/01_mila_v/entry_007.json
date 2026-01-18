@@ -1,0 +1,24 @@
+{
+  "persona_id": 1,
+  "persona_code": "mila_v",
+  "persona_name": "Mila",
+  "persona_age": 20,
+  "neurotype": "ASD + High Anxiety",
+  "entry_index": 7,
+  "transcript": "Dear Journal,\n\nI am sitting in my small apartment, surrounded by the familiar comforts of home. The fluorescent lights overhead seem too bright today, casting an unforgiving glare on the walls as I try to collect my thoughts. My mind is a jumble of worries and doubts, each one vying for attention like a chorus of disapproving voices.\n\nI fear that I am not good enough. That I will never be good enough. The words echo in my head like a mantra, eroding my confidence with each passing moment. Even the smallest accomplishments – successfully completing a task, receiving positive feedback from Phillip – feel hollow and insignificant in the face of such overwhelming self-doubt.\n\nI am trying to focus on my internship, but anxiety seeps into every aspect of my work. What if I say something stupid? What if I mess up? The thought sends my heart racing and my palms growing slick with sweat. I hope that makes sense – it's just that these fears feel so real, so tangible.\n\nI try to push them aside, to remind myself of all the times Christopher has offered words of encouragement or Curtis's gentle reassurance when I'm feeling overwhelmed. But those moments are fleeting, easily displaced by the insidious voice of self-doubt.\n\nPerhaps it is time for me to take a step back, to breathe and regroup before charging forward once more? I am not sure if that makes sense, but it sounds like a plan nonetheless.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "anxiety",
+      "text": "Dear Journal,\n\nI am sitting in my small apartment, surrounded by the familiar comforts of home. The fluorescent lights overhead seem too bright today, casting an unforgiving glare on the walls as I try to collect my thoughts. My mind is a jumble of worries and doubts, each one vying for attention like a chorus of disapproving voices.\n\nI fear that I am not good enough. That I will never be good enough. The words echo in my head like a mantra, eroding my confidence with each passing moment. Even the smallest accomplishments – successfully completing a task, receiving positive feedback from Phillip – feel hollow and insignificant in the face of such overwhelming self-doubt.\n\nI am trying to focus on my internship, but anxiety seeps into every aspect of my work. What if I say something stupid? What if I mess up? The thought sends my heart racing and my palms growing slick with sweat. I hope that makes sense – it's just that these fears feel so real, so tangible.\n\nI try to push them aside, to remind myself of all the times Christopher has offered words of encouragement or Curtis's gentle reassurance when I'm feeling overwhelmed. But those moments are fleeting, easily displaced by the insidious voice of self-doubt.\n\nPerhaps it is time for me to take a step back, to breathe and regroup before charging forward once more? I am not sure if that makes sense, but it sounds like a plan nonetheless.",
+      "start_char": 0,
+      "end_char": 1407
+    }
+  ],
+  "topics": [
+    "anxiety"
+  ],
+  "pii": [],
+  "summary": "Here is a summary of the journal entry in 1-2 concise, emotionally aware sentences:\n\nThe writer feels suffocated by self-doubt, as if an insidious voice whispers \"you're not good enough\" and erodes their confidence with each passing moment. Their anxiety threatens to overwhelm them, making even small accomplishments feel hollow and insignificant.",
+  "arc_stage": "Stage 1 – Desperation & doubt: feels rejected, frustrated, and believes she will never be good enough. No internship yet."
+}
