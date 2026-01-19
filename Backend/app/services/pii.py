@@ -4,6 +4,8 @@ import spacy
 from app.domain.models import PiiFinding
 from app.core.config import settings
 
+from typing import List, Any
+
 class PIIDetector:
     """
     Detects and optionally redacts Personally Identifiable Information (PII)
@@ -63,43 +65,75 @@ class PIIDetector:
 
         return unique
 
-    def redact(self, text: str) -> str:
+    @staticmethod
+    def redact(text: str, findings: List[PiiFinding]) -> str:
         """
-        Return a redacted version of text, replacing detected PII with [REDACTED].
+        Replace detected PII spans with REDACTED:<LABEL>.
+        Uses start_char/end_char from findings.
         """
-        doc = self.nlp(text)
-        pii_entities = self.detect_from_text(text, doc)
-        redacted = text
-        for item in sorted(pii_entities, key=lambda x: x["start"], reverse=True):
-            redacted = redacted[:item["start"]] + "[REDACTED]" + redacted[item["end"]:]
-        return redacted
+        if not text or not findings:
+            return text
+    
+        # normalize + sort
+        spans = sorted(
+            [
+                {
+                    "start": int(f.start_char),
+                    "end": int(f.end_char),
+                    "label": f.label or "PII",
+                }
+                for f in findings
+                if f.start_char is not None and f.end_char is not None
+            ],
+            key=lambda s: (s["start"], s["end"]),
+        )
+    
+        # merge overlapping spans
+        merged = []
+        for s in spans:
+            if not merged:
+                merged.append(
+                    {"start": s["start"], "end": s["end"], "labels": {s["label"]}}
+                )
+                continue
+    
+            last = merged[-1]
+            if s["start"] > last["end"]:
+                merged.append(
+                    {"start": s["start"], "end": s["end"], "labels": {s["label"]}}
+                )
+            else:
+                last["end"] = max(last["end"], s["end"])
+                last["labels"].add(s["label"])
+    
+        # build redacted output
+        out = []
+        cursor = 0
+        n = len(text)
+    
+        for m in merged:
+            start = max(0, min(n, m["start"]))
+            end = max(0, min(n, m["end"]))
+            if end <= start:
+                continue
+    
+            # text before span
+            if start > cursor:
+                out.append(text[cursor:start])
+    
+            # label token
+            label = (
+                next(iter(m["labels"]))
+                if len(m["labels"]) == 1
+                else "+".join(sorted(m["labels"]))
+            )
+            out.append(f"[REDACTED:{label}]")
+    
+            cursor = end
+    
+        # tail
+        if cursor < n:
+            out.append(text[cursor:])
+    
+        return "".join(out)
 
-    # ---------------- PRIVATE HELPER ---------------- #
-
-    def detect_from_text(self, text: str, doc=None):
-        """
-        Detect PII entities directly from a text string (used internally for redaction).
-        """
-        results = []
-        # regex
-        for label, pattern in self.patterns.items():
-            for match in re.finditer(pattern, text):
-                results.append({
-                    "type": label,
-                    "value": match.group(),
-                    "start": match.start(),
-                    "end": match.end()
-                })
-
-        # NER
-        if doc is None:
-            doc = self.nlp(text)
-        for ent in doc.ents:
-            if ent.label_ in ["PERSON", "GPE", "ORG", "LOC", "DATE", "MONEY"]:
-                results.append({
-                    "type": ent.label_,
-                    "value": ent.text,
-                    "start": ent.start_char,
-                    "end": ent.end_char
-                })
-        return results
