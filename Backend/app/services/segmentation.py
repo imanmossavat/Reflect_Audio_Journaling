@@ -19,7 +19,7 @@ class SegmentationManager:
         self.percentile = settings.SEGMENTATION_PERCENTILE
         self.top_n = settings.SEGMENTATION_TOPIC_TOP_N
 
-    def segment(self, transcript, recording_id, method="adaptive"):
+    def segment(self, transcript:str, recording_id: str, method: str="adaptive"):
         """
         Segment transcript text into coherent topic sections.
         Returns a list of Segment objects.

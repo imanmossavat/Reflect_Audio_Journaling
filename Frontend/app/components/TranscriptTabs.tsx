@@ -112,6 +112,7 @@ export default function TranscriptTabs({
     const piiForView =
         tab === "redacted" ? [] : tab === "original" ? piiOriginal || [] : piiEdited || [];
 
+    console.log(piiEdited)
     async function handleDownloadCurrent() {
         // use already loaded text to avoid extra fetch
         if (!text?.trim()) return;

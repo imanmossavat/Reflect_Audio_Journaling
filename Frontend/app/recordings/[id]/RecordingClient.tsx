@@ -60,6 +60,35 @@ export default function RecordingClient({
     const [tagsInput, setTagsInput] = React.useState("");
     const [savingTags, setSavingTags] = React.useState(false);
     const [tagsError, setTagsError] = React.useState<string | null>(null);
+    const [finalizing, setFinalizing] = React.useState(false);
+
+    async function runProcessing() {
+      try {
+        setFinalizing(true);
+
+        // pak currentText (die jij al bijhoudt via TranscriptTabs)
+        const form = new FormData();
+        form.append("recording_id", id);
+        form.append("edited_transcript", currentText);
+
+        const res = await fetch(`${api}/api/recordings/finalize`, {
+          method: "POST",
+          body: form,
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err?.detail || "Finalize failed");
+        }
+
+        await refreshMeta();
+        setRefreshKey((k) => k + 1);
+      } catch (e: any) {
+        alert(e?.message || "Finalize failed");
+      } finally {
+        setFinalizing(false);
+      }
+    }
 
     async function refreshMeta() {
         const r = await fetch(`${api}/api/recordings/${id}`, { cache: "no-store" });
@@ -195,17 +224,33 @@ export default function RecordingClient({
                                     }}
                                 />
 
-                                <div className="pt-2 border-t border-zinc-200 dark:border-zinc-800">
-                                    <TranscriptEditor
-                                        api={api}
-                                        id={id}
-                                        initialText={currentText}
-                                        onSaved={async () => {
-                                            await refreshMeta();
-                                            setRefreshKey((k) => k + 1);
-                                        }}
-                                    />
+                                <div className="pt-2 border-t border-zinc-200 dark:border-zinc-800 space-y-3">
+                                  <div className="flex items-center justify-between gap-3">
+                                    <div className="text-xs text-zinc-500">
+                                      Processing updates segments + PII from the current transcript.
+                                    </div>
+
+                                    <Button
+                                      variant="secondary"
+                                      size="sm"
+                                      onClick={runProcessing}
+                                      disabled={finalizing || !currentText.trim()}
+                                    >
+                                      {finalizing ? "Running…" : "Run processing"}
+                                    </Button>
+                                  </div>
+
+                                  <TranscriptEditor
+                                    api={api}
+                                    id={id}
+                                    initialText={currentText}
+                                    onSaved={async () => {
+                                      await refreshMeta();
+                                      setRefreshKey((k) => k + 1);
+                                    }}
+                                  />
                                 </div>
+
                             </CardContent>
                         </Card>
                     </div>
@@ -216,8 +261,12 @@ export default function RecordingClient({
                             <CardHeader>
                                 <CardTitle className="text-lg">Audio</CardTitle>
                             </CardHeader>
+
                             <CardContent className="space-y-4">
-                                <AudioPlayer src={`${api}/api/audio/${id}`} />
+                                <AudioPlayer
+                                    src={`${api}/api/audio/${id}`}
+                                    hasAudio={!!data?.has_audio}
+                                />
 
                                 <div className="flex flex-wrap gap-2">
                                     {hasOriginal && badge("original")}
@@ -228,6 +277,7 @@ export default function RecordingClient({
                                 </div>
                             </CardContent>
                         </Card>
+
 
                         <Card className="shadow-sm">
                             <CardHeader>

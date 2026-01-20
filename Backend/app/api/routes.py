@@ -1,29 +1,25 @@
-from fastapi import (
-    APIRouter,
-    UploadFile,
-    File,
-    Form,
-    HTTPException,
-    Body,
-    Query,
-)
-from fastapi.responses import FileResponse
+from __future__ import annotations
 
-from app.pipelines.processing import process_uploaded_audio, process_after_edit
-from app.services.transcription import TranscriptionManager
-from app.services.segmentation import SegmentationManager
-from app.services.storage import StorageManager
-from app.services.pii import PIIDetector
-from app.core.config import settings
-from pydantic import BaseModel
-from typing import List, Optional
-
-import tempfile
-import shutil
+import json
 import logging
 import os
-import json
+import shutil
+import tempfile
 from pathlib import Path
+from typing import List, Optional
+
+from fastapi import APIRouter, Body, File, Form, HTTPException, Query, UploadFile
+from fastapi.responses import FileResponse
+from datetime import datetime
+import uuid
+from pydantic import BaseModel, Field
+
+from app.core.config import settings
+from app.pipelines.processing import process_after_edit, process_uploaded_audio
+from app.services.pii import PIIDetector
+from app.services.segmentation import SegmentationManager
+from app.services.storage import StorageManager
+from app.services.transcription import TranscriptionManager
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -33,63 +29,20 @@ segmenter = SegmentationManager()
 pii_detector = PIIDetector()
 store = StorageManager()
 
-# ------------------ ROUTES ------------------ #
+# =============================================================================
+# Helpers (internal)
+# =============================================================================
+
+AUDIO_MEDIA_TYPES = {
+    ".wav": "audio/wav",
+    ".mp3": "audio/mpeg",
+    ".m4a": "audio/mp4",
+    ".webm": "audio/webm",
+}
 
 
-@router.get("/audio/{recording_id}")
-async def get_audio(recording_id: str):
-    meta = store.load_metadata(recording_id)
-    audio_rel = meta.get("audio")
-
-    if not audio_rel:
-        raise HTTPException(status_code=404, detail="Audio not found")
-
-    audio_abs = store.abs_path(audio_rel)
-    if not os.path.exists(audio_abs):
-        raise HTTPException(status_code=404, detail="Audio not found")
-
-    # Optional: try to set a better media_type based on extension
-    ext = Path(audio_abs).suffix.lower()
-    media_type = {
-        ".wav": "audio/wav",
-        ".mp3": "audio/mpeg",
-        ".m4a": "audio/mp4",
-        ".webm": "audio/webm",
-    }.get(ext, "application/octet-stream")
-
-    return FileResponse(audio_abs, media_type=media_type)
-
-def _extract_text_from_transcript_obj(obj) -> str:
-    if not obj:
-        return ""
-
-    # transcript kan string zijn
-    if isinstance(obj, str):
-        return obj
-
-    # transcript kan dict zijn
-    if isinstance(obj, dict):
-        # directe velden
-        for k in ("text", "transcript", "content"):
-            v = obj.get(k)
-            if isinstance(v, str) and v.strip():
-                return v
-
-        # Whisper-ish segments
-        segs = obj.get("segments")
-        if isinstance(segs, list):
-            parts = []
-            for s in segs:
-                if isinstance(s, dict):
-                    t = s.get("text") or s.get("sentence") or s.get("content")
-                    if isinstance(t, str) and t.strip():
-                        parts.append(t.strip())
-            if parts:
-                return " ".join(parts)
-
-    return ""
-
-def _pick_latest_version(t: dict) -> str | None:
+def _pick_latest_version(t: dict) -> Optional[str]:
+    """Pick the most relevant transcript version, in order of preference."""
     if not isinstance(t, dict):
         return None
     if t.get("edited"):
@@ -101,7 +54,7 @@ def _pick_latest_version(t: dict) -> str | None:
     return None
 
 
-def _get_transcript_rel_path(recording_id: str, t: dict, version: str) -> str | None:
+def _get_transcript_rel_path(recording_id: str, t: dict, version: str) -> Optional[str]:
     """
     Supports both metadata styles:
     - transcripts[version] is a rel path (preferred)
@@ -120,11 +73,91 @@ def _get_transcript_rel_path(recording_id: str, t: dict, version: str) -> str | 
     if val is True:
         return f"transcripts/{recording_id}/{version}.txt"
 
-    # if metadata doesn't say anything, still try default path (optional)
     return None
 
-@router.get("/recordings")
+
+def _safe_load_text(rel_path: Optional[str]) -> str:
+    if not rel_path:
+        return ""
+    if not store.exists_rel(rel_path):
+        return ""
+    try:
+        return store.load_text(rel_path) or ""
+    except Exception:
+        return ""
+
+
+def _has_transcript(t: dict, version: str) -> bool:
+    """Expose transcript availability to frontend, supports bool or path style."""
+    v = (t or {}).get(version)
+    if isinstance(v, bool):
+        return v
+    if isinstance(v, str):
+        return bool(v.strip()) and store.exists_rel(v)
+    return False
+
+
+# =============================================================================
+# Settings
+# =============================================================================
+
+class SettingsUpdatePayload(BaseModel):
+    """Settings payload stored to frontend_settings.json (merged with backend defaults)."""
+    # keep it flexible on purpose, but still validated as a dict
+    settings: dict = Field(default_factory=dict)
+
+
+@router.get("/settings", tags=["Settings"])
+async def get_settings():
+    """
+    Get effective settings for the frontend.
+
+    Returns:
+    - backend defaults (from app.core.config.settings)
+    - merged with user overrides from config/frontend_settings.json
+    """
+    frontend_path = os.path.join(settings.CONFIG_DIR, "frontend_settings.json")
+
+    if os.path.exists(frontend_path):
+        with open(frontend_path, "r", encoding="utf-8") as f:
+            user_settings = json.load(f)
+    else:
+        user_settings = {}
+
+    return {"status": "ok", "settings": {**settings.__dict__, **user_settings}}
+
+
+@router.post("/settings/update", tags=["Settings"])
+async def update_settings(payload: dict = Body(...)):
+    """
+    Update frontend-visible settings overrides.
+
+    Stores payload as JSON in:
+    config/frontend_settings.json
+    """
+    frontend_path = os.path.join(settings.CONFIG_DIR, "frontend_settings.json")
+    os.makedirs(settings.CONFIG_DIR, exist_ok=True)
+
+    with open(frontend_path, "w", encoding="utf-8") as f:
+        json.dump(payload, f, indent=2, ensure_ascii=False)
+
+    return {"status": "ok", "updated": payload}
+
+
+# =============================================================================
+# Recordings (library + CRUD)
+# =============================================================================
+
+@router.get("/recordings", tags=["Recordings"])
 async def list_recordings():
+    """
+    List recordings for the library view.
+
+    Returns lightweight objects including:
+    - transcript availability flags (original/edited/redacted)
+    - latest_transcript_version
+    - search_text preview (truncated)
+    """
     items = []
     meta_dir = os.path.join(settings.DATA_DIR, "metadata")
 
@@ -143,31 +176,17 @@ async def list_recordings():
             continue
 
         t = meta.get("transcripts", {}) or {}
-
         latest = _pick_latest_version(t)
 
-        # build search_text (truncate to avoid huge payloads)
+        # Build search_text preview (truncate to avoid huge payloads)
         search_text = ""
         if latest:
             rel = _get_transcript_rel_path(rec_id, t, latest)
-            if rel and store.exists_rel(rel):
-                try:
-                    search_text = store.load_text(rel) or ""
-                except Exception:
-                    search_text = ""
+            search_text = _safe_load_text(rel)
 
         MAX_CHARS = 4000
         if len(search_text) > MAX_CHARS:
             search_text = search_text[:MAX_CHARS]
-
-        # IMPORTANT: expose transcript availability booleans to frontend
-        def _has(version: str) -> bool:
-            v = t.get(version)
-            if isinstance(v, bool):
-                return v
-            if isinstance(v, str):
-                return bool(v.strip()) and store.exists_rel(v)
-            return False
 
         items.append(
             {
@@ -177,9 +196,9 @@ async def list_recordings():
                 "created_at": meta.get("created_at"),
                 "has_audio": bool(meta.get("audio")),
                 "transcripts": {
-                    "original": _has("original"),
-                    "edited": _has("edited"),
-                    "redacted": _has("redacted"),
+                    "original": _has_transcript(t, "original"),
+                    "edited": _has_transcript(t, "edited"),
+                    "redacted": _has_transcript(t, "redacted"),
                 },
                 "latest_transcript_version": latest,
                 "search_text": search_text,
@@ -189,134 +208,27 @@ async def list_recordings():
     items.sort(key=lambda x: x.get("created_at") or "", reverse=True)
     return items
 
-@router.post("/recordings/upload")
-async def upload_recording(
-        file: UploadFile = File(...),
-        language: str = Form(settings.LANGUAGE),
-):
-    """
-    Full pipeline endpoint.
-    Upload an audio file and process it.
-    """
-    try:
-        with tempfile.NamedTemporaryFile(delete=False, suffix=f"_{file.filename}") as tmp:
-            shutil.copyfileobj(file.file, tmp)
-            tmp_path = tmp.name
 
-        logger.info(f"[UPLOAD] Processing {file.filename} ({language})")
-
-        try:
-            result = process_uploaded_audio(tmp_path, open(tmp_path, "rb").read(), language)
-            os.remove(tmp_path)
-            return result
-        except RuntimeError as e:
-            raise HTTPException(status_code=500, detail=str(e))
-
-    except Exception as e:
-        logger.exception(f"[ERROR] Failed to process file: {file.filename}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.post("/recordings/finalize")
-async def finalize_recording(
-        recording_id: str = Form(...),
-        edited_transcript: str = Form(...),
-):
-    """
-    Final pipeline:
-    - User edited transcript
-    - Segment
-    - Save transcript file
-    - Return segments and success message
-    """
-    try:
-        result = process_after_edit(recording_id, edited_transcript)
-        return result
-    except Exception as e:
-        logger.exception("[ERROR] Finalizing recording failed")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.post("/transcriptions")
-async def transcribe_audio(
-        file: UploadFile = File(...),
-        language: str = Form(settings.LANGUAGE),
-):
-    """
-    Upload an audio file and return its transcription only.
-    """
-    try:
-        with tempfile.NamedTemporaryFile(delete=False, suffix=f"_{file.filename}") as tmp:
-            shutil.copyfileobj(file.file, tmp)
-            tmp_path = tmp.name
-
-        recording = type("Recording", (), {"id": "temp", "path": tmp_path, "language": language})
-        transcript = transcriber.transcribe(recording)
-
-        os.remove(tmp_path)
-        return {"text": transcript.text, "words": transcript.words}
-
-    except Exception as e:
-        logger.exception(f"[ERROR] Transcription failed for {file.filename}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.post("/segments")
-async def segment_text(
-        text: str = Form(...),
-        recording_id: str = Form("temp"),
-):
-    """
-    Segment an existing transcript into topic-based chunks.
-    """
-    try:
-        transcript = type("Transcript", (), {"recording_id": recording_id, "text": text})
-        segments = segmenter.segment(transcript)
-
-        return {"segments": [s.__dict__ for s in segments]}
-
-    except Exception as e:
-        logger.exception("[ERROR] Segmentation failed.")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.post("/pii")
-async def detect_pii(
-        text: str = Form(...),
-        recording_id: str = Form("temp"),
-):
-    """
-    Detect personally identifiable information (PII) in a given text.
-    """
-    try:
-        transcript = type("Transcript", (), {"recording_id": recording_id, "text": text})
-        pii_findings = pii_detector.detect(transcript)
-
-        return {"pii": [p.__dict__ for p in pii_findings], "count": len(pii_findings)}
-
-    except Exception as e:
-        logger.exception("[ERROR] PII detection failed.")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.get("/recordings/{recording_id}")
+@router.get("/recordings/{recording_id}", tags=["Recordings"])
 async def get_recording(recording_id: str):
+    """
+    Get a recording with transcript + latest segments.
+
+    Transcript selection order:
+    edited -> original -> redacted
+    """
     meta = store.load_metadata(recording_id)
 
     # ---- transcript: prefer edited, fallback original, then redacted ----
+    t = meta.get("transcripts", {}) or {}
+    chosen_version = "edited" if t.get("edited") else ("original" if t.get("original") else ("redacted" if t.get("redacted") else None))
+
     transcript_text = ""
     transcript_version = None
-
-    t = meta.get("transcripts", {}) or {}
-    tr_path = t.get("edited") or t.get("original") or t.get("redacted")
-    if tr_path:
-        transcript_text = store.load_text(tr_path)
-        if tr_path == t.get("edited"):
-            transcript_version = "edited"
-        elif tr_path == t.get("original"):
-            transcript_version = "original"
-        else:
-            transcript_version = "redacted"
+    if chosen_version:
+        rel = _get_transcript_rel_path(recording_id, t, chosen_version)
+        transcript_text = _safe_load_text(rel)
+        transcript_version = chosen_version
 
     # ---- segments: load the latest saved segments file ----
     segments = []
@@ -341,50 +253,132 @@ async def get_recording(recording_id: str):
         "pii_edited": meta.get("pii_edited", []),
         "created_at": meta.get("created_at"),
         "transcripts": t,
-    }
-
-@router.post("/settings/update")
-async def update_settings(payload: dict):
-    frontend_path = os.path.join(settings.CONFIG_DIR, "frontend_settings.json")
-    os.makedirs(settings.CONFIG_DIR, exist_ok=True)
-
-    with open(frontend_path, "w", encoding="utf-8") as f:
-        json.dump(payload, f, indent=2, ensure_ascii=False)
-
-    return {"status": "ok", "updated": payload}
-
-
-@router.get("/settings")
-async def get_settings():
-    frontend_path = os.path.join(settings.CONFIG_DIR, "frontend_settings.json")
-
-    if os.path.exists(frontend_path):
-        with open(frontend_path, "r", encoding="utf-8") as f:
-            user_settings = json.load(f)
-    else:
-        user_settings = {}
-
-    return {
-        "status": "ok",
-        "settings": {**settings.__dict__, **user_settings},
+        "has_audio": bool(meta.get("audio")),
     }
 
 
-@router.get("/recordings/{recording_id}/transcript")
-async def get_transcript(recording_id: str, version: str = Query("original")):
+class UpdateMetaPayload(BaseModel):
+    title: Optional[str] = None
+    tags: Optional[List[str]] = None
+
+
+@router.patch("/recordings/{recording_id}/meta", tags=["Recordings"])
+async def update_recording_meta(recording_id: str, payload: UpdateMetaPayload):
+    """
+    Update recording metadata (title/tags).
+    Tags are normalized:
+    - trimmed
+    - empty values dropped
+    - unique (case-insensitive)
+    """
     meta = store.load_metadata(recording_id)
-    transcripts = meta.get("transcripts", {}) or {}
-    rel_path = transcripts.get(version)
 
-    if not rel_path:
-        return {"recording_id": recording_id, "version": version, "text": ""}
+    if payload.title is not None:
+        meta["title"] = payload.title.strip()
 
-    return {"recording_id": recording_id, "version": version, "text": store.load_text(rel_path)}
+    if payload.tags is not None:
+        cleaned = []
+        seen = set()
+        for t in payload.tags:
+            t2 = (t or "").strip()
+            if not t2:
+                continue
+            key = t2.lower()
+            if key in seen:
+                continue
+            seen.add(key)
+            cleaned.append(t2)
+        meta["tags"] = cleaned
+
+    store.save_metadata(recording_id, meta)
+    return {"status": "ok", "recording_id": recording_id, "title": meta.get("title"), "tags": meta.get("tags", [])}
 
 
-@router.put("/recordings/{recording_id}/transcript/edited")
-async def save_edited_transcript(recording_id: str, payload: dict = Body(...)):
-    edited_text = payload.get("text")
+@router.delete("/recordings/{recording_id}", tags=["Recordings"])
+async def delete_recording(recording_id: str):
+    """
+    Delete an entire recording (metadata + audio + transcripts + derived artifacts).
+    """
+    try:
+        store.delete_recording(recording_id)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Recording not found")
+
+    return {"status": "ok", "recording_id": recording_id, "deleted": True}
+
+
+# =============================================================================
+# Audio (serve + delete)
+# =============================================================================
+
+@router.get("/audio/{recording_id}", tags=["Audio"])
+async def get_audio(recording_id: str):
+    """
+    Stream the stored audio file for a recording.
+    """
+    meta = store.load_metadata(recording_id)
+    audio_rel = meta.get("audio")
+
+    if not audio_rel:
+        raise HTTPException(status_code=404, detail="Audio not found")
+
+    audio_abs = store.abs_path(audio_rel)
+    if not os.path.exists(audio_abs):
+        raise HTTPException(status_code=404, detail="Audio not found")
+
+    ext = Path(audio_abs).suffix.lower()
+    media_type = AUDIO_MEDIA_TYPES.get(ext, "application/octet-stream")
+    return FileResponse(audio_abs, media_type=media_type)
+
+
+@router.delete("/recordings/{recording_id}/audio", tags=["Audio"])
+async def delete_audio(recording_id: str):
+    """
+    Delete the stored audio file for a recording (metadata stays).
+    """
+    meta = store.load_metadata(recording_id)
+    audio_rel = meta.get("audio")
+    if not audio_rel:
+        return {"status": "ok", "recording_id": recording_id, "deleted": False}
+
+    audio_abs = store.abs_path(audio_rel)
+    if os.path.exists(audio_abs):
+        os.remove(audio_abs)
+
+    meta["audio"] = None
+    store.save_metadata(recording_id, meta)
+    return {"status": "ok", "recording_id": recording_id, "deleted": True}
+
+
+# =============================================================================
+# Transcripts (get/save/delete)
+# =============================================================================
+
+@router.get("/recordings/{recording_id}/transcript", tags=["Transcripts"])
+async def get_transcript(recording_id: str, version: str = Query("original")):
+    """
+    Fetch a transcript version for a recording.
+
+    version: original | edited | redacted
+    Returns empty text if not available.
+    """
+    meta = store.load_metadata(recording_id)
+    t = meta.get("transcripts", {}) or {}
+
+    rel = _get_transcript_rel_path(recording_id, t, version)
+    return {"recording_id": recording_id, "version": version, "text": _safe_load_text(rel)}
+
+
+class SaveTranscriptPayload(BaseModel):
+    text: str = Field(min_length=1)
+
+
+@router.put("/recordings/{recording_id}/transcript/edited", tags=["Transcripts"])
+async def save_edited_transcript(recording_id: str, payload: SaveTranscriptPayload = Body(...)):
+    """
+    Save edited transcript text for a recording.
+    """
+    edited_text = payload.text.strip()
     if not edited_text:
         raise HTTPException(status_code=400, detail="Missing 'text'")
 
@@ -398,8 +392,15 @@ async def save_edited_transcript(recording_id: str, payload: dict = Body(...)):
     return {"status": "ok", "recording_id": recording_id, "edited_path": edited_path}
 
 
-@router.delete("/recordings/{recording_id}/transcript")
+@router.delete("/recordings/{recording_id}/transcript", tags=["Transcripts"])
 async def delete_transcript(recording_id: str, version: str = Query("all")):
+    """
+    Delete transcript files for a recording.
+
+    version:
+    - "all" (default) deletes original/edited/redacted
+    - or a specific version: original | edited | redacted
+    """
     meta = store.load_metadata(recording_id)
     meta.setdefault("transcripts", {})
 
@@ -422,24 +423,15 @@ async def delete_transcript(recording_id: str, version: str = Query("all")):
     return {"status": "ok", "recording_id": recording_id, "deleted": deleted}
 
 
-@router.delete("/recordings/{recording_id}/audio")
-async def delete_audio(recording_id: str):
-    meta = store.load_metadata(recording_id)
-    audio_rel = meta.get("audio")
-    if not audio_rel:
-        return {"status": "ok", "recording_id": recording_id, "deleted": False}
+# =============================================================================
+# Derived artifacts (segments)
+# =============================================================================
 
-    audio_abs = store.abs_path(audio_rel)
-    if os.path.exists(audio_abs):
-        os.remove(audio_abs)
-
-    meta["audio"] = None
-    store.save_metadata(recording_id, meta)
-    return {"status": "ok", "recording_id": recording_id, "deleted": True}
-
-
-@router.delete("/recordings/{recording_id}/segments")
+@router.delete("/recordings/{recording_id}/segments", tags=["Recordings"])
 async def delete_segments(recording_id: str):
+    """
+    Delete all saved segment JSON files for a recording.
+    """
     meta = store.load_metadata(recording_id)
     seg_paths = meta.get("segments", []) or []
 
@@ -452,49 +444,205 @@ async def delete_segments(recording_id: str):
 
     meta["segments"] = []
     store.save_metadata(recording_id, meta)
-
     return {"status": "ok", "recording_id": recording_id, "deleted_count": deleted}
 
-@router.delete("/recordings/{recording_id}")
-async def delete_recording(recording_id: str):
+
+# =============================================================================
+# Processing pipelines (audio -> transcript -> artifacts)
+# =============================================================================
+
+@router.post("/recordings/upload", tags=["Processing"])
+async def upload_recording(
+    file: UploadFile = File(...),
+    language: str = Form(settings.LANGUAGE),
+):
+    """
+    Full pipeline endpoint.
+
+    Upload an audio file and process it (store audio, create metadata, create transcript, etc.).
+    Returns a payload including recording_id.
+    """
     try:
-        store.delete_recording(recording_id)
-    except FileNotFoundError:
-        raise HTTPException(status_code=404, detail="Recording not found")
+        with tempfile.NamedTemporaryFile(delete=False, suffix=f"_{file.filename}") as tmp:
+            shutil.copyfileobj(file.file, tmp)
+            tmp_path = tmp.name
 
-    return {
-        "status": "ok",
-        "recording_id": recording_id,
-        "deleted": True
-    }
+        logger.info(f"[UPLOAD] Processing {file.filename} ({language})")
 
-class UpdateMetaPayload(BaseModel):
+        try:
+            # Note: process_uploaded_audio currently wants both tmp_path and bytes.
+            # This is a bit redundant, but left as-is for now.
+            result = process_uploaded_audio(tmp_path, open(tmp_path, "rb").read(), language)
+            os.remove(tmp_path)
+            return result
+        except RuntimeError as e:
+            raise HTTPException(status_code=500, detail=str(e))
+
+    except Exception as e:
+        logger.exception(f"[ERROR] Failed to process file: {file.filename}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/recordings/finalize", tags=["Processing"])
+async def finalize_recording(
+    recording_id: str = Form(...),
+    edited_transcript: str = Form(...),
+):
+    """
+    Final pipeline step after user edits transcript.
+
+    - Save edited transcript
+    - Re-run segmentation (and anything else in process_after_edit)
+    - Return updated artifacts
+    """
+    try:
+        return process_after_edit(recording_id, edited_transcript)
+    except Exception as e:
+        logger.exception("[ERROR] Finalizing recording failed")
+        raise HTTPException(status_code=500, detail=str(e))
+
+class CreateTextRecordingPayload(BaseModel):
+    text: str = Field(min_length=1)
     title: Optional[str] = None
     tags: Optional[List[str]] = None
+    language: str = settings.LANGUAGE
+    run_segmentation: bool = True
+    run_pii: bool = True
 
-@router.patch("/recordings/{recording_id}/meta")
-async def update_recording_meta(recording_id: str, payload: UpdateMetaPayload):
-    meta = store.load_metadata(recording_id)
 
-    if payload.title is not None:
-        meta["title"] = payload.title.strip()
+def _new_recording_id() -> str:
+    return uuid.uuid4().hex
 
-    if payload.tags is not None:
-        # normalize tags: trim, drop empties, unique
-        cleaned = []
-        seen = set()
-        for t in payload.tags:
-            t2 = (t or "").strip()
-            if not t2:
-                continue
-            key = t2.lower()
-            if key in seen:
-                continue
-            seen.add(key)
-            cleaned.append(t2)
-        meta["tags"] = cleaned
+
+@router.post("/recordings/text", tags=["Processing"])
+async def create_text_recording(payload: CreateTextRecordingPayload):
+    """
+    Create a new recording using typed text (no audio).
+
+    Stores:
+    - metadata (audio=None)
+    - transcript 'original'
+    - optional segmentation + pii stored in metadata
+    Returns recording_id.
+    """
+    text = payload.text.strip()
+    if not text:
+        raise HTTPException(status_code=400, detail="Text is empty")
+
+    recording_id = _new_recording_id()
+
+    original_path = store.save_transcript(recording_id, text, version="original")
+
+    meta = {
+        "recording_id": recording_id,
+        "created_at": datetime.utcnow().isoformat(),
+        "title": (payload.title or "").strip() or None,
+        "tags": payload.tags or [],
+        "language": payload.language,
+        "source": "text",
+
+        "audio": None,
+        "transcripts": {"original": original_path, "edited": None, "redacted": None},
+        "segments": [],
+        "pii": [],
+        "pii_original": [],
+        "pii_edited": [],
+    }
+
+    if payload.run_segmentation:
+        try:
+            segs = segmenter.segment(transcript=text, recording_id=recording_id)
+            seg_payload = {"segments": [s.__dict__ for s in segs]}
+
+            if not meta.get("title") and segs:
+                meta["title"] = (segs[0].label or "").strip() or None
+
+            rel = f"segments/{recording_id}/segments.json"
+            abs_path = store.abs_path(rel)
+            os.makedirs(os.path.dirname(abs_path), exist_ok=True)
+            with open(abs_path, "w", encoding="utf-8") as f:
+                json.dump(seg_payload, f, ensure_ascii=False, indent=2)
+
+            meta["segments"].append(rel)
+        except Exception:
+            logger.exception("Segmentation failed for text recording")
+
+    if payload.run_pii:
+        try:
+            transcript_obj = type("Transcript", (), {"recording_id": recording_id, "text": text})
+            pii = pii_detector.detect(transcript_obj)
+            meta["pii"] = [p.__dict__ for p in pii]
+            meta["pii_original"] = meta["pii"]
+        except Exception:
+            logger.exception("PII detection failed for text recording")
 
     store.save_metadata(recording_id, meta)
-    return {"status": "ok", "recording_id": recording_id, "title": meta.get("title"), "tags": meta.get("tags", [])}
+
+    return {"status": "ok", "recording_id": recording_id}
+
+# =============================================================================
+# AI tools (stateless utilities)
+# =============================================================================
+
+@router.post("/transcriptions", tags=["AI Tools"])
+async def transcribe_audio(
+    file: UploadFile = File(...),
+    language: str = Form(settings.LANGUAGE),
+):
+    """
+    Transcribe an uploaded audio file WITHOUT storing it.
+
+    Useful for debugging or experimentation.
+    """
+    try:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=f"_{file.filename}") as tmp:
+            shutil.copyfileobj(file.file, tmp)
+            tmp_path = tmp.name
+
+        recording = type("Recording", (), {"id": "temp", "path": tmp_path, "language": language})
+        transcript = transcriber.transcribe(recording)
+
+        os.remove(tmp_path)
+        return {"text": transcript.text, "words": transcript.words}
+
+    except Exception as e:
+        logger.exception(f"[ERROR] Transcription failed for {file.filename}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.post("/segments", tags=["AI Tools"])
+async def segment_text(
+    text: str = Form(...),
+    recording_id: str = Form("temp"),
+    method: str = Form("adaptive"),
+):
+    """
+    Segment a given text WITHOUT storing it.
+    """
+    try:
+        if not text.strip():
+            raise HTTPException(status_code=400, detail="Text is empty")
+
+        segments = segmenter.segment(transcript=text, recording_id=recording_id, method=method)
+        return {"segments": [s.__dict__ for s in segments]}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception("[ERROR] Segmentation failed.")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/pii", tags=["AI Tools"])
+async def detect_pii(
+    text: str = Form(...),
+    recording_id: str = Form("temp"),
+):
+    """
+    Detect personally identifiable information (PII) in a given text WITHOUT storing it.
+    """
+    try:
+        transcript = type("Transcript", (), {"recording_id": recording_id, "text": text})
+        pii_findings = pii_detector.detect(transcript)
+        return {"pii": [p.__dict__ for p in pii_findings], "count": len(pii_findings)}
+    except Exception as e:
+        logger.exception("[ERROR] PII detection failed.")
+        raise HTTPException(status_code=500, detail=str(e))

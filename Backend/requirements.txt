@@ -1,13 +1,15 @@
-python-dotenv
-scikit-learn
-sentence-transformers
+python-dotenv==1.1.1
+scikit-learn==1.7.2
+sentence-transformers==5.1.2
 torch==2.5.1
 torchaudio==2.5.1
-whisperx
-numpy
-fastapi
-uvicorn
-pydantic-settings
-python-multipart
-spacy
+whisperx==3.3.1
+numpy==1.26.4
+fastapi==0.119.1
+uvicorn==0.38.0
+pydantic-settings==2.11.0
+python-multipart==0.0.20
+spacy==3.7.5
+
 en-core-web-sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl
+en-core-web-trf @ https://github.com/explosion/spacy-models/releases/download/en_core_web_trf-3.8.0/en_core_web_trf-3.8.0-py3-none-any.whl

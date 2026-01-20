@@ -57,11 +57,13 @@ class PIIDetector:
         # --- Deduplicate overlapping entities --- #
         unique = []
         seen = set()
+
         for f in findings:
-            key = (f.label, f.preview)
-            if key not in seen:
-                seen.add(key)
-                unique.append(f)
+            key = (int(f.start_char), int(f.end_char), f.label)
+            if key in seen:
+                continue
+            seen.add(key)
+            unique.append(f)
 
         return unique
 

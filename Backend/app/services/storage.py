@@ -27,6 +27,9 @@ class StorageManager:
         return os.path.join(self.base, rel_path)
 
     def exists_rel(self, rel_path: str) -> bool:
+        """Return True if a relative path exists on disk."""
+        if not rel_path or not isinstance(rel_path, str):
+            return False
         return os.path.exists(self.abs_path(rel_path))
 
     def _make_path(self, category: str, extension: str, recording_id: str = None) -> str:
