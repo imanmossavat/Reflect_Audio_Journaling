@@ -1,3 +1,14 @@
+# REFLECT – AI Audio Journaling System
+
+REFLECT is a local-first, privacy-aware AI audio journaling system.
+It allows users to record or upload audio, transcribe it, analyze it,
+and reflect on patterns over time while keeping data under user control.
+
+This repository contains both the **working application** and the
+**research and evaluation work** that informed its design.
+
+---
+
 # Installation steps
 
 ## Environment Setup (macOS & Windows)
@@ -8,11 +19,20 @@ Follow these steps to set up a local Python environment for the REFLECT backend.
 ### Prerequisites
 - Python 3.10.11
 - `pip` (comes with Python)
+- Git
+- Anaconda / miniconda (optional, for conda users)
+  
+Download links:
+- Python 3.10.11: https://www.python.org/downloads/release/python-31011/
+- Git: https://git-scm.com/downloads
+- Miniconda: https://docs.conda.io/en/latest/miniconda.html
+- Anaconda: https://www.anaconda.com/products/distribution
 
 Check your versions:
 ```bash
 python --version
 pip --version
+git --version
 ```
 
 ### Clone the repository
@@ -22,6 +42,7 @@ git clone https://github.com/imanmossavat/Reflect_Audio_Journaling.git
 cd Reflect_Audio_Journaling
 cd Backend
 ```
+Make sure you stay in the 'backend' folder for the remaining steps.
 
 ### Create a virtual environment
 
@@ -35,25 +56,34 @@ py -3.10 -m venv .venv
 
 ###### PowerShell
 ```bash
-python -m venv .venv
+py -3.10 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 ```
 
 #### macOS/Linux
 ```bash
-python3 -m venv .venv
+python3.10 -m venv .venv
 source .venv/bin/activate
 ```
 
+### Alternative: Using conda
+This is an **alternative setup**. The remaining steps (installing dependencies
+and running the backend) are the same as in the standard installation.
+If you prefer using `conda`, create and activate the environment with:
+```bash
+conda create -n reflect python=3.10.11
+conda activate reflect
+```
+
 ## Installation
-Depending on your WIFI and computer speed this may take long, it has not frozen waiting is expected.
+Depending on your WIFI and computer speed this may take long, it has not frozen, longer waiting times is expected.
 ```bash
 pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
 ### Starting the application
-Run the command below and wait for application startup to finish:
+Run the command below and wait for application startup to finish, Once running, the API documentation is available at http://localhost:8000/docs:
 ```bash
 uvicorn app.main:app --reload
 ```
