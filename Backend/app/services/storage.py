@@ -1,9 +1,10 @@
 import os
+import shutil
 import uuid
 import datetime
 import json
 from pathlib import Path
-from typing import Any, Dict, Tuple
+from typing import Any, Dict
 
 from app.core.config import settings
 
@@ -36,35 +37,31 @@ class StorageManager:
         now = datetime.datetime.utcnow()
         if recording_id is None:
             recording_id = uuid.uuid4().hex[:12]
-
-        rel_dir = f"{category}/{now:%Y/%m/%d}"
+    
+        rel_dir = f"{category}"
         os.makedirs(self.abs_path(rel_dir), exist_ok=True)
-
+    
         filename = f"{now:%Y%m%d_%H%M%S}_{recording_id}.{extension}"
-        return Path(rel_dir, filename).as_posix()  # always forward slashes
+        return Path(rel_dir, filename).as_posix()
 
     # ---------------- READ / WRITE ---------------- #
 
-    def save_upload(self, filename: str, file_bytes: bytes) -> Tuple[str, str]:
-        """
-        Saves an uploaded audio file to the data directory.
-        Returns (recording_id, rel_audio_path)
-        """
+    def save_upload(self, filename: str, file_bytes: bytes):
         now = datetime.datetime.utcnow()
         recording_id = uuid.uuid4().hex[:12]
-
-        rel_dir = f"audio/{now:%Y/%m/%d}"
+    
+        rel_dir = f"audio/{recording_id}"  # <-- per recording
         os.makedirs(self.abs_path(rel_dir), exist_ok=True)
-
+    
         safe_name = os.path.basename(filename).replace(" ", "_")
         final_name = f"{now:%Y%m%d_%H%M%S}_{recording_id}_{safe_name}"
-
+    
         rel_path = Path(rel_dir, final_name).as_posix()
         abs_path = self.abs_path(rel_path)
-
+    
         with open(abs_path, "wb") as f:
             f.write(file_bytes)
-
+    
         return recording_id, rel_path
 
     def save_transcript(self, recording_id: str, text: str, version: str = "original") -> str:
@@ -77,6 +74,24 @@ class StorageManager:
 
         return Path(rel_path).as_posix()
 
+    def save_words(self, recording_id: str, words: list, version: str = "original") -> str:
+        """
+        Save per-word tokens (with timing + prob) as JSON.
+        Keep it versioned because edited != original.
+        """
+        rel_path = f"transcripts/{recording_id}/aligned_words.json"
+
+        # allow both dataclasses and dicts
+        payload = []
+        for w in (words or []):
+            if isinstance(w, dict):
+                payload.append(w)
+            else:
+                payload.append(getattr(w, "__dict__", {"value": str(w)}))
+
+        return self.save_json(rel_path, payload)
+
+
     def load_text(self, rel_path: str) -> str:
         abs_path = self.abs_path(rel_path)
         with open(abs_path, "r", encoding="utf-8") as f:
@@ -86,10 +101,13 @@ class StorageManager:
         rel_path = Path(rel_path).as_posix()
         abs_path = self.abs_path(rel_path)
         os.makedirs(os.path.dirname(abs_path), exist_ok=True)
-
-        with open(abs_path, "w", encoding="utf-8") as f:
+    
+        tmp_path = abs_path + ".tmp"
+    
+        with open(tmp_path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
-
+    
+        os.replace(tmp_path, abs_path)
         return rel_path
 
     def load_json(self, rel_path: str) -> Dict[str, Any]:
@@ -98,7 +116,7 @@ class StorageManager:
             return json.load(f)
 
     def save_segments(self, recording_id: str, segments: list) -> str:
-        rel_path = self._make_path(f"segments/{recording_id}", "json", recording_id)
+        rel_path = f"segments/{recording_id}/{recording_id}.json"
         data = {"segments": [s.__dict__ for s in segments]}
         return self.save_json(rel_path, data)
 
@@ -117,13 +135,31 @@ class StorageManager:
     def save_metadata(self, recording_id: str, metadata: Dict[str, Any]) -> str:
         rel_path = f"metadata/{recording_id}.json"
         abs_path = self.abs_path(rel_path)
-
         os.makedirs(os.path.dirname(abs_path), exist_ok=True)
-
-        with open(abs_path, "w", encoding="utf-8") as f:
-            json.dump(metadata, f, indent=2, ensure_ascii=False)
-
+    
+        tmp_path = abs_path + ".tmp"
+    
+        from dataclasses import is_dataclass, asdict
+    
+        def _json_default(o):
+            if is_dataclass(o):
+                return asdict(o)
+            try:
+                import numpy as np
+                if isinstance(o, (np.integer, np.floating)):
+                    return o.item()
+            except Exception:
+                pass
+            if hasattr(o, "__dict__"):
+                return o.__dict__
+            return str(o)
+    
+        with open(tmp_path, "w", encoding="utf-8") as f:
+            json.dump(metadata, f, indent=2, ensure_ascii=False, default=_json_default)
+    
+        os.replace(tmp_path, abs_path)
         return Path(rel_path).as_posix()
+
 
     # ---------------- LEGACY / OPTIONAL ---------------- #
     # These are not aligned with your current "metadata keyed by recording_id" approach.
@@ -169,11 +205,12 @@ class StorageManager:
         rel = (meta.get("transcripts") or {}).get(version)
         if not rel:
             return False
-
+    
         abs_path = self.abs_path(rel)
         if os.path.exists(abs_path):
             os.remove(abs_path)
-
+            self._prune_empty_parents(os.path.dirname(abs_path), stop_at=self.base)
+    
         meta.setdefault("transcripts", {})
         meta["transcripts"][version] = None
         self.save_metadata(recording_id, meta)
@@ -184,43 +221,56 @@ class StorageManager:
         audio_rel = meta.get("audio")
         if not audio_rel:
             return False
-
+    
         audio_abs = self.abs_path(audio_rel)
         if os.path.exists(audio_abs):
             os.remove(audio_abs)
-
+            self._prune_empty_parents(os.path.dirname(audio_abs), stop_at=self.base)
+    
         meta["audio"] = None
         self.save_metadata(recording_id, meta)
         return True
 
     def delete_recording(self, recording_id: str) -> bool:
-        meta = self.load_metadata(recording_id)
-
-        # audio (stored as rel path)
-        ap = meta.get("audio")
-        if ap:
-            ap_abs = self.abs_path(ap)
-            if os.path.exists(ap_abs):
-                os.remove(ap_abs)
-
-        # transcripts (stored as rel paths)
-        for rel in (meta.get("transcripts") or {}).values():
-            if rel:
-                abs_path = self.abs_path(rel)
-                if os.path.exists(abs_path):
-                    os.remove(abs_path)
-
-        # segments (stored as rel paths)
-        for rel in (meta.get("segments") or []):
-            if rel:
-                abs_path = self.abs_path(rel)
-                if os.path.exists(abs_path):
-                    os.remove(abs_path)
-
-        # metadata file
-        meta_rel = f"metadata/{recording_id}.json"
-        meta_abs = self.abs_path(meta_rel)
+        for rel_dir in [
+            f"audio/{recording_id}",
+            f"transcripts/{recording_id}",
+            f"segments/{recording_id}",
+        ]:
+            abs_dir = self.abs_path(rel_dir)
+            if os.path.isdir(abs_dir):
+                shutil.rmtree(abs_dir, ignore_errors=True)
+    
+        meta_abs = self.abs_path(f"metadata/{recording_id}.json")
         if os.path.exists(meta_abs):
             os.remove(meta_abs)
-
+    
+        self._prune_empty_parents(self.abs_path("audio"), stop_at=self.base)
+        self._prune_empty_parents(self.abs_path("transcripts"), stop_at=self.base)
+        self._prune_empty_parents(self.abs_path("segments"), stop_at=self.base)
+        self._prune_empty_parents(self.abs_path("metadata"), stop_at=self.base)
+    
         return True
+
+    @staticmethod
+    def _prune_empty_parents(abs_path: str, stop_at: str):
+        """
+        Remove empty parent folders up to stop_at (exclusive).
+        stop_at should be an absolute path (e.g. DATA_DIR).
+        """
+        stop_at = os.path.abspath(stop_at)
+        cur = os.path.abspath(abs_path)
+    
+        while True:
+            if cur == stop_at:
+                return
+            if not os.path.isdir(cur):
+                cur = os.path.dirname(cur)
+                continue
+            try:
+                if os.listdir(cur):
+                    return
+                os.rmdir(cur)
+            except OSError:
+                return
+            cur = os.path.dirname(cur)

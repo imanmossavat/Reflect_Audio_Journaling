@@ -240,6 +240,11 @@ async def get_recording(recording_id: str):
         except Exception:
             segments = []
 
+    aligned_words = []
+    rel = meta.get("aligned_words")
+    if rel and store.exists_rel(rel):
+        aligned_words = store.load_json(rel)
+
     return {
         "recording_id": recording_id,
         "audio_url": f"/api/audio/{recording_id}",
@@ -247,6 +252,8 @@ async def get_recording(recording_id: str):
         "tags": meta.get("tags", []),
         "transcript": transcript_text,
         "transcript_version": transcript_version,
+        "prosody": meta.get("prosody", []),
+        "aligned_words": aligned_words,
         "segments": segments,
         "pii": meta.get("pii", []),
         "pii_original": meta.get("pii_original", meta.get("pii", [])),
@@ -254,6 +261,7 @@ async def get_recording(recording_id: str):
         "created_at": meta.get("created_at"),
         "transcripts": t,
         "has_audio": bool(meta.get("audio")),
+        "sentences": meta.get("sentences", [])
     }
 
 
@@ -516,21 +524,11 @@ def _new_recording_id() -> str:
 
 @router.post("/recordings/text", tags=["Processing"])
 async def create_text_recording(payload: CreateTextRecordingPayload):
-    """
-    Create a new recording using typed text (no audio).
-
-    Stores:
-    - metadata (audio=None)
-    - transcript 'original'
-    - optional segmentation + pii stored in metadata
-    Returns recording_id.
-    """
     text = payload.text.strip()
     if not text:
         raise HTTPException(status_code=400, detail="Text is empty")
 
     recording_id = _new_recording_id()
-
     original_path = store.save_transcript(recording_id, text, version="original")
 
     meta = {
@@ -540,7 +538,6 @@ async def create_text_recording(payload: CreateTextRecordingPayload):
         "tags": payload.tags or [],
         "language": payload.language,
         "source": "text",
-
         "audio": None,
         "transcripts": {"original": original_path, "edited": None, "redacted": None},
         "segments": [],
@@ -551,34 +548,50 @@ async def create_text_recording(payload: CreateTextRecordingPayload):
 
     if payload.run_segmentation:
         try:
-            segs = segmenter.segment(transcript=text, recording_id=recording_id)
-            seg_payload = {"segments": [s.__dict__ for s in segs]}
+            import re
+
+            raw_sentences = [
+                s.strip()
+                for s in re.split(r"(?<=[.!?])\s+", text.strip())
+                if s.strip()
+            ]
+
+            fake_transcript = type(
+                "Transcript",
+                (),
+                {
+                    "recording_id": recording_id,
+                    "text": text,
+                    "sentences": [
+                        {"id": i, "start_s": None, "end_s": None, "text": s}
+                        for i, s in enumerate(raw_sentences)
+                    ],
+                },
+            )
+
+            segs = segmenter.segment(transcript=fake_transcript, recording_id=recording_id)
 
             if not meta.get("title") and segs:
                 meta["title"] = (segs[0].label or "").strip() or None
 
-            rel = f"segments/{recording_id}/segments.json"
-            abs_path = store.abs_path(rel)
-            os.makedirs(os.path.dirname(abs_path), exist_ok=True)
-            with open(abs_path, "w", encoding="utf-8") as f:
-                json.dump(seg_payload, f, ensure_ascii=False, indent=2)
+            segments_path = store.save_segments(recording_id, segs)
+            meta["segments"] = [segments_path]
 
-            meta["segments"].append(rel)
         except Exception:
             logger.exception("Segmentation failed for text recording")
 
     if payload.run_pii:
         try:
             transcript_obj = type("Transcript", (), {"recording_id": recording_id, "text": text})
-            pii = pii_detector.detect(transcript_obj)
-            meta["pii"] = [p.__dict__ for p in pii]
+            hits = pii_detector.detect(transcript_obj)
+            meta["pii"] = [p.__dict__ for p in hits]
             meta["pii_original"] = meta["pii"]
         except Exception:
             logger.exception("PII detection failed for text recording")
 
     store.save_metadata(recording_id, meta)
-
     return {"status": "ok", "recording_id": recording_id}
+
 
 # =============================================================================
 # AI tools (stateless utilities)
@@ -603,8 +616,11 @@ async def transcribe_audio(
         transcript = transcriber.transcribe(recording)
 
         os.remove(tmp_path)
-        return {"text": transcript.text, "words": transcript.words}
-
+        return {
+            "text": transcript.text,
+            "words": transcript.words,
+            "sentences": transcript.sentences
+        }
     except Exception as e:
         logger.exception(f"[ERROR] Transcription failed for {file.filename}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -612,9 +628,9 @@ async def transcribe_audio(
 
 @router.post("/segments", tags=["AI Tools"])
 async def segment_text(
-    text: str = Form(...),
-    recording_id: str = Form("temp"),
-    method: str = Form("adaptive"),
+        text: str = Form(...),
+        recording_id: str = Form("temp"),
+        method: str = Form("adaptive"),
 ):
     """
     Segment a given text WITHOUT storing it.
@@ -623,8 +639,40 @@ async def segment_text(
         if not text.strip():
             raise HTTPException(status_code=400, detail="Text is empty")
 
-        segments = segmenter.segment(transcript=text, recording_id=recording_id, method=method)
+        import re
+
+        raw_sentences = [
+            s.strip()
+            for s in re.split(r"(?<=[.!?])\s+", text.strip())
+            if s.strip()
+        ]
+
+        fake_transcript = type(
+            "Transcript",
+            (),
+            {
+                "recording_id": recording_id,
+                "text": text,
+                "sentences": [
+                    {
+                        "id": i,
+                        "start_s": None,
+                        "end_s": None,
+                        "text": s,
+                    }
+                    for i, s in enumerate(raw_sentences)
+                ],
+            },
+        )
+
+        segments = segmenter.segment(
+            transcript=fake_transcript,
+            recording_id=recording_id,
+            method=method,
+        )
+
         return {"segments": [s.__dict__ for s in segments]}
+
     except HTTPException:
         raise
     except Exception as e:
@@ -634,7 +682,7 @@ async def segment_text(
 @router.post("/pii", tags=["AI Tools"])
 async def detect_pii(
     text: str = Form(...),
-    recording_id: str = Form("temp"),
+    recording_id: str = Form("temp")
 ):
     """
     Detect personally identifiable information (PII) in a given text WITHOUT storing it.

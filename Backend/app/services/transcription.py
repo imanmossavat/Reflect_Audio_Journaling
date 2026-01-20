@@ -4,7 +4,7 @@ import os
 import numpy as np
 import whisperx
 
-from app.domain.models import Transcript
+from app.domain.models import Transcript, Sentence, WordToken
 from app.core.config import settings
 
 
@@ -41,18 +41,18 @@ class TranscriptionManager:
         Performs automatic alignment and per-word timing.
         """
         audio = self._load_audio_ffmpeg(recording.path, sr=self.sample_rate)
-
+    
         start_time = time.time()
         result = self.asr_model.transcribe(audio)
         print(f"[TranscriptionManager] Raw transcription done in {time.time() - start_time:.2f}s")
-
+    
         # Adjust language if needed
         if result.get("language") and result["language"] != self.align_metadata.get("language"):
             self.alignment_model, self.align_metadata = whisperx.load_align_model(
                 language_code=result["language"],
                 device=self.device,
             )
-
+    
         result_aligned = whisperx.align(
             transcript=result["segments"],
             model=self.alignment_model,
@@ -61,20 +61,28 @@ class TranscriptionManager:
             device=self.device,
             return_char_alignments=False,
         )
-
+    
+        # Build full transcript text from aligned segments
+        text = " ".join(
+            [(seg.get("text", "") or "").strip() for seg in result_aligned.get("segments", [])]
+        ).strip()
+    
         words = self._extract_words(result_aligned)
-        text = " ".join([seg.get("text", "") for seg in result_aligned.get("segments", [])]).strip()
-
-        return Transcript(recording_id=recording.id, text=text, words=words)
-
+        sentences = self._extract_sentences(result_aligned, recording.id)
+    
+        return Transcript(
+            recording_id=recording.id,
+            text=text,
+            words=words,
+            sentences=sentences,
+            source="whisperx",
+        )
     # ---------------- HELPER METHODS ---------------- #
 
     @staticmethod
     def _load_audio_ffmpeg(path: str, sr: int = 16000) -> np.ndarray:
         """
         Loads audio via ffmpeg and returns a float32 mono waveform in [-1, 1].
-        IMPORTANT:
-        - Must be binary (no text=True), otherwise Windows will try to decode bytes (cp1252) and explode.
         """
         if not os.path.exists(path):
             raise RuntimeError(f"Audio file not found: {path}")
@@ -105,12 +113,10 @@ class TranscriptionManager:
             raise RuntimeError(f"ffmpeg failed ({p.returncode}): {stderr[:1200]}")
 
         raw = p.stdout or b""
-        if len(raw) == 0:
-            raise RuntimeError("ffmpeg returned empty audio buffer (no data).")
+        if not raw:
+            raise RuntimeError("ffmpeg returned empty audio buffer.")
 
-        # Convert PCM16 -> float32 [-1, 1]
         audio = np.frombuffer(raw, np.int16).astype(np.float32) / 32768.0
-
         if audio.size == 0:
             raise RuntimeError("Audio decode produced empty numpy array.")
 
@@ -118,23 +124,30 @@ class TranscriptionManager:
 
     @staticmethod
     def _extract_words(result_aligned):
-        segments_out = []
-        for seg in result_aligned.get("segments", []):
-            words = []
+        out = []
+        for seg in result_aligned.get("segments", []) or []:
             for w in seg.get("words", []) or []:
-                words.append(
-                    {
-                        "text": w.get("word", ""),
-                        "start": w.get("start"),
-                        "end": w.get("end"),
-                    }
+                out.append(
+                    WordToken(
+                        word=(w.get("word", "") or "").strip(),
+                        start_s=w.get("start"),
+                        end_s=w.get("end"),
+                        prob=w.get("score"),
+                    )
                 )
-            segments_out.append(
-                {
-                    "start": seg.get("start"),
-                    "end": seg.get("end"),
-                    "text": seg.get("text", ""),
-                    "words": words,
-                }
+        return out
+    
+    @staticmethod
+    def _extract_sentences(result_aligned, recording_id: str):
+        sentences = []
+        for i, seg in enumerate(result_aligned.get("segments", []) or []):
+            sentences.append(
+                Sentence(
+                    id=i,
+                    start_s=seg.get("start"),
+                    end_s=seg.get("end"),
+                    text=(seg.get("text", "") or "").strip(),
+                    meta={"recording_id": recording_id},
+                )
             )
-        return segments_out
+        return sentences

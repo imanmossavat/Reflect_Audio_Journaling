@@ -14,7 +14,7 @@ class PIIDetector:
 
     def __init__(self):
         self.language = settings.LANGUAGE
-        self.nlp = spacy.load(f"{settings.LANGUAGE}_core_web_sm")
+        self.nlp = spacy.load(f"{settings.LANGUAGE}_core_web_trf")
         self.patterns = settings.pii_patterns
 
     # ---------------- PUBLIC METHODS ---------------- #

@@ -18,11 +18,17 @@ class Settings(BaseSettings):
 
     # --- Segmentation --- #
     SEGMENTATION_MODEL: str = "sentence-transformers/all-MiniLM-L6-v2"
-    SEGMENTATION_METHOD: str = "adaptive"
+    
+    # high-level strategy
+    SEGMENTATION_STRATEGY: str = "adaptive"  # adaptive | spectral
+    
+    # adaptive-specific parameters
+    SEGMENTATION_SIMILARITY_METHOD: str = "percentile"  # std | percentile
     SEGMENTATION_STD_FACTOR: float = 1.0
     SEGMENTATION_MIN_SIZE: int = 2
     SEGMENTATION_PERCENTILE: int = 20
     SEGMENTATION_TOPIC_TOP_N: int = 1
+
 
     # --- PII Detection --- #
     PII_REGEX_SENSITIVITY: str = "normal"
