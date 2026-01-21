@@ -168,6 +168,7 @@ class SegmentationManager:
 
         return pred_segments, threshold
 
+    #TODO: Improve topic extraction
     @staticmethod
     def _get_segment_topics(sentences, segments, top_n=1):
         segment_dict = {}

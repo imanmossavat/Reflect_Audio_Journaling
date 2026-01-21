@@ -10,7 +10,7 @@ uvicorn==0.38.0
 pydantic-settings==2.11.0
 python-multipart==0.0.20
 spacy==3.7.5
-librosa
+librosa==0.11.0
 
 en-core-web-sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl
 en-core-web-trf @ https://github.com/explosion/spacy-models/releases/download/en_core_web_trf-3.8.0/en_core_web_trf-3.8.0-py3-none-any.whl
