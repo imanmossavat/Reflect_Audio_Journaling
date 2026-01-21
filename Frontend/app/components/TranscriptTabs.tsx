@@ -112,9 +112,7 @@ export default function TranscriptTabs({
     const piiForView =
         tab === "redacted" ? [] : tab === "original" ? piiOriginal || [] : piiEdited || [];
 
-    console.log(piiEdited)
     async function handleDownloadCurrent() {
-        // use already loaded text to avoid extra fetch
         if (!text?.trim()) return;
         downloadTextFile(`${id}_${tab}.txt`, text);
     }
@@ -122,9 +120,8 @@ export default function TranscriptTabs({
     async function handleDownloadAll() {
         setDownloading(true);
         try {
-            // sequential fetches so you don't DDOS yourself locally
             for (const v of ["original", "edited", "redacted"] as const) {
-                // only download if enabled/available
+
                 const isEnabled = !!available.find((a) => a.key === v)?.enabled;
                 if (!isEnabled) continue;
 

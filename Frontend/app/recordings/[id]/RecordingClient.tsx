@@ -11,6 +11,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { formatDateTime } from "@/lib/format";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
+import AlignedTranscript from "@/app/components/AlignedTranscript";
+import ProsodySummary from "@/app/components/ProsodySummary";
 
 function badge(text: string, key?: React.Key) {
     return (
@@ -41,6 +45,32 @@ function normalizeTagsFromString(s: string): string[] {
     }
     return out;
 }
+
+function ConfidencePane({ words }: { words: any[] }) {
+  const [onlyLow, setOnlyLow] = React.useState(false);
+
+  if (!words?.length) {
+    return <div className="text-sm text-zinc-500">No aligned words saved.</div>;
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <div className="text-xs text-zinc-500">Highlight low-confidence words</div>
+        <Switch checked={onlyLow} onCheckedChange={setOnlyLow} />
+      </div>
+
+      <div className="rounded border border-zinc-200 dark:border-zinc-800 p-3 bg-white/50 dark:bg-zinc-900/30 max-h-[320px] overflow-auto">
+        <AlignedTranscript words={words} highlightBelow={0.8} onlyLow={onlyLow} />
+      </div>
+
+      <div className="text-xs text-zinc-500">
+        Tip: low-confidence often signals mumbling, noise, or weird named entities.
+      </div>
+    </div>
+  );
+}
+
 
 export default function RecordingClient({
                                             api,
@@ -202,114 +232,131 @@ export default function RecordingClient({
                 </div>
 
                 {/* Main grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* Main content */}
-                    <div className="lg:col-span-2 space-y-6">
+                <div className=" gap-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                      {/* Main content */}
+                      <div className="lg:col-span-2 space-y-6">
                         <Card className="shadow-sm">
-                            <CardHeader>
-                                <CardTitle className="text-lg">Transcript</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <TranscriptTabs
-                                    key={refreshKey}
-                                    api={api}
-                                    id={id}
-                                    transcripts={data?.transcripts}
-                                    piiOriginal={data?.pii_original || data?.pii || []}
-                                    piiEdited={data?.pii_edited || []}
-                                    segments={data?.segments || []}
-                                    onTextLoaded={({ text, version }) => {
-                                        if (version === "redacted") return;
-                                        setCurrentText(text);
-                                    }}
-                                />
+                          <CardHeader>
+                            <CardTitle className="text-lg">Transcript</CardTitle>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            <TranscriptTabs
+                              key={refreshKey}
+                              api={api}
+                              id={id}
+                              transcripts={data?.transcripts}
+                              piiOriginal={data?.pii_original || data?.pii || []}
+                              piiEdited={data?.pii_edited || []}
+                              segments={data?.segments || []}
+                              onTextLoaded={({ text, version }) => {
+                                if (version === "redacted") return;
+                                setCurrentText(text);
+                              }}
+                            />
 
-                                <div className="pt-2 border-t border-zinc-200 dark:border-zinc-800 space-y-3">
-                                  <div className="flex items-center justify-between gap-3">
-                                    <div className="text-xs text-zinc-500">
-                                      Processing updates segments + PII from the current transcript.
+                            <div className="pt-2 border-t border-zinc-200 dark:border-zinc-800 space-y-3">
+                              <div className="flex items-center justify-between gap-3">
+                                <div className="text-xs text-zinc-500">
+                                  Processing updates segments + PII from the current transcript.
+                                </div>
+
+                                <Button
+                                  variant="secondary"
+                                  size="sm"
+                                  onClick={runProcessing}
+                                  disabled={finalizing || !currentText.trim()}
+                                >
+                                  {finalizing ? "Running…" : "Run processing"}
+                                </Button>
+                              </div>
+
+                              <TranscriptEditor
+                                api={api}
+                                id={id}
+                                initialText={currentText}
+                                onSaved={async () => {
+                                  await refreshMeta();
+                                  setRefreshKey((k) => k + 1);
+                                }}
+                              />
+                            </div>
+                          </CardContent>
+                        </Card>
+
+                        {/* ✅ Insights BELOW Transcript */}
+                        <Card className="shadow-sm">
+                          <CardHeader>
+                            <CardTitle className="text-lg">Insights</CardTitle>
+                          </CardHeader>
+                          <CardContent className="space-y-3">
+                            <Tabs defaultValue="confidence">
+                              <TabsList className="grid w-full grid-cols-2">
+                                <TabsTrigger value="confidence">Confidence</TabsTrigger>
+                                <TabsTrigger value="prosody">Prosody</TabsTrigger>
+                              </TabsList>
+
+                              <TabsContent value="confidence" className="space-y-3">
+                                <ConfidencePane words={data?.aligned_words || []} />
+                              </TabsContent>
+
+                              <TabsContent value="prosody" className="space-y-3">
+                                <ProsodySummary prosody={data?.prosody || []} segments={data?.segments || []} />
+                              </TabsContent>
+                            </Tabs>
+                          </CardContent>
+                        </Card>
+                      </div>
+
+                      {/* Sidebar */}
+                      <div className="space-y-6">
+                        {/* Audio */}
+                        <Card className="shadow-sm">
+                          <CardHeader>
+                            <CardTitle className="text-lg">Audio</CardTitle>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            <AudioPlayer src={`${api}/api/audio/${id}`} hasAudio={!!data?.has_audio} />
+                            <div className="flex flex-wrap gap-2">
+                              {hasOriginal && badge("original")}
+                              {hasEdited && badge("edited")}
+                              {hasRedacted && badge("redacted")}
+                              {!!piiCount && badge(`${piiCount} pii`)}
+                              {!piiCount && badge("no pii")}
+                            </div>
+                          </CardContent>
+                        </Card>
+
+                        {/* Segments */}
+                        <Card className="shadow-sm">
+                          <CardHeader>
+                            <CardTitle className="text-lg">Segments</CardTitle>
+                          </CardHeader>
+                          <CardContent className="space-y-3">
+                            {!!data?.segments?.length ? (
+                              <div className="space-y-2 max-h-[420px] overflow-auto pr-1">
+                                {data.segments.map((s: any, i: number) => (
+                                  <div key={i} className="rounded border border-zinc-200 dark:border-zinc-800 p-3">
+                                    <div className="text-sm font-semibold">{s.label || `Segment ${i + 1}`}</div>
+                                    <div className="text-sm text-zinc-600 dark:text-zinc-300 mt-1 whitespace-pre-wrap">
+                                      {s.text}
                                     </div>
-
-                                    <Button
-                                      variant="secondary"
-                                      size="sm"
-                                      onClick={runProcessing}
-                                      disabled={finalizing || !currentText.trim()}
-                                    >
-                                      {finalizing ? "Running…" : "Run processing"}
-                                    </Button>
                                   </div>
-
-                                  <TranscriptEditor
-                                    api={api}
-                                    id={id}
-                                    initialText={currentText}
-                                    onSaved={async () => {
-                                      await refreshMeta();
-                                      setRefreshKey((k) => k + 1);
-                                    }}
-                                  />
-                                </div>
-
-                            </CardContent>
-                        </Card>
-                    </div>
-
-                    {/* Sidebar */}
-                    <div className="space-y-6">
-                        <Card className="shadow-sm">
-                            <CardHeader>
-                                <CardTitle className="text-lg">Audio</CardTitle>
-                            </CardHeader>
-
-                            <CardContent className="space-y-4">
-                                <AudioPlayer
-                                    src={`${api}/api/audio/${id}`}
-                                    hasAudio={!!data?.has_audio}
-                                />
-
-                                <div className="flex flex-wrap gap-2">
-                                    {hasOriginal && badge("original")}
-                                    {hasEdited && badge("edited")}
-                                    {hasRedacted && badge("redacted")}
-                                    {!!piiCount && badge(`${piiCount} pii`)}
-                                    {!piiCount && badge("no pii")}
-                                </div>
-                            </CardContent>
+                                ))}
+                              </div>
+                            ) : (
+                              <div className="text-sm text-zinc-500">No segments yet.</div>
+                            )}
+                          </CardContent>
                         </Card>
 
-
+                        {/* Details */}
                         <Card className="shadow-sm">
-                            <CardHeader>
-                                <CardTitle className="text-lg">Segments</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-3">
-                                {!!data?.segments?.length ? (
-                                    <div className="space-y-2 max-h-[420px] overflow-auto pr-1">
-                                        {data.segments.map((s: any, i: number) => (
-                                            <div
-                                                key={i}
-                                                className="rounded border border-zinc-200 dark:border-zinc-800 p-3"
-                                            >
-                                                <div className="text-sm font-semibold">{s.label || `Segment ${i + 1}`}</div>
-                                                <div className="text-sm text-zinc-600 dark:text-zinc-300 mt-1 whitespace-pre-wrap">
-                                                    {s.text}
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className="text-sm text-zinc-500">No segments yet.</div>
-                                )}
-                            </CardContent>
-                        </Card>
-
-                        <Card className="shadow-sm">
-                            <CardHeader>
-                                <CardTitle className="text-lg">Details</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-3 text-sm">
-                                <div className="flex items-center justify-between gap-3">
+                          <CardHeader>
+                            <CardTitle className="text-lg">Details</CardTitle>
+                          </CardHeader>
+                          <CardContent className="space-y-3 text-sm">
+                            <div className="flex items-center justify-between gap-3">
                                     <span className="text-zinc-500">Recording ID</span>
                                     <span className="font-mono text-xs">{id}</span>
                                 </div>
@@ -328,7 +375,7 @@ export default function RecordingClient({
                                     <span className="text-zinc-500">PII hits</span>
                                     <span>{piiCount}</span>
                                 </div>
-                                
+
                                 {/* ✅ Tags editor */}
                                 <div className="pt-2">
                                     <div className="text-zinc-500 mb-2">Tags</div>
@@ -365,8 +412,9 @@ export default function RecordingClient({
                                         )}
                                     </div>
                                 </div>
-                            </CardContent>
+                          </CardContent>
                         </Card>
+                      </div>
                     </div>
                 </div>
             </div>
