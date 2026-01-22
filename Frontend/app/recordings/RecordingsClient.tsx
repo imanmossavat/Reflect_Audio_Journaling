@@ -200,6 +200,73 @@ export default function RecordingsClient({ items }: { items: Recording[] }) {
         setSelectedTags([]);
     };
 
+        type SemanticHit = {
+      recording_id: string;
+      segment_id: number;
+      score: number;
+      label?: string;
+      text?: string;
+      start_s?: number | null;
+      end_s?: number | null;
+    };
+
+    const [semanticQuery, setSemanticQuery] = React.useState("");
+    const [semanticHits, setSemanticHits] = React.useState<SemanticHit[]>([]);
+    const [semanticLoading, setSemanticLoading] = React.useState(false);
+    const [semanticError, setSemanticError] = React.useState<string | null>(null);
+
+    const semanticSearch = React.useCallback(async () => {
+      const q = semanticQuery.trim();
+      if (!q) {
+        setSemanticHits([]);
+        setSemanticError(null);
+        return;
+      }
+
+      try {
+        setSemanticLoading(true);
+        setSemanticError(null);
+
+        const res = await fetch(`http://localhost:8000/api/search/semantic`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query: q, top_k: 12 }),
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err?.detail || "Semantic search failed");
+        }
+
+        const data = await res.json();
+        setSemanticHits(Array.isArray(data?.hits) ? data.hits : []);
+      } catch (e: any) {
+        setSemanticError(e?.message || "Semantic search failed");
+        setSemanticHits([]);
+      } finally {
+        setSemanticLoading(false);
+      }
+    }, [semanticQuery]);
+
+    React.useEffect(() => {
+      if (!semanticQuery.trim()) {
+        setSemanticHits([]);
+        setSemanticError(null);
+        return;
+      }
+      const t = setTimeout(() => semanticSearch(), 350);
+      return () => clearTimeout(t);
+    }, [semanticQuery, semanticSearch]);
+
+    const recordingById = React.useMemo(() => {
+    const m = new Map<string, Recording>();
+        for (const r of items ?? []) {
+        if (r?.recording_id) m.set(r.recording_id, r);
+        }
+        return m;
+    }, [items]);
+
+
     return (
         <div className="space-y-4">
             <Card className="p-4">
@@ -226,6 +293,44 @@ export default function RecordingsClient({ items }: { items: Recording[] }) {
                             </Badge>
                         </div>
                     </div>
+                    {/* Semantic search row */}
+                    <div className="flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
+                      <div className="flex-1">
+                        <Input
+                          value={semanticQuery}
+                          onChange={(e) => setSemanticQuery(e.target.value)}
+                          placeholder="Semantic search (meaning): e.g. 'stress at work'…"
+                          className="h-10"
+                        />
+                      </div>
+
+                      <div className="flex gap-2 items-center justify-start md:justify-end">
+                        <Button
+                          variant="outline"
+                          className="h-10"
+                          onClick={semanticSearch}
+                          disabled={semanticLoading || !semanticQuery.trim()}
+                        >
+                          {semanticLoading ? "Searching..." : "Semantic search"}
+                        </Button>
+
+                        {semanticQuery.trim() && (
+                          <Button
+                            variant="ghost"
+                            className="h-10"
+                            onClick={() => {
+                              setSemanticQuery("");
+                              setSemanticHits([]);
+                              setSemanticError(null);
+                            }}
+                          >
+                            Clear
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+
+                    {semanticError && <div className="text-sm text-red-600">{semanticError}</div>}
 
                     <Separator />
 
@@ -421,6 +526,75 @@ export default function RecordingsClient({ items }: { items: Recording[] }) {
 
                     return (
                         <Link key={rec.recording_id} href={`/recordings/${rec.recording_id}`} className="block">
+                            {semanticQuery.trim() && (
+  <Card className="p-4">
+    <div className="flex items-center justify-between gap-2">
+      <div className="font-semibold">Semantic results</div>
+      <Badge variant="secondary">{semanticHits.length}</Badge>
+    </div>
+
+    <div className="mt-3 space-y-2">
+      {semanticLoading && (
+        <div className="text-sm text-zinc-500">Searching by meaning…</div>
+      )}
+
+      {!semanticLoading && semanticHits.length === 0 && !semanticError && (
+        <div className="text-sm text-zinc-500">No semantic matches.</div>
+      )}
+
+      {/* Optional: hide garbage scores */}
+      {semanticHits
+        .filter((h) => (typeof h.score === "number" ? h.score >= 0.20 : true))
+        .slice(0, 12)
+        .map((hit) => {
+          const rec = recordingById.get(hit.recording_id);
+          const title = rec?.title || hit.recording_id;
+
+          const snippetRaw = (hit.text || "").trim();
+          const snippet =
+            snippetRaw.length > 180 ? snippetRaw.slice(0, 180) + "…" : snippetRaw;
+
+          return (
+            <Link
+              key={`${hit.recording_id}-${hit.segment_id}`}
+              href={`/recordings/${hit.recording_id}`}
+              className="block"
+            >
+              <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 p-3 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="font-medium truncate">{title}</div>
+
+                    <div className="text-xs text-zinc-500 mt-0.5">
+                      {(hit.label && hit.label.trim()) ? hit.label : `Segment ${hit.segment_id}`}
+                      {" · "}
+                      score {Number(hit.score ?? 0).toFixed(3)}
+                    </div>
+
+                    {snippet && (
+                      <div className="text-sm text-zinc-700 dark:text-zinc-300 mt-2">
+                        {snippet}
+                      </div>
+                    )}
+                  </div>
+
+                  <Badge variant="outline" className="shrink-0">
+                    semantic
+                  </Badge>
+                </div>
+              </div>
+            </Link>
+          );
+        })}
+    </div>
+
+    {/* If you filtered on score, tell the user so they don’t think it's broken */}
+    <div className="text-xs text-zinc-500 mt-3">
+      Showing matches with score ≥ 0.20 (adjust threshold in code).
+    </div>
+  </Card>
+)}
+
                             <Card className="p-4 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors">
                                 <div className="flex items-start justify-between gap-4">
                                     <div className="min-w-0 flex-1">

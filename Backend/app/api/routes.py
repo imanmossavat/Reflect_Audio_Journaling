@@ -20,6 +20,7 @@ from app.services.pii import PIIDetector
 from app.services.segmentation import SegmentationManager
 from app.services.storage import StorageManager
 from app.services.transcription import TranscriptionManager
+from app.services.semanticSearch import SemanticSearchManager
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -28,6 +29,7 @@ transcriber = TranscriptionManager()
 segmenter = SegmentationManager()
 pii_detector = PIIDetector()
 store = StorageManager()
+semanticSearcher = SemanticSearchManager()
 
 # =============================================================================
 # Helpers (internal)
@@ -261,7 +263,8 @@ async def get_recording(recording_id: str):
         "created_at": meta.get("created_at"),
         "transcripts": t,
         "has_audio": bool(meta.get("audio")),
-        "sentences": meta.get("sentences", [])
+        "sentences": meta.get("sentences", []),
+        "speech": meta.get("speech", {})
     }
 
 
@@ -693,4 +696,24 @@ async def detect_pii(
         return {"pii": [p.__dict__ for p in pii_findings], "count": len(pii_findings)}
     except Exception as e:
         logger.exception("[ERROR] PII detection failed.")
+        raise HTTPException(status_code=500, detail=str(e))
+
+class SemanticSearchPayload(BaseModel):
+    query: str = Field(min_length=1)
+    top_k: int = 8
+    min_score: float = 0.25
+    per_recording_cap: int = 2
+
+@router.post("/search/semantic", tags=["AI Tools"])
+async def semantic_search(payload: SemanticSearchPayload):
+    try:
+        hits = semanticSearcher.search(
+            query=payload.query,
+            top_k=payload.top_k,
+            min_score=payload.min_score,
+            per_recording_cap=payload.per_recording_cap,
+        )
+        return {"hits": [h.__dict__ for h in hits]}
+    except Exception as e:
+        logger.exception("[ERROR] Semantic search failed.")
         raise HTTPException(status_code=500, detail=str(e))

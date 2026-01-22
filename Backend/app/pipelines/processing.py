@@ -1,4 +1,5 @@
 from __future__ import annotations
+from app.analysis.speech import analyze_words
 
 import re
 from datetime import datetime, timezone
@@ -99,6 +100,14 @@ def process_uploaded_audio(filename: str, file_bytes: bytes, language: str = "en
             version="original",
         )
 
+    speech = {}
+    try:
+        if words_path and store.exists_rel(words_path):
+            aligned_words = store.load_json(words_path)
+            speech = analyze_words(aligned_words, language_code=language, confidence_threshold=0.7)
+    except Exception:
+        speech = {}
+
     pii_hits_original = pii.detect(transcript)
     redacted_text_original = redact_text(original_text, pii_hits_original)
 
@@ -112,6 +121,7 @@ def process_uploaded_audio(filename: str, file_bytes: bytes, language: str = "en
         "source": "audio",
         "created_at": created_at,
         "aligned_words": words_path,
+        "speech": speech,
         "title": fallback_title(created_at),
         "tags": [],
 
