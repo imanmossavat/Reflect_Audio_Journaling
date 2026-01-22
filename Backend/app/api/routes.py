@@ -3,16 +3,20 @@ from __future__ import annotations
 import json
 import logging
 import os
+import platform
 import shutil
+import subprocess
 import tempfile
+import threading
 from pathlib import Path
 from typing import List, Optional
 
-from fastapi import APIRouter, Body, File, Form, HTTPException, Query, UploadFile
+from fastapi import APIRouter, Body, File, Form, HTTPException, Query, UploadFile, status
 from fastapi.responses import FileResponse
 from datetime import datetime
 import uuid
 from pydantic import BaseModel, Field
+from app.domain.models import PiiFinding
 
 from app.core.config import settings
 from app.pipelines.processing import process_after_edit, process_uploaded_audio
@@ -24,7 +28,6 @@ from app.services.semanticSearch import SemanticSearchManager
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
-
 transcriber = TranscriptionManager()
 segmenter = SegmentationManager()
 pii_detector = PIIDetector()
@@ -128,22 +131,62 @@ async def get_settings():
 
     return {"status": "ok", "settings": {**settings.__dict__, **user_settings}}
 
-
 @router.post("/settings/update", tags=["Settings"])
 async def update_settings(payload: dict = Body(...)):
-    """
-    Update frontend-visible settings overrides.
+    frontend_path = os.path.abspath(os.path.join(settings.CONFIG_DIR, "frontend_settings.json"))
+    should_restart = payload.pop("RESTART_REQUIRED", False)
 
-    Stores payload as JSON in:
-    config/frontend_settings.json
-    """
+    try:
+        fd, temp_path = tempfile.mkstemp(dir=settings.CONFIG_DIR, text=True)
+        with os.fdopen(fd, 'w', encoding='utf-8') as f:
+            json.dump(payload, f, indent=2, ensure_ascii=False)
+
+        if os.path.exists(frontend_path):
+            os.remove(frontend_path)
+        os.rename(temp_path, frontend_path)
+
+        print("[SUCCESS] File written successfully.")
+    except Exception as e:
+        print(f"[ERROR] Failed to write settings: {e}")
+        return {"status": "error", "message": str(e)}
+
+    settings.load_overrides()
+
+    if should_restart:
+        def delayed_exit():
+            import time
+            time.sleep(0.8)
+            os._exit(0)
+        threading.Thread(target=delayed_exit, daemon=True).start()
+
+    return {"status": "ok", "restarting": should_restart}
+
+@router.post("/settings/reset", tags=["Settings"])
+async def reset_settings():
+    """Deletes user overrides and reverts to backend defaults."""
     frontend_path = os.path.join(settings.CONFIG_DIR, "frontend_settings.json")
-    os.makedirs(settings.CONFIG_DIR, exist_ok=True)
+    if os.path.exists(frontend_path):
+        os.remove(frontend_path)
 
-    with open(frontend_path, "w", encoding="utf-8") as f:
-        json.dump(payload, f, indent=2, ensure_ascii=False)
+    return {"status": "ok", "message": "Overrides deleted. Restart required to fully revert."}
 
-    return {"status": "ok", "updated": payload}
+@router.post("/settings/open-folder", tags=["Settings"])
+async def open_folder(payload: dict = Body(...)):
+    """Opens a directory in the native OS file explorer."""
+    path = payload.get("path")
+    if not path or not os.path.exists(path):
+        raise HTTPException(status_code=404, detail="Path not found")
+
+    try:
+        if platform.system() == "Windows":
+            os.startfile(path)
+        elif platform.system() == "Darwin": # macOS
+            subprocess.Popen(["open", path])
+        else: # Linux
+            subprocess.Popen(["xdg-open", path])
+        return {"status": "ok"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # =============================================================================
@@ -210,16 +253,34 @@ async def list_recordings():
     items.sort(key=lambda x: x.get("created_at") or "", reverse=True)
     return items
 
-
 @router.get("/recordings/{recording_id}", tags=["Recordings"])
 async def get_recording(recording_id: str):
     """
     Get a recording with transcript + latest segments.
-
-    Transcript selection order:
-    edited -> original -> redacted
+    Returns 404 if the recording_id is not found.
     """
-    meta = store.load_metadata(recording_id)
+    try:
+        # Load metadata - this is where your FileNotFoundError is happening
+        meta = store.load_metadata(recording_id)
+        if meta is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Recording {recording_id} not found"
+            )
+
+    except FileNotFoundError:
+        # Specifically catch the error your storage service throws
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Recording {recording_id} not found"
+        )
+    except Exception as e:
+        # Catch unexpected errors to prevent total crash
+        logger.exception(f"Error loading recording {recording_id}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred while loading the recording"
+        )
 
     # ---- transcript: prefer edited, fallback original, then redacted ----
     t = meta.get("transcripts", {}) or {}
@@ -247,6 +308,7 @@ async def get_recording(recording_id: str):
     if rel and store.exists_rel(rel):
         aligned_words = store.load_json(rel)
 
+    # Note: Using .get() everywhere else is good practice to avoid further KeyErrors
     return {
         "recording_id": recording_id,
         "audio_url": f"/api/audio/{recording_id}",
@@ -717,3 +779,62 @@ async def semantic_search(payload: SemanticSearchPayload):
     except Exception as e:
         logger.exception("[ERROR] Semantic search failed.")
         raise HTTPException(status_code=500, detail=str(e))
+
+class UpdatePIIPayload(BaseModel):
+    # This allows the frontend to send a list of findings
+    findings: List[PiiFinding]
+
+@router.put("/recordings/{recording_id}/pii", tags=["Recordings"])
+async def sync_pii(recording_id: str, payload: UpdatePIIPayload):
+    meta = store.load_metadata(recording_id)
+    new_findings = payload.findings
+    findings_as_dicts = [f.__dict__ for f in new_findings]
+
+    meta["pii"] = findings_as_dicts
+    meta["pii_edited"] = findings_as_dicts
+
+    # --- THE FIX: Use the correct text source ---
+    t_meta = meta.get("transcripts", {})
+    # Check if 'edited' exists, otherwise fallback to 'original'
+    version_to_use = "edited" if t_meta.get("edited") else "original"
+    text_rel = _get_transcript_rel_path(recording_id, t_meta, version_to_use)
+    source_text = _safe_load_text(text_rel)
+
+    if source_text:
+        # Now coordinates from the frontend (which match the edited text) will line up
+        redacted_text = pii_detector.redact(source_text, new_findings)
+        redacted_path = store.save_transcript(recording_id, redacted_text, version="redacted")
+        meta.setdefault("transcripts", {})["redacted"] = redacted_path
+
+    store.save_metadata(recording_id, meta)
+    return {"status": "ok", "recording_id": recording_id, "current_pii_count": len(new_findings)}
+
+@router.delete("/recordings/{recording_id}/pii", tags=["Recordings"])
+async def delete_pii_finding(recording_id: str, start_char: int = Query(...), end_char: int = Query(...)):
+    meta = store.load_metadata(recording_id)
+    current_pii = meta.get("pii", [])
+
+    updated_findings = [
+        PiiFinding(**f) for f in current_pii
+        if not (f["start_char"] == start_char and f["end_char"] == end_char)
+    ]
+
+    meta["pii"] = [f.__dict__ for f in updated_findings]
+    meta["pii_edited"] = meta["pii"]
+
+    t_meta = meta.get("transcripts", {})
+    version_to_use = "edited" if t_meta.get("edited") else "original"
+    text_rel = _get_transcript_rel_path(recording_id, t_meta, version_to_use)
+    source_text = _safe_load_text(text_rel)
+
+    if source_text:
+        redacted_text = pii_detector.redact(source_text, updated_findings)
+        redacted_path = store.save_transcript(recording_id, redacted_text, version="redacted")
+        meta["transcripts"]["redacted"] = redacted_path
+
+    store.save_metadata(recording_id, meta)
+    return {"status": "ok", "message": "Removed", "remaining_count": len(updated_findings)}
+
+@router.get("/health")
+async def health_check():
+    return {"status": "ok"}

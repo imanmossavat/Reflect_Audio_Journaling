@@ -15,7 +15,7 @@ class PIIDetector:
     def __init__(self):
         self.language = settings.LANGUAGE
         self.nlp = spacy.load(f"{settings.LANGUAGE}_core_web_trf")
-        self.patterns = settings.pii_patterns
+        self.patterns = settings.PII_PATTERNS
 
     # ---------------- PUBLIC METHODS ---------------- #
 
@@ -71,71 +71,54 @@ class PIIDetector:
     def redact(text: str, findings: List[PiiFinding]) -> str:
         """
         Replace detected PII spans with REDACTED:<LABEL>.
-        Uses start_char/end_char from findings.
+        Sorts findings in REVERSE order to prevent index drift.
         """
         if not text or not findings:
             return text
-    
-        # normalize + sort
-        spans = sorted(
-            [
-                {
+
+        # 1. Convert to simple dicts and sort by start_char descending
+        # Reversing is the key: changing text at index 100 
+        # doesn't break a marker at index 10.
+        items = []
+        for f in findings:
+            if f.start_char is not None and f.end_char is not None:
+                items.append({
                     "start": int(f.start_char),
                     "end": int(f.end_char),
-                    "label": f.label or "PII",
-                }
-                for f in findings
-                if f.start_char is not None and f.end_char is not None
-            ],
-            key=lambda s: (s["start"], s["end"]),
-        )
-    
-        # merge overlapping spans
+                    "label": f.label or "PII"
+                })
+
+        # Sort: Primary by start descending, secondary by end descending
+        items.sort(key=lambda x: (x["start"], x["end"]), reverse=True)
+
+        # 2. Merge overlaps (crucial for reverse redaction)
         merged = []
-        for s in spans:
+        for item in items:
             if not merged:
-                merged.append(
-                    {"start": s["start"], "end": s["end"], "labels": {s["label"]}}
-                )
+                merged.append(item)
                 continue
-    
+
             last = merged[-1]
-            if s["start"] > last["end"]:
-                merged.append(
-                    {"start": s["start"], "end": s["end"], "labels": {s["label"]}}
-                )
+            # If current item overlaps or touches the one we just added (which is later in text)
+            if item["end"] >= last["start"]:
+                # Extend the 'later' start to the 'earlier' start
+                last["start"] = min(item["start"], last["start"])
+                last["end"] = max(item["end"], last["end"])
+                # Combine labels if they differ
+                if item["label"] not in last["label"]:
+                    last["label"] = f"{item['label']}+{last['label']}"
             else:
-                last["end"] = max(last["end"], s["end"])
-                last["labels"].add(s["label"])
-    
-        # build redacted output
-        out = []
-        cursor = 0
-        n = len(text)
-    
+                merged.append(item)
+
+        # 3. Apply redactions in reverse order
+        redacted_text = text
         for m in merged:
-            start = max(0, min(n, m["start"]))
-            end = max(0, min(n, m["end"]))
-            if end <= start:
-                continue
-    
-            # text before span
-            if start > cursor:
-                out.append(text[cursor:start])
-    
-            # label token
-            label = (
-                next(iter(m["labels"]))
-                if len(m["labels"]) == 1
-                else "+".join(sorted(m["labels"]))
-            )
-            out.append(f"[REDACTED:{label}]")
-    
-            cursor = end
-    
-        # tail
-        if cursor < n:
-            out.append(text[cursor:])
-    
-        return "".join(out)
+            start = m["start"]
+            end = m["end"]
+            label = m["label"]
+
+            # Simple string slicing: everything before + tag + everything after
+            redacted_text = redacted_text[:start] + f"[REDACTED:{label}]" + redacted_text[end:]
+
+        return redacted_text
 

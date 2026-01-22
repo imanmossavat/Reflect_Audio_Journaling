@@ -50,19 +50,15 @@ function extractSearchableText(rec: Recording): string {
         if (typeof v === "string" && v.trim()) chunks.push(v.trim());
     };
 
-    // basics
     safePush(rec?.title);
     safePush(rec?.recording_id);
 
-    // tags
     if (Array.isArray(rec?.tags)) {
         for (const tag of rec.tags) safePush(tag);
     }
 
-    // backend-provided search text (the real reason we're here)
     safePush(rec?.search_text);
 
-    // fallback (if you ever decide to embed transcripts directly)
     const t = rec?.transcripts ?? rec?.transcript ?? {};
     if (typeof t === "string") safePush(t);
     safePush(t?.text);
@@ -74,6 +70,16 @@ type StatusFilter = "all" | "original" | "edited" | "redacted";
 type AudioFilter = "all" | "audio" | "no_audio";
 type SortMode = "newest" | "oldest" | "title";
 
+type SemanticHit = {
+    recording_id: string;
+    segment_id: number;
+    score: number;
+    label?: string;
+    text?: string;
+    start_s?: number | null;
+    end_s?: number | null;
+};
+
 export default function RecordingsClient({ items }: { items: Recording[] }) {
     const [query, setQuery] = React.useState("");
     const [status, setStatus] = React.useState<StatusFilter>("all");
@@ -82,6 +88,12 @@ export default function RecordingsClient({ items }: { items: Recording[] }) {
     const [from, setFrom] = React.useState<Date | undefined>(undefined);
     const [to, setTo] = React.useState<Date | undefined>(undefined);
     const [selectedTags, setSelectedTags] = React.useState<string[]>([]);
+
+    // Semantic search state
+    const [semanticQuery, setSemanticQuery] = React.useState("");
+    const [semanticHits, setSemanticHits] = React.useState<SemanticHit[]>([]);
+    const [semanticLoading, setSemanticLoading] = React.useState(false);
+    const [semanticError, setSemanticError] = React.useState<string | null>(null);
 
     const allTags = React.useMemo(() => {
         const set = new Set<string>();
@@ -104,7 +116,8 @@ export default function RecordingsClient({ items }: { items: Recording[] }) {
             const hasAudio = rec?.has_audio ?? !!rec?.audio;
 
             const created = rec?.created_at ? new Date(rec.created_at) : null;
-            const createdTime = created && !Number.isNaN(created.getTime()) ? created.getTime() : 0;
+            const createdTime =
+                created && !Number.isNaN(created.getTime()) ? created.getTime() : 0;
 
             return {
                 rec,
@@ -143,7 +156,6 @@ export default function RecordingsClient({ items }: { items: Recording[] }) {
             if (status === "all") return true;
             if (status === "edited") return x.hasEdited;
             if (status === "redacted") return x.hasRedacted;
-            // original = has original and NOT edited/redacted (your call; this is the clean definition)
             return x.hasOriginal && !x.hasEdited && !x.hasRedacted;
         };
 
@@ -156,11 +168,10 @@ export default function RecordingsClient({ items }: { items: Recording[] }) {
         const passTags = (rec: Recording) => {
             if (selectedTags.length === 0) return true;
             const recTags: string[] = Array.isArray(rec?.tags) ? rec.tags : [];
-            // AND behaviour: must contain all selected tags
             return selectedTags.every((t) => recTags.includes(t));
         };
 
-        let out = indexed.filter((x) => {
+        const out = indexed.filter((x) => {
             if (q && !x.searchable.includes(q)) return false;
             if (!inRange(x.created)) return false;
             if (!passStatus(x)) return false;
@@ -173,13 +184,25 @@ export default function RecordingsClient({ items }: { items: Recording[] }) {
             if (sort === "newest") return b.createdTime - a.createdTime;
             if (sort === "oldest") return a.createdTime - b.createdTime;
 
-            const at = (a.rec?.title || a.rec?.recording_id || "").toString().toLowerCase();
-            const bt = (b.rec?.title || b.rec?.recording_id || "").toString().toLowerCase();
+            const at = (a.rec?.title || a.rec?.recording_id || "")
+                .toString()
+                .toLowerCase();
+            const bt = (b.rec?.title || b.rec?.recording_id || "")
+                .toString()
+                .toLowerCase();
             return at.localeCompare(bt);
         });
 
         return out;
     }, [indexed, query, from, to, status, audio, sort, selectedTags]);
+
+    const recordingById = React.useMemo(() => {
+        const m = new Map<string, Recording>();
+        for (const r of items ?? []) {
+            if (r?.recording_id) m.set(r.recording_id, r);
+        }
+        return m;
+    }, [items]);
 
     const activeFilterCount =
         (query.trim() ? 1 : 0) +
@@ -188,7 +211,8 @@ export default function RecordingsClient({ items }: { items: Recording[] }) {
         (sort !== "newest" ? 1 : 0) +
         (from ? 1 : 0) +
         (to ? 1 : 0) +
-        (selectedTags.length ? 1 : 0);
+        (selectedTags.length ? 1 : 0) +
+        (semanticQuery.trim() ? 1 : 0);
 
     const clearAll = () => {
         setQuery("");
@@ -198,74 +222,55 @@ export default function RecordingsClient({ items }: { items: Recording[] }) {
         setFrom(undefined);
         setTo(undefined);
         setSelectedTags([]);
-    };
 
-        type SemanticHit = {
-      recording_id: string;
-      segment_id: number;
-      score: number;
-      label?: string;
-      text?: string;
-      start_s?: number | null;
-      end_s?: number | null;
+        setSemanticQuery("");
+        setSemanticHits([]);
+        setSemanticError(null);
     };
-
-    const [semanticQuery, setSemanticQuery] = React.useState("");
-    const [semanticHits, setSemanticHits] = React.useState<SemanticHit[]>([]);
-    const [semanticLoading, setSemanticLoading] = React.useState(false);
-    const [semanticError, setSemanticError] = React.useState<string | null>(null);
 
     const semanticSearch = React.useCallback(async () => {
-      const q = semanticQuery.trim();
-      if (!q) {
-        setSemanticHits([]);
-        setSemanticError(null);
-        return;
-      }
-
-      try {
-        setSemanticLoading(true);
-        setSemanticError(null);
-
-        const res = await fetch(`http://localhost:8000/api/search/semantic`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ query: q, top_k: 12 }),
-        });
-
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          throw new Error(err?.detail || "Semantic search failed");
+        const q = semanticQuery.trim();
+        if (!q) {
+            setSemanticHits([]);
+            setSemanticError(null);
+            return;
         }
 
-        const data = await res.json();
-        setSemanticHits(Array.isArray(data?.hits) ? data.hits : []);
-      } catch (e: any) {
-        setSemanticError(e?.message || "Semantic search failed");
-        setSemanticHits([]);
-      } finally {
-        setSemanticLoading(false);
-      }
+        try {
+            setSemanticLoading(true);
+            setSemanticError(null);
+
+            const res = await fetch(`http://127.0.0.1:8000/api/search/semantic`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ query: q, top_k: 8 }),
+            });
+
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err?.detail || "Semantic search failed");
+            }
+
+            const data = await res.json();
+            setSemanticHits(Array.isArray(data?.hits) ? data.hits : []);
+        } catch (e: any) {
+            setSemanticError(e?.message || "Semantic search failed");
+            setSemanticHits([]);
+        } finally {
+            setSemanticLoading(false);
+        }
     }, [semanticQuery]);
 
     React.useEffect(() => {
-      if (!semanticQuery.trim()) {
-        setSemanticHits([]);
-        setSemanticError(null);
-        return;
-      }
-      const t = setTimeout(() => semanticSearch(), 350);
-      return () => clearTimeout(t);
-    }, [semanticQuery, semanticSearch]);
-
-    const recordingById = React.useMemo(() => {
-    const m = new Map<string, Recording>();
-        for (const r of items ?? []) {
-        if (r?.recording_id) m.set(r.recording_id, r);
+        const q = semanticQuery.trim();
+        if (!q) {
+            setSemanticHits([]);
+            setSemanticError(null);
+            return;
         }
-        return m;
-    }, [items]);
-
+        const t = setTimeout(() => semanticSearch(), 350);
+        return () => clearTimeout(t);
+    }, [semanticQuery, semanticSearch]);
 
     return (
         <div className="space-y-4">
@@ -293,44 +298,47 @@ export default function RecordingsClient({ items }: { items: Recording[] }) {
                             </Badge>
                         </div>
                     </div>
+
                     {/* Semantic search row */}
                     <div className="flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
-                      <div className="flex-1">
-                        <Input
-                          value={semanticQuery}
-                          onChange={(e) => setSemanticQuery(e.target.value)}
-                          placeholder="Semantic search (meaning): e.g. 'stress at work'…"
-                          className="h-10"
-                        />
-                      </div>
+                        <div className="flex-1">
+                            <Input
+                                value={semanticQuery}
+                                onChange={(e) => setSemanticQuery(e.target.value)}
+                                placeholder="Semantic search (meaning): e.g. 'stress at work'…"
+                                className="h-10"
+                            />
+                        </div>
 
-                      <div className="flex gap-2 items-center justify-start md:justify-end">
-                        <Button
-                          variant="outline"
-                          className="h-10"
-                          onClick={semanticSearch}
-                          disabled={semanticLoading || !semanticQuery.trim()}
-                        >
-                          {semanticLoading ? "Searching..." : "Semantic search"}
-                        </Button>
+                        <div className="flex gap-2 items-center justify-start md:justify-end">
+                            <Button
+                                variant="outline"
+                                className="h-10"
+                                onClick={semanticSearch}
+                                disabled={semanticLoading || !semanticQuery.trim()}
+                            >
+                                {semanticLoading ? "Searching..." : "Semantic search"}
+                            </Button>
 
-                        {semanticQuery.trim() && (
-                          <Button
-                            variant="ghost"
-                            className="h-10"
-                            onClick={() => {
-                              setSemanticQuery("");
-                              setSemanticHits([]);
-                              setSemanticError(null);
-                            }}
-                          >
-                            Clear
-                          </Button>
-                        )}
-                      </div>
+                            {semanticQuery.trim() && (
+                                <Button
+                                    variant="ghost"
+                                    className="h-10"
+                                    onClick={() => {
+                                        setSemanticQuery("");
+                                        setSemanticHits([]);
+                                        setSemanticError(null);
+                                    }}
+                                >
+                                    Clear
+                                </Button>
+                            )}
+                        </div>
                     </div>
 
-                    {semanticError && <div className="text-sm text-red-600">{semanticError}</div>}
+                    {semanticError && (
+                        <div className="text-sm text-red-600">{semanticError}</div>
+                    )}
 
                     <Separator />
 
@@ -340,13 +348,23 @@ export default function RecordingsClient({ items }: { items: Recording[] }) {
                         <div className="md:col-span-5 flex gap-2">
                             <Popover>
                                 <PopoverTrigger asChild>
-                                    <Button variant="outline" className="h-10 flex-1 justify-start">
+                                    <Button
+                                        variant="outline"
+                                        className="h-10 flex-1 justify-start"
+                                    >
                                         <span className="text-zinc-500 mr-2">From:</span>
-                                        <span className={cn(!from && "text-zinc-400")}>{formatDateOnly(from)}</span>
+                                        <span className={cn(!from && "text-zinc-400")}>
+                      {formatDateOnly(from)}
+                    </span>
                                     </Button>
                                 </PopoverTrigger>
                                 <PopoverContent className="p-0 w-auto" align="start">
-                                    <Calendar mode="single" selected={from} onSelect={setFrom} initialFocus />
+                                    <Calendar
+                                        mode="single"
+                                        selected={from}
+                                        onSelect={setFrom}
+                                        initialFocus
+                                    />
                                     <div className="p-2">
                                         <Button
                                             variant="ghost"
@@ -362,13 +380,23 @@ export default function RecordingsClient({ items }: { items: Recording[] }) {
 
                             <Popover>
                                 <PopoverTrigger asChild>
-                                    <Button variant="outline" className="h-10 flex-1 justify-start">
+                                    <Button
+                                        variant="outline"
+                                        className="h-10 flex-1 justify-start"
+                                    >
                                         <span className="text-zinc-500 mr-2">To:</span>
-                                        <span className={cn(!to && "text-zinc-400")}>{formatDateOnly(to)}</span>
+                                        <span className={cn(!to && "text-zinc-400")}>
+                      {formatDateOnly(to)}
+                    </span>
                                     </Button>
                                 </PopoverTrigger>
                                 <PopoverContent className="p-0 w-auto" align="start">
-                                    <Calendar mode="single" selected={to} onSelect={setTo} initialFocus />
+                                    <Calendar
+                                        mode="single"
+                                        selected={to}
+                                        onSelect={setTo}
+                                        initialFocus
+                                    />
                                     <div className="p-2">
                                         <Button
                                             variant="ghost"
@@ -385,7 +413,10 @@ export default function RecordingsClient({ items }: { items: Recording[] }) {
 
                         {/* Status */}
                         <div className="md:col-span-2">
-                            <Select value={status} onValueChange={(v) => setStatus(v as StatusFilter)}>
+                            <Select
+                                value={status}
+                                onValueChange={(v) => setStatus(v as StatusFilter)}
+                            >
                                 <SelectTrigger className="h-10 w-full">
                                     <SelectValue placeholder="Status" />
                                 </SelectTrigger>
@@ -400,7 +431,10 @@ export default function RecordingsClient({ items }: { items: Recording[] }) {
 
                         {/* Audio */}
                         <div className="md:col-span-2">
-                            <Select value={audio} onValueChange={(v) => setAudio(v as AudioFilter)}>
+                            <Select
+                                value={audio}
+                                onValueChange={(v) => setAudio(v as AudioFilter)}
+                            >
                                 <SelectTrigger className="h-10 w-full">
                                     <SelectValue placeholder="Audio" />
                                 </SelectTrigger>
@@ -434,9 +468,11 @@ export default function RecordingsClient({ items }: { items: Recording[] }) {
                                         variant="outline"
                                         className="h-10 w-full justify-between"
                                     >
-        <span className="text-sm text-zinc-600">
-          {selectedTags.length > 0 ? "Filter by tags" : "Add tag filter"}
-        </span>
+                    <span className="text-sm text-zinc-600">
+                      {selectedTags.length > 0
+                          ? "Filter by tags"
+                          : "Add tag filter"}
+                    </span>
                                         {selectedTags.length > 0 && (
                                             <Badge variant="secondary">{selectedTags.length}</Badge>
                                         )}
@@ -445,7 +481,9 @@ export default function RecordingsClient({ items }: { items: Recording[] }) {
 
                                 <PopoverContent className="w-72 p-3" align="start">
                                     <div className="space-y-2">
-                                        <div className="text-xs font-medium text-zinc-500">Tags</div>
+                                        <div className="text-xs font-medium text-zinc-500">
+                                            Tags
+                                        </div>
 
                                         {allTags.length === 0 && (
                                             <div className="text-sm text-zinc-500 py-2">
@@ -484,7 +522,6 @@ export default function RecordingsClient({ items }: { items: Recording[] }) {
                                 </PopoverContent>
                             </Popover>
 
-                            {/* Selected tags (clean, no duplication) */}
                             {selectedTags.length > 0 && (
                                 <div className="flex flex-wrap gap-2">
                                     {selectedTags.map((t) => (
@@ -507,6 +544,7 @@ export default function RecordingsClient({ items }: { items: Recording[] }) {
                     {activeFilterCount > 0 && (
                         <div className="flex flex-wrap gap-2 pt-1">
                             {query.trim() && <Badge>Query</Badge>}
+                            {semanticQuery.trim() && <Badge variant="secondary">Semantic</Badge>}
                             {from && <Badge variant="secondary">From</Badge>}
                             {to && <Badge variant="secondary">To</Badge>}
                             {status !== "all" && <Badge variant="secondary">Status</Badge>}
@@ -520,81 +558,83 @@ export default function RecordingsClient({ items }: { items: Recording[] }) {
 
             {/* List */}
             <div className="space-y-3">
+                {semanticQuery.trim() && (
+                    <Card className="p-4">
+                        <div className="flex items-center justify-between gap-2">
+                            <div className="font-semibold">Semantic results</div>
+                            <Badge variant="secondary">{semanticHits.length}</Badge>
+                        </div>
+
+                        <div className="mt-3 space-y-2">
+                            {semanticLoading && (
+                                <div className="text-sm text-zinc-500">
+                                    Searching by meaning…
+                                </div>
+                            )}
+
+                            {!semanticLoading &&
+                                semanticHits.length === 0 &&
+                                !semanticError && (
+                                    <div className="text-sm text-zinc-500">
+                                        No semantic matches.
+                                    </div>
+                                )}
+
+                            {semanticHits.map((hit) => {
+                                const rec = recordingById.get(hit.recording_id);
+                                const title = rec?.title || hit.recording_id;
+
+                                const snippetRaw = (hit.text || "").trim();
+                                const snippet =
+                                    snippetRaw.length > 160
+                                        ? snippetRaw.slice(0, 160) + "…"
+                                        : snippetRaw;
+
+                                return (
+                                    <Link
+                                        key={`${hit.recording_id}-${hit.segment_id}`}
+                                        href={`/recordings/${hit.recording_id}`}
+                                        className="block"
+                                    >
+                                        <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 p-3 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition">
+                                            <div className="flex items-start justify-between gap-3">
+                                                <div className="min-w-0">
+                                                    <div className="font-medium truncate">{title}</div>
+                                                    <div className="text-xs text-zinc-500 mt-0.5">
+                                                        {hit.label?.trim()
+                                                            ? hit.label
+                                                            : `Segment ${hit.segment_id}`}{" "}
+                                                        · score {Number(hit.score ?? 0).toFixed(3)}
+                                                    </div>
+                                                    {snippet && (
+                                                        <div className="text-sm text-zinc-700 dark:text-zinc-300 mt-2">
+                                                            {snippet}
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                <Badge variant="outline" className="shrink-0">
+                                                    semantic
+                                                </Badge>
+                                            </div>
+                                        </div>
+                                    </Link>
+                                );
+                            })}
+                        </div>
+                    </Card>
+                )}
+
                 {filtered.map(({ rec, hasAudio, hasEdited, hasRedacted }) => {
                     const title = rec?.title || rec?.recording_id;
                     const created = formatDateTime(rec?.created_at);
 
                     return (
-                        <Link key={rec.recording_id} href={`/recordings/${rec.recording_id}`} className="block">
-                            {semanticQuery.trim() && (
-  <Card className="p-4">
-    <div className="flex items-center justify-between gap-2">
-      <div className="font-semibold">Semantic results</div>
-      <Badge variant="secondary">{semanticHits.length}</Badge>
-    </div>
-
-    <div className="mt-3 space-y-2">
-      {semanticLoading && (
-        <div className="text-sm text-zinc-500">Searching by meaning…</div>
-      )}
-
-      {!semanticLoading && semanticHits.length === 0 && !semanticError && (
-        <div className="text-sm text-zinc-500">No semantic matches.</div>
-      )}
-
-      {/* Optional: hide garbage scores */}
-      {semanticHits
-        .filter((h) => (typeof h.score === "number" ? h.score >= 0.20 : true))
-        .slice(0, 12)
-        .map((hit) => {
-          const rec = recordingById.get(hit.recording_id);
-          const title = rec?.title || hit.recording_id;
-
-          const snippetRaw = (hit.text || "").trim();
-          const snippet =
-            snippetRaw.length > 180 ? snippetRaw.slice(0, 180) + "…" : snippetRaw;
-
-          return (
-            <Link
-              key={`${hit.recording_id}-${hit.segment_id}`}
-              href={`/recordings/${hit.recording_id}`}
-              className="block"
-            >
-              <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 p-3 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="font-medium truncate">{title}</div>
-
-                    <div className="text-xs text-zinc-500 mt-0.5">
-                      {(hit.label && hit.label.trim()) ? hit.label : `Segment ${hit.segment_id}`}
-                      {" · "}
-                      score {Number(hit.score ?? 0).toFixed(3)}
-                    </div>
-
-                    {snippet && (
-                      <div className="text-sm text-zinc-700 dark:text-zinc-300 mt-2">
-                        {snippet}
-                      </div>
-                    )}
-                  </div>
-
-                  <Badge variant="outline" className="shrink-0">
-                    semantic
-                  </Badge>
-                </div>
-              </div>
-            </Link>
-          );
-        })}
-    </div>
-
-    {/* If you filtered on score, tell the user so they don’t think it's broken */}
-    <div className="text-xs text-zinc-500 mt-3">
-      Showing matches with score ≥ 0.20 (adjust threshold in code).
-    </div>
-  </Card>
-)}
-
+                        <Link
+                            key={rec.recording_id}
+                            href={`/recordings/${rec.recording_id}`}
+                            className="block"
+                        >
                             <Card className="p-4 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors">
                                 <div className="flex items-start justify-between gap-4">
                                     <div className="min-w-0 flex-1">
@@ -621,10 +661,16 @@ export default function RecordingsClient({ items }: { items: Recording[] }) {
                                     </div>
 
                                     <div className="flex gap-2 flex-wrap justify-end">
-                                        {hasAudio ? <Badge>audio</Badge> : <Badge variant="secondary">no audio</Badge>}
+                                        {hasAudio ? (
+                                            <Badge>audio</Badge>
+                                        ) : (
+                                            <Badge variant="secondary">no audio</Badge>
+                                        )}
                                         {hasEdited && <Badge variant="secondary">edited</Badge>}
                                         {hasRedacted && <Badge variant="secondary">redacted</Badge>}
-                                        {!hasEdited && !hasRedacted && <Badge variant="secondary">original</Badge>}
+                                        {!hasEdited && !hasRedacted && (
+                                            <Badge variant="secondary">original</Badge>
+                                        )}
                                     </div>
                                 </div>
                             </Card>
@@ -633,7 +679,9 @@ export default function RecordingsClient({ items }: { items: Recording[] }) {
                 })}
 
                 {filtered.length === 0 && (
-                    <Card className="p-8 text-center text-sm text-zinc-600">No results.</Card>
+                    <Card className="p-8 text-center text-sm text-zinc-600">
+                        No results.
+                    </Card>
                 )}
             </div>
         </div>
