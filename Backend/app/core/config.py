@@ -68,6 +68,7 @@ class Settings(BaseSettings):
             self.DATA_DIR = os.path.join(self.BASE_DIR, folder_name)
     
         os.makedirs(self.DATA_DIR, exist_ok=True)
+        os.makedirs(self.CONFIG_DIR, exist_ok=True)
         
     def load_pii_patterns(self):
         if os.path.exists(self.PII_PATTERNS_PATH):

@@ -236,14 +236,13 @@ def filler_stats(words: List[Dict[str, Any]], language_code: str = "en") -> Dict
             i += 1
 
     count = len(hits)
-    pct = (count / len(toks)) * 100 if toks else 0.0
+    pct = (count / len(toks)) if toks else 0.0
 
     return {
         "count": count,
         "percent": float(pct),
         "hits": hits,
     }
-
 
 # -----------------------------------------------------------------------------
 # Public wrapper

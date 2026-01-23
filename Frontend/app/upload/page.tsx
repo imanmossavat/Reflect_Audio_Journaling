@@ -25,7 +25,18 @@ function formatTime(seconds: number) {
 
 function validateAudioFile(f: File) {
   if (!f) return "No file selected.";
-  if (!f.type?.startsWith(ACCEPTED_MIME_PREFIX)) return "That doesn’t look like an audio file.";
+
+  const type = f.type || "";
+  const name = f.name || "";
+
+  const isAudioType = type.startsWith(ACCEPTED_MIME_PREFIX);
+  const isWebm = type === "video/webm" || name.toLowerCase().endsWith(".webm");
+  const isCommonAudioExt = /\.(wav|mp3|m4a|ogg|aac|flac)$/i.test(name);
+
+  if (!isAudioType && !isWebm && !isCommonAudioExt) {
+    return "That doesn’t look like an audio file.";
+  }
+
   const mb = f.size / (1024 * 1024);
   if (mb > MAX_FILE_MB) return `File is too large (${mb.toFixed(1)}MB). Max is ${MAX_FILE_MB}MB.`;
   return null;
@@ -171,128 +182,128 @@ function UploadPageContent() {
   };
 
   return (
-      <div className="mx-auto max-w-3xl p-6 md:p-10 space-y-4">
-        <Link href="/" className="text-sm text-zinc-600 hover:text-zinc-900 flex items-center gap-1 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors">
-          <ArrowLeft className="h-3 w-3" /> Back to library
-        </Link>
+    <div className="mx-auto max-w-3xl p-6 md:p-10 space-y-4">
+      <Link href="/" className="text-sm text-zinc-600 hover:text-zinc-900 flex items-center gap-1 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors">
+        <ArrowLeft className="h-3 w-3" /> Back to library
+      </Link>
 
-        <Card className="shadow-sm border-zinc-200 dark:border-zinc-800 overflow-hidden">
-          <CardHeader className="bg-white dark:bg-zinc-900 border-b border-zinc-100 dark:border-zinc-800 pb-8">
-            <CardTitle className="text-2xl font-bold">New Recording</CardTitle>
-            <CardDescription>Choose how you want to capture your thoughts today.</CardDescription>
-          </CardHeader>
+      <Card className="shadow-sm border-zinc-200 dark:border-zinc-800 overflow-hidden">
+        <CardHeader className="bg-white dark:bg-zinc-900 border-b border-zinc-100 dark:border-zinc-800 pb-8">
+          <CardTitle className="text-2xl font-bold">New Recording</CardTitle>
+          <CardDescription>Choose how you want to capture your thoughts today.</CardDescription>
+        </CardHeader>
 
-          <CardContent className="space-y-4 pt-6">
-            {(uploadError || micError || statusText) && (
-                <Alert variant={uploadError || micError ? "destructive" : "default"} className="animate-in fade-in zoom-in duration-200">
-                  <AlertDescription className="flex items-center gap-2">
-                    {(uploading || statusText) && !uploadError && <Loader2 className="h-4 w-4 animate-spin" />}
-                    {statusText || uploadError || micError}
-                  </AlertDescription>
-                </Alert>
-            )}
+        <CardContent className="space-y-4 pt-6">
+          {(uploadError || micError || statusText) && (
+            <Alert variant={uploadError || micError ? "destructive" : "default"} className="animate-in fade-in zoom-in duration-200">
+              <AlertDescription className="flex items-center gap-2">
+                {(uploading || statusText) && !uploadError && <Loader2 className="h-4 w-4 animate-spin" />}
+                {statusText || uploadError || micError}
+              </AlertDescription>
+            </Alert>
+          )}
 
-            <Tabs defaultValue={defaultTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-3 bg-zinc-100 dark:bg-zinc-900">
-                <TabsTrigger value="upload" disabled={recording || uploading}>Upload</TabsTrigger>
-                <TabsTrigger value="record" disabled={uploading}>Record</TabsTrigger>
-                <TabsTrigger value="write" disabled={recording || uploading}>Write</TabsTrigger>
-              </TabsList>
+          <Tabs defaultValue={defaultTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-3 bg-zinc-100 dark:bg-zinc-900">
+              <TabsTrigger value="upload" disabled={recording || uploading}>Upload</TabsTrigger>
+              <TabsTrigger value="record" disabled={uploading}>Record</TabsTrigger>
+              <TabsTrigger value="write" disabled={recording || uploading}>Write</TabsTrigger>
+            </TabsList>
 
-              {/* --- UPLOAD TAB --- */}
-              <TabsContent value="upload" className="space-y-4 pt-4">
-                <div className="flex flex-col items-center justify-center border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-xl p-8 transition-colors hover:border-zinc-300 dark:hover:border-zinc-700">
-                  <Input
-                      type="file"
-                      accept="audio/*"
-                      id="audio-upload"
-                      className="hidden"
-                      disabled={uploading}
-                      onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-                  />
-                  <label htmlFor="audio-upload" className="cursor-pointer flex flex-col items-center gap-2 text-center">
-                    <div className="p-3 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
-                      {file ? <Check className="h-6 w-6 text-green-500" /> : <Mic className="h-6 w-6" />}
-                    </div>
-                    <span className="text-sm font-medium">{file ? file.name : "Click to select audio file"}</span>
-                    <span className="text-xs text-zinc-500">WAV, MP3, M4A or WebM up to {MAX_FILE_MB}MB</span>
-                  </label>
-                </div>
+            {/* --- UPLOAD TAB --- */}
+            <TabsContent value="upload" className="space-y-4 pt-4">
+              <div className="flex flex-col items-center justify-center border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-xl p-8 transition-colors hover:border-zinc-300 dark:hover:border-zinc-700">
+                <Input
+                  type="file"
+                  accept="audio/*"
+                  id="audio-upload"
+                  className="hidden"
+                  disabled={uploading}
+                  onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                />
+                <label htmlFor="audio-upload" className="cursor-pointer flex flex-col items-center gap-2 text-center">
+                  <div className="p-3 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
+                    {file ? <Check className="h-6 w-6 text-green-500" /> : <Mic className="h-6 w-6" />}
+                  </div>
+                  <span className="text-sm font-medium">{file ? file.name : "Click to select audio file"}</span>
+                  <span className="text-xs text-zinc-500">WAV, MP3, M4A or WebM up to {MAX_FILE_MB}MB</span>
+                </label>
+              </div>
 
-                <Button onClick={() => file && upload(file)} disabled={!file || uploading} className="w-full h-11">
-                  {uploading ? "Uploading..." : "Process Audio"}
-                </Button>
-              </TabsContent>
+              <Button onClick={() => file && upload(file)} disabled={!file || uploading} className="w-full h-11">
+                {uploading ? "Uploading..." : "Process Audio"}
+              </Button>
+            </TabsContent>
 
-              {/* --- RECORD TAB --- */}
-              <TabsContent value="record" className="space-y-4 pt-4">
-                <div className="flex flex-col gap-4 p-6 bg-zinc-100 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      {recording && <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />}
-                      <span className="text-sm font-medium">
+            {/* --- RECORD TAB --- */}
+            <TabsContent value="record" className="space-y-4 pt-4">
+              <div className="flex flex-col gap-4 p-6 bg-zinc-100 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    {recording && <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />}
+                    <span className="text-sm font-medium">
                       {recording ? "Recording live..." : recordedBlob ? "Recording ready" : "Ready to record"}
                     </span>
-                    </div>
-                    <span className="font-mono text-2xl font-bold tracking-tighter">{formatTime(seconds)}</span>
                   </div>
-
-                  {recording && <WaveformVisualizer stream={streamRef.current} />}
+                  <span className="font-mono text-2xl font-bold tracking-tighter">{formatTime(seconds)}</span>
                 </div>
 
-                <div className="flex gap-3">
-                  {!recording ? (
-                      <Button onClick={startRecording} className="flex-1 h-12 bg-red-600 hover:bg-red-700 text-white gap-2 font-bold shadow-lg shadow-red-900/20">
-                        <Mic className="h-4 w-4" /> Start
-                      </Button>
-                  ) : (
-                      <Button onClick={stopRecording} variant="secondary" className="flex-1 h-12 gap-2 font-bold border-2 border-zinc-200 dark:border-zinc-800">
-                        <Square className="h-4 w-4 fill-current" /> Stop
-                      </Button>
-                  )}
-                </div>
+                {recording && <WaveformVisualizer stream={streamRef.current} />}
+              </div>
 
-                {recordedBlob && !recording && (
-                    <div className="space-y-4 pt-2 animate-in slide-in-from-bottom-2 duration-300">
-                      <audio controls src={previewUrl!} className="w-full h-10" />
-                      <div className="flex gap-2">
-                        <Button onClick={() => upload(new File([recordedBlob], "mic_record.webm"))} className="flex-1 h-11" disabled={uploading}>
-                          {uploading ? "Processing..." : "Use this recording"}
-                        </Button>
-                        <Button variant="outline" size="icon" className="h-11 w-11 shrink-0" onClick={() => setRecordedBlob(null)} disabled={uploading}>
-                          <Trash2 className="h-4 w-4 text-zinc-500" />
-                        </Button>
-                      </div>
-                    </div>
+              <div className="flex gap-3">
+                {!recording ? (
+                  <Button onClick={startRecording} className="flex-1 h-12 bg-red-600 hover:bg-red-700 text-white gap-2 font-bold shadow-lg shadow-red-900/20">
+                    <Mic className="h-4 w-4" /> Start
+                  </Button>
+                ) : (
+                  <Button onClick={stopRecording} variant="secondary" className="flex-1 h-12 gap-2 font-bold border-2 border-zinc-200 dark:border-zinc-800">
+                    <Square className="h-4 w-4 fill-current" /> Stop
+                  </Button>
                 )}
-              </TabsContent>
+              </div>
 
-              {/* --- WRITE TAB --- */}
-              <TabsContent value="write" className="space-y-4 pt-4">
-                <Textarea
-                    value={text}
-                    onChange={(e) => setText(e.target.value)}
-                    placeholder="Start writing your thoughts..."
-                    className="min-h-[250px] bg-zinc-50 dark:bg-zinc-900/50 resize-none focus-visible:ring-red-500"
-                />
-                <div className="flex justify-between items-center px-1">
-                  <span className="text-[10px] uppercase font-bold text-zinc-400 tracking-widest">{text.length} Characters</span>
-                  <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-xs text-zinc-500"
-                      onClick={() => setText("")}
-                      disabled={!text}
-                  >Clear</Button>
+              {recordedBlob && !recording && (
+                <div className="space-y-4 pt-2 animate-in slide-in-from-bottom-2 duration-300">
+                  <audio controls src={previewUrl!} className="w-full h-10" />
+                  <div className="flex gap-2">
+                    <Button onClick={() => upload(new File([recordedBlob], "mic_record.webm", { type: recordedBlob.type || "audio/webm" }))} className="flex-1 h-11" disabled={uploading}>
+                      {uploading ? "Processing..." : "Use this recording"}
+                    </Button>
+                    <Button variant="outline" size="icon" className="h-11 w-11 shrink-0" onClick={() => setRecordedBlob(null)} disabled={uploading}>
+                      <Trash2 className="h-4 w-4 text-zinc-500" />
+                    </Button>
+                  </div>
                 </div>
-                <Button onClick={handleCreateTextEntry} disabled={!text.trim() || creatingTextEntry} className="w-full h-11">
-                  {creatingTextEntry ? "Saving Entry..." : "Create Text Entry"}
-                </Button>
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
-      </div>
+              )}
+            </TabsContent>
+
+            {/* --- WRITE TAB --- */}
+            <TabsContent value="write" className="space-y-4 pt-4">
+              <Textarea
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                placeholder="Start writing your thoughts..."
+                className="min-h-[250px] bg-zinc-50 dark:bg-zinc-900/50 resize-none focus-visible:ring-red-500"
+              />
+              <div className="flex justify-between items-center px-1">
+                <span className="text-[10px] uppercase font-bold text-zinc-400 tracking-widest">{text.length} Characters</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs text-zinc-500"
+                  onClick={() => setText("")}
+                  disabled={!text}
+                >Clear</Button>
+              </div>
+              <Button onClick={handleCreateTextEntry} disabled={!text.trim() || creatingTextEntry} className="w-full h-11">
+                {creatingTextEntry ? "Saving Entry..." : "Create Text Entry"}
+              </Button>
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 
@@ -301,14 +312,14 @@ function UploadPageContent() {
  */
 export default function UploadPage() {
   return (
-      <div className="min-h-screen w-full bg-zinc-50 dark:bg-zinc-950">
-        <Suspense fallback={
-          <div className="flex items-center justify-center min-h-screen">
-            <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
-          </div>
-        }>
-          <UploadPageContent />
-        </Suspense>
-      </div>
+    <div className="min-h-screen w-full bg-zinc-50 dark:bg-zinc-950">
+      <Suspense fallback={
+        <div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
+        </div>
+      }>
+        <UploadPageContent />
+      </Suspense>
+    </div>
   );
 }

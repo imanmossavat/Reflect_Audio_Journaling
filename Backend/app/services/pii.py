@@ -4,17 +4,27 @@ import spacy
 from app.domain.models import PiiFinding
 from app.core.config import settings
 
-from typing import List, Any
+from typing import List
+
 
 class PIIDetector:
-    """
-    Detects and optionally redacts Personally Identifiable Information (PII)
-    using regex patterns and spaCy's Named Entity Recognition.
-    """
-
     def __init__(self):
         self.language = settings.LANGUAGE
-        self.nlp = spacy.load(f"{settings.LANGUAGE}_core_web_trf")
+
+        if self.language == "nl":
+            model_name = "nl_core_news_lg"
+        else:
+            model_name = "en_core_web_trf"
+
+        print(f"[PII] Initializing with installed model: {model_name}")
+
+        try:
+            self.nlp = spacy.load(model_name)
+        except Exception as e:
+            print(f"[PII] CRITICAL ERROR: Could not load {model_name}. "
+                  f"Check if it's installed in your .venv. Error: {e}")
+            self.nlp = spacy.blank(self.language)
+
         self.patterns = settings.PII_PATTERNS
 
     # ---------------- PUBLIC METHODS ---------------- #

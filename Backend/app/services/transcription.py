@@ -46,7 +46,6 @@ class TranscriptionManager:
         result = self.asr_model.transcribe(audio)
         print(f"[TranscriptionManager] Raw transcription done in {time.time() - start_time:.2f}s")
     
-        # Adjust language if needed
         if result.get("language") and result["language"] != self.align_metadata.get("language"):
             self.alignment_model, self.align_metadata = whisperx.load_align_model(
                 language_code=result["language"],
@@ -62,7 +61,6 @@ class TranscriptionManager:
             return_char_alignments=False,
         )
     
-        # Build full transcript text from aligned segments
         text = " ".join(
             [(seg.get("text", "") or "").strip() for seg in result_aligned.get("segments", [])]
         ).strip()
