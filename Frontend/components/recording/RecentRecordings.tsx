@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { API } from "@/lib/api";
+import { Api } from "@/lib/api";
 import { ArrowRight, FileText, Mic, Loader2 } from "lucide-react";
 
 export default function RecentRecordings() {
@@ -12,13 +12,8 @@ export default function RecentRecordings() {
     useEffect(() => {
         async function fetchRecent() {
             try {
-                const res = await fetch(`${API}/api/recordings`);
-                const data = await res.json();
-
-                console.log("API Response:", data);
-                const list = Array.isArray(data) ? data : (data.recordings || []);
-                
-                setItems(list.slice(0, 5));
+                const data = await Api.listRecordings();
+                setItems(data.slice(0, 5));
             } catch (err) {
                 console.error("Dashboard fetch error:", err);
             } finally {
@@ -58,12 +53,12 @@ export default function RecentRecordings() {
                                 )}
                             </div>
                             <div className="flex flex-col min-w-0">
-                <span className="text-xs font-semibold truncate text-zinc-700 dark:text-zinc-200">
-                  {item.title || "Untitled Entry"}
-                </span>
+                                <span className="text-xs font-semibold truncate text-zinc-700 dark:text-zinc-200">
+                                    {item.title || "Untitled Entry"}
+                                </span>
                                 <span className="text-[9px] text-zinc-400 uppercase">
-                  {item.created_at ? new Date(item.created_at).toLocaleDateString() : 'Just now'}
-                </span>
+                                    {item.created_at ? new Date(item.created_at).toLocaleDateString() : 'Just now'}
+                                </span>
                             </div>
                         </div>
                         <ArrowRight className="h-3 w-3 text-zinc-300 group-hover:text-zinc-900 dark:group-hover:text-zinc-100 transition-all -translate-x-1 group-hover:translate-x-0 opacity-0 group-hover:opacity-100" />

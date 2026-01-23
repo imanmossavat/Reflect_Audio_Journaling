@@ -161,42 +161,7 @@ class StorageManager:
         return Path(rel_path).as_posix()
 
 
-    # ---------------- LEGACY / OPTIONAL ---------------- #
-    # These are not aligned with your current "metadata keyed by recording_id" approach.
-    # Keep only if you really still use them.
 
-    def link_objects(self, audio_path: str, transcript_path: str = None, summary_path: str = None) -> str:
-        metadata = {
-            "audio": audio_path,
-            "transcript": transcript_path,
-            "summary": summary_path,
-            "timestamp": datetime.datetime.utcnow().isoformat(),
-        }
-
-        meta_dir = self.abs_path("metadata")
-        os.makedirs(meta_dir, exist_ok=True)
-
-        meta_filename = f"{uuid.uuid4().hex[:12]}_meta.json"
-        meta_rel = Path("metadata", meta_filename).as_posix()
-        meta_abs = self.abs_path(meta_rel)
-
-        with open(meta_abs, "w", encoding="utf-8") as f:
-            json.dump(metadata, f, indent=2, ensure_ascii=False)
-
-        return meta_rel
-
-    def list_recordings(self) -> list:
-        """
-        Legacy helper: scans audio directory directly (may include orphans).
-        Prefer scanning metadata directory for real "recordings".
-        """
-        audio_dir = self.abs_path("audio")
-        recordings = []
-        for root, _, files in os.walk(audio_dir):
-            for f in files:
-                if f.lower().endswith((".wav", ".mp3", ".m4a", ".webm")):
-                    recordings.append(os.path.join(root, f))
-        return recordings
 
     # ---------------- DELETION ---------------- #
 

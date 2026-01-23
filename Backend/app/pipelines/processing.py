@@ -86,6 +86,15 @@ def process_uploaded_audio(filename: str, file_bytes: bytes, language: str = "en
     audio_abs = store.abs_path(audio_rel)
 
     rec = Recording(id=rec_id, path=audio_abs, language=language)
+    
+    try:
+        import librosa
+        if os.path.exists(audio_abs):
+            dur = librosa.get_duration(path=audio_abs)
+            rec.duration_s = float(dur)
+    except Exception:
+        pass
+
     created_at = now_utc_iso()
 
     transcript = transcriber.transcribe(rec)
@@ -122,6 +131,7 @@ def process_uploaded_audio(filename: str, file_bytes: bytes, language: str = "en
         "language": language,
         "source": "audio",
         "created_at": created_at,
+        "duration": rec.duration_s,
         "aligned_words": words_path,
         "speech": speech,
         "title": fallback_title(created_at),
@@ -289,3 +299,48 @@ def process_after_edit(recording_id: str, edited_text: str) -> Dict[str, Any]:
         "pii_edited": merged_pii_dicts,
         "status": "saved",
     }
+
+def process_text_entry(text: str, title: Optional[str] = None, tags: Optional[List[str]] = None, language: str = "en", run_segmentation: bool = True, run_pii: bool = True) -> Dict[str, Any]:
+    import uuid
+    recording_id = uuid.uuid4().hex
+    text = (text or "").strip()
+    if not text:
+        raise RuntimeError("Text entry is empty")
+
+    original_path = store.save_transcript(recording_id, text, version="original")
+
+    meta = {
+        "recording_id": recording_id,
+        "created_at": now_utc_iso(),
+        "title": (title or "").strip() or None,
+        "tags": tags or [],
+        "language": language,
+        "source": "text",
+        "audio": None,
+        "transcripts": {"original": original_path, "edited": None, "redacted": None},
+        "segments": [],
+        "pii": [],
+        "pii_original": [],
+        "pii_edited": [],
+    }
+
+    if run_segmentation:
+        try:
+            fake_transcript = transcript_from_text(recording_id, text)
+            segs = segmenter.segment(transcript=fake_transcript, recording_id=recording_id)
+            if not meta.get("title") and segs:
+                meta["title"] = first_segment_label(segs)
+            meta["segments"] = [store.save_segments(recording_id, segs)]
+        except Exception:
+            logger.exception("Segmentation failed for text recording")
+
+    if run_pii:
+        try:
+            hits = pii.detect(transcript_from_text(recording_id, text))
+            meta["pii"] = [p.__dict__ for p in hits]
+            meta["pii_original"] = meta["pii"]
+        except Exception:
+            logger.exception("PII detection failed for text recording")
+
+    store.save_metadata(recording_id, meta)
+    return {"status": "ok", "recording_id": recording_id}

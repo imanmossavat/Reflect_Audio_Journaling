@@ -3,13 +3,14 @@
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Api } from "@/lib/api";
 
 export default function EditableTitle({
-                                          api,
-                                          id,
-                                          initialTitle,
-                                          onSaved,
-                                      }: {
+    api,
+    id,
+    initialTitle,
+    onSaved,
+}: {
     api: string;
     id: string;
     initialTitle: string;
@@ -28,14 +29,10 @@ export default function EditableTitle({
     async function save() {
         setSaving(true);
         try {
-            const r = await fetch(`${api}/api/recordings/${id}/meta`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ title: draft }),
-            });
-
-            if (!r.ok) throw new Error("Failed to save title");
-            const data = await r.json();
+            const data = await Api.updateRecordingMeta(id, { title: draft });
+            setTitle(data.title || draft);
+            setEditing(false);
+            onSaved?.(data.title || draft);
             setTitle(data.title || draft);
             setEditing(false);
             onSaved?.(data.title || draft);

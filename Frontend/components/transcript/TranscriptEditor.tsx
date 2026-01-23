@@ -3,13 +3,14 @@
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Api } from "@/lib/api";
 
 export default function TranscriptEditor({
-                                             api,
-                                             id,
-                                             initialText,
-                                             onSaved,
-                                         }: {
+    api,
+    id,
+    initialText,
+    onSaved,
+}: {
     api: string;
     id: string;
     initialText: string;
@@ -27,22 +28,12 @@ export default function TranscriptEditor({
     async function save() {
         setSaving(true);
         try {
-            const body = new URLSearchParams({
-                recording_id: id,
-                edited_transcript: draft,
-            });
-
-            const r = await fetch(`${api}/api/recordings/finalize`, {
-                method: "POST",
-                body,
-            });
-
-            if (!r.ok) {
-                throw new Error("Failed to finalize transcript");
-            }
-
+            await Api.finalizeRecording(id, draft);
             onSaved?.(draft);
             setEditing(false);
+        } catch (e) {
+            console.error(e);
+            // toast handle by parent? or generic alert? Original had strict throw.
         } finally {
             setSaving(false);
         }

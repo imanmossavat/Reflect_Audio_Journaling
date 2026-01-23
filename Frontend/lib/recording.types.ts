@@ -9,6 +9,7 @@ export type TranscriptBlob = {
 export type PiiHit = {
     text?: string;
     label?: string;
+    preview?: string;
     start_char?: number | null;
     end_char?: number | null;
     start_s?: number | null;
@@ -70,6 +71,7 @@ export type SpeechAnalysis = {
 };
 
 export type RecordingData = {
+    recording_id?: string | null;
     title?: string | null;
     created_at?: string | null;
     has_audio?: boolean | null;

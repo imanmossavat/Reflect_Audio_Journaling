@@ -17,6 +17,8 @@ export const metadata: Metadata = {
   description: "A private, secure audio journaling app that helps you reflect on your day - powered by AI."
 };
 
+import { ServerStatusProvider } from "@/context/ServerStatusContext";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -27,7 +29,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <ServerStatusProvider>
+          {children}
+        </ServerStatusProvider>
       </body>
     </html>
   );

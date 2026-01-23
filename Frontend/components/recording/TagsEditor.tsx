@@ -3,16 +3,15 @@
 import * as React from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import BadgePill from "./BadgePill";
-import { normalizeTagsFromString } from "../lib/recording.utils";
+import BadgePill from "@/components/shared/BadgePill";
+import { normalizeTagsFromString } from "@/lib/recording.utils";
+import { API } from "@/lib/api";
 
 export default function TagsEditor({
-                                       api,
-                                       id,
-                                       tags,
-                                       onSaved,
-                                   }: {
-    api: string;
+    id,
+    tags,
+    onSaved,
+}: {
     id: string;
     tags: string[];
     onSaved: (nextTags: string[]) => void;
@@ -32,7 +31,7 @@ export default function TagsEditor({
         try {
             const next = normalizeTagsFromString(tagsInput);
 
-            const res = await fetch(`${api}/api/recordings/${id}/meta`, {
+            const res = await fetch(`${API}/api/recordings/${id}/meta`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ tags: next }),

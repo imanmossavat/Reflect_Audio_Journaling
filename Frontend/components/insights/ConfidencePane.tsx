@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Switch } from "@/components/ui/switch";
-import AlignedTranscript from "@/components/AlignedTranscript";
+import AlignedTranscript from "@/components/transcript/AlignedTranscript";
 import type { AlignedWord } from "@/lib/recording.types";
 
 export default function ConfidencePane({ words }: { words: AlignedWord[] }) {
@@ -20,7 +20,7 @@ export default function ConfidencePane({ words }: { words: AlignedWord[] }) {
                 </div>
                 <Switch checked={onlyLow} onCheckedChange={setOnlyLow} />
             </div>
-            
+
             <div className="rounded-md border border-zinc-200 dark:border-zinc-800 p-4 bg-white dark:bg-zinc-950 max-h-[400px] overflow-y-auto shadow-inner">
                 <div className="flex flex-wrap gap-x-1 gap-y-2 leading-relaxed">
                     <AlignedTranscript

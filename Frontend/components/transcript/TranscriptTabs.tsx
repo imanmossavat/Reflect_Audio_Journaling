@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import TranscriptViewer from "@/components/TranscriptViewer";
+import TranscriptViewer from "./TranscriptViewer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -38,18 +38,18 @@ function downloadTextFile(filename: string, text: string) {
 }
 
 export default function TranscriptTabs({
-                                           api,
-                                           id,
-                                           transcripts,
-                                           piiOriginal,
-                                           piiEdited,
-                                           segments,
-                                           onTextLoaded,
-                                           // Add the new handlers passed from RecordingClient
-                                           onDeletePii,
-                                           onAddPii,
-                                           onObfuscatePii,
-                                       }: {
+    api,
+    id,
+    transcripts,
+    piiOriginal,
+    piiEdited,
+    segments,
+    onTextLoaded,
+    // Add the new handlers passed from RecordingClient
+    onDeletePii,
+    onAddPii,
+    onObfuscatePii,
+}: {
     api: string;
     id: string;
     transcripts?: TranscriptBlob;

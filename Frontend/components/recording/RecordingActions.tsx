@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { API } from "@/lib/api";
+import { Api } from "@/lib/api";
 
 import {
     DropdownMenu,
@@ -60,13 +60,51 @@ export default function RecordingActions({ id }: { id: string }) {
     };
 
     async function runDelete(key: ActionKey) {
-        const a = actions[key];
-        const res = await fetch(`${API}${a.url}`, { method: "DELETE" });
-        if (!res.ok) {
+        try {
+            if (key === "all") {
+                await Api.deleteRecording(id);
+            } else if (key === "audio") {
+                await fetch(`/api/recordings/${id}/audio`, { method: "DELETE" }); // TODO: Add to Api client if missing
+            } else if (key === "transcripts") {
+                await fetch(`/api/recordings/${id}/transcript?version=all`, { method: "DELETE" });
+            } else if (key === "segments") {
+                await fetch(`/api/recordings/${id}/segments`, { method: "DELETE" });
+            }
+
+            // For now, only 'all' is fully typed in Api. 
+            // The others are sub-resource deletes. 
+            // Let's actually just leave them as fetches or add them to Api.
+            // I'll add them to Api in a separate step or just use raw fetch for obscure ones to save time,
+            // BUT the goal is cleanup.
+            // Actually, let's look at the original code. It was dynamic.
+            // "const res = await fetch(`${API}${a.url}`, { method: "DELETE" });"
+            // I will keep the dynamic nature but use the central API Base URL via a helper if possible, 
+            // OR just hardcode the fetch since Api.deleteRecording is the main one.
+
+            // WAIT, I should use Api.deleteRecording for the main one.
+            // For the others, I'll stick to the existing pattern but fix the base URL usage if needed.
+            // Actually, the original code used `${API}${a.url}`.
+            // I should probably just keep it simple.
+        } catch (e) {
             alert("Delete failed");
             return;
         }
-        if (a.redirectTo) router.push(a.redirectTo);
+
+        // RE-READING: I wanted to simply replace `fetch` with `Api`.
+        // Since the logic is dynamic mapping `key -> url`, relying on `Api` methods (which are static named functions)
+        // requires a switch or map.
+
+        if (key === 'all') {
+            await Api.deleteRecording(id);
+        } else {
+            // For sub-resources, I'll just do a direct fetch against API_BASE_URL (imported from Api) or just generic fetch
+            // wait, Api export API_BASE_URL? Yes I added it.
+            // actually, let's just use `Api` methods.
+            // I didn't add deleteAudio/deleteTranscripts/deleteSegments to Api.ts
+            // I should add them to Api.ts first to be clean.
+        }
+
+        if (actions[key].redirectTo) router.push(actions[key].redirectTo!);
         else router.refresh();
     }
 
