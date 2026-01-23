@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { API } from "@/lib/api";
 import { Separator } from "@/components/ui/separator";
 

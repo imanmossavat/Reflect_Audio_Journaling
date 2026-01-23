@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 type WordLike = {
@@ -23,61 +22,57 @@ function confClass(conf: number | null) {
   if (conf < 0.5) return "bg-amber-500/15 text-amber-700 dark:text-amber-300";
   return "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300";
 }
-  
+
 export default function AlignedTranscript({
-                                            words,
-                                            highlightBelow = 0.8,
-                                            onlyLow = false,
-                                          }: {
+  words,
+  highlightBelow = 0.8,
+  onlyLow = false,
+}: {
   words: WordLike[];
   highlightBelow?: number;
   onlyLow?: boolean;
 }) {
   return (
-      <TooltipProvider>
-        {/* FIX: Added whitespace-normal to ensure text wraps.
-          Added flex-wrap just in case the parent is a flexbox.
-      */}
-        <div className="leading-relaxed text-sm whitespace-normal flex flex-wrap gap-y-2">
-          {words.map((w, i) => {
-            const token = (w.word ?? w.text ?? "").trim();
-            if (!token) return null;
+    <TooltipProvider>
+      <div className="leading-relaxed text-sm whitespace-normal flex flex-wrap gap-y-2">
+        {words.map((w, i) => {
+          const token = (w.word ?? w.text ?? "").trim();
+          if (!token) return null;
 
-            const conf = getConf(w);
-            const low = conf != null && conf < highlightBelow;
+          const conf = getConf(w);
+          const low = conf != null && conf < highlightBelow;
 
-            if (onlyLow && !low) {
-              return (
-                  <span key={i} className="mr-1 opacity-40 inline-block">
+          if (onlyLow && !low) {
+            return (
+              <span key={i} className="mr-1 opacity-40 inline-block">
                 {token}
               </span>
-              );
-            }
+            );
+          }
 
-            return (
-                <Tooltip key={i}>
-                  <TooltipTrigger asChild>
-                    {/* FIX: Use inline-flex or inline-block so it behaves like a word in a sentence */}
-                    <span
-                        className={[
-                          "mr-1 px-1 py-0.5 rounded cursor-default inline-block",
-                          low ? confClass(conf) : "hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60",
-                        ].join(" ")}
-                    >
+          return (
+            <Tooltip key={i}>
+              <TooltipTrigger asChild>
+                <span
+                  className={[
+                    "mr-1 px-1 py-0.5 rounded cursor-default inline-block",
+                    low ? confClass(conf) : "hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60",
+                  ].join(" ")}
+                >
                   {token}
                 </span>
-                  </TooltipTrigger>
-                  <TooltipContent className="text-xs">
-                    <div>conf: {conf == null ? "?" : conf.toFixed(3)}</div>
-                    <div>
-                      t: {w.start_s == null ? "?" : w.start_s.toFixed(2)}s →{" "}
-                      {w.end_s == null ? "?" : w.end_s.toFixed(2)}s
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-            );
-          })}
-        </div>
-      </TooltipProvider>
+              </TooltipTrigger>
+              <TooltipContent className="text-xs">
+                <div>conf: {conf == null ? "?" : conf.toFixed(3)}</div>
+                <div>
+                  t: {w.start_s == null ? "?" : w.start_s.toFixed(2)}s →{" "}
+                  {w.end_s == null ? "?" : w.end_s.toFixed(2)}s
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          );
+        })}
+      </div>
+    </TooltipProvider>
   );
 }

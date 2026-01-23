@@ -1,8 +1,6 @@
-import Link from "next/link";
 import { API } from "@/lib/api";
 import RecordingsClient from "./RecordingsClient";
 import PageHeader from "@/components/shared/PageHeader";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 
 export default async function RecordingsPage() {

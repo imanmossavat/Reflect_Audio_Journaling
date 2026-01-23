@@ -9,7 +9,10 @@ from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI(title="REFLECT – AI Audio Journaling API")
 
 from app.api.routes import router
+from app.api.setup_routes import router as setup_router
+
 app.include_router(router, prefix="/api")
+app.include_router(setup_router, prefix="/api/setup")
 
 app.add_middleware(
     CORSMiddleware,

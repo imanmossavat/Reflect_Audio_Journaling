@@ -18,6 +18,7 @@ export const metadata: Metadata = {
 };
 
 import { ServerStatusProvider } from "@/context/ServerStatusContext";
+import { SetupGuard } from "@/components/shared/SetupGuard";
 
 export default function RootLayout({
   children,
@@ -30,7 +31,9 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ServerStatusProvider>
-          {children}
+          <SetupGuard>
+            {children}
+          </SetupGuard>
         </ServerStatusProvider>
       </body>
     </html>

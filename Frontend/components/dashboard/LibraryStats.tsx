@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Settings2, LayoutDashboard, LibraryBig } from "lucide-react";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import RecentRecordings from "@/components/recording/RecentRecordings";
 

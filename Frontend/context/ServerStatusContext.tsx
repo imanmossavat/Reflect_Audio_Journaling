@@ -5,6 +5,7 @@ import { API } from "@/lib/api";
 
 interface ServerStatusContextType {
     isServerUp: boolean | null;
+    isConfigured: boolean | null;
     isChecking: boolean;
     checkStatus: () => Promise<void>;
 }
@@ -13,25 +14,27 @@ const ServerStatusContext = createContext<ServerStatusContextType | undefined>(u
 
 export function ServerStatusProvider({ children }: { children: ReactNode }) {
     const [isServerUp, setIsServerUp] = useState<boolean | null>(null);
+    const [isConfigured, setIsConfigured] = useState<boolean | null>(null);
     const [isChecking, setIsChecking] = useState(false);
 
-    // We use a lightweight check. Since /api/settings exists, let's try that.
-    // Or fallback to /api/recordings if we want to be sure DB is also reachable.
-    // /api/settings is safer as it shouldn't be heavy.
     const checkStatus = useCallback(async () => {
         setIsChecking(true);
         try {
-            // Short timeout to fail fast
-            const res = await fetch(`${API}/api/settings`, {
+            // Check setup status first
+            const res = await fetch(`${API}/api/setup/status`, {
                 signal: AbortSignal.timeout(3000)
             });
             if (res.ok) {
+                const data = await res.json();
                 setIsServerUp(true);
+                setIsConfigured(data.is_configured);
             } else {
                 setIsServerUp(false);
+                setIsConfigured(null);
             }
         } catch (e) {
             setIsServerUp(false);
+            setIsConfigured(null);
         } finally {
             setIsChecking(false);
         }
@@ -44,7 +47,7 @@ export function ServerStatusProvider({ children }: { children: ReactNode }) {
     }, [checkStatus]);
 
     return (
-        <ServerStatusContext.Provider value={{ isServerUp, isChecking, checkStatus }}>
+        <ServerStatusContext.Provider value={{ isServerUp, isConfigured, isChecking, checkStatus }}>
             {children}
         </ServerStatusContext.Provider>
     );

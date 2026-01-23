@@ -12,9 +12,10 @@ class Settings(BaseSettings):
     DATA_DIR: str = "data"
     CONFIG_DIR: str = "configs"
     LANGUAGE: str = "en"
+    IS_CONFIGURED: bool = False
 
     # --- Transcription --- #
-    WHISPER_MODEL: str = "small"
+    WHISPER_MODEL: str = "base"
     DEVICE: str = "cpu"
     COMPUTE_TYPE: str = "float32"
     SAMPLE_RATE: int = 16000
@@ -57,9 +58,13 @@ class Settings(BaseSettings):
                     if hasattr(self, key):
                         setattr(self, key, value)
     
+                self.IS_CONFIGURED = True
                 print(f"Successfully loaded overrides from: {frontend_path}")
             except Exception as e:
                 print(f"Error loading overrides: {e}")
+                self.IS_CONFIGURED = False
+        else:
+            self.IS_CONFIGURED = False
     
         if not os.path.isabs(self.DATA_DIR):
             self.DATA_DIR = os.path.normpath(os.path.join(self.BASE_DIR, self.DATA_DIR))

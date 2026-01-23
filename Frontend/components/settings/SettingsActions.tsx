@@ -3,7 +3,8 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Save, RefreshCw, Trash2 } from "lucide-react";
+import { Save, RefreshCw, Trash2, Settings } from "lucide-react";
+import Link from "next/link";
 
 interface SettingsActionsProps {
     saving: boolean;
@@ -26,6 +27,11 @@ export default function SettingsActions({ saving, onSave, onReset }: SettingsAct
                 <Button variant="ghost" className="w-full justify-start text-xs h-9 text-zinc-400 hover:text-red-600" onClick={onReset} disabled={saving}>
                     <Trash2 className="h-3.5 w-3.5 mr-2" /> Reset to Defaults
                 </Button>
+                <Link href="/setup?reconfigure=true" className="block w-full">
+                    <Button variant="ghost" className="w-full justify-start text-xs h-9 text-indigo-500 hover:text-indigo-600 hover:bg-indigo-50">
+                        <Settings className="h-3.5 w-3.5 mr-2" /> Run Setup Wizard
+                    </Button>
+                </Link>
             </CardContent>
         </Card>
     );
