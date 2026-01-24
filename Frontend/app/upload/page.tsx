@@ -9,6 +9,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, ArrowLeft } from "lucide-react";
+import { toast } from "sonner";
 
 import UploadTab from "@/components/upload/UploadTab";
 import RecordTab from "@/components/upload/RecordTab";
@@ -39,9 +40,11 @@ function UploadPageContent() {
 
     try {
       const data = await Api.uploadAudio(formData);
+      toast.success("Recording uploaded successfully!");
       router.push(`/recordings/${data.recording_id}`);
     } catch (e: any) {
       setError(e.message);
+      toast.error("Upload failed: " + e.message);
       setUploading(false);
     }
   };
@@ -57,9 +60,11 @@ function UploadPageContent() {
 
     try {
       const data = await Api.createTextEntry(text);
+      toast.success("Note created successfully!");
       router.push(`/recordings/${data.recording_id}`);
     } catch (e: any) {
       setError(e.message);
+      toast.error("Failed to create note: " + e.message);
       setUploading(false);
     }
   };

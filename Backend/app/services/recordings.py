@@ -4,7 +4,7 @@ from typing import List, Optional, Dict, Any
 from app.services.storage import StorageManager
 from app.core.config import settings
 
-logger = logging.getLogger(__name__)
+from app.core.logging_config import logger
 
 class RecordingService:
     def __init__(self, storage: StorageManager):

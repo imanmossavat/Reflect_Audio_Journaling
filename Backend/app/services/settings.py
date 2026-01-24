@@ -7,7 +7,7 @@ import platform
 import subprocess
 from app.core.config import settings
 
-logger = logging.getLogger(__name__)
+from app.core.logging_config import logger
 
 class SettingsManager:
     def __init__(self):
@@ -39,7 +39,7 @@ class SettingsManager:
                 os.remove(self.frontend_path)
             os.rename(temp_path, self.frontend_path)
             
-            # Refresh settings object in memory if possible (depends on implementation of settings.load_overrides)
+            # Refresh settings object in memory
             if hasattr(settings, "load_overrides"):
                 settings.load_overrides()
 

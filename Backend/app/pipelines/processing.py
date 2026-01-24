@@ -1,26 +1,14 @@
 from __future__ import annotations
 
-from app.domain.models import PiiFinding
 from app.analysis.speech import analyze_words
 
 import re
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
-from app.domain.models import Recording
-from app.services.transcription import TranscriptionManager
-from app.services.segmentation import SegmentationManager
-from app.services.prosody import ProsodyManager
-from app.services.pii import PIIDetector
-from app.services.storage import StorageManager
+from app.domain.models import PiiFinding, Recording
+from app.core.logging_config import logger
 import os
-
-store = StorageManager()
-transcriber = TranscriptionManager()
-segmenter = SegmentationManager()
-prosody_manager = ProsodyManager()
-pii = PIIDetector()
-
 
 # =============================================================================
 # Helpers
@@ -38,10 +26,10 @@ def fallback_title(created_at_iso: str) -> str:
         return "Recording"
 
 
-def redact_text(text: str, hits) -> str:
-    if hasattr(pii, "redact_with_labels"):
-        return pii.redact_with_labels(text, hits)
-    return pii.redact(text, hits)
+def redact_text(text: str, hits, pii_service: PIIDetector) -> str:
+    if hasattr(pii_service, "redact_with_labels"):
+        return pii_service.redact_with_labels(text, hits)
+    return pii_service.redact(text, hits)
 
 
 def transcript_from_text(recording_id: str, text: str):
@@ -81,9 +69,16 @@ def first_segment_label(segments) -> Optional[str]:
 # Pipelines
 # =============================================================================
 
-def process_uploaded_audio(filename: str, file_bytes: bytes, language: str = "en") -> Dict[str, Any]:
-    rec_id, audio_rel = store.save_upload(filename, file_bytes)
-    audio_abs = store.abs_path(audio_rel)
+def process_uploaded_audio(
+    filename: str, 
+    file_bytes: bytes, 
+    storage: StorageManager,
+    transcriber: TranscriptionManager,
+    pii_service: PIIDetector,
+    language: str = "en"
+) -> Dict[str, Any]:
+    rec_id, audio_rel = storage.save_upload(filename, file_bytes)
+    audio_abs = storage.abs_path(audio_rel)
 
     rec = Recording(id=rec_id, path=audio_abs, language=language)
     
@@ -93,7 +88,7 @@ def process_uploaded_audio(filename: str, file_bytes: bytes, language: str = "en
             dur = librosa.get_duration(path=audio_abs)
             rec.duration_s = float(dur)
     except Exception:
-        pass
+        rec.duration_s = 0.0
 
     created_at = now_utc_iso()
 
@@ -105,7 +100,7 @@ def process_uploaded_audio(filename: str, file_bytes: bytes, language: str = "en
     
     words_path = None
     if getattr(transcript, "words", None):
-        words_path = store.save_words(
+        words_path = storage.save_words(
             recording_id=rec_id,
             words=transcript.words,
             version="original",
@@ -113,17 +108,17 @@ def process_uploaded_audio(filename: str, file_bytes: bytes, language: str = "en
 
     speech = {}
     try:
-        if words_path and store.exists_rel(words_path):
-            aligned_words = store.load_json(words_path)
+        if words_path and storage.exists_rel(words_path):
+            aligned_words = storage.load_json(words_path)
             speech = analyze_words(aligned_words, language_code=language, confidence_threshold=0.7)
     except Exception:
         speech = {}
 
-    pii_hits_original = pii.detect(transcript)
-    redacted_text_original = redact_text(original_text, pii_hits_original)
+    pii_hits_original = pii_service.detect(transcript)
+    redacted_text_original = redact_text(original_text, pii_hits_original, pii_service)
 
-    original_path = store.save_transcript(rec_id, original_text, version="original")
-    redacted_path = store.save_transcript(rec_id, redacted_text_original, version="redacted")
+    original_path = storage.save_transcript(rec_id, original_text, version="original")
+    redacted_path = storage.save_transcript(rec_id, redacted_text_original, version="redacted")
 
     metadata = {
         "recording_id": rec_id,
@@ -152,7 +147,7 @@ def process_uploaded_audio(filename: str, file_bytes: bytes, language: str = "en
         "pii": [p.__dict__ for p in pii_hits_original],
     }
 
-    store.save_metadata(rec_id, metadata)
+    storage.save_metadata(rec_id, metadata)
 
     return {
         "recording_id": rec_id,
@@ -160,7 +155,15 @@ def process_uploaded_audio(filename: str, file_bytes: bytes, language: str = "en
         "pii": [p.__dict__ for p in pii_hits_original],
     }
 
-def process_after_edit(recording_id: str, edited_text: str) -> Dict[str, Any]:
+def process_after_edit(
+    recording_id: str, 
+    edited_text: str,
+    storage: StorageManager,
+    segmenter: SegmentationManager,
+    pii_service: PIIDetector,
+    prosody_service: ProsodyManager,
+    transcriber: TranscriptionManager,
+) -> Dict[str, Any]:
     """
     After user edits:
     - Save edited transcript
@@ -175,19 +178,19 @@ def process_after_edit(recording_id: str, edited_text: str) -> Dict[str, Any]:
         raise RuntimeError("Edited transcript is empty")
 
     # 1. Load existing metadata
-    meta = store.load_metadata(recording_id) or {}
+    meta = storage.load_metadata(recording_id) or {}
     meta.setdefault("transcripts", {})
     meta.setdefault("segments", [])
     meta.setdefault("sentences", [])
 
     # 2. Save the edited transcript
-    edited_path = store.save_transcript(recording_id, edited_text, version="edited")
+    edited_path = storage.save_transcript(recording_id, edited_text, version="edited")
     edited_transcript_obj = transcript_from_text(recording_id, edited_text)
 
     # 3. Handle Segmentation
     segments = segmenter.segment(edited_transcript_obj, recording_id=recording_id)
 
-    # ... [Start Timing Logic] ...
+    # --- Map segments to time intervals from original sentences ---
     timed_sentences = [s for s in (meta.get("sentences") or []) if isinstance(s, dict)]
     sent_time = {}
     for s in timed_sentences:
@@ -215,21 +218,21 @@ def process_after_edit(recording_id: str, edited_text: str) -> Dict[str, Any]:
             if en is not None: ends.append(float(en))
         seg.start_s = min(starts) if starts else None
         seg.end_s = max(ends) if ends else None
-    # ... [End Timing Logic] ...
+
 
     # 4. Save segments and cleanup old paths
-    new_segments_path = store.save_segments(recording_id, segments)
+    new_segments_path = storage.save_segments(recording_id, segments)
     old_seg_paths = list(meta.get("segments", []) or [])
     for rel in old_seg_paths:
         if not rel or rel == new_segments_path: continue
-        abs_path = store.abs_path(rel)
+        abs_path = storage.abs_path(rel)
         if os.path.exists(abs_path): os.remove(abs_path)
     meta["segments"] = [new_segments_path]
 
-    # --- 5. PII PERSISTENCE LOGIC (THE FIX) ---
+    # --- 5. PII PERSISTENCE ---
 
     # Run fresh AI detection
-    new_ai_hits = pii.detect(edited_transcript_obj)
+    new_ai_hits = pii_service.detect(edited_transcript_obj)
 
     # Harvest existing manual hits from current metadata
     # We look in pii_edited because that's where manual tags were stored
@@ -242,16 +245,16 @@ def process_after_edit(recording_id: str, edited_text: str) -> Dict[str, Any]:
     # Combine AI + Manual for the "Edited" state
     all_hits_for_redaction = new_ai_hits + manual_pii_objs
 
-    # Redact using the combined list
-    redacted_text_edited = redact_text(edited_text, all_hits_for_redaction)
-    redacted_path = store.save_transcript(recording_id, redacted_text_edited, version="redacted")
+    # Redact using combined AI and manual hits
+    redacted_text_edited = redact_text(edited_text, all_hits_for_redaction, pii_service)
+    redacted_path = storage.save_transcript(recording_id, redacted_text_edited, version="redacted")
 
     # --- 6. PROSODY ANALYSIS ---
     prosody_features = []
     try:
         audio_rel = meta.get("audio")
         if audio_rel and timed_sentences:
-            audio_abs = store.abs_path(audio_rel)
+            audio_abs = storage.abs_path(audio_rel)
             audio_array = transcriber._load_audio_ffmpeg(audio_abs, sr=16000)
             from app.domain.models import Sentence
             sentence_objs = []
@@ -262,7 +265,7 @@ def process_after_edit(recording_id: str, edited_text: str) -> Dict[str, Any]:
 
             if sentence_objs:
                 timed_transcript_obj = type("Transcript", (), {"recording_id": recording_id, "text": edited_text, "sentences": sentence_objs})
-                prosody_features = prosody_manager.analyze_sentences(timed_transcript_obj, audio_array)
+                prosody_features = prosody_service.analyze_sentences(timed_transcript_obj, audio_array)
                 for pf in prosody_features or []:
                     sid = getattr(pf, "sentence_id", None)
                     if sid is not None: pf.segment_id = sentence_to_segment.get(int(sid))
@@ -290,7 +293,7 @@ def process_after_edit(recording_id: str, edited_text: str) -> Dict[str, Any]:
         seg_title = first_segment_label(segments)
         if seg_title: meta["title"] = seg_title
 
-    store.save_metadata(recording_id, meta)
+    storage.save_metadata(recording_id, meta)
 
     return {
         "recording_id": recording_id,
@@ -300,14 +303,24 @@ def process_after_edit(recording_id: str, edited_text: str) -> Dict[str, Any]:
         "status": "saved",
     }
 
-def process_text_entry(text: str, title: Optional[str] = None, tags: Optional[List[str]] = None, language: str = "en", run_segmentation: bool = True, run_pii: bool = True) -> Dict[str, Any]:
+def process_text_entry(
+    text: str, 
+    storage: StorageManager,
+    segmenter: SegmentationManager,
+    pii_service: PIIDetector,
+    title: Optional[str] = None, 
+    tags: Optional[List[str]] = None, 
+    language: str = "en", 
+    run_segmentation: bool = True, 
+    run_pii: bool = True
+) -> Dict[str, Any]:
     import uuid
     recording_id = uuid.uuid4().hex
     text = (text or "").strip()
     if not text:
         raise RuntimeError("Text entry is empty")
 
-    original_path = store.save_transcript(recording_id, text, version="original")
+    original_path = storage.save_transcript(recording_id, text, version="original")
 
     meta = {
         "recording_id": recording_id,
@@ -322,6 +335,7 @@ def process_text_entry(text: str, title: Optional[str] = None, tags: Optional[Li
         "pii": [],
         "pii_original": [],
         "pii_edited": [],
+        "duration": (len(text.split()) / 150.0) * 60.0  # Estimate: 150 words per minute
     }
 
     if run_segmentation:
@@ -330,17 +344,17 @@ def process_text_entry(text: str, title: Optional[str] = None, tags: Optional[Li
             segs = segmenter.segment(transcript=fake_transcript, recording_id=recording_id)
             if not meta.get("title") and segs:
                 meta["title"] = first_segment_label(segs)
-            meta["segments"] = [store.save_segments(recording_id, segs)]
+            meta["segments"] = [storage.save_segments(recording_id, segs)]
         except Exception:
             logger.exception("Segmentation failed for text recording")
 
     if run_pii:
         try:
-            hits = pii.detect(transcript_from_text(recording_id, text))
+            hits = pii_service.detect(transcript_from_text(recording_id, text))
             meta["pii"] = [p.__dict__ for p in hits]
             meta["pii_original"] = meta["pii"]
         except Exception:
             logger.exception("PII detection failed for text recording")
 
-    store.save_metadata(recording_id, meta)
+    storage.save_metadata(recording_id, meta)
     return {"status": "ok", "recording_id": recording_id}

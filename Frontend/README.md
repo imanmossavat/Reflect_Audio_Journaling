@@ -54,10 +54,13 @@ git pull
 This project is built with **Next.js 15** and **Tailwind CSS**.
 
 ### Folder Map:
-- **`app/`**: The core application pages including Dashboard, Analytics, Editor, and Recordings.
-- **`components/`**: Modular building blocks organized by feature (Recording, Transcript, Analytics, etc.).
+- **`app/`**: The core application pages including Dashboard, Analytics, Editor (`recordings/[id]`), and Recordings list.
+- **`components/`**: Modular building blocks:
+  - **`analytics/`**: Charts, StatCards, and data visualization.
+  - **`recording/`**: Audio visualizers, title editor, and playback controls.
+  - **`transcript/`**: Interactive transcript editor with word-level syncing.
 - **`components/ui/`**: Basic design primitives like text boxes and buttons (shadcn/ui).
-- **`lib/`**: Utility functions and API integration logic for backend communication.
+- **`lib/`**: Utility functions (`api.ts`, `recording.types.ts`) for backend communication and data normalization.
 - **`context/`**: Global state providers, such as the `ServerStatusContext` for monitoring engine health.
 - **`public/`**: Static assets like icons, logos, and images used throughout the application.
 

@@ -2,6 +2,7 @@ import { API } from "@/lib/api";
 import RecordingsClient from "./RecordingsClient";
 import PageHeader from "@/components/shared/PageHeader";
 import { Separator } from "@/components/ui/separator";
+import { HelpDialog } from "@/components/shared/HelpDialog";
 
 export default async function RecordingsPage() {
     let items = [];
@@ -24,6 +25,7 @@ export default async function RecordingsPage() {
                         title="Your Recordings"
                         description="Search in titles and transcript text. Filter by date/status."
                     />
+                    <HelpDialog />
                 </div>
 
                 <Separator className="bg-zinc-200 dark:bg-zinc-800" />

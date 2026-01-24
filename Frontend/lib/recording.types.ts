@@ -90,4 +90,5 @@ export type RecordingData = {
 
     prosody?: unknown[] | null; // tighten later
     speech?: SpeechAnalysis | null;
+    duration?: number;
 };

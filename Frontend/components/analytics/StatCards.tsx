@@ -5,7 +5,7 @@ import { Mic, Clock, Zap, Activity } from "lucide-react";
 
 interface StatCardsProps {
     totalRecordings: number;
-    totalHours: number;
+    totalSeconds: number;
     totalWords: number;
     avgConfidence: number;
     mostUsedFiller: string;
@@ -13,11 +13,16 @@ interface StatCardsProps {
 
 export default function StatCards({
     totalRecordings,
-    totalHours,
+    totalSeconds,
     totalWords,
     avgConfidence,
     mostUsedFiller
 }: StatCardsProps) {
+    const formatDuration = (s: number) => {
+        if (s < 60) return `${s.toFixed(0)}s`;
+        if (s < 3600) return `${(s / 60).toFixed(1)}m`;
+        return `${(s / 3600).toFixed(1)}h`;
+    };
     return (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
             <Card className="border-zinc-200 dark:border-zinc-800 shadow-sm">
@@ -37,7 +42,7 @@ export default function StatCards({
                     <Clock className="h-4 w-4 text-zinc-500" />
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold">{totalHours.toFixed(1)}h</div>
+                    <div className="text-2xl font-bold">{formatDuration(totalSeconds)}</div>
                     <p className="text-xs text-zinc-500">Of recorded audio</p>
                 </CardContent>
             </Card>

@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { API } from "@/lib/api";
-import { CheckCircle2, RefreshCw } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import Link from "next/link";
 import ServerStatus from "@/components/layout/ServerStatus";
+import { toast } from "sonner";
 
 import EngineConfig from "@/components/settings/EngineConfig";
 import SegmentationConfig from "@/components/settings/SegmentationConfig";
@@ -15,7 +16,6 @@ export default function SettingsPage() {
     const [settings, setSettings] = useState<any>(null);
     const [saving, setSaving] = useState(false);
     const [isServerUp, setIsServerUp] = useState(true);
-    const [showToast, setShowToast] = useState(false);
 
     useEffect(() => {
         fetch(`${API}/api/settings`)
@@ -49,10 +49,14 @@ export default function SettingsPage() {
             });
             if (res.ok && forceRestart) {
                 setIsServerUp(false);
+                toast.success("Settings saved. Restarting engine...");
             } else if (res.ok) {
-                setShowToast(true);
-                setTimeout(() => setShowToast(false), 3000);
+                toast.success("Settings saved successfully.");
+            } else {
+                toast.error("Failed to save settings.");
             }
+        } catch (e) {
+            toast.error("Failed to connect to backend.");
         } finally {
             setSaving(false);
         }
@@ -64,6 +68,9 @@ export default function SettingsPage() {
         try {
             await fetch(`${API}/api/settings/reset`, { method: "POST" });
             setIsServerUp(false);
+            toast.success("Settings reset. Restarting...");
+        } catch (e) {
+            toast.error("Failed to reset settings.");
         } finally {
             setSaving(false);
         }
@@ -77,12 +84,6 @@ export default function SettingsPage() {
 
     return (
         <div className="min-h-screen bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100">
-            {/* Simple Toast */}
-            {showToast && (
-                <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-4 py-2 rounded-md shadow-lg text-sm transition-all">
-                    <CheckCircle2 className="h-4 w-4" /> Settings Saved
-                </div>
-            )}
 
             {/* Clean Reboot Overlay */}
             {!isServerUp && (

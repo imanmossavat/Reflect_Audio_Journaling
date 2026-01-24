@@ -3,18 +3,16 @@
 import * as React from "react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Trash2 } from "lucide-react";
+import { RecordingHelpDialog } from "@/components/shared/RecordingHelpDialog";
 
 import ServerStatus from "@/components/shared/ServerStatus";
 import AudioPlayer from "@/components/shared/AudioPlayer";
-import RecordingActions from "@/components/recording/RecordingActions";
 import TranscriptTabs from "@/components/transcript/TranscriptTabs";
 import EditableTitle from "@/components/recording/TitleEditor";
 import TranscriptEditor from "@/components/transcript/TranscriptEditor";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import {
   Dialog,
@@ -24,6 +22,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
 import { formatDateTime } from "@/lib/format";
 
 import BadgePill from "@/components/shared/BadgePill";
@@ -51,6 +64,9 @@ export default function RecordingClient({ api, id, initialData }: { api: string;
   const [isObfuscateOpen, setIsObfuscateOpen] = React.useState(false);
   const [activePii, setActivePii] = React.useState<PiiHit | null>(null);
   const [replacementValue, setReplacementValue] = React.useState("");
+
+  const [isDeleteOpen, setIsDeleteOpen] = React.useState(false);
+  const [pendingDeleteKey, setPendingDeleteKey] = React.useState<"all" | "audio" | "transcripts" | "segments" | null>(null);
 
   if (!data || !data.recording_id) {
     return (
@@ -177,9 +193,46 @@ export default function RecordingClient({ api, id, initialData }: { api: string;
     }
   };
 
+  const runDelete = async (key: "all" | "audio" | "transcripts" | "segments") => {
+    setPendingDeleteKey(key);
+    setIsDeleteOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!pendingDeleteKey) return;
+    const key = pendingDeleteKey;
+    setIsDeleteOpen(false);
+    setPendingDeleteKey(null);
+
+    const promise = (async () => {
+      if (key === "all") {
+        await Api.deleteRecording(id);
+      } else if (key === "audio") {
+        await Api.deleteAudio(id);
+      } else if (key === "transcripts") {
+        await Api.deleteTranscripts(id);
+      } else if (key === "segments") {
+        await Api.deleteSegments(id);
+      }
+    })();
+
+    toast.promise(promise, {
+      loading: "Deleting...",
+      success: () => {
+        if (key === "all") {
+          window.location.href = "/recordings";
+          return "Recording deleted";
+        }
+        refreshMeta();
+        return "Deleted successfully";
+      },
+      error: "Delete failed"
+    });
+  };
+
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
-      <div className="mx-auto p-6 space-y-6">
+      <div className="mx-auto max-w-7xl xl:max-w-[90%] p-6 space-y-6">
         <div className="flex items-center justify-between">
           <Link
             href="/recordings"
@@ -187,7 +240,10 @@ export default function RecordingClient({ api, id, initialData }: { api: string;
           >
             <ArrowLeft className="h-4 w-4" /> Back to library
           </Link>
-          <ServerStatus />
+          <div className="flex items-center gap-2">
+            <RecordingHelpDialog />
+            <ServerStatus />
+          </div>
         </div>
 
         <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
@@ -195,14 +251,24 @@ export default function RecordingClient({ api, id, initialData }: { api: string;
             <EditableTitle api={api} id={id} initialTitle={data?.title || ""} onSaved={refreshMeta} />
             <div className="text-sm text-zinc-500 mt-2">{formatDateTime(data?.created_at ?? undefined)}</div>
           </div>
-          <div className="flex shrink-0 justify-start md:justify-end"><RecordingActions id={id} /></div>
+          <div className="flex shrink-0 justify-start md:justify-end gap-2">
+            <Button variant="destructive" size="sm" onClick={() => runDelete("all")} className="gap-2">
+              <Trash2 className="h-4 w-4" />
+              Delete Recording
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
             <Card className="shadow-sm border-zinc-200 dark:border-zinc-800">
-              <CardHeader><CardTitle className="text-lg">Transcript</CardTitle></CardHeader>
-              <CardContent className="space-y-4">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-lg">Transcript</CardTitle>
+                <Button variant="ghost" size="sm" onClick={() => runDelete("transcripts")} className="h-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30">
+                  Delete Text
+                </Button>
+              </CardHeader>
+              <CardContent className="space-y-4 pt-2">
                 <TranscriptTabs
                   key={refreshKey}
                   api={api}
@@ -256,8 +322,13 @@ export default function RecordingClient({ api, id, initialData }: { api: string;
 
           <div className="space-y-6">
             <Card className="shadow-sm border-zinc-200 dark:border-zinc-800">
-              <CardHeader><CardTitle className="text-lg">Audio Player</CardTitle></CardHeader>
-              <CardContent className="space-y-4">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-lg">Audio Player</CardTitle>
+                <Button variant="ghost" size="sm" onClick={() => runDelete("audio")} className="h-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30">
+                  Delete Audio
+                </Button>
+              </CardHeader>
+              <CardContent className="space-y-4 pt-2">
                 <AudioPlayer src={`${api}/api/audio/${id}`} hasAudio={!!data?.has_audio} />
                 <div className="flex flex-wrap gap-2">
                   {transcripts.original && <BadgePill text="original" />}
@@ -272,8 +343,13 @@ export default function RecordingClient({ api, id, initialData }: { api: string;
             </Card>
 
             <Card className="shadow-sm border-zinc-200 dark:border-zinc-800">
-              <CardHeader><CardTitle className="text-lg">Segments</CardTitle></CardHeader>
-              <CardContent className="max-h-[400px] overflow-auto space-y-3 pr-2">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-lg">Segments</CardTitle>
+                <Button variant="ghost" size="sm" onClick={() => runDelete("segments")} className="h-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30">
+                  Delete segments
+                </Button>
+              </CardHeader>
+              <CardContent className="max-h-[400px] overflow-auto space-y-3 pr-2 pt-2">
                 {segments.length > 0 ? (
                   segments.map((s, i) => (
                     <div key={i} className="text-sm p-3 border border-zinc-100 dark:border-zinc-800 rounded bg-zinc-50 dark:bg-zinc-900/50">
@@ -336,6 +412,29 @@ export default function RecordingClient({ api, id, initialData }: { api: string;
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {/* Deletion Confirmation Dialog */}
+      <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the {pendingDeleteKey === "all" ? "entire recording" : pendingDeleteKey} from your computer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => {
+              setPendingDeleteKey(null);
+              setIsDeleteOpen(false);
+            }}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className={pendingDeleteKey === "all" ? "bg-red-600 hover:bg-red-700" : ""}
+              onClick={confirmDelete}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

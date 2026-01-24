@@ -15,6 +15,8 @@ from app.core.config import settings
 from app.domain.models import Segment
 
 
+from app.core.logging_config import logger
+
 class SegmentationManager:
     """
     Topic segmentation + labeling.
@@ -23,6 +25,7 @@ class SegmentationManager:
     """
 
     def __init__(self):
+        logger.info(f"Initializing SegmentationManager with model: {settings.SEGMENTATION_MODEL}")
         self.model = SentenceTransformer(settings.SEGMENTATION_MODEL)
 
         self.strategy = settings.SEGMENTATION_STRATEGY  # adaptive | spectral

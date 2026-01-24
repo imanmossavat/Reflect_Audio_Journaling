@@ -27,7 +27,17 @@ export default function AnalyticsDashboard({ recordings }: AnalyticsDashboardPro
             totalRecordings++;
 
             // Duration
-            const dur = rec.duration;
+            let dur = rec.duration;
+            if (typeof dur !== 'number' || dur === 0) {
+                // Fallback: Estimate from words or segments
+                const wordCount = rec.speech?.confidence?.count || rec.aligned_words?.length || 0;
+                if (wordCount > 0) {
+                    dur = (wordCount / 150.0) * 60.0;
+                } else if (rec.segments?.length > 0) {
+                    // Very rough: 30s per segment if no words
+                    dur = rec.segments.length * 30.0;
+                }
+            }
             if (typeof dur === 'number') {
                 totalDurationSeconds += dur;
             }
@@ -79,7 +89,6 @@ export default function AnalyticsDashboard({ recordings }: AnalyticsDashboardPro
             .reverse();
 
         const avgConfidence = confidenceCount > 0 ? totalConfidence / confidenceCount : 0;
-        const totalHours = totalDurationSeconds / 3600;
 
         // PII Data for Chart
         const piiChartData = Object.entries(piiCounts)
@@ -88,7 +97,7 @@ export default function AnalyticsDashboard({ recordings }: AnalyticsDashboardPro
 
         return {
             totalRecordings,
-            totalHours,
+            totalSeconds: totalDurationSeconds,
             totalWords,
             avgConfidence,
             mostUsedFiller,
@@ -103,7 +112,7 @@ export default function AnalyticsDashboard({ recordings }: AnalyticsDashboardPro
         <div className="space-y-6">
             <StatCards
                 totalRecordings={stats.totalRecordings}
-                totalHours={stats.totalHours}
+                totalSeconds={stats.totalSeconds}
                 totalWords={stats.totalWords}
                 avgConfidence={stats.avgConfidence}
                 mostUsedFiller={stats.mostUsedFiller}

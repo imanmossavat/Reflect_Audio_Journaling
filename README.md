@@ -29,6 +29,7 @@ If you just downloaded the project, follow these two steps:
 2.  **Run the Setup:**
     - **Windows:** Double-click `setup.bat`
     - **Mac:** Double-click `setup.command`
+    - **Linux:** Run `bash setup.sh`
 
 *This will automatically create your virtual environment, install all AI models, and set up the website design tools.*
 
@@ -39,6 +40,7 @@ Once setup is complete, you can start the entire system every day with one click
 
 1.  **Windows:** Double-click `start_engine.bat`
 2.  **Mac:** Double-click `start_engine.command`
+3.  **Linux:** Run `bash start_engine.sh`
 
 **What happens next?**
 - The AI Engine starts.

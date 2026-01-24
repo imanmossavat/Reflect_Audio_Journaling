@@ -11,7 +11,6 @@ class ProsodyManager:
     Computes low-level prosodic features from audio.
     No interpretation. No emotion labels. Just signals.
     """
-    #TODO: Expand with more features as needed.PauseFillerTotalSilece
     def __init__(self):
         self.sample_rate = getattr(settings, "SAMPLE_RATE", 16000) or 16000
         self.silence_threshold = getattr(settings, "SILENCE_THRESHOLD", 0.01)
@@ -26,7 +25,7 @@ class ProsodyManager:
             audio: np.ndarray,
     ) -> List[ProsodyFeatures]:
         """
-        Compute prosodic features per sentence.
+        Compute prosody features per sentence.
         """
         if not transcript.sentences:
             return []

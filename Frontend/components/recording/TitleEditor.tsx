@@ -70,9 +70,7 @@ export default function EditableTitle({
                     Cancel
                 </Button>
             </div>
-            <div className="text-xs text-zinc-500">
-                Tip: keep it short, your future self is lazy.
-            </div>
+            Tip: Keep titles descriptive and concise for better search.
         </div>
     );
 }

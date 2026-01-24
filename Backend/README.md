@@ -28,9 +28,18 @@ You don't need to touch the code in here to use the app. You just need to make s
 ## 📂 What's inside?
 If you want to explore the files, here is the map:
 - **`api/`**: The "Receptionist." This handles the messages coming from the website.
-- **`services/`**: The "Specialists." Each file here has one job (like transcribing or searching).
+- **`services/`**: The "Specialists." Granular services for specific tasks (storage, prosody, search).
 - **`pipelines/`**: The "Assembly Line." This connects the specialists together to process your audio.
-- **`data/`**: The "Archive." This is where your recordings are stored (usually created in the root folder).
+- **`data/`**: The "Archive." Local-first storage for metadata, audio, and transcripts.
+- **`tests/`**: The "Quality Control." A full suite of automated tests for every service.
+
+---
+
+## 🧪 Testing
+We maintain high code quality with a comprehensive test suite. To run them:
+1. Activate your environment.
+2. Run `pytest`.
+This checks everything from PII detection to file storage integrity.
 
 ---
 
@@ -61,6 +70,7 @@ source .venv/bin/activate
 ### 3. Basic Commands
 - `pip install -r requirements.txt` — Install the AI models manually.
 - `uvicorn app.main:app --reload` — Start the engine manually for debugging.
+- `pytest` — Run the test suite.
 
 ---
 
@@ -73,7 +83,7 @@ git pull
 ---
 
 ## ⚙️ How it works
-This engine is "Local-First." We use tools like **Whisper** (for text), **Spacy** (for finding names), and **FAISS** (for searching through your history). 
+This engine is "Local-First." We use tools like **Whisper** (for text), **Spacy** (for finding names), and **Sentence-Transformers** (for semantic search).
 
 If you want to add a new AI feature, you should:
 1. Create a new "Worker" in `app/services/`.

@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import RecordingActions from "@/components/recording/RecordingActions";
 
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
@@ -354,8 +355,8 @@ export default function RecordingsClient({ items }: { items: Recording[] }) {
                                     >
                                         <span className="text-zinc-500 mr-2">From:</span>
                                         <span className={cn(!from && "text-zinc-400")}>
-                      {formatDateOnly(from)}
-                    </span>
+                                            {formatDateOnly(from)}
+                                        </span>
                                     </Button>
                                 </PopoverTrigger>
                                 <PopoverContent className="p-0 w-auto" align="start">
@@ -386,8 +387,8 @@ export default function RecordingsClient({ items }: { items: Recording[] }) {
                                     >
                                         <span className="text-zinc-500 mr-2">To:</span>
                                         <span className={cn(!to && "text-zinc-400")}>
-                      {formatDateOnly(to)}
-                    </span>
+                                            {formatDateOnly(to)}
+                                        </span>
                                     </Button>
                                 </PopoverTrigger>
                                 <PopoverContent className="p-0 w-auto" align="start">
@@ -468,11 +469,11 @@ export default function RecordingsClient({ items }: { items: Recording[] }) {
                                         variant="outline"
                                         className="h-10 w-full justify-between"
                                     >
-                    <span className="text-sm text-zinc-600">
-                      {selectedTags.length > 0
-                          ? "Filter by tags"
-                          : "Add tag filter"}
-                    </span>
+                                        <span className="text-sm text-zinc-600">
+                                            {selectedTags.length > 0
+                                                ? "Filter by tags"
+                                                : "Add tag filter"}
+                                        </span>
                                         {selectedTags.length > 0 && (
                                             <Badge variant="secondary">{selectedTags.length}</Badge>
                                         )}
@@ -671,6 +672,9 @@ export default function RecordingsClient({ items }: { items: Recording[] }) {
                                         {!hasEdited && !hasRedacted && (
                                             <Badge variant="secondary">original</Badge>
                                         )}
+                                        <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+                                            <RecordingActions id={rec.recording_id} />
+                                        </div>
                                     </div>
                                 </div>
                             </Card>

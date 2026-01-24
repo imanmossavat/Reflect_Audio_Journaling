@@ -8,6 +8,8 @@ from app.domain.models import Transcript, Sentence, WordToken
 from app.core.config import settings
 
 
+from app.core.logging_config import logger
+
 class TranscriptionManager:
     """
     Handles transcription and word alignment using WhisperX.
@@ -20,7 +22,7 @@ class TranscriptionManager:
         self.sample_rate = getattr(settings, "SAMPLE_RATE", 16000) or 16000
         self.language = settings.LANGUAGE
 
-        print(f"[TranscriptionManager] Loading WhisperX ({self.model_size}) on {self.device}...")
+        logger.info(f"Loading WhisperX ({self.model_size}) on {self.device}...")
         self.asr_model = whisperx.load_model(
             self.model_size,
             device=self.device,
@@ -44,7 +46,7 @@ class TranscriptionManager:
     
         start_time = time.time()
         result = self.asr_model.transcribe(audio)
-        print(f"[TranscriptionManager] Raw transcription done in {time.time() - start_time:.2f}s")
+        logger.info(f"Raw transcription done in {time.time() - start_time:.2f}s")
     
         if result.get("language") and result["language"] != self.align_metadata.get("language"):
             self.alignment_model, self.align_metadata = whisperx.load_align_model(

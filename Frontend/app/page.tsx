@@ -31,8 +31,8 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen w-full bg-zinc-50 dark:bg-zinc-950 transition-colors duration-500 overflow-x-hidden">
-      <div className="mx-auto max-w-[1400px] px-6 py-10 space-y-6">
+    <div className="min-h-screen w-full bg-zinc-50 dark:bg-zinc-950 transition-colors duration-500 overflow-x-hidden flex flex-col items-center pt-[10vh]">
+      <div className="w-full max-w-[1400px] px-6 py-10 space-y-6">
 
         <div className="max-w-5xl mx-auto">
           <HeroHeader />

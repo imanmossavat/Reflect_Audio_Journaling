@@ -12,6 +12,7 @@ export type RecordingListItem = {
   latest_transcript_version: string | null;
   search_text: string | null;
   tags: string[];
+  duration: number;
 };
 
 export type SemanticHit = {

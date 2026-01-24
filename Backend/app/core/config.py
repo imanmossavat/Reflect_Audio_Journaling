@@ -1,6 +1,5 @@
 import json
 import os
-import threading
 from pydantic_settings import BaseSettings
 from pydantic import Field
 

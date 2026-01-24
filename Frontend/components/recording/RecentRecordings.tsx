@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Api } from "@/lib/api";
 import { ArrowRight, FileText, Mic, Loader2 } from "lucide-react";
+import RecordingActions from "@/components/recording/RecordingActions";
 
 export default function RecentRecordings() {
     const [items, setItems] = useState<any[]>([]);
@@ -61,7 +62,13 @@ export default function RecentRecordings() {
                                 </span>
                             </div>
                         </div>
-                        <ArrowRight className="h-3 w-3 text-zinc-300 group-hover:text-zinc-900 dark:group-hover:text-zinc-100 transition-all -translate-x-1 group-hover:translate-x-0 opacity-0 group-hover:opacity-100" />
+                        <div className="flex items-center gap-2">
+                            {/* Prevent link click when clicking actions */}
+                            <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+                                <RecordingActions id={item.recording_id || item.id} />
+                            </div>
+                            <ArrowRight className="h-3 w-3 text-zinc-300 group-hover:text-zinc-900 dark:group-hover:text-zinc-100 transition-all -translate-x-1 group-hover:translate-x-0 opacity-0 group-hover:opacity-100" />
+                        </div>
                     </div>
                 </Link>
             ))}

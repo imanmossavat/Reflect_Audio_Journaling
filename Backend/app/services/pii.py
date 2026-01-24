@@ -4,8 +4,8 @@ import spacy
 from app.domain.models import PiiFinding
 from app.core.config import settings
 
+from app.core.logging_config import logger
 from typing import List
-
 
 class PIIDetector:
     def __init__(self):
@@ -16,13 +16,12 @@ class PIIDetector:
         else:
             model_name = "en_core_web_trf"
 
-        print(f"[PII] Initializing with installed model: {model_name}")
+        logger.info(f"Initializing PIIDetector with model: {model_name}")
 
         try:
             self.nlp = spacy.load(model_name)
         except Exception as e:
-            print(f"[PII] CRITICAL ERROR: Could not load {model_name}. "
-                  f"Check if it's installed in your .venv. Error: {e}")
+            logger.critical(f"Could not load {model_name}. Error: {e}")
             self.nlp = spacy.blank(self.language)
 
         self.patterns = settings.PII_PATTERNS

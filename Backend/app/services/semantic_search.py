@@ -1,10 +1,9 @@
-# app/services/semantic_search.py
 from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
 
-import numpy as np
+import os
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 
@@ -23,15 +22,19 @@ class SemanticHit:
     end_s: Optional[float] = None
 
 
+from app.core.logging_config import logger
+
 class SemanticSearchManager:
     """
     Simple semantic search over stored segments (latest segments file per recording).
     No vector DB. Just encode + cosine.
     """
 
-    def __init__(self):
-        self.model = SentenceTransformer(getattr(settings, "SEMANTIC_SEARCH_MODEL", "all-mpnet-base-v2"))
-        self.store = StorageManager()
+    def __init__(self, storage: Optional[StorageManager] = None):
+        model_name = getattr(settings, "SEMANTIC_SEARCH_MODEL", "all-mpnet-base-v2")
+        logger.info(f"Initializing SemanticSearchManager with model: {model_name}")
+        self.model = SentenceTransformer(model_name)
+        self.store = storage or StorageManager()
 
     def search(
         self,
@@ -45,15 +48,7 @@ class SemanticSearchManager:
             return []
 
         # load all recordings metadata
-        meta_dir = self.store.abs_path("metadata")  # assumes StorageManager abs_path supports rel dirs
-        # if your StorageManager doesn't support this, switch to settings.DATA_DIR logic.
-
-        # We'll use StorageManager API like you do elsewhere:
-        # iterate metadata files in settings.DATA_DIR/metadata
-        import os
-        from app.core.config import settings as cfg
-
-        meta_dir = os.path.join(cfg.DATA_DIR, "metadata")
+        meta_dir = self.store.abs_path("metadata")
         if not os.path.isdir(meta_dir):
             return []
 
@@ -116,7 +111,6 @@ class SemanticSearchManager:
         # sort + cap
         hits.sort(key=lambda h: h.score, reverse=True)
 
-        # limit too-many-from-one-recording
         out: List[SemanticHit] = []
         per_rec = {}
         for h in hits:

@@ -9,7 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Check, Settings, Shield, Cpu, Languages, FolderOpen, Save, Loader2 } from "lucide-react";
+import { Settings, Shield, Cpu, Languages, FolderOpen, Save, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 export default function SetupPage() {
     const router = useRouter();
@@ -69,14 +70,15 @@ export default function SetupPage() {
 
             const data = await res.json();
             if (res.ok) {
-                alert(data.message);
-                router.push("/");
+                toast.success(data.message || "Setup completed successfully!");
+                // Small delay to let user see toast before redirect
+                setTimeout(() => router.push("/"), 1500);
             } else {
-                alert("Error: " + data.detail);
+                toast.error("Error: " + data.detail);
             }
         } catch (error) {
             console.error("Failed to save setup:", error);
-            alert("Failed to save setup. Please check the backend connection.");
+            toast.error("Failed to save setup. Please check backend connection.");
         } finally {
             setSaving(false);
         }
@@ -84,29 +86,29 @@ export default function SetupPage() {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center min-h-screen bg-zinc-950">
+            <div className="flex items-center justify-center min-h-screen bg-zinc-50 dark:bg-zinc-950">
                 <Loader2 className="w-8 h-8 text-zinc-400 animate-spin" />
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-6 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-zinc-900 via-zinc-950 to-black">
-            <div className="w-full max-w-2xl animate-in fade-in slide-in-from-bottom-4 duration-1000">
+        <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col items-center justify-center p-6 transition-colors duration-500">
+            <div className="w-full max-w-2xl">
                 <div className="flex flex-col items-center gap-4 mb-8 text-center">
-                    <div className="w-16 h-16 rounded-2xl bg-indigo-600/20 flex items-center justify-center border border-indigo-500/30">
-                        <Settings className="w-8 h-8 text-indigo-400" />
+                    <div className="w-16 h-16 rounded-2xl bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center border border-zinc-200 dark:border-zinc-800">
+                        <Settings className="w-8 h-8 text-zinc-900 dark:text-zinc-100" />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight text-white mb-2">Welcome to REFLECT</h1>
-                        <p className="text-zinc-400">Let's set up your private audio journaling engine.</p>
+                        <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 mb-2">Welcome to REFLECT</h1>
+                        <p className="text-zinc-500 dark:text-zinc-400">Let's set up your private audio journaling engine.</p>
                     </div>
                 </div>
 
-                <Card className="bg-zinc-900/50 border-zinc-800 backdrop-blur-sm">
+                <Card className="shadow-sm border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 backdrop-blur-sm">
                     <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-zinc-100">
-                            <Shield className="w-5 h-5 text-indigo-400" />
+                        <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-100">
+                            <Shield className="w-5 h-5 text-zinc-900 dark:text-zinc-100" />
                             Engine Configuration
                         </CardTitle>
                         <CardDescription>
@@ -118,11 +120,11 @@ export default function SetupPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {/* Language */}
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-zinc-300 flex items-center gap-2">
+                                <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300 flex items-center gap-2">
                                     <Languages className="w-4 h-4" /> Language Preference
                                 </label>
                                 <Select value={language} onValueChange={setLanguage}>
-                                    <SelectTrigger className="bg-zinc-950 border-zinc-800">
+                                    <SelectTrigger className="bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800">
                                         <SelectValue placeholder="Select Language" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -135,11 +137,11 @@ export default function SetupPage() {
 
                             {/* Device Selection */}
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-zinc-300 flex items-center gap-2">
+                                <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300 flex items-center gap-2">
                                     <Cpu className="w-4 h-4" /> Compute Device
                                 </label>
                                 <Select value={device} onValueChange={setDevice}>
-                                    <SelectTrigger className="bg-zinc-950 border-zinc-800 text-zinc-200">
+                                    <SelectTrigger className="bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-200">
                                         <SelectValue placeholder="Select Device" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -150,17 +152,17 @@ export default function SetupPage() {
                                     </SelectContent>
                                 </Select>
                                 <div className="flex gap-2 mt-1">
-                                    {systemInfo?.cuda_available && <Badge variant="outline" className="text-[10px] bg-green-500/10 text-green-400 border-green-500/20">CUDA Detected</Badge>}
-                                    {systemInfo?.mps_available && <Badge variant="outline" className="text-[10px] bg-indigo-500/10 text-indigo-400 border-indigo-500/20">MPS Detected</Badge>}
+                                    {systemInfo?.cuda_available && <Badge variant="outline" className="text-[10px] bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20">CUDA Detected</Badge>}
+                                    {systemInfo?.mps_available && <Badge variant="outline" className="text-[10px] bg-zinc-500/10 text-zinc-600 dark:text-zinc-400 border-zinc-500/20">MPS Detected</Badge>}
                                 </div>
                             </div>
                         </div>
 
                         {/* Whisper Model */}
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-zinc-300">AI Model Size (WhisperX)</label>
+                            <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">AI Model Size (WhisperX)</label>
                             <Select value={whisperModel} onValueChange={setWhisperModel}>
-                                <SelectTrigger className="bg-zinc-950 border-zinc-800">
+                                <SelectTrigger className="bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800">
                                     <SelectValue placeholder="Select Model Size" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -174,39 +176,39 @@ export default function SetupPage() {
                             <p className="text-[11px] text-zinc-500">Larger models are more accurate but much slower on CPU.</p>
                         </div>
 
-                        <Separator className="bg-zinc-800" />
+                        <Separator className="bg-zinc-200 dark:bg-zinc-800" />
 
                         {/* Storage Paths */}
                         <div className="space-y-4">
-                            <h3 className="text-sm font-medium text-zinc-200 flex items-center gap-2">
+                            <h3 className="text-sm font-medium text-zinc-900 dark:text-zinc-200 flex items-center gap-2">
                                 <FolderOpen className="w-4 h-4" /> Storage Locations
                             </h3>
 
                             <div className="space-y-2">
-                                <label className="text-xs text-zinc-400">Data Directory (Audio & Transcripts)</label>
+                                <label className="text-xs text-zinc-500 dark:text-zinc-400">Data Directory (Audio & Transcripts)</label>
                                 <Input
                                     value={dataDir}
                                     onChange={(e) => setDataDir(e.target.value)}
                                     placeholder="e.g. C:/Users/Me/Reflect/data"
-                                    className="bg-zinc-950 border-zinc-800"
+                                    className="bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800"
                                 />
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-xs text-zinc-400">Configs Directory (Settings & Models)</label>
+                                <label className="text-xs text-zinc-500 dark:text-zinc-400">Configs Directory (Settings & Models)</label>
                                 <Input
                                     value={configDir}
                                     onChange={(e) => setConfigDir(e.target.value)}
                                     placeholder="e.g. C:/Users/Me/Reflect/configs"
-                                    className="bg-zinc-950 border-zinc-800"
+                                    className="bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800"
                                 />
                             </div>
                         </div>
 
                     </CardContent>
-                    <CardFooter className="bg-zinc-950/50 p-6 flex justify-end gap-4 border-t border-zinc-800 rounded-b-lg">
+                    <CardFooter className="bg-zinc-50 dark:bg-zinc-950/50 p-6 flex justify-end gap-4 border-t border-zinc-200 dark:border-zinc-800 rounded-b-lg">
                         <Button
-                            className="bg-indigo-600 hover:bg-indigo-500 text-white gap-2 transition-all"
+                            className="bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-50 dark:hover:bg-zinc-200 dark:text-zinc-900 text-white gap-2 transition-all"
                             onClick={handleSave}
                             disabled={saving}
                         >
