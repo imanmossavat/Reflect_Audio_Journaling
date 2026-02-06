@@ -1,0 +1,7 @@
+{
+    "DATA_DIR": "/Users/imanm/Documents/Reflect/data",
+    "CONFIG_DIR": "/Users/imanm/Library/CloudStorage/OneDrive-Office365Fontys/Documenten/Research/Journaling/reflect repo/Reflect_Audio_Journaling/Backend/configs",
+    "LANGUAGE": "en",
+    "WHISPER_MODEL": "large-v3",
+    "DEVICE": "mps"
+}
