@@ -1,9 +1,5 @@
 @echo off
+:: This batch file launches the engine in PowerShell where Conda is available
 title Reflect Command Center
-
-:: Wait a few seconds for the engine to start before opening the browser
-start "" "http://localhost:3000"
-
-cd /d "%~dp0Backend\app"
-python dev.py
-pause
+cd /d "%~dp0"
+powershell -ExecutionPolicy Bypass -NoExit -File "%~dp0start_engine.ps1"

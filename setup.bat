@@ -1,9 +1,5 @@
 @echo off
+:: This batch file launches the setup in PowerShell where Conda is available
 title Reflect Project Setup
-echo Starting REFLECT Auto-Setup...
-python setup_project.py
-if %ERRORLEVEL% NEQ 0 (
-    echo.
-    echo [Error] Setup failed. Make sure Python is installed and in your PATH.
-)
-pause
+cd /d "%~dp0"
+powershell -ExecutionPolicy Bypass -NoExit -File "%~dp0setup.ps1"

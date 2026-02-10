@@ -4,7 +4,15 @@ import sys
 import os
 
 def get_python_executable(root_dir):
-    """Finds the python executable inside the virtual environment."""
+    """Finds the python executable, prioritizing Conda environments."""
+    
+    # Check if running in a Conda environment
+    if "CONDA_PREFIX" in os.environ:
+        print(f"[Info] Conda environment detected: {os.environ.get('CONDA_DEFAULT_ENV', 'unknown')}")
+        print(f"[Info] Using Conda Python: {sys.executable}")
+        return sys.executable
+    
+    # Fall back to local .venv or venv
     for venv_name in [".venv", "venv"]:
         if os.name == 'nt': # Windows
             python_path = os.path.join(root_dir, "Backend", venv_name, "Scripts", "python.exe")
@@ -12,7 +20,10 @@ def get_python_executable(root_dir):
             python_path = os.path.join(root_dir, "Backend", venv_name, "bin", "python")
 
         if os.path.exists(python_path):
+            print(f"[Info] Using virtual environment Python: {python_path}")
             return python_path
+    
+    print(f"[Warning] No virtual environment found, using system Python: {sys.executable}")
     return sys.executable
 
 def run_system():

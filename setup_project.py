@@ -15,14 +15,13 @@ def vprint(*args):
 # -----------------------------
 # Helper function
 # -----------------------------
-def run_command(command, cwd=None, shell=True):
+def run_command(command, cwd=None, shell=None):
     vprint(f"\n[Setup] Running command: {' '.join(command) if isinstance(command, list) else command}")
     try:
-        # If command is a list, always use shell=False
-        if isinstance(command, list):
-            subprocess.run(command, cwd=cwd, check=True, text=True, shell=False)
-        else:
-            subprocess.run(command, cwd=cwd, check=True, text=True, shell=shell)
+        # On Windows, use shell=True for proper PATH resolution (npm.cmd, etc.)
+        if shell is None:
+            shell = (os.name == 'nt')
+        subprocess.run(command, cwd=cwd, check=True, text=True, shell=shell)
         return True
     except subprocess.CalledProcessError as e:
         print(f"[Error] Command failed with exit code {e.returncode}")
