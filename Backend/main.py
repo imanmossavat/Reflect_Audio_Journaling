@@ -5,8 +5,10 @@ from pydantic import BaseModel
 from enum import Enum
 import httpx
 import json
+import ollama
 
 import question_prompt
+import dictionary_question_prompt
 import segment_prompt
 
 app = FastAPI(title="Journal Reflection API")
@@ -20,7 +22,7 @@ app.add_middleware(
 )
 
 OLLAMA_URL = "http://localhost:11434/api/generate"
-MODEL = "mistral"
+MODEL = "qwen3.5:4b"
 
 JOURNAL_PATH = "uploaded_journal.txt"
 
@@ -90,7 +92,7 @@ async def segment_journal() -> SegmentResponse:
         async with httpx.AsyncClient(timeout = httpx.Timeout(connect=10.0, read=300.0, write=10.0, pool=10.0)) as client:
             response = await client.post(
                 OLLAMA_URL,
-                json={"model": MODEL, "prompt": prompt, "stream": False},
+                json={"model": MODEL, "prompt": prompt, "stream": False, "options": {"num_predict": 1024}, "think": False},
             )
             if response.status_code != 200:
                 raise HTTPException(status_code=500, detail="Ollama error")
@@ -142,7 +144,7 @@ async def generate_question(req: GenerateRequest):
         raise HTTPException(status_code=404, detail="Session not found. Please upload your journal again.")
 
     try:
-        prompt = question_prompt.build_prompt(
+        messages = dictionary_question_prompt.build_messages(
             journal_text,
             mode=req.mode,
             topic=req.topic,
@@ -154,30 +156,21 @@ async def generate_question(req: GenerateRequest):
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-    print(f"Prompt length: {len(prompt)} chars")
-    print(f"Prompt :{prompt}")
+    print(f"Messages count: {len(messages)}")
+    for msg in messages:
+        print(f"  [{msg['role']}]: {msg['content']}")
 
     async def stream_ollama():
-        async with httpx.AsyncClient(timeout = httpx.Timeout(connect=10.0, read=300.0, write=10.0, pool=10.0)) as client:
-            async with client.stream(
-                "POST",
-                OLLAMA_URL,
-                json={"model": MODEL, "prompt": prompt, "stream": True},
-            ) as response:
-                if response.status_code != 200:
-                    yield f"data: Error contacting Ollama (status {response.status_code})\n\n"
-                    return
-                async for line in response.aiter_lines():
-                    if line:
-                        try:
-                            chunk = json.loads(line)
-                            token = chunk.get("response", "")
-                            if token:
-                                yield f"data: {json.dumps({'token': token})}\n\n"
-                            if chunk.get("done"):
-                                yield "data: [DONE]\n\n"
-                        except json.JSONDecodeError:
-                            continue
+        try:
+            stream = ollama.chat(model=MODEL, messages=messages, stream=True, think=False)
+            for chunk in stream:
+                token = chunk.get("message", {}).get("content", "")
+                if token:
+                    yield f"data: {json.dumps({'token': token})}\n\n"
+            yield "data: [DONE]\n\n"
+        except Exception as e:
+            yield f"data: {json.dumps({'token': f'Error: {str(e)}'})}\n\n"
+            yield "data: [DONE]\n\n"
 
     return StreamingResponse(stream_ollama(), media_type="text/event-stream")
 
