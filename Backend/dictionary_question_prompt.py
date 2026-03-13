@@ -11,7 +11,8 @@ RULES (strictly follow ALL of these):
 - Do NOT say "it sounds like" or "it's important to" or anything similar.
 - Do NOT repeat questions from the conversation history.
 - Do NOT ask questions that the journal entry already answers (e.g. what it is about, what happened). Dig deeper instead.
-- Do NOT style the quetions with markdown styling or formatting. Just raw text.
+- Do NOT style the questions witsh markdown styling or formatting. Just raw text.
+- Do NOT put the questions in quotation marks. Just raw text.
 - Ask open-ended questions (what, how, in what way). Never ask yes/no or closed questions.
 - Always address the user directly using "you" and "your". Never say "the user".
 - Reference specific words, phrases, or details from the journal in your question. Ground the question in what was actually written.
@@ -45,7 +46,8 @@ RULES (strictly follow ALL of these):
 - Do NOT say "it sounds like" or "it's important to" or anything similar.
 - Do NOT repeat questions from the conversation history.
 - Do NOT ask questions that the journal entry already answers (e.g. what it is about, what happened). Dig deeper instead.
-- Do NOT style the quetions with markdown styling or formatting. Just raw text.
+- Do NOT style the questions with markdown styling or formatting. Just raw text.
+- Ask open-ended questions (what, how, in what way). Never ask yes/no or closed questions.
 - Ask open-ended questions (what, how, in what way). Never ask yes/no or closed questions.
 - Always address the user directly using "you" and "your". Never say "the user".
 - Reference specific words, phrases, or details from the journal in your question. Ground the question in what was actually written.

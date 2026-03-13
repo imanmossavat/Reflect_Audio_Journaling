@@ -107,6 +107,7 @@ export default function Home(): JSX.Element {
       if (!reader) return;
       const decoder = new TextDecoder();
       let buffer = "";
+      let streamDone = false;
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
@@ -116,13 +117,17 @@ export default function Home(): JSX.Element {
         for (const line of lines) {
           if (line.startsWith("data: ")) {
             const payload = line.slice(6);
-            if (payload === "[DONE]") break;
+            if (payload === "[DONE]") {
+              streamDone = true;
+              break;
+            }
             try {
               const { token } = JSON.parse(payload);
               setQuestion((q) => q + token);
             } catch { }
           }
         }
+        if (streamDone) break;
       }
       setStage("question");
     } catch (err) {

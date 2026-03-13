@@ -160,7 +160,7 @@ async def generate_question(req: GenerateRequest):
                 token = chunk.get("message", {}).get("content", "")
                 if token:
                     yield f"data: {json.dumps({'token': token})}\n\n"
-                    yield "data: [DONE]\n\n"
+            yield "data: [DONE]\n\n"
         except Exception as e:
             yield f"data: {json.dumps({'token': f'Error: {str(e)}'})}\n\n"
             yield "data: [DONE]\n\n"
