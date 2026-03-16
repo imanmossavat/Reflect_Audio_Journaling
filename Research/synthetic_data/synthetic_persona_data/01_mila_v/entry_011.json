@@ -1,0 +1,44 @@
+{
+  "persona_id": 1,
+  "persona_code": "mila_v",
+  "persona_name": "Mila",
+  "persona_age": 20,
+  "neurotype": "ASD + High Anxiety",
+  "entry_index": 11,
+  "transcript": "Today was a day I can almost... almost truly say I'm grateful for. The email from Barnes-Peters arrived, and Phillip Jackson told me I got the internship. I feel it in my bones - relief is seeping into my pores like warm water on a cold winter's night. My mind has been racing with possibilities, and I hope that makes sense.\n\nAs I sat in the quiet of my apartment, surrounded by the familiar comforts of home - the soft hum of the lamp on my desk, the faint scent of yesterday's coffee still lingering in the air - I felt a small victory. The walls, once oppressive, now seemed to be whispering encouragement. David walked in and smiled at me; his presence always makes me feel like I'm home.\n\nI must admit, the thought of facing Phillip Jackson again is daunting. What if I say something wrong? What if I don't meet expectations? But for now, as I sit here with this small win under my belt, I can almost taste hope. Maybe it's time to start believing in myself a little more.\n\nI've been thinking about Christopher and his words of encouragement - \"You got this.\" Easy to say when you're not the one worrying about everything. But hearing him say that made me realize maybe I do have this. Maybe I've just been too hard on myself all these years.\n\nDavid walked over, asked how my day was going, and for some reason, it felt like I could finally breathe.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "school",
+      "text": "Today was a day I can almost... almost truly say I'm grateful for. The email from Barnes-Peters arrived, and Phillip Jackson told me I got the internship. I feel it in my bones - relief is seeping into my pores like warm water on a cold winter's night. My mind has been racing with possibilities, and I hope that makes sense.\n\nAs I sat in the quiet of my apartment, surrounded by the familiar comforts of home - the soft hum of the lamp on my desk, the faint scent of yesterday's coffee still lingering in the air - I felt a small victory. The walls, once oppressive, now seemed to be whispering encouragement. David walked in and smiled at me; his presence always makes me feel like I'm home.\n\nI must admit, the thought of facing Phillip Jackson again is daunting. What if I say something wrong? What if I don't meet expectations? But for now, as I sit here with this small win under my belt, I can almost taste hope. Maybe it's time to start believing in myself a little more.\n\nI've been thinking about Christopher and his words of encouragement - \"You got this.\" Easy to say when you're not the one worrying about everything. But hearing him say that made me realize maybe I do have this. Maybe I've just been too hard on myself all these years.\n\nDavid walked over, asked how my day was going, and for some reason, it felt like I could finally breathe.",
+      "start_char": 0,
+      "end_char": 1355
+    }
+  ],
+  "topics": [
+    "internship",
+    "school"
+  ],
+  "pii": [
+    {
+      "type": "BOSS_NAME",
+      "text": "Phillip Jackson",
+      "start_char": 109,
+      "end_char": 124
+    },
+    {
+      "type": "BOSS_NAME",
+      "text": "Phillip Jackson",
+      "start_char": 731,
+      "end_char": 746
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Barnes-Peters",
+      "start_char": 82,
+      "end_char": 95
+    }
+  ],
+  "summary": "Here is a 1-2 sentence summary of the journal entry:\n\nThe writer feels overwhelming relief and gratitude after receiving news of their internship, and in this moment of quiet comfort, they begin to see themselves with newfound hope and self-belief. This sense of hope is fueled by supportive relationships and words of encouragement from others, allowing them to finally exhale and feel at peace.",
+  "arc_stage": "Stage 2 – Relief & gratitude: she finally gets an internship, feels intense relief and loyalty, wants to earn her place."
+}

@@ -1,0 +1,52 @@
+{
+  "persona": "mila_v",
+  "entry_index": 4,
+  "arc_stage": "Stage 1 – Desperation & doubt: feels rejected, frustrated, and believes she will never be good enough. No internship yet.",
+  "transcript": "March 20th, 2023\n\nI hope this entry makes sense. I've been re-reading my previous notes to try and understand why I'm so overwhelmed with anxiety today. I feel like I've been repeating the same thoughts over and over in my head: \"What if I don't get an internship? What if I'm not good enough?\" It's like a broken record, playing on repeat. I remember when I first started looking for internships, I felt so desperate. My mother kept telling me to stay positive, that everything will work out, but I couldn't shake off the feeling of rejection. Now, after finally getting an internship, I'm feeling even more anxious. What if it's not enough?.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "general",
+      "sentiment": "neutral",
+      "text": "March 20th, 2023\n\nI hope this entry makes sense.",
+      "start_char": 0,
+      "end_char": 48
+    },
+    {
+      "id": 1,
+      "topic": "anxiety",
+      "sentiment": "negative",
+      "text": "I've been re-reading my previous notes to try and understand why I'm so overwhelmed with anxiety today. I feel like I've been repeating the same thoughts over and over in my head: \"What if I don't get an internship? What if I'm not good enough?\" It's like a broken record, playing on repeat.",
+      "start_char": 49,
+      "end_char": 340
+    },
+    {
+      "id": 2,
+      "topic": "internship",
+      "sentiment": "negative",
+      "text": "I remember when I first started looking for internships, I felt so desperate.",
+      "start_char": 341,
+      "end_char": 418
+    },
+    {
+      "id": 3,
+      "topic": "anxiety",
+      "sentiment": "negative",
+      "text": "My mother kept telling me to stay positive, that everything will work out, but I couldn't shake off the feeling of rejection. Now, after finally getting an internship, I'm feeling even more anxious. What if it's not enough?.",
+      "start_char": 419,
+      "end_char": 643
+    }
+  ],
+  "topics": [
+    "anxiety",
+    "internship",
+    "general"
+  ],
+  "pii": [],
+  "summary": "The writer is experiencing anxiety about their upcoming internship, feeling overwhelmed by negative thoughts about their abilities and potential rejection. Despite having already secured the internship, they're now worried that it may not be enough to meet their expectations or provide a sense of fulfillment.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

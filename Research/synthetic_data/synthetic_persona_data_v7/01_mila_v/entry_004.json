@@ -1,0 +1,44 @@
+{
+  "persona": "mila_v",
+  "entry_index": 4,
+  "arc_stage": "Stage 1 – Desperation & doubt: feels rejected, frustrated, and believes she will never be good enough. No internship yet.",
+  "transcript": "March 15, 20XX\n\nI have been sitting in my small town apartment for what feels like an eternity, staring at the same four walls as I attempt to process the events that transpired today. The fluorescent lighting overhead casts an unforgiving glare on the scribbled notes and scattered papers on my desk, making it difficult to discern the true meaning behind my chaotic thoughts. My mind is racing with a mixture of emotions - relief, excitement, and a creeping sense of uncertainty. I hope this entry makes sense |. As I sit here, the fluorescent lights seeming to hum in harmony with the turmoil within me, I find myself wondering if I've made a monumental mistake. The internship interview didn't go as planned, and now I'm left reeling from the rejection letter that arrived today. My mind keeps replaying the conversation, trying to pinpoint what I could have done differently, but the more I think about it, the more my anxiety spikes. The feeling of being good enough is suffocating me, like a weight is pressing down on my chest, making it hard to breathe. I feel like I'm drowning in a sea of self-doubt, and I don't know how to find the shore. As I sit here trying to calm the storm raging inside me, my mind keeps drifting back to school. The anxiety that's been building up since I couldn't secure an internship is starting to take over, and it feels like the walls are closing in on me. The fluorescent lights above seem to be pulsing with an otherworldly energy, making my headache worse. I keep replaying the rejection letter in my head, wondering what I did wrong, if there was something I could've done differently. The words \"not good enough\" echo in my mind like a cruel mantra, making it hard for me to breathe. How can I face another day of trying to fit into this supposed \"professional world\" when I feel like an imposter?. As I sit here, trying to make sense of the day's events, my mind keeps wandering back to my self-worth. It feels like no matter how hard I try, I'm always one step behind. The rejection letter from that internship I applied for still lingers in my mind, taunting me with its words of \"not good enough\". I can almost feel the sting of it even now, like a fresh wound that won't heal. My anxiety is spiraling out of control, making it hard to breathe, and yet, I'm trapped in this cycle of self-doubt. What does it mean to be worthy, anyway?.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "anxiety",
+      "sentiment": "negative",
+      "text": "As I sit here, the fluorescent lights seeming to hum in harmony with the turmoil within me, I find myself wondering if I've made a monumental mistake. The internship interview didn't go as planned, and now I'm left reeling from the rejection letter that arrived today. My mind keeps replaying the conversation, trying to pinpoint what I could have done differently, but the more I think about it, the more my anxiety spikes. The feeling of being good enough is suffocating me, like a weight is pressing down on my chest, making it hard to breathe. I feel like I'm drowning in a sea of self-doubt, and I don't know how to find the shore.",
+      "start_char": 515,
+      "end_char": 1151
+    },
+    {
+      "id": 1,
+      "topic": "school",
+      "sentiment": "negative",
+      "text": "As I sit here trying to calm the storm raging inside me, my mind keeps drifting back to school. The anxiety that's been building up since I couldn't secure an internship is starting to take over, and it feels like the walls are closing in on me. The fluorescent lights above seem to be pulsing with an otherworldly energy, making my headache worse. I keep replaying the rejection letter in my head, wondering what I did wrong, if there was something I could've done differently. The words \"not good enough\" echo in my mind like a cruel mantra, making it hard for me to breathe. How can I face another day of trying to fit into this supposed \"professional world\" when I feel like an imposter?.",
+      "start_char": 1152,
+      "end_char": 1844
+    },
+    {
+      "id": 2,
+      "topic": "self-worth",
+      "sentiment": "negative",
+      "text": "As I sit here, trying to make sense of the day's events, my mind keeps wandering back to my self-worth. It feels like no matter how hard I try, I'm always one step behind. The rejection letter from that internship I applied for still lingers in my mind, taunting me with its words of \"not good enough\". I can almost feel the sting of it even now, like a fresh wound that won't heal. My anxiety is spiraling out of control, making it hard to breathe, and yet, I'm trapped in this cycle of self-doubt. What does it mean to be worthy, anyway?.",
+      "start_char": 1845,
+      "end_char": 2385
+    }
+  ],
+  "topics": [
+    "anxiety",
+    "school",
+    "self-worth"
+  ],
+  "pii": [],
+  "summary": "The writer is struggling with rejection from an internship interview and feeling overwhelmed by self-doubt, wondering if they're \"good enough\" and fearing they'll never fit into the professional world. Their anxiety is spiraling out of control, making it hard to breathe as they replay the rejection letter in their head and question their own worthiness.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

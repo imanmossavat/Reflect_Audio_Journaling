@@ -1,0 +1,448 @@
+synthetic_text,profile_tag,ground_truth_segments
+I spent the morning organizing my planner. I added color-coded tabs for each subject. Then I reviewed my lecture notes. I highlighted key formulas. I feel more prepared.,ASD,"[1,3]"
+"I joined a new study group today. Everyone was friendly, but I didn' t talk much. I kept thinking about how to phrase my questions. Later, I rewrote my notes to match the textbook structure.",ASD,"[1,3]"
+"I reorganized my bookshelf by topic and author. It took longer than expected, but now everything feels aligned. I also created a spreadsheet to track reading progress. I feel calmer when things are sorted.",ASD,"[1,3]"
+I spent two hours debugging my code. I finally found the missing semicolon. Then I read an article about neural networks. It made me curious about how my project could evolve.,ASD,"[1,3]"
+I forgot my umbrella and got soaked. Then I missed the bus. I laughed but felt annoyed. I need to plan better.,ADHD,"[1,2]"
+I started writing an essay and ended up doodling. Then I remembered the deadline. I panicked and wrote fast. It wasn' t great.,ADHD,"[1,2]"
+I rearranged my room instead of studying. Then I remembered I had a quiz. I crammed last minute. It was stressful.,ADHD,"[1,2]"
+I opened my textbook and ended up cleaning my desk. Then I remembered I had homework. I rushed through it.,ADHD,"[1,2]"
+I tried reading but got distracted by my phone. Then I watched three videos. I forgot what I was studying.,ADHD,"[1,2]"
+I started cooking and forgot the stove was on. I burned the rice. Then I ordered takeout. It was fine.,ADHD,"[1,2]"
+I tried to meditate but got bored. Then I reorganized my closet. I forgot what I was supposed to do.,ADHD,"[1,2]"
+I opened my planner and ended up drawing cartoons. Then I remembered my meeting. I was late.,ADHD,"[1,2]"
+I tried reading the assignment but the letters kept blending together. I used a ruler to follow the lines but it didn' t help much. Then I switched to listening to a podcast about the topic. That was easier.,Dyslexia,"[1,3]"
+"I, um, I tried to read the chapter but the words, they, like, moved around. I think I got the main idea but I' m not sure. Then I went to the library but couldn' t find the book I needed.",Dyslexia,"[1,3]"
+I read the same sentence five times. It still didn' t click. I asked my tutor for help. She explained it differently. That helped.,Dyslexia,"[1,3]"
+I tried reading aloud to help comprehension. I stumbled over words. Then I recorded myself and listened back. It was weird but useful. I' ll try again tomorrow.,Dyslexia,"[1,3]"
+I tried using colored overlays while reading. It helped a little. Then I switched to audio. That was better. I' ll keep experimenting.,Dyslexia,"[1,3]"
+I tried reading the syllabus but got stuck on the second paragraph. I reread it five times. Then I asked my friend to explain it. She helped a bit. I still feel unsure.,Dyslexia,"[1,3]"
+I used a ruler to follow the lines while reading. It helped a little. Then I switched to audio. That was easier.,Dyslexia,"[1,3]"
+I tried to summarize the chapter but got stuck. Then I asked my friend to explain it. She helped a lot.,Dyslexia,"[1,3]"
+I used a colored overlay while reading. It made the text clearer. Then I took notes. I feel more confident.,Dyslexia,"[1,3]"
+I tried reading the article but got confused. Then I watched a video on the topic. That helped.,Dyslexia,"[1,3]"
+"I felt nervous walking into the lecture hall. I sat in the back and kept my head down. When the professor asked a question, I knew the answer but didn' t raise my hand. I didn' t want people to look at me.",High Anxiety,"[1,3]"
+I kept checking my phone during class. I was worried I missed a message. Then I realized I hadn' t eaten all day. I felt lightheaded and left early.,High Anxiety,"[1,3]"
+I felt overwhelmed before my presentation. I rehearsed ten times but still froze. I apologized and rushed through it. I think I disappointed my group.,High Anxiety,"[1,3]"
+I felt anxious walking into the lab. I worried I' d mess up the experiment. I stayed quiet and followed instructions. I think I did okay. I still feel tense.,High Anxiety,"[1,3]"
+I felt nervous during the group discussion. I didn' t speak much. I worried they thought I was uninterested. I was just scared.,High Anxiety,"[1,3]"
+I felt anxious before my interview. I rehearsed answers but still stumbled. I apologized a lot. I hope they understood.,High Anxiety,"[1,3]"
+I felt anxious before the exam. I reviewed my notes but couldn' t concentrate. I skipped breakfast. I felt shaky during the test.,High Anxiety,"[1,3]"
+I felt nervous presenting my project. I rehearsed but still forgot parts. I apologized and rushed through it. I hope it was okay.,High Anxiety,"[1,3]"
+I felt anxious in the cafeteria. I worried people were watching me eat. I left early and ate alone. I feel safer that way.,High Anxiety,"[1,3]"
+I felt overwhelmed by the group project. I didn' t know how to contribute. I stayed quiet and did small tasks. I hope that helped.,High Anxiety,"[1,3]"
+I spent the afternoon building a spreadsheet to track my assignments. I added color codes for urgency and difficulty. Then I watched a documentary about urban planning. I paused often to take notes. I feel more organized now.,ASD,"[1,3,4]"
+I created a checklist for my week. Each item has a time estimate. Then I tested a new study method. It involves spaced repetition. I' ll track results over time.,ASD,"[1,3]"
+I built a flowchart for my thesis. It maps each argument. Then I revised my outline. I added citations. I feel more confident.,ASD,"[1,3]"
+I spent the morning coding a small app. It tracks my sleep patterns. Then I read about circadian rhythms. I added a feature to log caffeine intake. I' m excited to test it.,ASD,"[1,3,4]"
+I forgot my keys again today. I had to call my roommate to let me in. Then I got distracted by a YouTube rabbit hole and missed my study block. I feel guilty but also kind of entertained. I' ll try again tomorrow.,ADHD,"[1,3,4]"
+I had three coffees before noon. I felt amazing and jittery. Then I forgot my wallet at home and had to borrow money for lunch. I laughed it off but felt embarrassed. I need to slow down.,ADHD,"[1,3,4]"
+I started five tasks and finished none. I rearranged my bookshelf instead. Then I remembered I had a deadline. I panicked and wrote something quickly. It wasn' t great.,ADHD,"[1,3,4]"
+I forgot my appointment and showed up late. I apologized and made excuses. Then I got distracted by a podcast. I missed my bus. I laughed but felt annoyed.,ADHD,"[1,3,4]"
+I started cleaning my room and ended up reorganizing my closet. Then I remembered I had homework. I rushed through it. It wasn' t my best work.,ADHD,"[1,3]"
+I tried reading aloud to help comprehension. I stumbled over words. Then I recorded myself and listened back. It was weird but useful. I' ll try again tomorrow.,Dyslexia,"[1,3]"
+I tried using colored overlays while reading. It helped a little. Then I switched to audio. That was better. I' ll keep experimenting.,Dyslexia,"[1,3]"
+I tried reading the syllabus but got stuck on the second paragraph. I reread it five times. Then I asked my friend to explain it. She helped a bit. I still feel unsure.,Dyslexia,"[1,3]"
+I stared at the textbook for an hour. The words didn' t make sense. I switched to watching a video. That helped a bit. I still feel behind.,Dyslexia,"[1,3]"
+I used a ruler to follow the lines while reading. It helped a little. Then I switched to audio. That was easier.,Dyslexia,"[1,3]"
+I tried to summarize the chapter but got stuck. Then I asked my friend to explain it. She helped a lot.,Dyslexia,"[1,3]"
+I used a colored overlay while reading. It made the text clearer. Then I took notes. I feel more confident.,Dyslexia,"[1,3]"
+I tried reading the article but got confused. Then I watched a video on the topic. That helped.,Dyslexia,"[1,3]"
+"I felt nervous walking into the lecture hall. I sat in the back and kept my head down. When the professor asked a question, I knew the answer but didn' t raise my hand. I didn' t want people to look at me.",High Anxiety,"[1,3]"
+I kept checking my phone during class. I was worried I missed a message. Then I realized I hadn' t eaten all day. I felt lightheaded and left early.,High Anxiety,"[1,3]"
+I felt overwhelmed before my presentation. I rehearsed ten times but still froze. I apologized and rushed through it. I think I disappointed my group.,High Anxiety,"[1,3]"
+I felt anxious walking into the lab. I worried I' d mess up the experiment. I stayed quiet and followed instructions. I think I did okay. I still feel tense.,High Anxiety,"[1,3]"
+I felt nervous during the group discussion. I didn' t speak much. I worried they thought I was uninterested. I was just scared.,High Anxiety,"[1,3]"
+I felt anxious before my interview. I rehearsed answers but still stumbled. I apologized a lot. I hope they understood.,High Anxiety,"[1,3]"
+I felt anxious before the exam. I reviewed my notes but couldn' t concentrate. I skipped breakfast. I felt shaky during the test.,High Anxiety,"[1,3]"
+I felt nervous presenting my project. I rehearsed but still forgot parts. I apologized and rushed through it. I hope it was okay.,High Anxiety,"[1,3]"
+I felt anxious in the cafeteria. I worried people were watching me eat. I left early and ate alone. I feel safer that way.,High Anxiety,"[1,3]"
+I felt overwhelmed by the group project. I didn' t know how to contribute. I stayed quiet and did small tasks. I hope that helped.,High Anxiety,"[1,3]"
+I created a new filing system for my notes. It uses tags and categories. Then I backed everything up. I feel prepared for finals.,ASD,"[1,3]"
+I built a timeline for my project. Each phase has a deadline. Then I created a checklist. I feel more in control.,ASD,"[1,3]"
+I spent the morning organizing my desk. I labeled each drawer and sorted my pens by color. Then I read a chapter on fluid mechanics. It was dense but I liked the diagrams. I made flashcards to review later.,ASD,"[1,3,4]"
+I spent the afternoon reviewing lecture slides. I annotated each one with questions. Then I emailed my professor for clarification. I hope they reply soon.,ASD,"[1,3]"
+I built a folder system for my research. Each folder has subtopics. Then I backed everything up. I feel organized.,ASD,"[1,3]"
+I created a mind map for my essay. It shows connections between ideas. Then I drafted an outline. I feel more confident.,ASD,"[1,3]"
+I spent the morning testing a new note-taking app. It supports diagrams and tags. Then I imported my old notes. I like the layout.,ASD,"[1,3]"
+I built a calendar for my assignments. Each task has a deadline and priority. Then I synced it with my phone. I feel more prepared.,ASD,"[1,3]"
+I forgot my umbrella and got soaked. Then I missed the bus. I laughed but felt annoyed. I need to plan better.,ADHD,"[1,2]"
+Istarted writing an essay and ended up doodling. Then I remembered the deadline. I panicked and wrote fast. It wasn' t great.,ADHD,"[1,2]"
+I rearranged my room instead of studying. Then I remembered I had a quiz. I crammed last minute. It was stressful.,ADHD,"[1,2]"
+I forgot my lunch and borrowed snacks from a friend. Then I got distracted by a squirrel outside. I missed half the lecture. Oops.,ADHD,"[1,2]"
+I started a workout but got bored. Then I watched a documentary. I forgot to stretch. My legs hurt now.,ADHD,"[1,2]"
+I opened my textbook and ended up cleaning my desk. Then I remembered I had homework. I rushed through it.,ADHD,"[1,2]"
+I tried reading but got distracted by my phone. Then I watched three videos. I forgot what I was studying.,ADHD,"[1,2]"
+I started cooking and forgot the stove was on. I burned the rice. Then I ordered takeout. It was fine.,ADHD,"[1,2]"
+I tried to meditate but got bored. Then I reorganized my closet. I forgot what I was supposed to do.,ADHD,"[1,2]"
+I opened my planner and ended up drawing cartoons. Then I remembered my meeting. I was late.,ADHD,"[1,2]"
+I stared at the textbook for an hour. The words didn' t make sense. I switched to watching a video. That helped a bit. I still feel behind.,Dyslexia,"[1,3]"
+I tried reading aloud to help comprehension. I stumbled over words. Then I recorded myself and listened back. It was weird but useful. I' ll try again tomorrow.,Dyslexia,"[1,3]"
+I tried using colored overlays while reading. It helped a little. Then I switched to audio. That was better. I' ll keep experimenting.,Dyslexia,"[1,3]"
+I tried reading the syllabus but got stuck on the second paragraph. I reread it five times. Then I asked my friend to explain it. She helped a bit. I still feel unsure.,Dyslexia,"[1,3]"
+I read the same sentence five times. It still didn' t click. I asked my tutor for help. She explained it differently. That helped.,Dyslexia,"[1,3]"
+I tried reading aloud but kept stumbling. Then I used a text-to-speech app. It helped a bit. I' ll try again tomorrow.,Dyslexia,"[1,3]"
+I used a ruler to follow the lines while reading. It helped a little. Then I switched to audio. That was easier.,Dyslexia,"[1,3]"
+I tried to summarize the chapter but got stuck. Then I asked my friend to explain it. She helped a lot.,Dyslexia,"[1,3]"
+I used a colored overlay while reading. It made the text clearer. Then I took notes. I feel more confident.,Dyslexia,"[1,3]"
+I tried reading the article but got confused. Then I watched a video on the topic. That helped.,Dyslexia,"[1,3]"
+"I felt nervous walking into the lecture hall. I sat in the back and kept my head down. When the professor asked a question, I knew the answer but didn' t raise my hand. I didn' t want people to look at me.",High Anxiety,"[1,3]"
+I kept checking my phone during class. I was worried I missed a message. Then I realized I hadn' t eaten all day. I felt lightheaded and left early.,High Anxiety,"[1,3]"
+I felt overwhelmed before my presentation. I rehearsed ten times but still froze. I apologized and rushed through it. I think I disappointed my group.,High Anxiety,"[1,3]"
+I felt anxious walking into the lab. I worried I' d mess up the experiment. I stayed quiet and followed instructions. I think I did okay. I still feel tense.,High Anxiety,"[1,3]"
+I felt nervous during the group discussion. I didn' t speak much. I worried they thought I was uninterested. I was just scared.,High Anxiety,"[1,3]"
+I felt anxious before my interview. I rehearsed answers but still stumbled. I apologized a lot. I hope they understood.,High Anxiety,"[1,3]"
+I felt anxious before the exam. I reviewed my notes but couldn' t concentrate. I skipped breakfast. I felt shaky during the test.,High Anxiety,"[1,3]"
+I felt nervous presenting my project. I rehearsed but still forgot parts. I apologized and rushed through it. I hope it was okay.,High Anxiety,"[1,3]"
+I felt anxious in the cafeteria. I worried people were watching me eat. I left early and ate alone. I feel safer that way.,High Anxiety,"[1,3]"
+I felt overwhelmed by the group project. I didn' t know how to contribute. I stayed quiet and did small tasks. I hope that helped.,High Anxiety,"[1,3]"
+I spent the morning organizing my planner. I added color-coded tabs for each subject. Then I reviewed my lecture notes. I highlighted key formulas. I feel more prepared.,ASD,"[1,3]"
+"I joined a new study group today. Everyone was friendly, but I didn' t talk much. I kept thinking about how to phrase my questions. Later, I rewrote my notes to match the textbook structure.",ASD,"[1,3]"
+"I reorganized my bookshelf by topic and author. It took longer than expected, but now everything feels aligned. I also created a spreadsheet to track reading progress. I feel calmer when things are sorted.",ASD,"[1,3]"
+I spent two hours debugging my code. I finally found the missing semicolon. Then I read an article about neural networks. It made me curious about how my project could evolve.,ASD,"[1,3]"
+I forgot my umbrella and got soaked. Then I missed the bus. I laughed but felt annoyed. I need to plan better.,ADHD,"[1,2]"
+I started writing an essay and ended up doodling. Then I remembered the deadline. I panicked and wrote fast. It wasn' t great.,ADHD,"[1,2]"
+I rearranged my room instead of studying. Then I remembered I had a quiz. I crammed last minute. It was stressful.,ADHD,"[1,2]"
+I opened my textbook and ended up cleaning my desk. Then I remembered I had homework. I rushed through it.,ADHD,"[1,2]"
+I tried reading but got distracted by my phone. Then I watched three videos. I forgot what I was studying.,ADHD,"[1,2]"
+I started cooking and forgot the stove was on. I burned the rice. Then I ordered takeout. It was fine.,ADHD,"[1,2]"
+I tried to meditate but got bored. Then I reorganized my closet. I forgot what I was supposed to do.,ADHD,"[1,2]"
+I opened my planner and ended up drawing cartoons. Then I remembered my meeting. I was late.,ADHD,"[1,2]"
+I tried reading the assignment but the letters kept blending together. I used a ruler to follow the lines but it didn' t help much. Then I switched to listening to a podcast about the topic. That was easier.,Dyslexia,"[1,3]"
+"I, um, I tried to read the chapter but the words, they, like, moved around. I think I got the main idea but I' m not sure. Then I went to the library but couldn' t find the book I needed.",Dyslexia,"[1,3]"
+I read the same sentence five times. It still didn' t click. I asked my tutor for help. She explained it differently. That helped.,Dyslexia,"[1,3]"
+I tried reading aloud to help comprehension. I stumbled over words. Then I recorded myself and listened back. It was weird but useful. I' ll try again tomorrow.,Dyslexia,"[1,3]"
+I tried using colored overlays while reading. It helped a little. Then I switched to audio. That was better. I' ll keep experimenting.,Dyslexia,"[1,3]"
+I tried reading the syllabus but got stuck on the second paragraph. I reread it five times. Then I asked my friend to explain it. She helped a bit. I still feel unsure.,Dyslexia,"[1,3]"
+I used a ruler to follow the lines while reading. It helped a little. Then I switched to audio. That was easier.,Dyslexia,"[1,3]"
+I tried to summarize the chapter but got stuck. Then I asked my friend to explain it. She helped a lot.,Dyslexia,"[1,3]"
+I used a colored overlay while reading. It made the text clearer. Then I took notes. I feel more confident.,Dyslexia,"[1,3]"
+I tried reading the article but got confused. Then I watched a video on the topic. That helped.,Dyslexia,"[1,3]"
+"I felt nervous walking into the lecture hall. I sat in the back and kept my head down. When the professor asked a question, I knew the answer but didn' t raise my hand. I didn' t want people to look at me.",High Anxiety,"[1,3]"
+I kept checking my phone during class. I was worried I missed a message. Then I realized I hadn' t eaten all day. I felt lightheaded and left early.,High Anxiety,"[1,3]"
+I felt overwhelmed before my presentation. I rehearsed ten times but still froze. I apologized and rushed through it. I think I disappointed my group.,High Anxiety,"[1,3]"
+I felt anxious walking into the lab. I worried I' d mess up the experiment. I stayed quiet and followed instructions. I think I did okay. I still feel tense.,High Anxiety,"[1,3]"
+I felt nervous during the group discussion. I didn' t speak much. I worried they thought I was uninterested. I was just scared.,High Anxiety,"[1,3]"
+I felt anxious before my interview. I rehearsed answers but still stumbled. I apologized a lot. I hope they understood.,High Anxiety,"[1,3]"
+I felt anxious before the exam. I reviewed my notes but couldn' t concentrate. I skipped breakfast. I felt shaky during the test.,High Anxiety,"[1,3]"
+I felt nervous presenting my project. I rehearsed but still forgot parts. I apologized and rushed through it. I hope it was okay.,High Anxiety,"[1,3]"
+I felt anxious in the cafeteria. I worried people were watching me eat. I left early and ate alone. I feel safer that way.,High Anxiety,"[1,3]"
+I felt overwhelmed by the group project. I didn' t know how to contribute. I stayed quiet and did small tasks. I hope that helped.,High Anxiety,"[1,3]"
+I spent the morning organizing my planner. I added color-coded tabs for each subject. Then I reviewed my lecture notes. I highlighted key formulas. I feel more prepared.,ASD,"[1,3]"
+I built a spreadsheet to track my sleep patterns. It includes graphs and averages. Then I read about circadian rhythms. I added a column for caffeine intake. I' m curious how it affects my REM cycles.,ASD,"[1,3,4]"
+"I reorganized my bookshelf by topic and author. It took longer than expected, but now everything feels aligned. I also created a spreadsheet to track reading progress. I feel calmer when things are sorted.",ASD,"[1,3]"
+"I joined a new study group today. Everyone was friendly, but I didn' t talk much. I kept thinking about how to phrase my questions. Later, I rewrote my notes to match the textbook structure.",ASD,"[1,3]"
+I forgot my umbrella and got soaked. Then I missed the bus. I laughed but felt annoyed. I need to plan better.,ADHD,"[1,2]"
+I started writing an essay and ended up doodling. Then I remembered the deadline. I panicked and wrote fast. It wasn' t great.,ADHD,"[1,2]"
+I rearranged my room instead of studying. Then I remembered I had a quiz. I crammed last minute. It was stressful.,ADHD,"[1,2]"
+I opened my textbook and ended up cleaning my desk. Then I remembered I had homework. I rushed through it.,ADHD,"[1,2]"
+I tried reading but got distracted by my phone. Then I watched three videos. I forgot what I was studying.,ADHD,"[1,2]"
+I started cooking and forgot the stove was on. I burned the rice. Then I ordered takeout. It was fine.,ADHD,"[1,2]"
+I tried to meditate but got bored. Then I reorganized my closet. I forgot what I was supposed to do.,ADHD,"[1,2]"
+I opened my planner and ended up drawing cartoons. Then I remembered my meeting. I was late.,ADHD,"[1,2]"
+I tried reading the assignment but the letters kept blending together. I used a ruler to follow the lines but it didn' t help much. Then I switched to listening to a podcast about the topic. That was easier.,Dyslexia,"[1,3]"
+"I, um, I tried to read the chapter but the words, they, like, moved around. I think I got the main idea but I' m not sure. Then I went to the library but couldn' t find the book I needed.",Dyslexia,"[1,3]"
+I read the same sentence five times. It still didn' t click. I asked my tutor for help. She explained it differently. That helped.,Dyslexia,"[1,3]"
+I tried reading aloud to help comprehension. I stumbled over words. Then I recorded myself and listened back. It was weird but useful. I' ll try again tomorrow.,Dyslexia,"[1,3]"
+I tried using colored overlays while reading. It helped a little. Then I switched to audio. That was better. I' ll keep experimenting.,Dyslexia,"[1,3]"
+I tried reading the syllabus but got stuck on the second paragraph. I reread it five times. Then I asked my friend to explain it. She helped a bit. I still feel unsure.,Dyslexia,"[1,3]"
+I used a ruler to follow the lines while reading. It helped a little. Then I switched to audio. That was easier.,Dyslexia,"[1,3]"
+I tried to summarize the chapter but got stuck. Then I asked my friend to explain it. She helped a lot.,Dyslexia,"[1,3]"
+I used a colored overlay while reading. It made the text clearer. Then I took notes. I feel more confident.,Dyslexia,"[1,3]"
+I tried reading the article but got confused. Then I watched a video on the topic. That helped.,Dyslexia,"[1,3]"
+"I felt nervous walking into the lecture hall. I sat in the back and kept my head down. When the professor asked a question, I knew the answer but didn' t raise my hand. I didn' t want people to look at me.",High Anxiety,"[1,3]"
+I kept checking my phone during class. I was worried I missed a message. Then I realized I hadn' t eaten all day. I felt lightheaded and left early.,High Anxiety,"[1,3]"
+I felt overwhelmed before my presentation. I rehearsed ten times but still froze. I apologized and rushed through it. I think I disappointed my group.,High Anxiety,"[1,3]"
+I felt anxious walking into the lab. I worried I' d mess up the experiment. I stayed quiet and followed instructions. I think I did okay. I still feel tense.,High Anxiety,"[1,3]"
+I felt nervous during the group discussion. I didn' t speak much. I worried they thought I was uninterested. I was just scared.,High Anxiety,"[1,3]"
+I felt anxious before my interview. I rehearsed answers but still stumbled. I apologized a lot. I hope they understood.,High Anxiety,"[1,3]"
+I felt anxious before the exam. I reviewed my notes but couldn' t concentrate. I skipped breakfast. I felt shaky during the test.,High Anxiety,"[1,3]"
+I felt nervous presenting my project. I rehearsed but still forgot parts. I apologized and rushed through it. I hope it was okay.,High Anxiety,"[1,3]"
+I felt anxious in the cafeteria. I worried people were watching me eat. I left early and ate alone. I feel safer that way.,High Anxiety,"[1,3]"
+I felt overwhelmed by the group project. I didn' t know how to contribute. I stayed quiet and did small tasks. I hope that helped.,High Anxiety,"[1,3]"
+"I spent the entire afternoon organizing my planner. I color-coded each subject, added sticky notes for deadlines, and created a weekly overview. It felt calming to see everything laid out. I didn' t even notice the time passing.",ASD,[1]
+I built a spreadsheet to track my sleep patterns. It includes graphs and averages. Then I read about circadian rhythms. I added a column for caffeine intake. I' m curious how it affects my REM cycles.,ASD,"[1,3,4]"
+"I reorganized my bookshelf by topic and author. It took longer than expected, but now everything feels aligned. I also created a spreadsheet to track reading progress. Then I backed up my files and labeled folders. I feel calmer when things are sorted.",ASD,"[1,3,4]"
+I spent the morning testing a new note-taking app. It supports diagrams and tags. Then I imported my old notes. I reorganized them by theme. I like the layout and how it syncs with my calendar.,ASD,"[1,3,4]"
+"I joined a new study group today. Everyone was friendly, but I didn' t talk much. I kept thinking about how to phrase my questions. Later, I rewrote my notes to match the textbook structure.",ASD,"[1,3]"
+I created a checklist for my week. Each item has a time estimate. Then I tested a new study method. It involves spaced repetition. I' ll track results over time.,ASD,"[1,3,4]"
+I built a flowchart for my thesis. It maps each argument. Then I revised my outline. I added citations. I feel more confident.,ASD,"[1,3,4]"
+I spent the morning coding a small app. It tracks my sleep patterns. Then I read about circadian rhythms. I added a feature to log caffeine intake. I' m excited to test it.,ASD,"[1,3,4]"
+I forgot my umbrella and got soaked. Then I missed the bus. I laughed but felt annoyed. I need to plan better.,ADHD,[1]
+I started writing an essay and ended up doodling. Then I remembered the deadline. I panicked and wrote fast. It wasn' t great. I got distracted again halfway through and started reorganizing my desk.,ADHD,"[1,3,4]"
+"I rearranged my room instead of studying. Then I remembered I had a quiz. I crammed last minute. It was stressful. Afterward, I rewarded myself with ice cream and forgot everything I studied.",ADHD,"[1,3,4]"
+"I opened my textbook and ended up cleaning my desk. Then I remembered I had homework. I rushed through it. Later, I watched a documentary about whales. I forgot to submit the assignment.",ADHD,"[1,3,4]"
+I tried reading but got distracted by my phone. Then I watched three videos. I forgot what I was studying. I started a playlist and danced around my room.,ADHD,"[1,3,4]"
+I forgot my appointment and showed up late. I apologized and made excuses. Then I got distracted by a podcast. I missed my bus. I laughed but felt annoyed.,ADHD,"[1,3,4]"
+I started cleaning my room and ended up reorganizing my closet. Then I remembered I had homework. I rushed through it. It wasn' t my best work.,ADHD,"[1,3,4]"
+I tried reading aloud to help comprehension. I stumbled over words. Then I recorded myself and listened back. It was weird but useful. I' ll try again tomorrow.,Dyslexia,"[1,3,4]"
+I tried using colored overlays while reading. It helped a little. Then I switched to audio. That was better. I' ll keep experimenting. I might ask my professor if I can use audiobooks.,Dyslexia,"[1,3,4]"
+I tried reading the syllabus but got stuck on the second paragraph. I reread it five times. Then I asked my friend to explain it. She helped a bit. I still feel unsure.,Dyslexia,"[1,3,4]"
+I used a ruler to follow the lines while reading. It helped a little. Then I switched to audio. That was easier. I also tried a podcast. It made more sense.,Dyslexia,"[1,3,4]"
+I stared at the textbook for an hour. The words didn' t make sense. I switched to watching a video. That helped a bit. I still feel behind.,Dyslexia,[1]
+I read the same sentence five times. It still didn' t click. I asked my tutor for help. She explained it differently. That helped.,Dyslexia,"[1,3,4]"
+I tried reading aloud but kept stumbling. Then I used a text-to-speech app. It helped a bit. I' ll try again tomorrow.,Dyslexia,"[1,3,4]"
+I used a colored overlay while reading. It made the text clearer. Then I took notes. I feel more confident.,Dyslexia,"[1,3,4]"
+"I felt nervous walking into the lecture hall. I sat in the back and kept my head down. When the professor asked a question, I knew the answer but didn' t raise my hand. I didn' t want people to look at me.",High Anxiety,[1]
+I kept checking my phone during class. I was worried I missed a message. Then I realized I hadn' t eaten all day. I felt lightheaded and left early. I cried in the bathroom before going home.,High Anxiety,"[1,3,4]"
+I felt overwhelmed before my presentation. I rehearsed ten times but still froze. I apologized and rushed through it. I think I disappointed my group. I emailed the professor afterward to explain.,High Anxiety,"[1,3,4]"
+I felt anxious walking into the lab. I worried I' d mess up the experiment. I stayed quiet and followed instructions. I think I did okay. I still feel tense and replayed every moment in my head.,High Anxiety,"[1,3,4]"
+I felt nervous during the group discussion. I didn' t speak much. I worried they thought I was uninterested. I was just scared. I left early and skipped lunch.,High Anxiety,"[1,3,4]"
+I felt anxious before the exam. I reviewed my notes but couldn' t concentrate. I skipped breakfast. I felt shaky during the test. I cried afterward in the bathroom.,High Anxiety,"[1,3,4]"
+I felt nervous presenting my project. I rehearsed but still forgot parts. I apologized and rushed through it. I hope it was okay. I kept thinking about it all day.,High Anxiety,"[1,3,4]"
+I felt anxious in the cafeteria. I worried people were watching me eat. I left early and ate alone. I feel safer that way.,High Anxiety,[1]
+I felt overwhelmed by the group project. I didn' t know how to contribute. I stayed quiet and did small tasks. I hope that helped. I wish I could speak up more.,High Anxiety,"[1,3,4]"
+I felt anxious before the phone call. I rehearsed what to say. I still froze. I apologized and hung up quickly. I feel embarrassed.,High Anxiety,"[1,3,4]"
+I felt nervous during the seminar. I avoided eye contact. I didn' t ask questions. I left quickly after it ended.,High Anxiety,[1]
+I felt anxious before the meeting. I rehearsed what to say. I still stumbled. I apologized and stayed quiet. I hope they didn' t think I was rude.,High Anxiety,"[1,3,4]"
+I felt overwhelmed by the schedule. I missed a class. I emailed the professor to explain. I hope they understood. I feel behind already.,High Anxiety,"[1,3,4]"
+I felt nervous during the interview. I rehearsed answers but forgot them. I apologized and tried to smile. I hope it went okay.,High Anxiety,[1]
+I felt anxious before the presentation. I practiced but still froze. I apologized and rushed through it. I feel embarrassed. I don' t want to present again.,High Anxiety,"[1,3,4]"
+I felt nervous in the library. I worried people were judging me. I left early and studied at home. I feel better alone.,High Anxiety,[1]
+I felt anxious during the group activity. I didn' t speak much. I worried they thought I was uninterested. I was just scared. I wish I could explain that.,High Anxiety,"[1,3,4]"
+I felt overwhelmed by the assignment. I didn' t know where to start. I emailed my professor for help. I hope they reply soon.,High Anxiety,[1]
+I felt nervous during the lab. I worried I' d mess up. I followed instructions carefully. I still felt tense afterward. I kept replaying it in my head.,High Anxiety,"[1,3,4]"
+I felt anxious before the exam. I reviewed my notes but couldn' t concentrate. I skipped breakfast. I felt shaky during the test.,High Anxiety,"[1,3]"
+I felt nervous presenting my project. I rehearsed but still forgot parts. I apologized and rushed through it. I hope it was okay.,High Anxiety,[1]
+I felt anxious in the cafeteria. I worried people were watching me eat. I left early and ate alone. I feel safer that way.,High Anxiety,[1]
+I felt overwhelmed by the group project. I didn' t know how to contribute. I stayed quiet and did small tasks. I hope that helped.,High Anxiety,[1]
+I felt anxious during the lab. I worried I' d break something. I followed instructions carefully. I still felt tense afterward.,High Anxiety,[1]
+I felt nervous during the seminar. I avoided eye contact. I didn' t ask questions. I left quickly after it ended.,High Anxiety,[1]
+I felt anxious before the meeting. I rehearsed what to say. I still stumbled. I apologized and stayed quiet.,High Anxiety,[1]
+I felt overwhelmed by the schedule. I missed a class. I emailed the professor to explain. I hope they understood.,High Anxiety,[1]
+I felt nervous during the interview. I rehearsed answers but forgot them. I apologized and tried to smile. I hope it went okay.,High Anxiety,[1]
+I felt anxious before the presentation. I practiced but still froze. I apologized and rushed through it. I feel embarrassed.,High Anxiety,[1]
+I felt nervous in the library. I worried people were judging me. I left early and studied at home. I feel better alone.,High Anxiety,[1]
+I felt anxious during the group activity. I didn' t speak much. I worried they thought I was uninterested. I was just scared.,High Anxiety,[1]
+I felt overwhelmed by the assignment. I didn' t know where to start. I emailed my professor for help. I hope they reply soon.,High Anxiety,[1]
+I felt nervous during the lab. I worried I' d mess up. I followed instructions carefully. I still felt tense afterward.,High Anxiety,[1]
+I felt anxious before the exam. I reviewed my notes but couldn' t concentrate. I skipped breakfast. I felt shaky during the test.,High Anxiety,[1]
+I felt nervous presenting my project. I rehearsed but still forgot parts. I apologized and rushed through it. I hope it was okay.,High Anxiety,[1]
+I felt anxious in the cafeteria. I worried people were watching me eat. I left early and ate alone. I feel safer that way.,High Anxiety,[1]
+I felt overwhelmed by the group project. I didn' t know how to contribute. I stayed quiet and did small tasks. I hope that helped.,High Anxiety,[1]
+I felt anxious during the lab. I worried I' d break something. I followed instructions carefully. I still felt tense afterward.,High Anxiety,[1]
+I felt nervous during the seminar. I avoided eye contact. I didn' t ask questions. I left quickly after it ended.,High Anxiety,[1]
+I felt anxious before the meeting. I rehearsed what to say. I still stumbled. I apologized and stayed quiet.,High Anxiety,[1]
+I felt overwhelmed by the schedule. I missed a class. I emailed the professor to explain. I hope they understood.,High Anxiety,[1]
+I felt nervous during the interview. I rehearsed answers but forgot them. I apologized and tried to smile. I hope it went okay.,High Anxiety,[1]
+I felt anxious before the presentation. I practiced but still froze. I apologized and rushed through it. I feel embarrassed.,High Anxiety,[1]
+I felt nervous in the library. I worried people were judging me. I left early and studied at home. I feel better alone.,High Anxiety,[1]
+I felt anxious during the group activity. I didn' t speak much. I worried they thought I was uninterested. I was just scared.,High Anxiety,[1]
+I felt overwhelmed by the assignment. I didn' t know where to start. I emailed my professor for help. I hope they reply soon.,High Anxiety,[1]
+I felt nervous during the lab. I worried I' d mess up. I followed instructions carefully. I still felt tense afterward.,High Anxiety,[1]
+I felt anxious before the exam. I reviewed my notes but couldn' t concentrate. I skipped breakfast. I felt shaky during the test.,High Anxiety,[1]
+I felt nervous presenting my project. I rehearsed but still forgot parts. I apologized and rushed through it. I hope it was okay.,High Anxiety,[1]
+I felt anxious in the cafeteria. I worried people were watching me eat. I left early and ate alone. I feel safer that way.,High Anxiety,[1]
+"Today was just one of those days where everything had to be in order. I started by aligning all my notebooks, then re-labeled my folders. Even my pens had to be sorted by ink level. It helped me focus.",ASD,[1]
+"Lecture notes were a mess, so I rewrote them by hand. Then I color-coded each section and added margin symbols. After that, I scanned them into my archive. It' s tedious, but it calms me.",ASD,"[1,3,4]"
+"First, I mapped out my week on a whiteboard. Then I created a backup in my calendar app. I even set reminders for hydration. Structure makes me feel safe.",ASD,"[1,3,4]"
+"Nothing changed in class, but I still rewrote my notes. I needed to see the logic flow differently. That' s how I understand things best.",ASD,[1]
+Started the day with a plan. Lost it by 10 a.m. because I saw a bird outside and followed it for ten minutes. Then I remembered I had a quiz. I winged it.,ADHD,"[1,3,4]"
+Why did I open five tabs just to check the weather? I ended up watching a video about volcanoes. Then I remembered I had an assignment due. Oops.,ADHD,"[1,3,4]"
+"Energy was high this morning. I cleaned my room, danced to music, and reorganized my closet. Then I realized I hadn' t eaten. I made cereal and forgot the milk.",ADHD,"[1,3,4]"
+Started reading. Then I started sketching. Then I started pacing. Then I forgot what I was doing. Classic.,ADHD,[1]
+"Reading the chapter was like decoding a puzzle. I tried highlighting, but the words still swam. Then I switched to audio. That helped a bit.",Dyslexia,"[1,3,4]"
+"Sentences blur together. I use a ruler to track lines, but sometimes I still lose my place. Audiobooks are easier. I wish all textbooks came with them.",Dyslexia,"[1,3,4]"
+"Reading aloud helps, but only when I' m alone. Otherwise I get nervous. I tried recording myself today. It was strange hearing my voice, but it worked.",Dyslexia,"[1,3,4]"
+"One paragraph took me twenty minutes. I kept mixing up the words. Eventually, I gave up and watched a video summary.",Dyslexia,[1]
+"Silence in the room, but my heart was racing. I kept glancing at the door, hoping no one would notice me. I knew the answer but couldn' t speak. My hands were shaking.",High Anxiety,[1]
+Everyone was laughing at something I didn' t hear. I smiled anyway. Then I worried they were laughing at me. I left early and cried in the bathroom.,High Anxiety,"[1,3,4]"
+"Before the presentation, I rehearsed five times. Still, my voice cracked. I skipped half my slides. Afterward, I apologized to the group. They said it was fine, but I' m not convinced.",High Anxiety,"[1,3,4]"
+"Even ordering coffee is hard. I rehearse what to say, but my voice disappears when it' s my turn. I end up pointing at the menu. Then I leave quickly.",High Anxiety,"[1,3,4]"
+"Group work again. I stayed quiet, did my part, and left early. They probably think I' m rude. I just didn' t want to be judged.",High Anxiety,"[1,3,4]"
+Skipped breakfast. My stomach growled through the whole lecture. I kept thinking people could hear it. I left before the Q&A.,High Anxiety,"[1,3,4]"
+"Nothing went wrong today, but I still felt tense. I kept scanning the room for judgment. Even silence feels loud sometimes.",High Anxiety,[1]
+Started the essay. Got stuck on the first sentence. Then I reorganized my desk. Then I made tea. Then I forgot the essay.,ADHD,"[1,3,4]"
+Why do I always open ten tabs? I was researching climate change and ended up reading about penguins. Then I watched a documentary. Then I forgot the assignment.,ADHD,"[1,3,4]"
+"Energy spike. Cleaned the kitchen, danced to a playlist, reorganized my closet. Then I remembered I had class. I was late.",ADHD,"[1,3,4]"
+Opened my planner. Doodled in the margins. Then I remembered I had a meeting. I ran out the door without my notes.,ADHD,"[1,3,4]"
+Started reading. Got distracted by a bird outside. Then I tried again. Then I fell asleep. Then I gave up.,ADHD,"[1,3,4]"
+Reading aloud helps. But only when I' m alone. I tried it in the library and felt embarrassed. I' ll stick to audiobooks.,Dyslexia,"[1,3,4]"
+Letters blur together. I use a ruler to track lines. Still lose my place. Podcasts make more sense.,Dyslexia,"[1,3,4]"
+"One paragraph took me twenty minutes. I mixed up the words. Eventually, I gave up and watched a video summary.",Dyslexia,[1]
+Highlighting helps sometimes. But today it didn' t. I tried switching colors. Then I tried audio. Still confused.,Dyslexia,"[1,3,4]"
+Rewrote my notes by hand. Then typed them. Then color-coded them. Then printed them. It' s the only way I feel ready.,ASD,"[1,3,4]"
+Created a flowchart for my essay. Then a checklist. Then a timeline. Then a backup plan. Structure is everything.,ASD,"[1,3,4]"
+Lecture was fine. But I still reorganized my notes. I needed to see the logic differently. That' s how I learn.,ASD,[1]
+Spent the morning labeling folders. Then I sorted my pens. Then I backed up my files. Then I cleaned my keyboard.,ASD,"[1,3,4]"
+Started with a whiteboard sketch. Then moved to digital. Then printed it. Then laminated it. It' s ready for review.,ASD,"[1,3,4]"
+"Walked into class and sat near the door. Just in case I needed to leave. I didn' t, but I kept thinking about it.",High Anxiety,[1]
+Everyone was chatting. I smiled and nodded. Then I worried they thought I was fake. I left before the break.,High Anxiety,"[1,3,4]"
+Rehearsed my lines ten times. Still froze. Skipped half the slides. Apologized. Pretended I was fine.,High Anxiety,"[1,3,4]"
+Started the day with a plan. Lost it by 10 a.m. Got distracted by a squirrel. Then forgot my quiz. Then panicked.,ADHD,"[1,3,4]"
+Opened five tabs. Ended up watching a video about volcanoes. Then remembered my assignment. Oops.,ADHD,"[1,3,4]"
+Cleaned my room. Danced to music. Reorganized my closet. Then realized I hadn' t eaten. Made cereal. Forgot the milk.,ADHD,"[1,3,4]"
+Reading the chapter was like decoding a puzzle. Highlighted everything. Still confused. Switched to audio. That helped.,Dyslexia,"[1,3,4]"
+Sentences blur together. Ruler helps. Still lose my place. Audiobooks are easier.,Dyslexia,"[1,3,4]"
+Reading aloud helps. Recorded myself. Weird hearing my voice. But it worked.,Dyslexia,"[1,3,4]"
+Mapped out my week on a whiteboard. Created a backup in my calendar app. Set reminders for hydration. Structure makes me feel safe.,ASD,"[1,3,4]"
+Rewrote lecture notes by hand. Color-coded each section. Added margin symbols. Scanned them into my archive.,ASD,"[1,3,4]"
+"After spending nearly two hours reorganizing my digital folders, I realized I had mislabeled half of them, so I started over, making sure each file was tagged with the correct course and date, which helped me feel more in control of my academic progress.",ASD,[1]
+"I began my morning by reviewing the syllabus line by line, highlighting key deadlines and cross-referencing them with my calendar; then I created a task list broken down by week, and finally I printed a copy to tape above my desk for quick reference.",ASD,"[1,3,4]"
+"While the lecture was straightforward, I still felt compelled to rewrite my notes using a structured outline format, adding color-coded headers and margin annotations, which later helped me identify gaps in my understanding that I hadn' t noticed before.",ASD,"[1,3,4]"
+"I spent the afternoon building a spreadsheet that tracks my study hours, breaks, and mood fluctuations, hoping to find patterns that might explain my recent drop in focus, and although the data isn' t conclusive yet, the process itself felt reassuring.",ASD,"[1,3,4]"
+"I woke up with a clear plan to finish my essay, but after opening my laptop, I got distracted by a news article, then a video, and eventually found myself deep into a rabbit hole about ancient architecture, completely forgetting the original task until late evening.",ADHD,"[1,3,4]"
+"I tried to focus on my reading assignment, but halfway through the first paragraph, I noticed a smudge on my desk, which led to a thirty-minute cleaning spree, followed by a snack break, and by the time I returned, I had lost all momentum.",ADHD,"[1,3,4]"
+"I started writing my lab report, but then remembered I hadn' t replied to a message, which led me to check all my notifications, and somehow I ended up reorganizing my phone apps instead of finishing the report, which is now due tomorrow.",ADHD,"[1,3,4]"
+"I opened my planner with the intention of scheduling my week, but after doodling in the margins and flipping through old pages, I realized I had spent an hour without actually writing anything down, and now I feel behind.",ADHD,[1]
+"Reading the assigned chapter felt like trying to decode a foreign language; I kept losing my place, even with a ruler, and the words seemed to shift on the page, so I switched to an audiobook version, which helped me grasp the main ideas more clearly.",Dyslexia,"[1,3,4]"
+"I attempted to summarize the article by writing bullet points, but I kept mixing up the terminology and spelling errors piled up, so I asked a friend to explain the key concepts, and with their help, I finally understood the main argument.",Dyslexia,"[1,3,4]"
+"Although I tried reading aloud to improve comprehension, I stumbled over several words and felt frustrated, so I recorded myself and played it back, which was awkward but surprisingly effective in helping me retain the material.",Dyslexia,"[1,3,4]"
+"I spent nearly an hour trying to read a single page, constantly rereading sentences and second-guessing my understanding, and even though I eventually finished it, I' m not sure how much I actually absorbed.",Dyslexia,[1]
+"Walking into the seminar room, I immediately scanned for an empty seat near the exit, just in case I needed to leave early, and although I stayed for the entire session, I spent most of it worrying about whether anyone was watching me.",High Anxiety,[1]
+"During the group discussion, I rehearsed my comment silently several times, but when it was my turn, I froze, mumbled something vague, and then spent the rest of the meeting replaying that moment in my head, convinced I had embarrassed myself.",High Anxiety,"[1,3,4]"
+"I spent the morning preparing for my presentation, practicing each slide and timing myself, but once I stood in front of the class, my voice trembled, I skipped key points, and afterward I apologized repeatedly, even though no one seemed upset.",High Anxiety,"[1,3,4]"
+"Even ordering lunch felt overwhelming today; I rehearsed my request in my head, but when I reached the counter, I panicked, pointed at the menu, and left quickly after paying, convinced the cashier thought I was strange.",High Anxiety,"[1,3,4]"
+"Although I had planned to stay quiet during the seminar, I found myself compelled to speak when the topic shifted to something I had researched extensively, and even though my voice trembled, I managed to share my thoughts before retreating into silence again.",High Anxiety,"[1,3,4]"
+"Despite rehearsing my presentation multiple times, I still stumbled over the introduction, skipped several slides, and ended up apologizing profusely to my classmates, who reassured me afterward, though I couldn' t shake the feeling that I had let them down.",High Anxiety,"[1,3,4]"
+"Even simple interactions like asking for directions make me nervous; I rehearse what to say, worry about how I' ll be perceived, and often end up avoiding the situation entirely, which only reinforces my anxiety.",High Anxiety,[1]
+"After spending most of the morning trying to read a single chapter, I realized I had only understood fragments of it, so I switched to watching a video summary, which helped clarify the main points, though I still feel unsure about the details.",Dyslexia,"[1,3,4]"
+"I attempted to write a summary of the lecture, but my spelling errors kept distracting me, and I eventually asked a friend to help me organize the key ideas, which made the process smoother and less frustrating.",Dyslexia,"[1,3,4]"
+"Reading aloud helps me process information better, but I often stumble over words and lose my place, so I' ve started using a text-to-speech app that lets me follow along while listening, which has improved my retention.",Dyslexia,"[1,3,4]"
+"Although I tried to focus on the textbook, the words kept shifting and blending together, and even with a ruler to guide my eyes, I couldn' t maintain concentration, so I gave up and listened to a podcast instead.",Dyslexia,"[1,3,4]"
+"I spent the afternoon creating a detailed outline for my research paper, organizing each section with bullet points and references, and while it took longer than expected, I now feel more confident about how to approach the writing process.",ASD,[1]
+"After reviewing my notes, I realized they lacked structure, so I rewrote them using a hierarchical format, added color-coded highlights, and created a digital backup, which made the material easier to navigate and study.",ASD,"[1,3,4]"
+"I began my day by organizing my workspace, aligning my books, labeling folders, and setting up my calendar, and although it may seem excessive, this routine helps me feel grounded and ready to tackle academic tasks.",ASD,[1]
+"While the lecture was informative, I still felt the need to reformat the slides into a linear outline, add annotations, and cross-reference with the textbook, which helped me identify inconsistencies and deepen my understanding.",ASD,"[1,3,4]"
+"Despite planning to finish my assignment early, I got distracted by a video about space exploration, then reorganized my bookshelf, and finally remembered the deadline just an hour before it was due, which led to a frantic writing session.",ADHD,"[1,3,4]"
+"I opened my laptop to start my essay, but ended up browsing memes, watching tutorials, and rearranging my desktop icons, and by the time I returned to the document, I had forgotten my original thesis.",ADHD,"[1,3,4]"
+"Although I had a clear schedule laid out, I abandoned it within an hour to chase a random idea about building a birdhouse, which led to a trip to the hardware store and no progress on my actual tasks.",ADHD,"[1,3,4]"
+"I tried to study for my exam, but after reading two pages, I started sketching in my notebook, then reorganized my closet, and finally took a nap, waking up unsure of what day it was.",ADHD,"[1,3,4]"
+"Even though I had planned to work on my essay, I spent most of the afternoon rearranging my room, experimenting with lighting setups, and testing new playlists, which made me feel productive but didn' t help my deadline.",ADHD,"[1,3,4]"
+"I spent the evening organizing my flashcards by topic, difficulty, and relevance to upcoming exams, and although it took longer than expected, the process helped me identify which areas I need to focus on most.",ASD,[1]
+"After reviewing the lab instructions, I created a checklist with time estimates for each step, then printed a copy to tape inside my notebook, and finally ran through the procedure mentally to reduce surprises during tomorrow' s session.",ASD,"[1,3,4]"
+"I started building a reference sheet for my statistics class, including formulas, definitions, and example problems, and once it was complete, I laminated it and added it to my study binder.",ASD,[1]
+"I had every intention of finishing my essay, but after opening the document, I got distracted by a pop-up notification, which led me to check social media, and before I knew it, two hours had passed and I hadn' t written a single word.",ADHD,"[1,3,4]"
+"I tried to read the assigned article, but the font was small and the layout was dense, so I switched to a summary video, paused it to take notes, and then got sidetracked by a related documentary.",ADHD,"[1,3,4]"
+"I opened my planner to schedule the week, but ended up sketching in the margins, reorganizing my pens, and watching a tutorial on bullet journaling, which was fun but didn' t help me meet any deadlines.",ADHD,"[1,3,4]"
+"I attempted to read the chapter using a colored overlay, which helped a little, but I still struggled with tracking lines, so I switched to audio and followed along with the printed text, which made the material more accessible.",Dyslexia,"[1,3,4]"
+"I spent an hour trying to summarize the lecture notes, but kept confusing similar-sounding terms, so I asked a classmate to walk me through the key points, and together we created a mind map that clarified the structure.",Dyslexia,"[1,3,4]"
+"Although I tried reading aloud to improve comprehension, I kept stumbling over words and losing my place, so I recorded myself and played it back, which helped me notice patterns in my mistakes.",Dyslexia,"[1,3,4]"
+"Walking into the classroom, I immediately felt my chest tighten, so I chose a seat near the door and avoided eye contact, and although I stayed for the entire lecture, I barely absorbed anything because I was so focused on not drawing attention.",High Anxiety,[1]
+"Before the group meeting, I rehearsed my points repeatedly, but when it was my turn to speak, I froze, mumbled something vague, and spent the rest of the session replaying that moment in my head, convinced I had embarrassed myself.",High Anxiety,"[1,3,4]"
+"I spent the morning preparing for my presentation, practicing each slide and timing myself, but once I stood in front of the class, my voice trembled, I skipped key points, and afterward I apologized repeatedly, even though no one seemed upset.",High Anxiety,"[1,3,4]"
+"Even ordering lunch felt overwhelming today; I rehearsed my request in my head, but when I reached the counter, I panicked, pointed at the menu, and left quickly after paying, convinced the cashier thought I was strange.",High Anxiety,"[1,3,4]"
+"I tried to participate in the seminar, but every time I considered raising my hand, my heart raced and my thoughts spiraled, so I stayed silent and left feeling disappointed in myself.",High Anxiety,[1]
+"I spent the afternoon creating a study guide with headings, subheadings, and diagrams, and although it took longer than expected, I now feel more confident about the material and ready for the exam.",ASD,[1]
+"I created a spreadsheet to track my progress across multiple subjects, including columns for deadlines, feedback, and time spent, and reviewing it helped me identify which areas need more attention.",ASD,"[1,3,4]"
+"I opened my textbook intending to study, but after reading the first paragraph three times, I gave up and watched a video summary instead, which helped clarify the main ideas.",Dyslexia,"[1,3,4]"
+"I tried to write a summary of the lecture, but my spelling errors kept distracting me, and I eventually asked a friend to help me organize the key ideas, which made the process smoother and less frustrating.",Dyslexia,"[1,3,4]"
+"I spent the morning preparing for my exam, reviewing notes and practicing problems, but when I sat down to take it, my mind went blank and I struggled to focus, even though I knew the material.",High Anxiety,"[1,3,4]"
+"I planned to finish my assignment early, but after opening my laptop, I got distracted by a video, then reorganized my desk, and finally remembered the deadline just an hour before it was due.",ADHD,"[1,3,4]"
+"I tried reading the article but got confused halfway through, so I switched to audio, paused frequently to take notes, and eventually understood the main argument.",Dyslexia,"[1,3,4]"
+"I spent the evening organizing my flashcards by topic, difficulty, and relevance to upcoming exams, and although it took longer than expected, the process helped me identify which areas I need to focus on most.",ASD,[1]
+"I opened my planner to schedule the week, but ended up sketching in the margins, reorganizing my pens, and watching a tutorial on bullet journaling, which was fun but didn' t help me meet any deadlines.",ADHD,"[1,3,4]"
+"I attempted to read the chapter using a colored overlay, which helped a little, but I still struggled with tracking lines, so I switched to audio and followed along with the printed text, which made the material more accessible.",Dyslexia,"[1,3,4]"
+"I walked into the classroom and immediately felt my chest tighten, so I chose a seat near the door and avoided eye contact, and although I stayed for the entire lecture, I barely absorbed anything because I was so focused on not drawing attention.",High Anxiety,[1]
+"I spent the afternoon creating a study guide with headings, subheadings, and diagrams, and although it took longer than expected, I now feel more confident about the material and ready for the exam.",ASD,[1]
+"I tried to participate in the seminar, but every time I considered raising my hand, my heart raced and my thoughts spiraled, so I stayed silent and left feeling disappointed in myself.",High Anxiety,[1]
+"I opened my textbook intending to study, but after reading the first paragraph three times, I gave up and watched a video summary instead, which helped clarify the main ideas.",Dyslexia,"[1,3,4]"
+"I planned to finish my assignment early, but after opening my laptop, I got distracted by a video, then reorganized my desk, and finally remembered the deadline just an hour before it was due.",ADHD,"[1,3,4]"
+"I created a spreadsheet to track my progress across multiple subjects, including columns for deadlines, feedback, and time spent, and reviewing it helped me identify which areas need more attention.",ASD,"[1,3,4]"
+"I tried to write a summary of the lecture, but my spelling errors kept distracting me, and I eventually asked a friend to help me organize the key ideas, which made the process smoother and less frustrating.",Dyslexia,"[1,3,4]"
+"After spending most of the morning organizing my research notes, I realized I had duplicated several sources, so I created a cross-reference index to avoid confusion, and although it took extra time, I now feel more confident about my citations.",ASD,[1]
+"I began by reviewing the lecture slides, then annotated each one with questions and connections to previous material, and finally compiled a summary sheet that I plan to use for exam prep.",ASD,"[1,3,4]"
+"Although the assignment instructions were clear, I still felt the need to create a checklist, a timeline, and a backup plan, which might seem excessive, but helps me stay calm and focused.",ASD,"[1,3,4]"
+"I spent the afternoon building a visual map of my thesis argument, linking each claim to evidence and counterpoints, and once it was complete, I printed it and taped it above my desk for reference.",ASD,[1]
+"I opened my laptop to start my essay, but got distracted by a notification, which led to checking messages, then browsing articles, and eventually reorganizing my desktop folders instead of writing anything.",ADHD,"[1,3,4]"
+"I planned to study for my exam, but after reading two pages, I started sketching, then rearranged my books, and finally took a nap, waking up unsure of what I had actually accomplished.",ADHD,"[1,3,4]"
+"I tried to focus on my reading, but halfway through the first paragraph, I noticed a noise outside, which led me to investigate, then clean my window, and by the time I returned, I had forgotten the topic.",ADHD,"[1,3,4]"
+"Although I had a clear schedule, I abandoned it within an hour to chase a random idea about designing a board game, which was fun but didn' t help me finish my homework.",ADHD,"[1,3,4]"
+"Reading the article felt like trying to decode a foreign language; I kept losing my place, even with a ruler, and the words seemed to shift on the page, so I switched to audio, which helped clarify the main ideas.",Dyslexia,"[1,3,4]"
+"I attempted to summarize the chapter, but kept confusing similar terms and spelling them incorrectly, so I asked a friend to explain the key points, and together we built a concept map that made everything clearer.",Dyslexia,"[1,3,4]"
+"Although I tried reading aloud to improve comprehension, I stumbled over several words and felt frustrated, so I recorded myself and played it back, which was awkward but surprisingly helpful.",Dyslexia,"[1,3,4]"
+"I spent nearly an hour trying to read a single page, constantly rereading sentences and second-guessing my understanding, and even though I eventually finished it, I' m not sure how much I actually absorbed.",Dyslexia,[1]
+"Walking into the seminar room, I immediately scanned for an empty seat near the exit, just in case I needed to leave early, and although I stayed for the entire session, I spent most of it worrying about whether anyone was watching me.",High Anxiety,[1]
+"During the group discussion, I rehearsed my comment silently several times, but when it was my turn, I froze, mumbled something vague, and then spent the rest of the meeting replaying that moment in my head.",High Anxiety,"[1,3,4]"
+"I spent the morning preparing for my presentation, practicing each slide and timing myself, but once I stood in front of the class, my voice trembled, I skipped key points, and afterward I apologized repeatedly.",High Anxiety,"[1,3,4]"
+"Even ordering lunch felt overwhelming today; I rehearsed my request in my head, but when I reached the counter, I panicked, pointed at the menu, and left quickly after paying.",High Anxiety,"[1,3,4]"
+"Although I had planned to stay quiet during the seminar, I found myself compelled to speak when the topic shifted to something I had researched extensively, and even though my voice trembled, I managed to share my thoughts.",High Anxiety,"[1,3,4]"
+"Despite rehearsing my presentation multiple times, I still stumbled over the introduction, skipped several slides, and ended up apologizing profusely to my classmates, who reassured me afterward.",High Anxiety,"[1,3,4]"
+"Even simple interactions like asking for directions make me nervous; I rehearse what to say, worry about how I' ll be perceived, and often end up avoiding the situation entirely.",High Anxiety,[1]
+"After reviewing the lab instructions, I created a checklist with time estimates for each step, printed a copy to tape inside my notebook, and ran through the procedure mentally to reduce surprises.",ASD,"[1,3,4]"
+"Started reading the chapter using a colored overlay, which helped a little, but I still struggled with tracking lines, so I switched to audio and followed along with the printed text.",Dyslexia,"[1,3,4]"
+"Opened my planner to schedule the week, but ended up sketching in the margins, reorganizing my pens, and watching a tutorial on bullet journaling, which was fun but didn' t help me meet any deadlines.",ADHD,"[1,3,4]"
+"Created a spreadsheet to track my progress across multiple subjects, including columns for deadlines, feedback, and time spent, and reviewing it helped me identify which areas need more attention.",ASD,"[1,3,4]"
+"Although I tried to focus on the textbook, the words kept shifting and blending together, and even with a ruler to guide my eyes, I couldn' t maintain concentration, so I gave up and listened to a podcast instead.",Dyslexia,"[1,3,4]"
+"Before the group meeting, I rehearsed my points repeatedly, but when it was my turn to speak, I froze, mumbled something vague, and spent the rest of the session replaying that moment in my head.",High Anxiety,"[1,3,4]"
+"Despite planning to finish my assignment early, I got distracted by a video about space exploration, then reorganized my bookshelf, and finally remembered the deadline just an hour before it was due.",ADHD,"[1,3,4]"
+"I spent the evening organizing my flashcards by topic, difficulty, and relevance to upcoming exams, and although it took longer than expected, the process helped me identify which areas I need to focus on most.",ASD,[1]
+"After reviewing the lab instructions, I created a checklist with time estimates for each step, then printed a copy to tape inside my notebook, and finally ran through the procedure mentally to reduce surprises during tomorrow' s session.",ASD,"[1,3,4]"
+"I started building a reference sheet for my statistics class, including formulas, definitions, and example problems, and once it was complete, I laminated it and added it to my study binder.",ASD,[1]
+"I had every intention of finishing my essay, but after opening the document, I got distracted by a pop-up notification, which led me to check social media, and before I knew it, two hours had passed and I hadn' t written a single word.",ADHD,"[1,3,4]"
+"I tried to read the assigned article, but the font was small and the layout was dense, so I switched to a summary video, paused it to take notes, and then got sidetracked by a related documentary.",ADHD,"[1,3,4]"
+"I opened my planner to schedule the week, but ended up sketching in the margins, reorganizing my pens, and watching a tutorial on bullet journaling, which was fun but didn' t help me meet any deadlines.",ADHD,"[1,3,4]"
+"I attempted to read the chapter using a colored overlay, which helped a little, but I still struggled with tracking lines, so I switched to audio and followed along with the printed text, which made the material more accessible.",Dyslexia,"[1,3,4]"
+"I spent an hour trying to summarize the lecture notes, but kept confusing similar-sounding terms, so I asked a classmate to walk me through the key points, and together we created a mind map that clarified the structure.",Dyslexia,"[1,3,4]"
+"Although I tried reading aloud to improve comprehension, I kept stumbling over words and losing my place, so I recorded myself and played it back, which helped me notice patterns in my mistakes.",Dyslexia,"[1,3,4]"
+"Walking into the classroom, I immediately felt my chest tighten, so I chose a seat near the door and avoided eye contact, and although I stayed for the entire lecture, I barely absorbed anything because I was so focused on not drawing attention.",High Anxiety,[1]
+"Before the group meeting, I rehearsed my points repeatedly, but when it was my turn to speak, I froze, mumbled something vague, and spent the rest of the session replaying that moment in my head, convinced I had embarrassed myself.",High Anxiety,"[1,3,4]"
+"I spent the morning preparing for my presentation, practicing each slide and timing myself, but once I stood in front of the class, my voice trembled, I skipped key points, and afterward I apologized repeatedly, even though no one seemed upset.",High Anxiety,"[1,3,4]"
+"Even ordering lunch felt overwhelming today; I rehearsed my request in my head, but when I reached the counter, I panicked, pointed at the menu, and left quickly after paying, convinced the cashier thought I was strange.",High Anxiety,"[1,3,4]"
+"I tried to participate in the seminar, but every time I considered raising my hand, my heart raced and my thoughts spiraled, so I stayed silent and left feeling disappointed in myself.",High Anxiety,[1]
+"I spent the afternoon creating a study guide with headings, subheadings, and diagrams, and although it took longer than expected, I now feel more confident about the material and ready for the exam.",ASD,[1]
+"I created a spreadsheet to track my progress across multiple subjects, including columns for deadlines, feedback, and time spent, and reviewing it helped me identify which areas need more attention.",ASD,"[1,3,4]"
+"I opened my textbook intending to study, but after reading the first paragraph three times, I gave up and watched a video summary instead, which helped clarify the main ideas.",Dyslexia,"[1,3,4]"
+"I tried to write a summary of the lecture, but my spelling errors kept distracting me, and I eventually asked a friend to help me organize the key ideas, which made the process smoother and less frustrating.",Dyslexia,"[1,3,4]"
+"I spent the morning preparing for my exam, reviewing notes and practicing problems, but when I sat down to take it, my mind went blank and I struggled to focus, even though I knew the material.",High Anxiety,"[1,3,4]"
+"I planned to finish my assignment early, but after opening my laptop, I got distracted by a video, then reorganized my desk, and finally remembered the deadline just an hour before it was due.",ADHD,"[1,3,4]"
+"I tried reading the article but got confused halfway through, so I switched to audio, paused frequently to take notes, and eventually understood the main argument.",Dyslexia,"[1,3,4]"
+"I walked into the classroom and immediately felt my chest tighten, so I chose a seat near the door and avoided eye contact, and although I stayed for the entire lecture, I barely absorbed anything because I was so focused on not drawing attention.",High Anxiety,[1]
+"I spent the afternoon creating a study guide with headings, subheadings, and diagrams, and although it took longer than expected, I now feel more confident about the material and ready for the exam.",ASD,[1]
+"I tried to participate in the seminar, but every time I considered raising my hand, my heart raced and my thoughts spiraled, so I stayed silent and left feeling disappointed in myself.",High Anxiety,[1]
+"I opened my textbook intending to study, but after reading the first paragraph three times, I gave up and watched a video summary instead, which helped clarify the main ideas.",Dyslexia,"[1,3,4]"
+"I planned to finish my assignment early, but after opening my laptop, I got distracted by a video, then reorganized my desk, and finally remembered the deadline just an hour before it was due.",ADHD,"[1,3,4]"
+"I created a spreadsheet to track my progress across multiple subjects, including columns for deadlines, feedback, and time spent, and reviewing it helped me identify which areas need more attention.",ASD,"[1,3,4]"
+"I tried to write a summary of the lecture, but my spelling errors kept distracting me, and I eventually asked a friend to help me organize the key ideas, which made the process smoother and less frustrating.",Dyslexia,"[1,3,4]"
+"I spent the morning preparing for my exam, reviewing notes and practicing problems, but when I sat down to take it, my mind went blank and I struggled to focus, even though I knew the material.",High Anxiety,"[1,3,4]"
+"I planned to finish my assignment early, but after opening my laptop, I got distracted by a video, then reorganized my desk, and finally remembered the deadline just an hour before it was due.",ADHD,"[1,3,4]"
+"I tried reading the article but got confused halfway through, so I switched to audio, paused frequently to take notes, and eventually understood the main argument.",Dyslexia,"[1,3,4]"
+"After organizing my notes into categories, I realized I had missed a few key concepts, so I went back through the lecture slides and added annotations to clarify the connections between ideas.",ASD,[1]
+"I started my day by reviewing the syllabus, then created a weekly planner with color-coded tasks, added reminders for deadlines, and printed a copy to keep on my desk.",ASD,"[1,3,4]"
+"I spent the afternoon building a reference sheet for my biology class, including diagrams, definitions, and examples, and once it was complete, I laminated it and added it to my study binder.",ASD,[1]
+"I opened my laptop to start my essay, but got distracted by a message, which led to checking social media, then browsing articles, and eventually reorganizing my desktop folders instead of writing anything.",ADHD,"[1,3,4]"
+"I planned to study for my exam, but after reading two pages, I started sketching, then rearranged my books, and finally took a nap, waking up unsure of what I had actually accomplished.",ADHD,"[1,3,4]"
+"I tried to focus on my reading, but halfway through the first paragraph, I noticed a noise outside, which led me to investigate, then clean my window, and by the time I returned, I had forgotten the topic.",ADHD,"[1,3,4]"
+"Although I had a clear schedule, I abandoned it within an hour to chase a random idea about designing a board game, which was fun but didn' t help me finish my homework.",ADHD,"[1,3,4]"
+"Reading the article felt like trying to decode a foreign language; I kept losing my place, even with a ruler, and the words seemed to shift on the page, so I switched to audio, which helped clarify the main ideas.",Dyslexia,"[1,3,4]"
+"I attempted to summarize the chapter, but kept confusing similar terms and spelling them incorrectly, so I asked a friend to explain the key points, and together we built a concept map that made everything clearer.",Dyslexia,"[1,3,4]"
+"Although I tried reading aloud to improve comprehension, I stumbled over several words and felt frustrated, so I recorded myself and played it back, which was awkward but surprisingly helpful.",Dyslexia,"[1,3,4]"
+"I spent nearly an hour trying to read a single page, constantly rereading sentences and second-guessing my understanding, and even though I eventually finished it, I' m not sure how much I actually absorbed.",Dyslexia,[1]
+"Walking into the seminar room, I immediately scanned for an empty seat near the exit, just in case I needed to leave early, and although I stayed for the entire session, I spent most of it worrying about whether anyone was watching me.",High Anxiety,[1]
+"During the group discussion, I rehearsed my comment silently several times, but when it was my turn, I froze, mumbled something vague, and then spent the rest of the meeting replaying that moment in my head.",High Anxiety,"[1,3,4]"
+"I spent the morning preparing for my presentation, practicing each slide and timing myself, but once I stood in front of the class, my voice trembled, I skipped key points, and afterward I apologized repeatedly.",High Anxiety,"[1,3,4]"
+"Even ordering lunch felt overwhelming today; I rehearsed my request in my head, but when I reached the counter, I panicked, pointed at the menu, and left quickly after paying.",High Anxiety,"[1,3,4]"
+"Although I had planned to finish my outline today, I ended up revising my entire topic list instead, which felt more productive even though I didn' t get to the actual writing.",ASD,[1]
+"I spent the morning organizing my workspace, labeling drawers, sorting pens by color, and aligning notebooks by subject, which helped me feel mentally prepared for the week ahead.",ASD,[1]
+"After reviewing my notes, I realized I had missed a key concept, so I watched a lecture replay, added annotations to my summary sheet, and created a flashcard set to reinforce the material.",ASD,"[1,3,4]"
+"I started building a timeline for my history paper, then added citations, created a visual map of events, and finally printed it to tape above my desk.",ASD,"[1,3,4]"
+"I opened my laptop to start my essay, but got distracted by a message, which led to checking social media, then browsing articles, and eventually reorganizing my desktop folders instead of writing anything.",ADHD,"[1,3,4]"
+"I planned to study for my exam, but after reading two pages, I started sketching, then rearranged my books, and finally took a nap, waking up unsure of what I had actually accomplished.",ADHD,"[1,3,4]"
+"I tried to focus on my reading, but halfway through the first paragraph, I noticed a noise outside, which led me to investigate, then clean my window, and by the time I returned, I had forgotten the topic.",ADHD,"[1,3,4]"
+"Although I had a clear schedule, I abandoned it within an hour to chase a random idea about designing a board game, which was fun but didn' t help me finish my homework.",ADHD,"[1,3,4]"
+"I started reading the article but got stuck on the second paragraph, so I reread it five times, then switched to audio, and finally asked a friend to explain it.",Dyslexia,"[1,3,4]"
+"I tried reading aloud to help comprehension, but I kept stumbling over words, so I recorded myself and listened back, which helped me notice patterns in my mistakes.",Dyslexia,"[1,3,4]"
+"I used a colored overlay while reading, which made the text clearer, then I took notes and created a summary sheet, which helped me feel more confident.",Dyslexia,"[1,3,4]"
+"I spent nearly an hour trying to read a single page, constantly rereading sentences and second-guessing my understanding, and even though I eventually finished it, I' m not sure how much I actually absorbed.",Dyslexia,[1]
+"Walking into the seminar room, I immediately scanned for an empty seat near the exit, just in case I needed to leave early, and although I stayed for the entire session, I spent most of it worrying about whether anyone was watching me.",High Anxiety,[1]
+"During the group discussion, I rehearsed my comment silently several times, but when it was my turn, I froze, mumbled something vague, and then spent the rest of the meeting replaying that moment in my head.",High Anxiety,"[1,3,4]"
+"I spent the morning preparing for my presentation, practicing each slide and timing myself, but once I stood in front of the class, my voice trembled, I skipped key points, and afterward I apologized repeatedly.",High Anxiety,"[1,3,4]"
+"Even ordering lunch felt overwhelming today; I rehearsed my request in my head, but when I reached the counter, I panicked, pointed at the menu, and left quickly after paying.",High Anxiety,"[1,3,4]"
+"I tried to participate in the seminar, but every time I considered raising my hand, my heart raced and my thoughts spiraled, so I stayed silent and left feeling disappointed in myself.",High Anxiety,[1]
+"I spent the afternoon creating a study guide with headings, subheadings, and diagrams, and although it took longer than expected, I now feel more confident about the material and ready for the exam.",ASD,[1]
+"I Created a spreadsheet to track my progress across multiple subjects, including columns for deadlines, feedback, and time spent, and reviewing it helped me identify which areas need more attention.",ASD,"[1,3,4]"
+"I Opened my textbook intending to study, but after reading the first paragraph three times, I gave up and watched a video summary instead, which helped clarify the main ideas.",Dyslexia,"[1,3,4]"
+"I Tried to write a summary of the lecture, but my spelling errors kept distracting me, and I eventually asked a friend to help me organize the key ideas, which made the process smoother and less frustrating.",Dyslexia,"[1,3,4]"
+"I Spent the morning preparing for my exam, reviewing notes and practicing problems, but when I sat down to take it, my mind went blank and I struggled to focus, even though I knew the material.",High Anxiety,"[1,3,4]"
+"I Planned to finish my assignment early, but after opening my laptop, I got distracted by a video, then reorganized my desk, and finally remembered the deadline just an hour before it was due.",ADHD,"[1,3,4]"
+"I Started reading the article but got confused halfway through, so I switched to audio, paused frequently to take notes, and eventually understood the main argument.",Dyslexia,"[1,3,4]"
+"I Walked into the classroom and immediately felt my chest tighten, so I chose a seat near the door and avoided eye contact, and although I stayed for the entire lecture, I barely absorbed anything because I was so focused on not drawing attention.",High Anxiety,[1]
+"I Spent the afternoon creating a study guide with headings, subheadings, and diagrams, and although it took longer than expected, I now feel more confident about the material and ready for the exam.",ASD,[1]
+"I Tried to participate in the seminar, but every time I considered raising my hand, my heart raced and my thoughts spiraled, so I stayed silent and left feeling disappointed in myself.",High Anxiety,[1]
+"I Opened my textbook intending to study, but after reading the first paragraph three times, I gave up and watched a video summary instead, which helped clarify the main ideas.",Dyslexia,"[1,3,4]"
+"I Planned to finish my assignment early, but after opening my laptop, I got distracted by a video, then reorganized my desk, and finally remembered the deadline just an hour before it was due.",ADHD,"[1,3,4]"
+"I Created a spreadsheet to track my progress across multiple subjects, including columns for deadlines, feedback, and time spent, and reviewing it helped me identify which areas need more attention.",ASD,"[1,3,4]"
+"I Tried to write a summary of the lecture, but my spelling errors kept distracting me, and I eventually asked a friend to help me organize the key ideas, which made the process smoother and less frustrating.",Dyslexia,"[1,3,4]"
+"I Spent the morning preparing for my exam, reviewing notes and practicing problems, but when I sat down to take it, my mind went blank and I struggled to focus, even though I knew the material.",High Anxiety,"[1,3,4]"
+"I Planned to finish my assignment early, but after opening my laptop, I got distracted by a video, then reorganized my desk, and finally remembered the deadline just an hour before it was due.",ADHD,"[1,3,4]"
+"I Tried reading the article but got confused halfway through, so I switched to audio, paused frequently to take notes, and eventually understood the main argument.",Dyslexia,"[1,3,4]"

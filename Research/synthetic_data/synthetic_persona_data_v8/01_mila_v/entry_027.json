@@ -1,0 +1,35 @@
+{
+  "persona": "mila_v",
+  "entry_index": 27,
+  "arc_stage": "Stage 4 – Shock at job offer: receives a job offer from the internship, feels joy + fear + imposter syndrome.",
+  "transcript": "The gentle warmth on my skin has given way to a dull ache, like a low hum in the background of my mind. It's been a few hours since I accepted the internship offer, and yet the excitement still feels fragile, like it might shatter at any moment. My mind is a jumble of thoughts, replaying every conversation with the interviewer, every question asked, every answer given. What if they're expecting me to be something I'm not? The thought sends a familiar knot of anxiety twisting in my stomach, making it hard to breathe. I can almost feel the stress receptors on my skin, like tiny sensors waiting for the signal to fire. The warmth on my skin has faded, replaced by a sense of exhaustion. I can feel it settling in, like a heavy blanket that's difficult to shake off. Internship anxiety has never been kinder to me. Every thought I try to push away swirls back into focus - what if I'm not good enough? What if I embarrass myself in front of my peers? The fear that I'll be found out as an imposter is a constant companion, its presence making every step feel like a gamble.\n\nI've been over the job description a million times, trying to commit every detail to memory. It's like I'm searching for hidden clues, hoping to uncover some secret that will give me an edge. But what if it's all just a facade? What if I'm just pretending to be someone I'm not?\n\nThe thought of being in a professional setting, with real expectations and responsibilities, is both thrilling and terrifying. My mind keeps racing ahead, imagining the meetings, presentations, and deadlines. It's like I'm trapped in a never-ending cycle of \"what ifs\" and \"maybes\". The exhaustion creeps up again, making it harder to focus on anything but my own self-doubt.\n\nI try to calm myself down by thinking about all the things that went right today - the email confirming my place, the excitement of meeting my colleagues. But even those positives are tainted by fear - what if I mess everything up? What if this is all just a mistake?\n\nFor now, I'll try to rest and let some of the anxiety seep away. Tomorrow will bring another dose of reality, but for tonight, at least, I can pretend that everything will be okay.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "work",
+      "sentiment": "negative",
+      "text": "The gentle warmth on my skin has given way to a dull ache, like a low hum in the background of my mind. It's been a few hours since I accepted the internship offer, and yet the excitement still feels fragile, like it might shatter at any moment. My mind is a jumble of thoughts, replaying every conversation with the interviewer, every question asked, every answer given. What if they're expecting me to be something I'm not? The thought sends a familiar knot of anxiety twisting in my stomach, making it hard to breathe. I can almost feel the stress receptors on my skin, like tiny sensors waiting for the signal to fire.",
+      "start_char": 0,
+      "end_char": 622
+    },
+    {
+      "id": 1,
+      "topic": "internship",
+      "sentiment": "negative",
+      "text": "The warmth on my skin has faded, replaced by a sense of exhaustion. I can feel it settling in, like a heavy blanket that's difficult to shake off. Internship anxiety has never been kinder to me. Every thought I try to push away swirls back into focus - what if I'm not good enough? What if I embarrass myself in front of my peers? The fear that I'll be found out as an imposter is a constant companion, its presence making every step feel like a gamble.\n\nI've been over the job description a million times, trying to commit every detail to memory. It's like I'm searching for hidden clues, hoping to uncover some secret that will give me an edge. But what if it's all just a facade? What if I'm just pretending to be someone I'm not?\n\nThe thought of being in a professional setting, with real expectations and responsibilities, is both thrilling and terrifying. My mind keeps racing ahead, imagining the meetings, presentations, and deadlines. It's like I'm trapped in a never-ending cycle of \"what ifs\" and \"maybes\". The exhaustion creeps up again, making it harder to focus on anything but my own self-doubt.\n\nI try to calm myself down by thinking about all the things that went right today - the email confirming my place, the excitement of meeting my colleagues. But even those positives are tainted by fear - what if I mess everything up? What if this is all just a mistake?\n\nFor now, I'll try to rest and let some of the anxiety seep away. Tomorrow will bring another dose of reality, but for tonight, at least, I can pretend that everything will be okay.",
+      "start_char": 623,
+      "end_char": 2184
+    }
+  ],
+  "topics": [
+    "work",
+    "internship"
+  ],
+  "pii": [],
+  "summary": "Here is a summary of the journal entry in 1-2 sentences:\n\nThe writer is struggling with intense anxiety after accepting an internship offer, replaying every conversation and question asked during the interview process and fearing they may not be good enough or impress their peers. They feel overwhelmed by exhaustion and self-doubt, unable to shake off the fear of being found out as an imposter in a professional setting, and are left wondering if everything will be okay for tomorrow.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

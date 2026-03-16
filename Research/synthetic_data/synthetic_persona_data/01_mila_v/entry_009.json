@@ -1,0 +1,61 @@
+{
+  "persona_id": 1,
+  "persona_code": "mila_v",
+  "persona_name": "Mila",
+  "persona_age": 20,
+  "neurotype": "ASD + High Anxiety",
+  "entry_index": 9,
+  "transcript": "I am sitting in my small apartment, surrounded by the familiar comforts of home. I can feel the weight of tomorrow's tasks bearing down upon me, but for now, I am safe. Today, Phillip Jackson called to inform me that I have been selected for the Barnes-Peters internship. The relief is overwhelming, and I find myself smiling uncontrollably as I replay the conversation in my mind.\n\nI hope that makes sense. It's just so...so exciting. I feel like I'm finally doing something worthwhile with my life. Curtis Torres will be thrilled when she hears the news - she's always been my rock, my confidante. I wish I could share this feeling with Christopher Cordova, but even the thought of trying to put it into words feels daunting.\n\nDavid Schmidt is being supportive as usual, offering words of encouragement and reminding me that I've worked hard for this opportunity. I appreciate his unwavering optimism. Father David Lopez always told me that success was within reach if I just kept pushing forward - today's news makes me wonder if he was right all along.\n\nI'm not sure if I'm overthinking, but what if this internship is the key to unlocking my future? What if it means I can prove to myself and others that I am capable of more than I ever thought possible?\n\nThe sound of the clock ticking away on the wall seems a bit louder now, but I'll try to focus. Tomorrow will bring new challenges, and I must be prepared. For now, I'll just savor this feeling of relief and gratitude, allowing myself a moment of quiet celebration before diving headfirst into the unknown.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "social interaction",
+      "text": "I am sitting in my small apartment, surrounded by the familiar comforts of home. I can feel the weight of tomorrow's tasks bearing down upon me, but for now, I am safe. Today, Phillip Jackson called to inform me that I have been selected for the Barnes-Peters internship. The relief is overwhelming, and I find myself smiling uncontrollably as I replay the conversation in my mind.\n\nI hope that makes sense. It's just so...so exciting. I feel like I'm finally doing something worthwhile with my life. Curtis Torres will be thrilled when she hears the news - she's always been my rock, my confidante. I wish I could share this feeling with Christopher Cordova, but even the thought of trying to put it into words feels daunting.\n\nDavid Schmidt is being supportive as usual, offering words of encouragement and reminding me that I've worked hard for this opportunity. I appreciate his unwavering optimism. Father David Lopez always told me that success was within reach if I just kept pushing forward - today's news makes me wonder if he was right all along.\n\nI'm not sure if I'm overthinking, but what if this internship is the key to unlocking my future? What if it means I can prove to myself and others that I am capable of more than I ever thought possible?\n\nThe sound of the clock ticking away on the wall seems a bit louder now, but I'll try to focus. Tomorrow will bring new challenges, and I must be prepared. For now, I'll just savor this feeling of relief and gratitude, allowing myself a moment of quiet celebration before diving headfirst into the unknown.",
+      "start_char": 0,
+      "end_char": 1567
+    }
+  ],
+  "topics": [
+    "social interaction"
+  ],
+  "pii": [
+    {
+      "type": "PARTNER_NAME",
+      "text": "David Schmidt",
+      "start_char": 729,
+      "end_char": 742
+    },
+    {
+      "type": "MOTHER_NAME",
+      "text": "Curtis Torres",
+      "start_char": 501,
+      "end_char": 514
+    },
+    {
+      "type": "FATHER_NAME",
+      "text": "David Lopez",
+      "start_char": 911,
+      "end_char": 922
+    },
+    {
+      "type": "CLOSE_FRIEND",
+      "text": "Christopher Cordova",
+      "start_char": 639,
+      "end_char": 658
+    },
+    {
+      "type": "BOSS_NAME",
+      "text": "Phillip Jackson",
+      "start_char": 176,
+      "end_char": 191
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Barnes-Peters",
+      "start_char": 246,
+      "end_char": 259
+    }
+  ],
+  "summary": "Here is a 1-2 sentence summary of the journal entry:\n\nThe writer is overwhelmed with relief and excitement after receiving news of being selected for an internship, finally feeling like they're on the path to something worthwhile. This new opportunity brings a sense of hope and possibility, allowing them to savor a moment of quiet celebration before facing the challenges that lie ahead.",
+  "arc_stage": "Stage 2 – Relief & gratitude: she finally gets an internship, feels intense relief and loyalty, wants to earn her place."
+}

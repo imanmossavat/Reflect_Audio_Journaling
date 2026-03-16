@@ -1,0 +1,59 @@
+{
+  "persona": "mila_v",
+  "entry_index": 9,
+  "arc_stage": "Stage 2 – Relief & gratitude: she finally gets an internship, feels intense relief and loyalty, wants to earn her place.",
+  "transcript": "March 23rd, 2023\n\nI am attempting to record my thoughts in a manner that is coherent and easy to comprehend. As I sit here, surrounded by the soft hum of my computer and the faint scent of yesterday's tea, I feel a sense of relief wash over me. Yesterday was a day I will not soon forget - the day I received the job offer from Weaver, Erickson and Johnson. I hope this entry makes sense; I've been rereading it multiple times to ensure accuracy.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "general",
+      "sentiment": "neutral",
+      "text": "March 23rd, 2023\n\nI am attempting to record my thoughts in a manner that is coherent and easy to comprehend.",
+      "start_char": 0,
+      "end_char": 108
+    },
+    {
+      "id": 1,
+      "topic": "emotions",
+      "sentiment": "neutral",
+      "text": "As I sit here, surrounded by the soft hum of my computer and the faint scent of yesterday's tea, I feel a sense of relief wash over me.",
+      "start_char": 109,
+      "end_char": 244
+    },
+    {
+      "id": 2,
+      "topic": "work",
+      "sentiment": "negative",
+      "text": "Yesterday was a day I will not soon forget - the day I received the job offer from Weaver, Erickson and Johnson.",
+      "start_char": 245,
+      "end_char": 357
+    },
+    {
+      "id": 3,
+      "topic": "general",
+      "sentiment": "neutral",
+      "text": "I hope this entry makes sense; I've been rereading it multiple times to ensure accuracy.",
+      "start_char": 358,
+      "end_char": 446
+    }
+  ],
+  "topics": [
+    "work",
+    "general",
+    "emotions"
+  ],
+  "pii": [
+    {
+      "type": "COMPANY_NAME",
+      "text": "Weaver, Erickson and Johnson",
+      "start_char": 328,
+      "end_char": 356
+    }
+  ],
+  "summary": "The writer is documenting their thoughts in a journal, reflecting on a significant event: receiving a job offer from Weaver, Erickson and Johnson on March 23rd, 2023. They express relief and hope that the written entry will convey their emotions clearly.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

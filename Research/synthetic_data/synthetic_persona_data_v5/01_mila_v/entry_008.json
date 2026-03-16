@@ -1,0 +1,65 @@
+{
+  "persona": "mila_v",
+  "entry_index": 8,
+  "arc_stage": "Stage 2 – Relief & gratitude: she finally gets an internship, feels intense relief and loyalty, wants to earn her place.",
+  "transcript": "March 22nd, 2023\n\nI have been attempting to organize my thoughts in this entry for some time now. I must ensure that it makes sense. Today was the day I received the job offer from Weaver, Erickson and Johnson. I am not sure if I'm overthinking this, but it feels like a significant development. I keep replaying the conversation with Mario Long in my head, trying to pinpoint exactly what he meant by \"we're excited about your potential.\" I hope that makes sense.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "work",
+      "sentiment": "neutral",
+      "text": "March 22nd, 2023\n\nI have been attempting to organize my thoughts in this entry for some time now.",
+      "start_char": 0,
+      "end_char": 97
+    },
+    {
+      "id": 1,
+      "topic": "general",
+      "sentiment": "negative",
+      "text": "I must ensure that it makes sense.",
+      "start_char": 98,
+      "end_char": 132
+    },
+    {
+      "id": 2,
+      "topic": "work",
+      "sentiment": "positive",
+      "text": "Today was the day I received the job offer from Weaver, Erickson and Johnson.",
+      "start_char": 133,
+      "end_char": 210
+    },
+    {
+      "id": 3,
+      "topic": "anxiety",
+      "sentiment": "neutral",
+      "text": "I am not sure if I'm overthinking this, but it feels like a significant development. I keep replaying the conversation with Mario Long in my head, trying to pinpoint exactly what he meant by \"we're excited about your potential.\" I hope that makes sense.",
+      "start_char": 211,
+      "end_char": 464
+    }
+  ],
+  "topics": [
+    "anxiety",
+    "general",
+    "work"
+  ],
+  "pii": [
+    {
+      "type": "BOSS_NAME",
+      "text": "Mario Long",
+      "start_char": 335,
+      "end_char": 345
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Weaver, Erickson and Johnson",
+      "start_char": 181,
+      "end_char": 209
+    }
+  ],
+  "summary": "The writer received a job offer from Weaver, Erickson and Johnson on March 22nd, 2023, which has left them feeling uncertain about its significance. They are replaying their conversation with Mario Long in an attempt to decipher the meaning behind his vague expression of excitement about their potential.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

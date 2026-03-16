@@ -1,0 +1,65 @@
+{
+  "persona": "mila_v",
+  "entry_index": 0,
+  "arc_stage": "Stage 1 – Desperation & doubt: feels rejected, frustrated, and believes she will never be good enough. No internship yet.",
+  "transcript": "Today, I am attempting to record my thoughts and feelings in a way that makes sense. This is my first journal entry, and I hope it will help me process the events of the day. I had been searching for an internship in Media Design for what feels like an eternity, and yet, I still find myself questioning whether I am truly qualified. The uncertainty has taken a toll on my mental state, and I often feel overwhelmed by the prospect of meeting expectations. Despite this, I am cautiously optimistic about the opportunities that may arise from my recent application.\n\nI must admit that I have been experiencing a sense of relief wash over me since receiving the job offer at Henderson-Liu. It was unexpected, to say the least, and it has forced me to confront feelings of inadequacy and self-doubt. My anxiety is beginning to surface once again, but I am trying to remind myself that this is a positive development – it means I care deeply about my work.\n\nI hope this entry provides some clarity into my current state of mind. School feels like a never-ending cycle of anxiety and self-doubt. Every time I walk through those doors, I'm met with the looming presence of expectations - my parents', teachers', and most importantly, my own. What if I don't meet them? What if I fail?\n\nThe thought sends a knot in my stomach and my heart racing like it's trying to escape. I try to push these thoughts aside, focusing on the task at hand, but they linger in the back of my mind, taunting me with worst-case scenarios.\n\nI'm constantly worried about being seen as \"different\" - not fitting in, not belonging. The sensory overload of the school environment doesn't help; every loud voice, chattering student, and clanging bell makes my anxiety spike. I feel like an outsider, always trying to find my place but never quite feeling like I belong.\n\nDespite these feelings, I know I need to push forward, for myself and for the future. I'm determined to prove to everyone - including myself - that I have what it takes to succeed in this chaotic world of school. But for now, as I sit here with my journal, the doubts linger, refusing to be silenced. The weight of social interaction settles upon me like a blanket, suffocating me with its expectations and demands. I've always struggled to navigate these complex webs of human connection, my autism spectrum diagnosis a constant reminder that I'm wired differently. In school, the cacophony of conversations, the forced laughter and awkward silences, it all feels like an insurmountable task to participate. My anxiety spikes at the mere thought of meeting new people or being in crowded spaces, the uncertainty of how they'll react to me making my skin crawl. Even with a job offer on the table, I'm still plagued by the fear that I won't be good enough, that I'll somehow offend or misunderstand someone, and that's when the doubts creep in, whispering that maybe I should just retreat from it all. The weight of expectation settles upon me like a physical presence, making my chest tighten with each beat. I've been overthinking the job offer at Henderson-Liu, replaying the conversation in my head like a broken record. What did they mean by \"a perfect fit\"? Does that mean I'm not good enough elsewhere? The more I think about it, the more anxious I become, my mind racing with worst-case scenarios. I try to focus on the positive - the opportunity to learn and grow in a field I'm passionate about - but fear keeps creeping in, whispering doubts in my ear.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "general",
+      "sentiment": "positive",
+      "text": "Today, I am attempting to record my thoughts and feelings in a way that makes sense. This is my first journal entry, and I hope it will help me process the events of the day. I had been searching for an internship in Media Design for what feels like an eternity, and yet, I still find myself questioning whether I am truly qualified. The uncertainty has taken a toll on my mental state, and I often feel overwhelmed by the prospect of meeting expectations. Despite this, I am cautiously optimistic about the opportunities that may arise from my recent application.\n\nI must admit that I have been experiencing a sense of relief wash over me since receiving the job offer at Henderson-Liu. It was unexpected, to say the least, and it has forced me to confront feelings of inadequacy and self-doubt. My anxiety is beginning to surface once again, but I am trying to remind myself that this is a positive development – it means I care deeply about my work.\n\nI hope this entry provides some clarity into my current state of mind.",
+      "start_char": 0,
+      "end_char": 1024
+    },
+    {
+      "id": 1,
+      "topic": "school",
+      "sentiment": "negative",
+      "text": "School feels like a never-ending cycle of anxiety and self-doubt. Every time I walk through those doors, I'm met with the looming presence of expectations - my parents', teachers', and most importantly, my own. What if I don't meet them? What if I fail?\n\nThe thought sends a knot in my stomach and my heart racing like it's trying to escape. I try to push these thoughts aside, focusing on the task at hand, but they linger in the back of my mind, taunting me with worst-case scenarios.\n\nI'm constantly worried about being seen as \"different\" - not fitting in, not belonging. The sensory overload of the school environment doesn't help; every loud voice, chattering student, and clanging bell makes my anxiety spike. I feel like an outsider, always trying to find my place but never quite feeling like I belong.\n\nDespite these feelings, I know I need to push forward, for myself and for the future. I'm determined to prove to everyone - including myself - that I have what it takes to succeed in this chaotic world of school. But for now, as I sit here with my journal, the doubts linger, refusing to be silenced.",
+      "start_char": 1025,
+      "end_char": 2138
+    },
+    {
+      "id": 2,
+      "topic": "social interaction",
+      "sentiment": "negative",
+      "text": "The weight of social interaction settles upon me like a blanket, suffocating me with its expectations and demands. I've always struggled to navigate these complex webs of human connection, my autism spectrum diagnosis a constant reminder that I'm wired differently. In school, the cacophony of conversations, the forced laughter and awkward silences, it all feels like an insurmountable task to participate. My anxiety spikes at the mere thought of meeting new people or being in crowded spaces, the uncertainty of how they'll react to me making my skin crawl. Even with a job offer on the table, I'm still plagued by the fear that I won't be good enough, that I'll somehow offend or misunderstand someone, and that's when the doubts creep in, whispering that maybe I should just retreat from it all.",
+      "start_char": 2139,
+      "end_char": 2939
+    },
+    {
+      "id": 3,
+      "topic": "work",
+      "sentiment": "negative",
+      "text": "The weight of expectation settles upon me like a physical presence, making my chest tighten with each beat. I've been overthinking the job offer at Henderson-Liu, replaying the conversation in my head like a broken record. What did they mean by \"a perfect fit\"? Does that mean I'm not good enough elsewhere? The more I think about it, the more anxious I become, my mind racing with worst-case scenarios. I try to focus on the positive - the opportunity to learn and grow in a field I'm passionate about - but fear keeps creeping in, whispering doubts in my ear.",
+      "start_char": 2940,
+      "end_char": 3501
+    }
+  ],
+  "topics": [
+    "school",
+    "social interaction",
+    "work"
+  ],
+  "pii": [
+    {
+      "type": "COMPANY_NAME",
+      "text": "Henderson-Liu",
+      "start_char": 673,
+      "end_char": 686
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Henderson-Liu",
+      "start_char": 3088,
+      "end_char": 3101
+    }
+  ],
+  "summary": "Here is a summary of the journal entry in 1-2 sentences:\n\nThe writer has just received a job offer at Henderson-Liu for a Media Design internship, which has brought on feelings of both relief and anxiety, forcing them to confront their self-doubt and fears about meeting expectations. Despite being eager to learn and grow, they are plagued by worries that they won't be good enough, will offend or misunderstand others, and struggle to navigate the complex social dynamics of school and new professional interactions.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

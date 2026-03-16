@@ -1,0 +1,66 @@
+{
+  "persona": "mila_v",
+  "entry_index": 5,
+  "arc_stage": "Stage 1 – Desperation & doubt: feels rejected, frustrated, and believes she will never be good enough. No internship yet.",
+  "transcript": "March 21st, 2023\n\nI am trying to ensure that this entry is coherent. I have been thinking about my school project for Media Design and how it relates to Weaver, Erickson and Johnson's company. Yesterday, Mario Long offered me a job, which came as a surprise. I hope that makes sense. I was not expecting such an opportunity, especially considering my background in a small town. As I reflect on this development, I realize that I am still processing the emotions.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "health",
+      "sentiment": "neutral",
+      "text": "March 21st, 2023\n\nI am trying to ensure that this entry is coherent.",
+      "start_char": 0,
+      "end_char": 68
+    },
+    {
+      "id": 1,
+      "topic": "school",
+      "sentiment": "neutral",
+      "text": "I have been thinking about my school project for Media Design and how it relates to Weaver, Erickson and Johnson's company.",
+      "start_char": 69,
+      "end_char": 192
+    },
+    {
+      "id": 2,
+      "topic": "general",
+      "sentiment": "neutral",
+      "text": "Yesterday, Mario Long offered me a job, which came as a surprise. I hope that makes sense. I was not expecting such an opportunity, especially considering my background in a small town.",
+      "start_char": 193,
+      "end_char": 378
+    },
+    {
+      "id": 3,
+      "topic": "emotions",
+      "sentiment": "neutral",
+      "text": "As I reflect on this development, I realize that I am still processing the emotions.",
+      "start_char": 379,
+      "end_char": 463
+    }
+  ],
+  "topics": [
+    "health",
+    "general",
+    "school",
+    "emotions"
+  ],
+  "pii": [
+    {
+      "type": "BOSS_NAME",
+      "text": "Mario Long",
+      "start_char": 204,
+      "end_char": 214
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Weaver, Erickson and Johnson",
+      "start_char": 153,
+      "end_char": 181
+    }
+  ],
+  "summary": "Here is a summary of the text in 1-2 sentences:\n\nThe writer received a surprise job offer from Mario Long's company, Weaver, Erickson and Johnson, related to their Media Design project. The unexpected opportunity has left them processing their emotions.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

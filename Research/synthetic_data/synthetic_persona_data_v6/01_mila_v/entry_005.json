@@ -1,0 +1,27 @@
+{
+  "persona": "mila_v",
+  "entry_index": 5,
+  "arc_stage": "Stage 1 – Desperation & doubt: feels rejected, frustrated, and believes she will never be good enough. No internship yet.",
+  "transcript": "As I sit in my small apartment, surrounded by the familiar comforts of fluorescent lighting that seems too harsh today, I find myself returning to a sense of discomfort. The soft hum of the refrigerator and the gentle whir of the air conditioner provide a meager solace against the creeping sense of anxiety that has been following me since this morning. I've been up for over an hour, staring blankly at my laptop screen as the words \"Congratulations\" appear on the screen once more, a constant reminder of the job offer I received yesterday. I'm not sure if I'm truly prepared to accept it, or if it's just another iteration of the cycle of rejection and disappointment that has plagued me for months. \"As I sit here, trying to make sense of today's events, another weight settles in - the looming deadline for my internship application. Can I really take a step forward, or will it be just another failed attempt?\". School has been a constant source of both excitement and dread for me lately. I've been trying to stay on top of my coursework, particularly in Media Design, as it's a crucial aspect of my degree. However, with the added pressure of the internship and job offer, I find myself overanalyzing every task and assignment, ensuring that I meet the expectations of both my professors and potential employers.\n\nI've been finding solace in the structured routine of lectures and tutorials, where I can focus on learning without the weight of external pressures. Yet, even in these moments of relative calm, my mind wanders to the uncertainty of what lies ahead. Will I be able to balance school with a demanding internship? Can I truly make a name for myself in this field?\n\nI hope that makes sense. I've been trying to break down my tasks into manageable chunks, creating a schedule that allows me to allocate specific times for studying and working on assignments. It's a delicate balance, but one that I'm determined to maintain.\n\nReassuringly, I remind myself that I've worked hard to get to this point, and that my professors and instructors believe in my abilities. Their confidence in me is a source of comfort, even when doubts creep in.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "school",
+      "sentiment": "neutral",
+      "transition_text": "\"As I sit here, trying to make sense of today's events, another weight settles in - the looming deadline for my internship application. Can I really take a step forward, or will it be just another failed attempt?\".",
+      "text": "School has been a constant source of both excitement and dread for me lately. I've been trying to stay on top of my coursework, particularly in Media Design, as it's a crucial aspect of my degree. However, with the added pressure of the internship and job offer, I find myself overanalyzing every task and assignment, ensuring that I meet the expectations of both my professors and potential employers.\n\nI've been finding solace in the structured routine of lectures and tutorials, where I can focus on learning without the weight of external pressures. Yet, even in these moments of relative calm, my mind wanders to the uncertainty of what lies ahead. Will I be able to balance school with a demanding internship? Can I truly make a name for myself in this field?\n\nI hope that makes sense. I've been trying to break down my tasks into manageable chunks, creating a schedule that allows me to allocate specific times for studying and working on assignments. It's a delicate balance, but one that I'm determined to maintain.\n\nReassuringly, I remind myself that I've worked hard to get to this point, and that my professors and instructors believe in my abilities. Their confidence in me is a source of comfort, even when doubts creep in.",
+      "start_char": 919,
+      "end_char": 2156
+    }
+  ],
+  "topics": [
+    "school"
+  ],
+  "pii": [],
+  "summary": "Here is a summary of the journal entry in 1-2 sentences:\n\nThe writer is struggling with anxiety and self-doubt as they weigh the pros and cons of accepting a job offer and balancing school responsibilities, feeling overwhelmed by the added pressure. Despite their best efforts to stay on top of tasks and coursework, their mind wanders to uncertainty about their future in Media Design.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

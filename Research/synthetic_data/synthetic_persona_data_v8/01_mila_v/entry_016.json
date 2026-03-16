@@ -1,0 +1,43 @@
+{
+  "persona": "mila_v",
+  "entry_index": 16,
+  "arc_stage": "Stage 3 – Overwhelmed but proud: worries she won't meet expectations, but starts recognizing her growth and small wins.",
+  "transcript": "Today's events have left me feeling a sense of relief that is palpable, and I can still feel the weight of it lifting off my shoulders. The pressure to meet expectations has been mitigated, and for that, I am grateful. School, which has consistently been a source of anxiety for me, now feels like a manageable task rather than an insurmountable challenge. The thought of walking on eggshells, avoiding drawing attention to myself, no longer haunts me. My anxious mind has begun to recognize small wins and growth, and I am cautiously optimistic about my ability to navigate this new terrain. Work, a constant source of anxiety for me. The thought of putting on a professional facade, of pretending to be confident and composed, feels suffocating at times. I worry that my true self will slip through the cracks, that others will see past the mask I wear. But today's events have given me pause. Meeting with my supervisor, discussing my progress and goals, felt like a weight was lifted off my shoulders. For the first time in a long while, I felt seen and heard, not just as an employee but as a person. The relief is still palpable, a sense of validation that I'm on the right path. The weight of self-worth settles heavy on my chest, a constant reminder that I'm not good enough. The anxiety that's always lingered in the background now seems to seep into every aspect of my life, making it hard to breathe. I worry that others will judge me harshly, that they'll see the cracks in my armor and decide I'm not worthy of their acceptance. But today, something shifted inside me. Perhaps it was the small victories I celebrated earlier, or maybe it was just the simple fact that I made it through another day without completely unraveling. Whatever it was, it gave me permission to acknowledge my own value, to recognize that I'm more than just a collection of flaws and fears. The thought is both exhilarating and terrifying, like standing at the edge of a cliff with nothing but air beneath my feet.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "general",
+      "sentiment": "positive",
+      "text": "Today's events have left me feeling a sense of relief that is palpable, and I can still feel the weight of it lifting off my shoulders. The pressure to meet expectations has been mitigated, and for that, I am grateful. School, which has consistently been a source of anxiety for me, now feels like a manageable task rather than an insurmountable challenge. The thought of walking on eggshells, avoiding drawing attention to myself, no longer haunts me. My anxious mind has begun to recognize small wins and growth, and I am cautiously optimistic about my ability to navigate this new terrain.",
+      "start_char": 0,
+      "end_char": 592
+    },
+    {
+      "id": 1,
+      "topic": "work",
+      "sentiment": "positive",
+      "text": "Work, a constant source of anxiety for me. The thought of putting on a professional facade, of pretending to be confident and composed, feels suffocating at times. I worry that my true self will slip through the cracks, that others will see past the mask I wear. But today's events have given me pause. Meeting with my supervisor, discussing my progress and goals, felt like a weight was lifted off my shoulders. For the first time in a long while, I felt seen and heard, not just as an employee but as a person. The relief is still palpable, a sense of validation that I'm on the right path.",
+      "start_char": 593,
+      "end_char": 1185
+    },
+    {
+      "id": 2,
+      "topic": "self-worth",
+      "sentiment": "negative",
+      "text": "The weight of self-worth settles heavy on my chest, a constant reminder that I'm not good enough. The anxiety that's always lingered in the background now seems to seep into every aspect of my life, making it hard to breathe. I worry that others will judge me harshly, that they'll see the cracks in my armor and decide I'm not worthy of their acceptance. But today, something shifted inside me. Perhaps it was the small victories I celebrated earlier, or maybe it was just the simple fact that I made it through another day without completely unraveling. Whatever it was, it gave me permission to acknowledge my own value, to recognize that I'm more than just a collection of flaws and fears. The thought is both exhilarating and terrifying, like standing at the edge of a cliff with nothing but air beneath my feet.",
+      "start_char": 1186,
+      "end_char": 2003
+    }
+  ],
+  "topics": [
+    "work",
+    "self-worth"
+  ],
+  "pii": [],
+  "summary": "Here is a summary of the journal entry in 1-2 sentences:\n\nThe writer feels a palpable sense of relief and validation after meeting with their supervisor, which has lifted the pressure to meet expectations and allowed them to see themselves as more than just a collection of flaws. This newfound recognition of their own value has given them permission to acknowledge their worth and is both exhilarating and terrifying, leaving them cautiously optimistic about navigating this new terrain of self-acceptance.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

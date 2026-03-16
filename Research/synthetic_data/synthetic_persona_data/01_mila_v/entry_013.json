@@ -1,0 +1,43 @@
+{
+  "persona_id": 1,
+  "persona_code": "mila_v",
+  "persona_name": "Mila",
+  "persona_age": 20,
+  "neurotype": "ASD + High Anxiety",
+  "entry_index": 13,
+  "transcript": "Dear Journal,\n\nI am sitting in my small apartment, surrounded by the familiar comforts of home. The sunlight streaming through the window casts an uncomfortable glare on the walls, making me squint slightly as I try to focus on the letter in front of me. Today was a day I can almost barely contain my excitement for - Phillip Jackson informed me that I have been selected for the Barnes-Peters internship.\n\nI feel a wave of relief wash over me as I think about all the hours spent pouring over application materials, attending interviews, and practicing responses to common interview questions. It's all been worth it, I suppose. Curtis told me yesterday that she was proud of me, too - her words made me pause for a moment and savor the feeling of validation.\n\nI hope that makes sense - I'm not sure if I'm overthinking this, but it feels like a significant accomplishment. Turning pages in my journal, I can see how far I've come since freshman year. Christopher said something about me being \"on top of things\" during our last conversation, which made me smile. David mentioned that he's confident I'll excel at the internship - his words mean more to me than they probably should.\n\nAs I sit here now, trying to calm my racing thoughts, I realize that this feels like a turning point for me. Earning my place in Barnes-Peters could be the start of something more substantial - a sense of belonging, maybe even career stability. Phillip said that he'll be checking in regularly, which makes me feel both relieved and anxious at the same time.\n\nI hope I'm not overestimating myself - but right now, it feels like anything is possible.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "internship",
+      "text": "Dear Journal,\n\nI am sitting in my small apartment, surrounded by the familiar comforts of home. The sunlight streaming through the window casts an uncomfortable glare on the walls, making me squint slightly as I try to focus on the letter in front of me. Today was a day I can almost barely contain my excitement for - Phillip Jackson informed me that I have been selected for the Barnes-Peters internship.\n\nI feel a wave of relief wash over me as I think about all the hours spent pouring over application materials, attending interviews, and practicing responses to common interview questions. It's all been worth it, I suppose. Curtis told me yesterday that she was proud of me, too - her words made me pause for a moment and savor the feeling of validation.\n\nI hope that makes sense - I'm not sure if I'm overthinking this, but it feels like a significant accomplishment. Turning pages in my journal, I can see how far I've come since freshman year. Christopher said something about me being \"on top of things\" during our last conversation, which made me smile. David mentioned that he's confident I'll excel at the internship - his words mean more to me than they probably should.\n\nAs I sit here now, trying to calm my racing thoughts, I realize that this feels like a turning point for me. Earning my place in Barnes-Peters could be the start of something more substantial - a sense of belonging, maybe even career stability. Phillip said that he'll be checking in regularly, which makes me feel both relieved and anxious at the same time.\n\nI hope I'm not overestimating myself - but right now, it feels like anything is possible.",
+      "start_char": 0,
+      "end_char": 1636
+    }
+  ],
+  "topics": [
+    "internship"
+  ],
+  "pii": [
+    {
+      "type": "BOSS_NAME",
+      "text": "Phillip Jackson",
+      "start_char": 319,
+      "end_char": 334
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Barnes-Peters",
+      "start_char": 381,
+      "end_char": 394
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Barnes-Peters",
+      "start_char": 1316,
+      "end_char": 1329
+    }
+  ],
+  "summary": "Here is a summary of the journal entry in 2 concise sentences:\n\nThe writer feels an overwhelming sense of relief and validation after being selected for the Barnes-Peters internship, seeing it as a significant accomplishment that could mark a turning point in their career. With newfound excitement and hope, they imagine this opportunity as a stepping stone to greater stability, belonging, and success.",
+  "arc_stage": "Stage 2 – Relief & gratitude: she finally gets an internship, feels intense relief and loyalty, wants to earn her place."
+}

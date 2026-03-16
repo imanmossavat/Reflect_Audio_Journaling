@@ -1,0 +1,50 @@
+{
+  "persona_id": 1,
+  "persona_code": "mila_v",
+  "persona_name": "Mila",
+  "persona_age": 20,
+  "neurotype": "ASD + High Anxiety",
+  "entry_index": 1,
+  "transcript": "Dear Journal,\n\nToday was one of those days where I felt like I'm stuck in a never-ending loop. I woke up feeling anxious, as is usually the case before an interview at Barnes-Peters. My mind began racing with all the things that could go wrong - me stumbling over my words, forgetting important details about the company, or, worst-case scenario, being rejected outright.\n\nI hope that makes sense, but it's hard to explain how overwhelming it feels when I think about standing in front of Phillip Jackson and trying to make a good impression. My palms are still sweating as I write this. \n\nAs I got ready for the interview, my mom kept calling me, asking if everything was okay. I reassured her that I'd be fine, but she knows me too well to believe me. She's always been there to remind me of my strengths and capabilities.\n\nI took a few deep breaths before leaving for the interview, trying to calm myself down. The bright lights of West Stephanie's streets made everything feel even more overwhelming. I could hear the sounds of cars honking and people chattering - it was all so loud.\n\nWhen I arrived at Barnes-Peters, I felt like I was going to collapse. My heart was racing, and my mind kept repeating the same phrase: \"What if they don't think I'm good enough?\" Ugh, why does that keep happening?! \n\nLuckily, Phillip was understanding and gave me some extra time to collect myself before we started the interview. We talked about my internship experience at West Wesleyborough University, and I tried to focus on my strengths instead of those pesky doubts creeping in.\n\nAfter the interview, David said he believed in me, which always makes me feel better. Maybe this will be the turning point - maybe today's interview was the one that showed everyone what I'm capable of.\n\nI'm not sure if that makes sense, but I have to hold onto something positive here. Tomorrow is another day, and I'll face whatever comes next with a bit more confidence, hopefully.\n\nYours truly,\nJacqueline",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "internship",
+      "text": "Dear Journal,\n\nToday was one of those days where I felt like I'm stuck in a never-ending loop. I woke up feeling anxious, as is usually the case before an interview at Barnes-Peters. My mind began racing with all the things that could go wrong - me stumbling over my words, forgetting important details about the company, or, worst-case scenario, being rejected outright.\n\nI hope that makes sense, but it's hard to explain how overwhelming it feels when I think about standing in front of Phillip Jackson and trying to make a good impression. My palms are still sweating as I write this. \n\nAs I got ready for the interview, my mom kept calling me, asking if everything was okay. I reassured her that I'd be fine, but she knows me too well to believe me. She's always been there to remind me of my strengths and capabilities.\n\nI took a few deep breaths before leaving for the interview, trying to calm myself down. The bright lights of West Stephanie's streets made everything feel even more overwhelming. I could hear the sounds of cars honking and people chattering - it was all so loud.\n\nWhen I arrived at Barnes-Peters, I felt like I was going to collapse. My heart was racing, and my mind kept repeating the same phrase: \"What if they don't think I'm good enough?\" Ugh, why does that keep happening?! \n\nLuckily, Phillip was understanding and gave me some extra time to collect myself before we started the interview. We talked about my internship experience at West Wesleyborough University, and I tried to focus on my strengths instead of those pesky doubts creeping in.\n\nAfter the interview, David said he believed in me, which always makes me feel better. Maybe this will be the turning point - maybe today's interview was the one that showed everyone what I'm capable of.\n\nI'm not sure if that makes sense, but I have to hold onto something positive here. Tomorrow is another day, and I'll face whatever comes next with a bit more confidence, hopefully.\n\nYours truly,\nJacqueline",
+      "start_char": 0,
+      "end_char": 1986
+    }
+  ],
+  "topics": [
+    "internship",
+    "social interaction"
+  ],
+  "pii": [
+    {
+      "type": "BOSS_NAME",
+      "text": "Phillip Jackson",
+      "start_char": 489,
+      "end_char": 504
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Barnes-Peters",
+      "start_char": 168,
+      "end_char": 181
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Barnes-Peters",
+      "start_char": 1108,
+      "end_char": 1121
+    },
+    {
+      "type": "CITY",
+      "text": "West Stephanie",
+      "start_char": 935,
+      "end_char": 949
+    }
+  ],
+  "summary": "Here's a concise summary of the journal entry:\n\nJacqueline felt overwhelmed by anxiety and self-doubt as she prepared for an interview at Barnes-Peters, fearing rejection and feeling like she's stuck in a rut. However, with the support of her mom and a positive conversation with Phillip during the interview, she managed to hold onto hope that this could be the turning point that showcases her capabilities.",
+  "arc_stage": "Stage 1 – Desperation & doubt: feels rejected, frustrated, and believes she will never be good enough. No internship yet."
+}

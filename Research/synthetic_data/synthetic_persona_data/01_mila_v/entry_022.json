@@ -1,0 +1,49 @@
+{
+  "persona_id": 1,
+  "persona_code": "mila_v",
+  "persona_name": "Mila",
+  "persona_age": 20,
+  "neurotype": "ASD + High Anxiety",
+  "entry_index": 22,
+  "transcript": "Dear Journal,\n\nI am sitting in my small apartment, surrounded by the familiar comforts of home. The sunlight streaming through the window highlights the dust motes dancing in the air, and I feel a sense of unease wash over me. Today was supposed to be a day for planning my schedule for the upcoming school semester, but instead, I find myself distracted by thoughts of Phillip Jackson's email about my internship performance.\n\nI hope that makes sense. My mind keeps wandering back to his words, replaying them on repeat like a recording stuck in my head. \"Your dedication to Barnes-Peters is impressive, Jacqueline.\" But what if I'm not good enough? What if I fail? The thought sends a shiver down my spine.\n\nI've been trying to prepare for this moment for months, but every time I think about it, anxiety creeps in and I feel like I'm walking into a minefield. Christopher was kind enough to listen to me vent last night, and he reminded me that I've worked hard to get to this point. He said something about my strengths being my weaknesses, which sounds absurd, but maybe there's some truth to it.\n\nI should probably start making lists for the semester... okay, here are a few things I need to focus on: coursework, meetings with Phillip Jackson, and practicing my presentation skills. Maybe if I break it down like that, it won't feel so overwhelming.\n\nBut what if I'm not good enough? What if I disappoint David or Curtis or anyone else who relies on me?\n\nI'll try to push those thoughts aside for now and focus on the positives. After all, Phillip Jackson did say something about my potential, didn't he?",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "school",
+      "text": "Dear Journal,\n\nI am sitting in my small apartment, surrounded by the familiar comforts of home. The sunlight streaming through the window highlights the dust motes dancing in the air, and I feel a sense of unease wash over me. Today was supposed to be a day for planning my schedule for the upcoming school semester, but instead, I find myself distracted by thoughts of Phillip Jackson's email about my internship performance.\n\nI hope that makes sense. My mind keeps wandering back to his words, replaying them on repeat like a recording stuck in my head. \"Your dedication to Barnes-Peters is impressive, Jacqueline.\" But what if I'm not good enough? What if I fail? The thought sends a shiver down my spine.\n\nI've been trying to prepare for this moment for months, but every time I think about it, anxiety creeps in and I feel like I'm walking into a minefield. Christopher was kind enough to listen to me vent last night, and he reminded me that I've worked hard to get to this point. He said something about my strengths being my weaknesses, which sounds absurd, but maybe there's some truth to it.\n\nI should probably start making lists for the semester... okay, here are a few things I need to focus on: coursework, meetings with Phillip Jackson, and practicing my presentation skills. Maybe if I break it down like that, it won't feel so overwhelming.\n\nBut what if I'm not good enough? What if I disappoint David or Curtis or anyone else who relies on me?\n\nI'll try to push those thoughts aside for now and focus on the positives. After all, Phillip Jackson did say something about my potential, didn't he?",
+      "start_char": 0,
+      "end_char": 1611
+    }
+  ],
+  "topics": [
+    "school"
+  ],
+  "pii": [
+    {
+      "type": "BOSS_NAME",
+      "text": "Phillip Jackson",
+      "start_char": 370,
+      "end_char": 385
+    },
+    {
+      "type": "BOSS_NAME",
+      "text": "Phillip Jackson",
+      "start_char": 1234,
+      "end_char": 1249
+    },
+    {
+      "type": "BOSS_NAME",
+      "text": "Phillip Jackson",
+      "start_char": 1547,
+      "end_char": 1562
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Barnes-Peters",
+      "start_char": 576,
+      "end_char": 589
+    }
+  ],
+  "summary": "Here is a 1-2 sentence summary of the journal entry:\n\nThe writer is feeling anxious about their upcoming internship performance, replaying negative self-doubt in her mind despite having prepared for it and received positive feedback from others. She's struggling to shake off feelings of inadequacy and worry that she may not be good enough, holding onto what-ifs rather than focusing on her strengths and the positives.",
+  "arc_stage": "Stage 4 – Shock at job offer: receives a job offer from the internship, feels joy + fear + imposter syndrome."
+}

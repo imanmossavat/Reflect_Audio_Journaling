@@ -1,0 +1,49 @@
+{
+  "persona_id": 1,
+  "persona_code": "mila_v",
+  "persona_name": "Mila",
+  "persona_age": 20,
+  "neurotype": "ASD + High Anxiety",
+  "entry_index": 17,
+  "transcript": "Dear Journal,\n\nI am sitting in my small apartment, surrounded by the familiar comforts of home. The bright morning light from the window above my desk casts an unusual glow on the pages of the book I'm reading, making words appear almost as if they're swimming in a sea of ink. My fingers tremble slightly as I write these thoughts, a habit I've grown accustomed to when anxiety starts to seep into my veins.\n\nToday, I had to attend a networking event at Barnes-Peters, and it felt like the world was spinning around me. The noise, the chatter, the forced smiles – all of it made me want to retreat to the safety of my apartment and hide beneath the blankets. I hope that makes sense; I'm not sure if I'm overthinking.\n\nI tried to reassure myself that I'd prepared well for the event, that I had a solid elevator pitch ready and that I knew the company's mission inside out. But when it was time to mingle, my mind went blank, and I felt like a puppet with its strings cut – unable to move or speak without being pulled in every direction.\n\nDavid was there too, but even his presence didn't alleviate my anxiety. We exchanged pleasantries, but I could tell he sensed my unease, and our usual ease of conversation felt forced, like two strangers trying to put on a show for the world. I'm not sure if I'll ever be able to shake this feeling of being \"on\" all the time.\n\nDespite it all, I did manage to connect with Christopher briefly, and that was a small victory. We talked about our shared love of photography, and for a moment, my anxiety receded, replaced by a sense of camaraderie. I'm trying to focus on these moments of connection, because they remind me that even when the world feels overwhelming, there are people who understand.\n\nI've been thinking about my internship at Barnes-Peters too, and how it's slowly becoming a part of me. It's not perfect, but it's mine, and I'm learning so much from Phillip Jackson. He expects a lot from his interns, and sometimes that expectation feels like a weight on my shoulders. Still, with each passing day, I feel more confident in my abilities.\n\nAs I write this, the sounds of West Stephanie outside my window are starting to seep in – the hum of cars, the chatter of pedestrians. It's a reminder that there's a whole world beyond my apartment, full of people waiting to be met and connections to be made. I'm not sure if I'll ever be ready for it all, but today, I'm trying to take small steps forward.\n\nI hope this makes sense; I'm still trying to process everything myself.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "social interaction",
+      "text": "Dear Journal,\n\nI am sitting in my small apartment, surrounded by the familiar comforts of home. The bright morning light from the window above my desk casts an unusual glow on the pages of the book I'm reading, making words appear almost as if they're swimming in a sea of ink. My fingers tremble slightly as I write these thoughts, a habit I've grown accustomed to when anxiety starts to seep into my veins.\n\nToday, I had to attend a networking event at Barnes-Peters, and it felt like the world was spinning around me. The noise, the chatter, the forced smiles – all of it made me want to retreat to the safety of my apartment and hide beneath the blankets. I hope that makes sense; I'm not sure if I'm overthinking.\n\nI tried to reassure myself that I'd prepared well for the event, that I had a solid elevator pitch ready and that I knew the company's mission inside out. But when it was time to mingle, my mind went blank, and I felt like a puppet with its strings cut – unable to move or speak without being pulled in every direction.\n\nDavid was there too, but even his presence didn't alleviate my anxiety. We exchanged pleasantries, but I could tell he sensed my unease, and our usual ease of conversation felt forced, like two strangers trying to put on a show for the world. I'm not sure if I'll ever be able to shake this feeling of being \"on\" all the time.\n\nDespite it all, I did manage to connect with Christopher briefly, and that was a small victory. We talked about our shared love of photography, and for a moment, my anxiety receded, replaced by a sense of camaraderie. I'm trying to focus on these moments of connection, because they remind me that even when the world feels overwhelming, there are people who understand.\n\nI've been thinking about my internship at Barnes-Peters too, and how it's slowly becoming a part of me. It's not perfect, but it's mine, and I'm learning so much from Phillip Jackson. He expects a lot from his interns, and sometimes that expectation feels like a weight on my shoulders. Still, with each passing day, I feel more confident in my abilities.\n\nAs I write this, the sounds of West Stephanie outside my window are starting to seep in – the hum of cars, the chatter of pedestrians. It's a reminder that there's a whole world beyond my apartment, full of people waiting to be met and connections to be made. I'm not sure if I'll ever be ready for it all, but today, I'm trying to take small steps forward.\n\nI hope this makes sense; I'm still trying to process everything myself.",
+      "start_char": 0,
+      "end_char": 2528
+    }
+  ],
+  "topics": [
+    "social interaction"
+  ],
+  "pii": [
+    {
+      "type": "BOSS_NAME",
+      "text": "Phillip Jackson",
+      "start_char": 1908,
+      "end_char": 1923
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Barnes-Peters",
+      "start_char": 455,
+      "end_char": 468
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Barnes-Peters",
+      "start_char": 1783,
+      "end_char": 1796
+    },
+    {
+      "type": "CITY",
+      "text": "West Stephanie",
+      "start_char": 2129,
+      "end_char": 2143
+    }
+  ],
+  "summary": "Here is a 1-2 sentence summary of the journal entry:\n\nThe writer struggled to navigate a networking event and felt overwhelmed by anxiety, feeling like they were \"on\" all the time. Despite the challenges, they found small moments of connection and growth, including a brief conversation with Christopher about photography, which gave them hope for finding their place in the world.",
+  "arc_stage": "Stage 3 – Overwhelmed but proud: worries she won't meet expectations, but starts recognizing her growth and small wins."
+}

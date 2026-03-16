@@ -1,0 +1,38 @@
+{
+  "persona_id": 1,
+  "persona_code": "mila_v",
+  "persona_name": "Mila",
+  "persona_age": 20,
+  "neurotype": "ASD + High Anxiety",
+  "entry_index": 19,
+  "transcript": "Dear Journal,\n\nI am sitting in my small apartment, surrounded by the familiar comforts of home. The sunlight streaming through the window is too bright, casting an uncomfortable glow on the walls. I try to focus on the soft hum of the air conditioner, but it only seems to make the silence more oppressive.\n\nToday was a typical day at Barnes-Peters - Phillip Jackson's constant emails and reminders weighing heavily on my mind. I'm not sure if I'm overthinking, but I keep replaying our conversation about the upcoming project in my head. What if I don't meet his expectations? What if I fail?\n\nI hope that makes sense. It's just that school feels like an insurmountable task right now. The coursework is piling up, and I feel like I'm drowning in a sea of assignments and deadlines. I keep wondering how David and Christopher manage to do it all without losing their minds.\n\nBut despite the overwhelming feeling, I did have a small victory today. I managed to finish the project report for the marketing internship without too much stress. Well, not too little stress either, but that's progress, right? Curtis would be proud of me for pushing through.\n\nI'm trying to remind myself that it's okay to make mistakes and that I'm capable of growth. David keeps telling me that, and sometimes his words actually sink in. But when Phillip says something like, \"You need to step up your game,\" all my anxiety spikes again.\n\nI'm not sure if I'm overthinking, but I keep replaying our conversation in my head. What did he mean by \"step up\"? Is it really that simple? Can't I just be myself and figure things out as I go?\n\nI wish I could talk to Curtis about this more. She always knows how to put things into perspective for me. Maybe I'll call her later and see if she can offer any advice.\n\nUntil then, I'm going to try to focus on the small wins - finishing the project report, having a decent conversation with Phillip (most of the time). It's not perfect, but it's progress, right?\n\nI hope that makes sense.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "school",
+      "text": "Dear Journal,\n\nI am sitting in my small apartment, surrounded by the familiar comforts of home. The sunlight streaming through the window is too bright, casting an uncomfortable glow on the walls. I try to focus on the soft hum of the air conditioner, but it only seems to make the silence more oppressive.\n\nToday was a typical day at Barnes-Peters - Phillip Jackson's constant emails and reminders weighing heavily on my mind. I'm not sure if I'm overthinking, but I keep replaying our conversation about the upcoming project in my head. What if I don't meet his expectations? What if I fail?\n\nI hope that makes sense. It's just that school feels like an insurmountable task right now. The coursework is piling up, and I feel like I'm drowning in a sea of assignments and deadlines. I keep wondering how David and Christopher manage to do it all without losing their minds.\n\nBut despite the overwhelming feeling, I did have a small victory today. I managed to finish the project report for the marketing internship without too much stress. Well, not too little stress either, but that's progress, right? Curtis would be proud of me for pushing through.\n\nI'm trying to remind myself that it's okay to make mistakes and that I'm capable of growth. David keeps telling me that, and sometimes his words actually sink in. But when Phillip says something like, \"You need to step up your game,\" all my anxiety spikes again.\n\nI'm not sure if I'm overthinking, but I keep replaying our conversation in my head. What did he mean by \"step up\"? Is it really that simple? Can't I just be myself and figure things out as I go?\n\nI wish I could talk to Curtis about this more. She always knows how to put things into perspective for me. Maybe I'll call her later and see if she can offer any advice.\n\nUntil then, I'm going to try to focus on the small wins - finishing the project report, having a decent conversation with Phillip (most of the time). It's not perfect, but it's progress, right?\n\nI hope that makes sense.",
+      "start_char": 0,
+      "end_char": 2005
+    }
+  ],
+  "topics": [
+    "school",
+    "anxiety"
+  ],
+  "pii": [
+    {
+      "type": "BOSS_NAME",
+      "text": "Phillip Jackson",
+      "start_char": 351,
+      "end_char": 366
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Barnes-Peters",
+      "start_char": 335,
+      "end_char": 348
+    }
+  ],
+  "summary": "Here is a summary of the journal entry in 2 concise, emotionally aware sentences:\n\nThe writer is struggling to cope with the pressure of their job and school responsibilities, feeling overwhelmed by expectations and doubts about their abilities. Despite acknowledging setbacks and self-doubt, they're trying to focus on small victories and remind themselves that it's okay to make mistakes and learn from them.",
+  "arc_stage": "Stage 3 – Overwhelmed but proud: worries she won't meet expectations, but starts recognizing her growth and small wins."
+}

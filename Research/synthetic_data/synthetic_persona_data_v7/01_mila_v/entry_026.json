@@ -1,0 +1,26 @@
+{
+  "persona": "mila_v",
+  "entry_index": 26,
+  "arc_stage": "Stage 4 – Shock at job offer: receives a job offer from the internship, feels joy + fear + imposter syndrome.",
+  "transcript": "As I sit in my small town apartment, the fluorescent lights overhead cast an unforgiving glare on the pages of this notebook, illuminating the thoughts that swirl within me like a maelstrom. The familiar yet unyielding walls seem to close in on me as I struggle to comprehend the events that have transpired. It is only when I pause to collect my thoughts and attempt to organize them into some semblance of order that I begin to grasp the magnitude of what has occurred. My mind reels at the prospect of making such a drastic change in my life, and yet, an insistent whisper within me asserts that perhaps this is exactly where I am meant to be. I hope that makes sense, as I try to reconcile the disparate threads of excitement and trepidation that now threaten to unravel my carefully constructed narrative. As I sit here, surrounded by the hum of my small town's quiet evening, my mind keeps drifting back to the job offer. The words \"internship\" and \"company\" feel like foreign concepts, their meanings obscured by a haze of uncertainty. My heart still races at the thought of it, the thrill mixed with a healthy dose of fear that threatens to suffocate me. I find myself replaying every interaction I've had with my future colleagues, searching for hidden signs or clues that might indicate whether this is truly where I belong. The fluorescent lights overhead seem to pulse in time with my racing thoughts, making it hard for me to focus on anything else.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "work",
+      "sentiment": "negative",
+      "text": "As I sit here, surrounded by the hum of my small town's quiet evening, my mind keeps drifting back to the job offer. The words \"internship\" and \"company\" feel like foreign concepts, their meanings obscured by a haze of uncertainty. My heart still races at the thought of it, the thrill mixed with a healthy dose of fear that threatens to suffocate me. I find myself replaying every interaction I've had with my future colleagues, searching for hidden signs or clues that might indicate whether this is truly where I belong. The fluorescent lights overhead seem to pulse in time with my racing thoughts, making it hard for me to focus on anything else.",
+      "start_char": 811,
+      "end_char": 1462
+    }
+  ],
+  "topics": [
+    "work"
+  ],
+  "pii": [],
+  "summary": "Here is a summary of the text in 1-2 sentences:\n\nThe narrator sits in their small town apartment, struggling to process and understand a life-changing job offer that has left them feeling both excited and terrified. As they try to reconcile their emotions, they become increasingly fixated on the unknown details of the internship and its potential implications for their future.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

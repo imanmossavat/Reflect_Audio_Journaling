@@ -1,0 +1,43 @@
+{
+  "persona_id": 1,
+  "persona_code": "mila_v",
+  "persona_name": "Mila",
+  "persona_age": 20,
+  "neurotype": "ASD + High Anxiety",
+  "entry_index": 8,
+  "transcript": "I am sitting in my small apartment, surrounded by the familiar comforts of home. The lights are slightly dimmed, which I find soothing. My eyes wander to the clock on the wall, and I note that it is 9:47 PM. I've spent the past few hours reviewing my notes for tomorrow's internship interview at Barnes-Peters.\n\nI hope that makes sense, but my mind keeps drifting back to all the things that could go wrong. What if I stumble over my words? What if Phillip Jackson asks me a question I'm not prepared for? My heart starts racing at the mere thought of it.\n\nDespite these doubts, I try to focus on the positive. I've been preparing for this moment for weeks, and I have a solid understanding of our company's mission and values. Christopher has been helping me practice my responses, and he's assured me that I'll do just fine. Still, my brain insists on playing worst-case scenarios.\n\nI find myself repeating phrases I've used in the past to calm myself down: \"Take deep breaths,\" \"You're ready for this.\" But even these simple reassurances feel forced tonight. The silence of the apartment feels oppressive, and I long for the gentle hum of the city outside – the sounds of West Stephanie that normally bring me comfort now seem too loud.\n\nI force myself to concentrate on my notes one more time, hoping to distract myself from the lingering anxiety. Tomorrow will be a new day, after all. I can do this. I just need to trust myself.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "anxiety",
+      "text": "I am sitting in my small apartment, surrounded by the familiar comforts of home. The lights are slightly dimmed, which I find soothing. My eyes wander to the clock on the wall, and I note that it is 9:47 PM. I've spent the past few hours reviewing my notes for tomorrow's internship interview at Barnes-Peters.\n\nI hope that makes sense, but my mind keeps drifting back to all the things that could go wrong. What if I stumble over my words? What if Phillip Jackson asks me a question I'm not prepared for? My heart starts racing at the mere thought of it.\n\nDespite these doubts, I try to focus on the positive. I've been preparing for this moment for weeks, and I have a solid understanding of our company's mission and values. Christopher has been helping me practice my responses, and he's assured me that I'll do just fine. Still, my brain insists on playing worst-case scenarios.\n\nI find myself repeating phrases I've used in the past to calm myself down: \"Take deep breaths,\" \"You're ready for this.\" But even these simple reassurances feel forced tonight. The silence of the apartment feels oppressive, and I long for the gentle hum of the city outside – the sounds of West Stephanie that normally bring me comfort now seem too loud.\n\nI force myself to concentrate on my notes one more time, hoping to distract myself from the lingering anxiety. Tomorrow will be a new day, after all. I can do this. I just need to trust myself.",
+      "start_char": 0,
+      "end_char": 1434
+    }
+  ],
+  "topics": [
+    "anxiety"
+  ],
+  "pii": [
+    {
+      "type": "BOSS_NAME",
+      "text": "Phillip Jackson",
+      "start_char": 449,
+      "end_char": 464
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Barnes-Peters",
+      "start_char": 296,
+      "end_char": 309
+    },
+    {
+      "type": "CITY",
+      "text": "West Stephanie",
+      "start_char": 1175,
+      "end_char": 1189
+    }
+  ],
+  "summary": "Here's a concise summary of the journal entry:\n\nThe writer is struggling with pre-interview jitters and self-doubt as they prepare for their upcoming interview at Barnes-Peters. Despite their best efforts to focus on positives, anxiety and worst-case scenarios keep creeping in, leaving them feeling uneasy and uncertain about their abilities.\n\nThis summary captures the emotional essence of the journal entry, conveying the writer's nervousness and uncertainty while also acknowledging their determination to push through and trust themselves.",
+  "arc_stage": "Stage 2 – Relief & gratitude: she finally gets an internship, feels intense relief and loyalty, wants to earn her place."
+}

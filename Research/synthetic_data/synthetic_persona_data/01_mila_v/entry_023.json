@@ -1,0 +1,37 @@
+{
+  "persona_id": 1,
+  "persona_code": "mila_v",
+  "persona_name": "Mila",
+  "persona_age": 20,
+  "neurotype": "ASD + High Anxiety",
+  "entry_index": 23,
+  "transcript": "I am sitting in my small apartment, surrounded by the familiar comforts of home. The fluorescent light overhead casts an unforgiving glare on the walls, making me squint. I've learned to adapt, but sometimes it feels like too much.\n\nToday, Phillip Jackson extended the internship offer to me. I hope that makes sense. I'm still trying to process everything. Joy and fear wrestled with each other in my chest as I read through the email on my phone. I replayed our conversation at Barnes-Peters several times, trying to pinpoint exactly what he said that made him want to hire me.\n\nI'm not sure if I'm overthinking this. What if I'm just not qualified enough? What if they regret their decision? The more I think about it, the more anxious my mind becomes. I need to remind myself of all the things Curtis taught me – hard work and perseverance will get me through this.\n\nDavid's words keep echoing in my head: \"You deserve this.\" But what if he's just being kind? What if I don't actually deserve it? The thought sends a shiver down my spine. I try to focus on the positive aspects, like the opportunity to learn from Phillip and gain real-world experience. Yet, every time I think of success, anxiety whispers \"what if\" in my ear.\n\nI need to calm myself down. I take slow, deep breaths, feeling the air fill my lungs and then release them slowly. The light overhead doesn't seem so harsh anymore.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "work",
+      "text": "I am sitting in my small apartment, surrounded by the familiar comforts of home. The fluorescent light overhead casts an unforgiving glare on the walls, making me squint. I've learned to adapt, but sometimes it feels like too much.\n\nToday, Phillip Jackson extended the internship offer to me. I hope that makes sense. I'm still trying to process everything. Joy and fear wrestled with each other in my chest as I read through the email on my phone. I replayed our conversation at Barnes-Peters several times, trying to pinpoint exactly what he said that made him want to hire me.\n\nI'm not sure if I'm overthinking this. What if I'm just not qualified enough? What if they regret their decision? The more I think about it, the more anxious my mind becomes. I need to remind myself of all the things Curtis taught me – hard work and perseverance will get me through this.\n\nDavid's words keep echoing in my head: \"You deserve this.\" But what if he's just being kind? What if I don't actually deserve it? The thought sends a shiver down my spine. I try to focus on the positive aspects, like the opportunity to learn from Phillip and gain real-world experience. Yet, every time I think of success, anxiety whispers \"what if\" in my ear.\n\nI need to calm myself down. I take slow, deep breaths, feeling the air fill my lungs and then release them slowly. The light overhead doesn't seem so harsh anymore.",
+      "start_char": 0,
+      "end_char": 1397
+    }
+  ],
+  "topics": [
+    "work"
+  ],
+  "pii": [
+    {
+      "type": "BOSS_NAME",
+      "text": "Phillip Jackson",
+      "start_char": 240,
+      "end_char": 255
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Barnes-Peters",
+      "start_char": 480,
+      "end_char": 493
+    }
+  ],
+  "summary": "Here is a 1-2 sentence summary of the journal entry:\n\nThe writer is struggling to come to terms with an internship offer from Phillip Jackson, grappling with feelings of joy and fear as they try to process their potential qualifications and the implications of success. As anxiety threatens to overwhelm them, they take a moment to breathe and focus on the positive aspects of the opportunity.",
+  "arc_stage": "Stage 4 – Shock at job offer: receives a job offer from the internship, feels joy + fear + imposter syndrome."
+}

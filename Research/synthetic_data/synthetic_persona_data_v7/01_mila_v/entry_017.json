@@ -1,0 +1,33 @@
+{
+  "persona": "mila_v",
+  "entry_index": 17,
+  "arc_stage": "Stage 3 – Overwhelmed but proud: worries she won't meet expectations, but starts recognizing her growth and small wins.",
+  "transcript": "I have been sitting in my small town apartment for what feels like an eternity, staring at the same four walls as I attempt to process the events that transpired today. The fluorescent light overhead casts a harsh glare on my notes, and the hum of the air conditioner is almost deafening. My eyes feel dry from focusing on the paperwork, but my mind is racing with thoughts of tomorrow's presentation at Taylor Group. I hope that makes sense - I'm not entirely sure how to articulate what I'm feeling right now. As I sit here, my mind keeps wandering back to the social interaction that went awry at the meeting yesterday. I know it's irrational, but the thought of those colleagues laughing and chatting with each other makes me feel like an outsider all over again. I try to recall what they said about my presentation, but their words get jumbled together in my head, making me feel anxious about what they might have thought of me. The sound of the air conditioner is still echoing in my ears, and I can almost hear their conversations repeating themselves, a constant reminder that I don't quite fit in. I force myself to breathe deeply, trying to calm down the butterflies in my stomach, but it's hard when all I want to do is hide under a blanket and pretend this never happened. My eyes keep drifting back to the notes on my desk, where I've scribbled reminders of small wins – like successfully completing that project for Smith Corporation last week – trying to remind myself that I'm capable of more than just feeling overwhelmed in social situations.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "social interaction",
+      "sentiment": "negative",
+      "text": "As I sit here, my mind keeps wandering back to the social interaction that went awry at the meeting yesterday. I know it's irrational, but the thought of those colleagues laughing and chatting with each other makes me feel like an outsider all over again. I try to recall what they said about my presentation, but their words get jumbled together in my head, making me feel anxious about what they might have thought of me. The sound of the air conditioner is still echoing in my ears, and I can almost hear their conversations repeating themselves, a constant reminder that I don't quite fit in. I force myself to breathe deeply, trying to calm down the butterflies in my stomach, but it's hard when all I want to do is hide under a blanket and pretend this never happened. My eyes keep drifting back to the notes on my desk, where I've scribbled reminders of small wins – like successfully completing that project for Smith Corporation last week – trying to remind myself that I'm capable of more than just feeling overwhelmed in social situations.",
+      "start_char": 512,
+      "end_char": 1562
+    }
+  ],
+  "topics": [
+    "social interaction"
+  ],
+  "pii": [
+    {
+      "type": "COMPANY_NAME",
+      "text": "Taylor Group",
+      "start_char": 404,
+      "end_char": 416
+    }
+  ],
+  "summary": "The writer is struggling with anxiety and feelings of inadequacy after a recent social interaction at work, which has left them feeling like an outsider and questioning their presentation skills. Despite efforts to calm down and focus on past accomplishments, they can't shake the sense of uncertainty and self-doubt that lingers.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

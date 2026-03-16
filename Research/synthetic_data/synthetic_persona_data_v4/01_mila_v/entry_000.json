@@ -1,0 +1,45 @@
+{
+  "persona": "mila_v",
+  "entry_index": 0,
+  "arc_stage": "Stage 1 – Desperation & doubt: feels rejected, frustrated, and believes she will never be good enough. No internship yet.",
+  "transcript": "March 12th, 20XX\n\nI hope that makes sense. I'm not sure if I'm overthinking this, but today was an odd day. I woke up early, as I usually do, and checked my email. I hadn't heard from Douglas Inc yet about the status of my internship application. My mind started racing with worst-case scenarios. What if they reject me? What if I'm not good enough? I tried to focus on my schoolwork, but my anxiety kept creeping in. The lights in my room seemed too bright today, and the sound of the clock ticking felt oppressive. I found myself repeatedly checking the time, waiting for a response that never came. After a few hours of struggling to concentrate, Cynthia called me to catch up. We talked about our plans for spring break, and it helped take my mind off things. She's always been good at calming me down when I'm anxious. I'm grateful for her friendship. The rest of the day was uneventful, but my thoughts kept drifting back to the internship application. I tried to analyze what might be wrong with my resume or cover letter. Is it too long? Not specific enough? I hope that makes sense. I don't want to overthink this. As I lay in bed tonight, I couldn't shake off the feeling of uncertainty. What if Dawn Taylor, my potential boss, doesn't like me? What if I mess up at Douglas Inc? I've been rehearsing what I would say if I got a job offer. \"Yes, thank you for the opportunity. I'm excited to join the team.\" But what if I stumble over my words or forget something crucial? Ugh, my heart is racing just thinking about it. Despite all this, there's a part of me that's cautiously optimistic. Maybe I'll get the internship after all. Maybe this will be the start of something amazing. I just need to stay focused and not let anxiety take over. I'm going to try to go to bed now and see if my brain can calm down. Tomorrow is another day, right?.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "general",
+      "sentiment": "neutral",
+      "text": "March 12th, 20XX\n\nI hope that makes sense. I'm not sure if I'm overthinking this, but today was an odd day. I woke up early, as I usually do, and checked my email. I hadn't heard from Douglas Inc yet about the status of my internship application. My mind started racing with worst-case scenarios. What if they reject me? What if I'm not good enough? I tried to focus on my schoolwork, but my anxiety kept creeping in. The lights in my room seemed too bright today, and the sound of the clock ticking felt oppressive. I found myself repeatedly checking the time, waiting for a response that never came. After a few hours of struggling to concentrate, Cynthia called me to catch up. We talked about our plans for spring break, and it helped take my mind off things. She's always been good at calming me down when I'm anxious. I'm grateful for her friendship. The rest of the day was uneventful, but my thoughts kept drifting back to the internship application. I tried to analyze what might be wrong with my resume or cover letter. Is it too long? Not specific enough? I hope that makes sense. I don't want to overthink this. As I lay in bed tonight, I couldn't shake off the feeling of uncertainty. What if Dawn Taylor, my potential boss, doesn't like me? What if I mess up at Douglas Inc? I've been rehearsing what I would say if I got a job offer. \"Yes, thank you for the opportunity. I'm excited to join the team.\" But what if I stumble over my words or forget something crucial? Ugh, my heart is racing just thinking about it. Despite all this, there's a part of me that's cautiously optimistic. Maybe I'll get the internship after all. Maybe this will be the start of something amazing. I just need to stay focused and not let anxiety take over. I'm going to try to go to bed now and see if my brain can calm down. Tomorrow is another day, right?.",
+      "start_char": 0,
+      "end_char": 1851
+    }
+  ],
+  "topics": [
+    "general"
+  ],
+  "pii": [
+    {
+      "type": "BOSS_NAME",
+      "text": "Dawn Taylor",
+      "start_char": 1206,
+      "end_char": 1217
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Douglas Inc",
+      "start_char": 184,
+      "end_char": 195
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Douglas Inc",
+      "start_char": 1276,
+      "end_char": 1287
+    }
+  ],
+  "summary": "Here is a 1-2 sentence summary:\n\nThe writer had an anxious day on March 12th, 20XX, worrying about the status of their internship application from Douglas Inc, with thoughts of rejection and uncertainty lingering throughout the day. Despite feeling overwhelmed, they found comfort in talking to friend Cynthia and trying to stay positive, holding onto a cautious optimism that they may still get the internship.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

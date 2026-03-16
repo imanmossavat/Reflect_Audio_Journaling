@@ -1,0 +1,53 @@
+{
+  "persona": "mila_v",
+  "entry_index": 1,
+  "arc_stage": "Stage 1 – Desperation & doubt: feels rejected, frustrated, and believes she will never be good enough. No internship yet.",
+  "transcript": "March 15th, 2023\n\nI hope this entry makes sense. I've been thinking about the internship nonstop since today's interview. It feels like an eternity ago when I sent in that application, and yet, it seems like just yesterday I was scouring job boards for something, anything. My mind is a whirlwind of what-ifs and maybes. I hope this entry makes sense. Should I have practiced my responses more? Was I too nervous? Did I come across as overly eager?.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "general",
+      "sentiment": "negative",
+      "text": "March 15th, 2023\n\nI hope this entry makes sense.",
+      "start_char": 0,
+      "end_char": 48
+    },
+    {
+      "id": 1,
+      "topic": "internship",
+      "sentiment": "negative",
+      "text": "I've been thinking about the internship nonstop since today's interview.",
+      "start_char": 49,
+      "end_char": 121
+    },
+    {
+      "id": 2,
+      "topic": "work",
+      "sentiment": "negative",
+      "text": "It feels like an eternity ago when I sent in that application, and yet, it seems like just yesterday I was scouring job boards for something, anything.",
+      "start_char": 122,
+      "end_char": 273
+    },
+    {
+      "id": 3,
+      "topic": "anxiety",
+      "sentiment": "negative",
+      "text": "My mind is a whirlwind of what-ifs and maybes. I hope this entry makes sense. Should I have practiced my responses more? Was I too nervous? Did I come across as overly eager?.",
+      "start_char": 274,
+      "end_char": 449
+    }
+  ],
+  "topics": [
+    "anxiety",
+    "internship",
+    "work",
+    "general"
+  ],
+  "pii": [],
+  "summary": "The writer reflects on their recent internship interview, replaying the experience in their mind and wondering if they could have done things differently to better prepare themselves for the opportunity. They express anxiety about how they came across during the interview, particularly regarding their level of enthusiasm.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

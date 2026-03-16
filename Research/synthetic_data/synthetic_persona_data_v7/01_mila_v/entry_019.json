@@ -1,0 +1,35 @@
+{
+  "persona": "mila_v",
+  "entry_index": 19,
+  "arc_stage": "Stage 3 – Overwhelmed but proud: worries she won't meet expectations, but starts recognizing her growth and small wins.",
+  "transcript": "I have been sitting in my small town apartment for what feels like an eternity, staring at the same four walls as I attempt to process the events that transpired today. The fluorescent lights above my desk cast an unforgiving glow on the scattered papers and notes before me, their brightness a stark contrast to the uncertainty swirling within my mind. My hands tremble slightly as I grasp the pen, attempting to steady my thoughts amidst the whirlwind of emotions. I hope that makes sense. The weight of the day's experiences still lingers, like a fog that refuses to lift. My mind keeps drifting back to school, and all the things I'm supposed to be doing, but somehow never seem to get around to. The anxiety that's been building up is starting to make my chest feel tight, like I'm suffocating under the pressure of expectation. But as I sit here, surrounded by the familiar comforts of my apartment, I start to notice little things - the way the sunlight casts a faint glow on the edge of my desk, the sound of birds chirping outside, the feel of the pen gliding across the paper as I write. It's silly, I know, but these small pleasures are what keep me going when everything else feels like it's falling apart. Maybe today wasn't a complete loss after all?. As I sit here, the fluorescent lights seem to be mocking me, illuminating every anxious thought that's racing through my mind. I'm trying to focus on the meeting today, but all I can think about is how I messed up and what others might be thinking of me. The sound of my own breathing feels amplified in this tiny space, making it hard to quiet my mind. My stomach does a nervous flip at the thought of facing my colleagues tomorrow - what if they don't see my efforts? But amidst all this chaos, something small caught my attention: I finally got to use that new notebook my mom gifted me last week. The texture of the paper and the smell of the ink brought me back to when I was a kid, feeling safe and creative. For a moment, my worries took a step back, replaced by a glimmer of pride in myself for trying something new.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "school",
+      "sentiment": "negative",
+      "text": "The weight of the day's experiences still lingers, like a fog that refuses to lift. My mind keeps drifting back to school, and all the things I'm supposed to be doing, but somehow never seem to get around to. The anxiety that's been building up is starting to make my chest feel tight, like I'm suffocating under the pressure of expectation. But as I sit here, surrounded by the familiar comforts of my apartment, I start to notice little things - the way the sunlight casts a faint glow on the edge of my desk, the sound of birds chirping outside, the feel of the pen gliding across the paper as I write. It's silly, I know, but these small pleasures are what keep me going when everything else feels like it's falling apart. Maybe today wasn't a complete loss after all?.",
+      "start_char": 492,
+      "end_char": 1265
+    },
+    {
+      "id": 1,
+      "topic": "anxiety",
+      "sentiment": "neutral",
+      "text": "As I sit here, the fluorescent lights seem to be mocking me, illuminating every anxious thought that's racing through my mind. I'm trying to focus on the meeting today, but all I can think about is how I messed up and what others might be thinking of me. The sound of my own breathing feels amplified in this tiny space, making it hard to quiet my mind. My stomach does a nervous flip at the thought of facing my colleagues tomorrow - what if they don't see my efforts? But amidst all this chaos, something small caught my attention: I finally got to use that new notebook my mom gifted me last week. The texture of the paper and the smell of the ink brought me back to when I was a kid, feeling safe and creative. For a moment, my worries took a step back, replaced by a glimmer of pride in myself for trying something new.",
+      "start_char": 1266,
+      "end_char": 2090
+    }
+  ],
+  "topics": [
+    "school",
+    "anxiety"
+  ],
+  "pii": [],
+  "summary": "The writer is struggling with anxiety and self-doubt after a chaotic day at school, but finds solace in small pleasures such as the sunlight, bird sounds, and writing on their new notebook. These simple comforts help to shift their focus away from worries and bring them a sense of pride and calm.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

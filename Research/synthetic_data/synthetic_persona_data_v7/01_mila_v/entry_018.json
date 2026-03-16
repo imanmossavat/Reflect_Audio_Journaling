@@ -1,0 +1,35 @@
+{
+  "persona": "mila_v",
+  "entry_index": 18,
+  "arc_stage": "Stage 3 – Overwhelmed but proud: worries she won't meet expectations, but starts recognizing her growth and small wins.",
+  "transcript": "I have been sitting in my small town apartment for what feels like an eternity, staring at the same four walls as I attempt to process the events that transpired today. The bright fluorescent light overhead seems particularly harsh, making my eyes ache with fatigue. My thoughts are a jumbled mix of emotions, and I'm struggling to discern which feelings are valid. I hope that makes sense. The events that led to this moment have left me feeling overwhelmed, yet simultaneously, I am aware of the progress I've made. As I sit here, trying to untangle the knots of my mind, I find myself dwelling on the anxious thoughts that have been plaguing me. The familiar sense of dread that creeps up when I think about meeting expectations is overwhelming, but I'm starting to notice a pattern - every time I allow myself to get caught up in those fears, something good comes out of it. Like today, for instance, I had a small moment where I surprised myself by speaking up in a way that felt authentic, and yet, my anxiety almost suffocated me afterwards. It's like my brain is constantly playing this game of \"will I be good enough?\" and it's exhausting. The fluorescent light overhead seems to be mocking me now, its harsh glare a reminder of all the things I'm trying to keep at bay. As I sit here, trying to make sense of it all, my mind keeps wandering back to school. The thought of tomorrow's classes fills me with a knot in my stomach - what if I forget something important? What if I stumble over words or trip on the stairs? But as I try to imagine myself navigating these situations, I catch glimpses of moments where I've managed it just fine. Like that time I presented a project and received positive feedback, or when I confidently explained a concept in class without stumbling. It's these tiny successes that give me a boost of confidence, reminding me that I'm capable of handling whatever comes my way.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "anxiety",
+      "sentiment": "negative",
+      "text": "As I sit here, trying to untangle the knots of my mind, I find myself dwelling on the anxious thoughts that have been plaguing me. The familiar sense of dread that creeps up when I think about meeting expectations is overwhelming, but I'm starting to notice a pattern - every time I allow myself to get caught up in those fears, something good comes out of it. Like today, for instance, I had a small moment where I surprised myself by speaking up in a way that felt authentic, and yet, my anxiety almost suffocated me afterwards. It's like my brain is constantly playing this game of \"will I be good enough?\" and it's exhausting. The fluorescent light overhead seems to be mocking me now, its harsh glare a reminder of all the things I'm trying to keep at bay.",
+      "start_char": 518,
+      "end_char": 1279
+    },
+    {
+      "id": 1,
+      "topic": "school",
+      "sentiment": "positive",
+      "text": "As I sit here, trying to make sense of it all, my mind keeps wandering back to school. The thought of tomorrow's classes fills me with a knot in my stomach - what if I forget something important? What if I stumble over words or trip on the stairs? But as I try to imagine myself navigating these situations, I catch glimpses of moments where I've managed it just fine. Like that time I presented a project and received positive feedback, or when I confidently explained a concept in class without stumbling. It's these tiny successes that give me a boost of confidence, reminding me that I'm capable of handling whatever comes my way.",
+      "start_char": 1280,
+      "end_char": 1914
+    }
+  ],
+  "topics": [
+    "anxiety",
+    "school"
+  ],
+  "pii": [],
+  "summary": "The writer is feeling overwhelmed and anxious after a particularly challenging day, but as they reflect on their experiences, they start to notice patterns and small moments of success that boost their confidence and remind them of their capabilities. Despite the doubts that creep in, these tiny victories give them hope and motivation to face tomorrow's classes with renewed determination.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

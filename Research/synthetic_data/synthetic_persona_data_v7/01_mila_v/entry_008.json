@@ -1,0 +1,44 @@
+{
+  "persona": "mila_v",
+  "entry_index": 8,
+  "arc_stage": "Stage 2 – Relief & gratitude: she finally gets an internship, feels intense relief and loyalty, wants to earn her place.",
+  "transcript": "I have been sitting in my small town apartment for what feels like an eternity, staring at the same four walls as I attempt to process the events that transpired today. The fluorescent lights above my desk seem particularly harsh, casting an unforgiving glow on the papers scattered before me. My heart rate is elevated, and I can feel the familiar flutter in my chest, a sensation I've grown accustomed to over the years. Despite the initial shock of receiving the job offer, a sense of relief washes over me as I try to make sense of it all. I hope that makes sense, but I'm not sure if I'm overthinking this. As I sit here trying to wrap my head around the internship offer, I find myself getting lost in thoughts of what this means for me. The possibility of finally being part of a professional network that aligns with my interests is almost overwhelming. My mind starts racing with scenarios - how will I manage the coursework, what kind of responsibilities can I expect, and what if I'm not good enough? The anxiety that usually settles in whenever I think about school is now more pronounced than ever. Every little detail feels like a weight on my shoulders, making it hard to breathe. As I sit here trying to wrap my head around the internship offer, my mind keeps wandering back to all the what-ifs. What if I'm not good enough? What if I mess up and lose it all? The thought of being in a new environment, surrounded by new people, makes me want to curl up into a ball and hide. But at the same time, the sense of relief and excitement that came with receiving the offer is still palpable, like a warm breeze on a summer day. It's a feeling I've grown all too familiar with over the years - the anxiety that comes with trying new things and being vulnerable. As I sit here, trying to catch my breath, I find myself thinking about the internship itself. It's a mix of excitement and trepidation - what if I'm not good enough? What if I mess up in front of all those people? My mind starts to wander back to the interview, replaying every awkward pause, every stumbling word. But as I look at my acceptance letter now, a sense of pride swells up inside me. I did it. I actually landed an internship at a company I've always admired. The thought is almost too much to process, and for a moment, I feel like I'm going to collapse under the weight of it all. My chest tightens, and I can feel my heart racing again, but this time, it's not just anxiety - it's a sense of accomplishment that feels like it could tip me over into overwhelm at any moment.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "school",
+      "sentiment": "negative",
+      "text": "As I sit here trying to wrap my head around the internship offer, I find myself getting lost in thoughts of what this means for me. The possibility of finally being part of a professional network that aligns with my interests is almost overwhelming. My mind starts racing with scenarios - how will I manage the coursework, what kind of responsibilities can I expect, and what if I'm not good enough? The anxiety that usually settles in whenever I think about school is now more pronounced than ever. Every little detail feels like a weight on my shoulders, making it hard to breathe.",
+      "start_char": 612,
+      "end_char": 1195
+    },
+    {
+      "id": 1,
+      "topic": "anxiety",
+      "sentiment": "negative",
+      "text": "As I sit here trying to wrap my head around the internship offer, my mind keeps wandering back to all the what-ifs. What if I'm not good enough? What if I mess up and lose it all? The thought of being in a new environment, surrounded by new people, makes me want to curl up into a ball and hide. But at the same time, the sense of relief and excitement that came with receiving the offer is still palpable, like a warm breeze on a summer day. It's a feeling I've grown all too familiar with over the years - the anxiety that comes with trying new things and being vulnerable.",
+      "start_char": 1196,
+      "end_char": 1771
+    },
+    {
+      "id": 2,
+      "topic": "internship",
+      "sentiment": "negative",
+      "text": "As I sit here, trying to catch my breath, I find myself thinking about the internship itself. It's a mix of excitement and trepidation - what if I'm not good enough? What if I mess up in front of all those people? My mind starts to wander back to the interview, replaying every awkward pause, every stumbling word. But as I look at my acceptance letter now, a sense of pride swells up inside me. I did it. I actually landed an internship at a company I've always admired. The thought is almost too much to process, and for a moment, I feel like I'm going to collapse under the weight of it all. My chest tightens, and I can feel my heart racing again, but this time, it's not just anxiety - it's a sense of accomplishment that feels like it could tip me over into overwhelm at any moment.",
+      "start_char": 1772,
+      "end_char": 2560
+    }
+  ],
+  "topics": [
+    "school",
+    "anxiety",
+    "internship"
+  ],
+  "pii": [],
+  "summary": "The writer is struggling to come to terms with receiving an internship offer at a company they've always admired, feeling overwhelmed by both excitement and trepidation about the opportunity. Despite initial anxiety, they're also experiencing a sense of pride and accomplishment, making it hard for them to process their emotions.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

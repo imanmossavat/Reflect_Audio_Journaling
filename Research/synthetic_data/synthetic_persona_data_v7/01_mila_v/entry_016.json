@@ -1,0 +1,35 @@
+{
+  "persona": "mila_v",
+  "entry_index": 16,
+  "arc_stage": "Stage 3 – Overwhelmed but proud: worries she won't meet expectations, but starts recognizing her growth and small wins.",
+  "transcript": "I have been sitting in my small town apartment for what feels like an eternity, staring at the same four walls as I attempt to process the events that transpired today. The fluorescent light above my desk casts a harsh glow on the scattered papers and empty coffee cups, making it difficult to discern the actual state of my space. My mind is reeling with conflicting emotions, oscillating between trepidation and elation. I hope that makes sense. I am not entirely certain why I am experiencing this dichotomy, but I suspect it may be related to a recent development in my professional life. As I sit here, trying to make sense of today's events, my mind keeps wandering back to the conversation with my supervisor. The feeling of unease that settled in after our discussion still lingers, like a faint hum in the background of my thoughts. It's as if my brain is stuck on replay mode, rehashing every word I said and every phrase he responded with. My heart rate quickens at the mere thought of it, and I can feel my palms growing sweaty as I imagine all the things that could go wrong. Why did I say that? Why didn't I just keep quiet? The questions swirl in my head like a maelstrom, leaving me breathless and bewildered. My eyes keep drifting to the clock on the wall, willing it to tick by faster so I can escape this anxious fog. My mind is a jumbled mess of thoughts and feelings, and I'm not sure where to begin. The anxiety that's been building up inside me all day seems to be seeping into every aspect of my life, making even the smallest tasks feel like monumental challenges. I keep thinking about work, and how it's supposed to be my passion, but lately, it feels more like a never-ending source of stress. I worry that I'm not meeting expectations, that I'm not doing enough, that I'm somehow failing. But then I try to remember all the small wins, all the tiny victories I've had recently, and it's hard not to feel a sense of pride and accomplishment. The fluorescent light above my desk seems to be mocking me, highlighting every imperfection and flaw in my work.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "anxiety",
+      "sentiment": "negative",
+      "text": "As I sit here, trying to make sense of today's events, my mind keeps wandering back to the conversation with my supervisor. The feeling of unease that settled in after our discussion still lingers, like a faint hum in the background of my thoughts. It's as if my brain is stuck on replay mode, rehashing every word I said and every phrase he responded with. My heart rate quickens at the mere thought of it, and I can feel my palms growing sweaty as I imagine all the things that could go wrong. Why did I say that? Why didn't I just keep quiet? The questions swirl in my head like a maelstrom, leaving me breathless and bewildered. My eyes keep drifting to the clock on the wall, willing it to tick by faster so I can escape this anxious fog.",
+      "start_char": 593,
+      "end_char": 1336
+    },
+    {
+      "id": 1,
+      "topic": "work",
+      "sentiment": "negative",
+      "text": "My mind is a jumbled mess of thoughts and feelings, and I'm not sure where to begin. The anxiety that's been building up inside me all day seems to be seeping into every aspect of my life, making even the smallest tasks feel like monumental challenges. I keep thinking about work, and how it's supposed to be my passion, but lately, it feels more like a never-ending source of stress. I worry that I'm not meeting expectations, that I'm not doing enough, that I'm somehow failing. But then I try to remember all the small wins, all the tiny victories I've had recently, and it's hard not to feel a sense of pride and accomplishment. The fluorescent light above my desk seems to be mocking me, highlighting every imperfection and flaw in my work.",
+      "start_char": 1337,
+      "end_char": 2082
+    }
+  ],
+  "topics": [
+    "anxiety",
+    "work"
+  ],
+  "pii": [],
+  "summary": "The writer is struggling with anxiety and self-doubt after a conversation with their supervisor, which has left them feeling uncertain about their professional life and questioning their abilities. Their mind is consumed by \"what ifs\" and worries about not meeting expectations, while also trying to hold onto small victories and accomplishments that boost their confidence.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}
