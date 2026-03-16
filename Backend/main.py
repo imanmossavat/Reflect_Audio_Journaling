@@ -1,6 +1,7 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
+from fastapi import Response
 from pydantic import BaseModel
 from enum import Enum
 import httpx
@@ -9,6 +10,7 @@ import ollama
 
 import question_prompt
 import dictionary_question_prompt
+import simpler_dictionary_question_prompt
 import topic_prompt
 
 app = FastAPI(title="Journal Reflection API")
@@ -138,7 +140,7 @@ async def generate_question(req: GenerateRequest):
         raise HTTPException(status_code=404, detail="Session not found. Please upload your journal again.")
 
     try:
-        messages = dictionary_question_prompt.build_messages(
+        messages = simpler_dictionary_question_prompt.build_messages(
             journal_text,
             mode=req.mode,
             topic=req.topic,
@@ -171,10 +173,12 @@ async def generate_question(req: GenerateRequest):
 async def health():
     try:
         async with httpx.AsyncClient(timeout=5.0) as client:
-            r = await client.get("http://localhost:11434/api/tags")
-            models = [m["name"] for m in r.json().get("models", [])]
-            mistral_ready = any("mistral" in m for m in models)
-            return {"status": "ok", "ollama": "reachable", "mistral_available": mistral_ready, "models": models}
+            r = await client.get("http://localhost:11434")
+            return Response(
+                content=r.content,
+                status_code=r.status_code,
+                media_type=r.headers.get("content-type", "text/plain"),
+            )
     except Exception as e:
         return {"status": "ok", "ollama": "unreachable", "error": str(e)}
 

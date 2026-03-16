@@ -2,27 +2,13 @@
 
 import { useState, useRef, ChangeEvent, JSX, } from "react";
 import { customScrollbar } from '../lib/scrollbar';
-
-const API = "http://localhost:8000";
+import { uploadJournal, extractTopics, generateQuestionStream, Mode, QAEntry, Topic } from "../lib/reflectionApi";
 
 type Stage = "upload" | "choose" | "deep-dive-setup" | "topic-select" | "question" | "deep-dive-options";
-type Mode = "clarifying" | "deep_dive" | null;
 
 interface Step {
   n: number;
   label: string;
-}
-
-interface QAEntry {
-  timestamp: string;
-  question: string;
-  answer: string;
-}
-
-interface Topic {
-  name: string;
-  summary: string;
-  quotes: string[];
 }
 
 interface GenerateOptions {
@@ -71,15 +57,8 @@ export default function Home(): JSX.Element {
     if (!file) return;
     setError("");
     setLoading(true);
-    const form = new FormData();
-    form.append("file", file);
     try {
-      const res = await fetch(`${API}/upload`, { method: "POST", body: form });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.detail || "Something went wrong");
-      }
-      const data = await res.json();
+      const data = await uploadJournal(file);
       setFilename(data.filename);
       setStage("choose");
     } catch (err) {
@@ -95,47 +74,15 @@ export default function Home(): JSX.Element {
     setQuestion("");
     setError("");
     try {
-      const res = await fetch(`${API}/generate-question`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          mode: m,
-          step: m === "deep_dive" ? step : null,
-          topic: topicName ?? null,
-          topic_summary: topicSummary ?? null,
-          history: historyOverride ?? history,
-        }),
+      await generateQuestionStream({
+        mode: m,
+        step: m === "deep_dive" ? step : null,
+        topic: topicName ?? null,
+        topic_summary: topicSummary ?? null,
+        history: historyOverride ?? history,
+      }, (token) => {
+        setQuestion((q) => q + token);
       });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.detail || "Something went wrong");
-      }
-      const reader = res.body?.getReader();
-      if (!reader) return;
-      const decoder = new TextDecoder();
-      let buffer = "";
-      let streamDone = false;
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-        buffer = lines.pop() || "";
-        for (const line of lines) {
-          if (line.startsWith("data: ")) {
-            const payload = line.slice(6);
-            if (payload === "[DONE]") {
-              streamDone = true;
-              break;
-            }
-            try {
-              const { token } = JSON.parse(payload);
-              setQuestion((q) => q + token);
-            } catch { }
-          }
-        }
-        if (streamDone) break;
-      }
       setStage("question");
     } catch (err) {
       const error = err instanceof Error ? err.message : "Unknown error";
@@ -226,12 +173,7 @@ export default function Home(): JSX.Element {
     setHoveredTopic(null);
     setActiveDeepDiveTopic(null);
     try {
-      const res = await fetch(`${API}/topics`, { method: "POST" });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.detail || "Failed to extract topics");
-      }
-      const data = await res.json();
+      const data = await extractTopics();
       setTopics(data.topics);
       setJournalText(data.journal_text);
       setStage("topic-select");
@@ -461,7 +403,7 @@ export default function Home(): JSX.Element {
                 </div>
 
                 {/* Active topic summary — always reserve space to prevent layout shift */}
-                <p className={`text-xs italic min-h-[2rem] transition-colors duration-200 ${activeTopic ? "text-[#777]" : "text-transparent"}`}>
+                <p className={`text-xs italic min-h-8 transition-colors duration-200 ${activeTopic ? "text-[#777]" : "text-transparent"}`}>
                   {activeTopic?.summary ?? "\u00A0"}
                 </p>
 
