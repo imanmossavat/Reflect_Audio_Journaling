@@ -20,7 +20,7 @@ cd Backend
 
 ```bash
 conda env create -f environment.yml
-conda activate reflect
+conda activate REFLECT
 ```
 
 > If you don't have Conda, install it from [conda.io](https://docs.conda.io/en/latest/miniconda.html)
@@ -28,10 +28,10 @@ conda activate reflect
 ### Run the backend
 
 ```bash
-python app.py
+uvicorn main:app --reload
 ```
 
-The backend will start on `http://localhost:5000`
+The backend will start on `http://localhost:8000`
 
 ---
 
