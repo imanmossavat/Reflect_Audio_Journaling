@@ -1,0 +1,32 @@
+{
+  "persona_id": 1,
+  "persona_code": "mila_v",
+  "persona_name": "Mila",
+  "persona_age": 20,
+  "neurotype": "ASD + High Anxiety",
+  "entry_index": 21,
+  "transcript": "Dear Journal,\n\nI am sitting in my small apartment, surrounded by the familiar comforts of home. The soft glow of the lamp on my desk casts a warm light on the pages of my notes from today's internship meeting. I hope that makes sense. As I reflect on our discussion, I feel the familiar knot in my stomach beginning to form. My mind is racing with what Phillip Jackson said about expectations and performance reviews. I'm not sure if I'm overthinking.\n\nI've been trying to focus on the positive aspects of the internship, but it's hard when all I can think about is not meeting David's or Curtis' expectations. They want me to excel in this role, and I feel like I'm falling short. But then I look back at my notes from last week's meeting, and I see that I've made progress. The tasks I completed were within the acceptable timeframe, and Christopher was impressed with my attention to detail.\n\nI try to remind myself that it's okay to make mistakes – Phillip said so himself. And David has been supportive when we talk about my anxiety. He reminds me that I'm doing the best I can, and that's all anyone can ask for. I hope that makes sense. I just wish I could shake off this feeling of overwhelm and focus on the present moment.\n\nThe sound of rain outside creates a soothing melody, but it only serves to heighten my awareness of every creak and groan in the apartment. It's as if the world is holding its breath, waiting for me to make a wrong move. I take a deep breath and try to calm myself down, focusing on the sensation of the air moving in and out of my body.\n\nAs I look around my apartment, I see reminders of my growth – the new plant David got me, the book Christopher lent me that I've been meaning to read, the sketchbook Curtis bought me for my birthday. These small wins make me feel a sense of pride and accomplishment. I may not have excelled in every aspect of the internship, but I'm learning and growing.\n\nI just need to remind myself that it's okay to take things one step at a time. I don't have to have it all figured out right now. I can focus on making progress, not perfection. I hope that makes sense.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "anxiety",
+      "text": "Dear Journal,\n\nI am sitting in my small apartment, surrounded by the familiar comforts of home. The soft glow of the lamp on my desk casts a warm light on the pages of my notes from today's internship meeting. I hope that makes sense. As I reflect on our discussion, I feel the familiar knot in my stomach beginning to form. My mind is racing with what Phillip Jackson said about expectations and performance reviews. I'm not sure if I'm overthinking.\n\nI've been trying to focus on the positive aspects of the internship, but it's hard when all I can think about is not meeting David's or Curtis' expectations. They want me to excel in this role, and I feel like I'm falling short. But then I look back at my notes from last week's meeting, and I see that I've made progress. The tasks I completed were within the acceptable timeframe, and Christopher was impressed with my attention to detail.\n\nI try to remind myself that it's okay to make mistakes – Phillip said so himself. And David has been supportive when we talk about my anxiety. He reminds me that I'm doing the best I can, and that's all anyone can ask for. I hope that makes sense. I just wish I could shake off this feeling of overwhelm and focus on the present moment.\n\nThe sound of rain outside creates a soothing melody, but it only serves to heighten my awareness of every creak and groan in the apartment. It's as if the world is holding its breath, waiting for me to make a wrong move. I take a deep breath and try to calm myself down, focusing on the sensation of the air moving in and out of my body.\n\nAs I look around my apartment, I see reminders of my growth – the new plant David got me, the book Christopher lent me that I've been meaning to read, the sketchbook Curtis bought me for my birthday. These small wins make me feel a sense of pride and accomplishment. I may not have excelled in every aspect of the internship, but I'm learning and growing.\n\nI just need to remind myself that it's okay to take things one step at a time. I don't have to have it all figured out right now. I can focus on making progress, not perfection. I hope that makes sense.",
+      "start_char": 0,
+      "end_char": 2132
+    }
+  ],
+  "topics": [
+    "internship",
+    "anxiety"
+  ],
+  "pii": [
+    {
+      "type": "BOSS_NAME",
+      "text": "Phillip Jackson",
+      "start_char": 353,
+      "end_char": 368
+    }
+  ],
+  "summary": "Here is a summary of the journal entry in 1-2 concise, emotionally aware sentences:\n\nThe writer feels overwhelmed and anxious about meeting expectations at their internship, but reminds themselves that mistakes are okay and that growth and progress, no matter how small, are worth acknowledging. As they take a step back to calm down, they focus on the positive aspects of their experience and the reminders of personal growth that surround them.",
+  "arc_stage": "Stage 3 – Overwhelmed but proud: worries she won't meet expectations, but starts recognizing her growth and small wins."
+}

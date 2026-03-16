@@ -1,0 +1,31 @@
+{
+  "persona_id": 1,
+  "persona_code": "mila_v",
+  "persona_name": "Mila",
+  "persona_age": 20,
+  "neurotype": "ASD + High Anxiety",
+  "entry_index": 2,
+  "transcript": "Dear Journal,\n\nI'm sitting in my small apartment, surrounded by the familiar comforts of home. The sunlight streaming through the window highlights the dust particles dancing in the air, a stark reminder that I've been putting off cleaning for far too long. My eyes feel heavy as I attempt to focus on the tasks ahead.\n\nToday was a day of overwhelming social interactions. Phillip's meeting ran longer than expected, and instead of leaving promptly, he extended the invitation to join a group lunch with colleagues from Barnes-Peters. I felt like I was being pulled in multiple directions, my anxiety spiking at the thought of navigating those conversations. \n\nI'm not sure if I'm overthinking this, but what if they think I'm awkward or unfriendly? What if I say something wrong and embarrass myself?\n\nAs I walked into the restaurant, Christopher was already seated, chatting with Phillip's colleagues. His warm smile and easy demeanor put me at ease momentarily. But when it was my turn to join them, I froze. \n\nDavid texted me during lunch, inquiring about my day. His words of encouragement helped calm my racing thoughts. I'm grateful for his presence in my life.\n\nI hope that makes sense. Sometimes, writing this down helps clarify my thoughts.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "social interaction",
+      "text": "Dear Journal,\n\nI'm sitting in my small apartment, surrounded by the familiar comforts of home. The sunlight streaming through the window highlights the dust particles dancing in the air, a stark reminder that I've been putting off cleaning for far too long. My eyes feel heavy as I attempt to focus on the tasks ahead.\n\nToday was a day of overwhelming social interactions. Phillip's meeting ran longer than expected, and instead of leaving promptly, he extended the invitation to join a group lunch with colleagues from Barnes-Peters. I felt like I was being pulled in multiple directions, my anxiety spiking at the thought of navigating those conversations. \n\nI'm not sure if I'm overthinking this, but what if they think I'm awkward or unfriendly? What if I say something wrong and embarrass myself?\n\nAs I walked into the restaurant, Christopher was already seated, chatting with Phillip's colleagues. His warm smile and easy demeanor put me at ease momentarily. But when it was my turn to join them, I froze. \n\nDavid texted me during lunch, inquiring about my day. His words of encouragement helped calm my racing thoughts. I'm grateful for his presence in my life.\n\nI hope that makes sense. Sometimes, writing this down helps clarify my thoughts.",
+      "start_char": 0,
+      "end_char": 1250
+    }
+  ],
+  "topics": [
+    "social interaction"
+  ],
+  "pii": [
+    {
+      "type": "COMPANY_NAME",
+      "text": "Barnes-Peters",
+      "start_char": 520,
+      "end_char": 533
+    }
+  ],
+  "summary": "The writer is overwhelmed by social anxiety and feels like they're being pulled in multiple directions, worrying about making a good impression on their colleagues. However, with the help of someone they care about (David), they find temporary comfort and clarity.",
+  "arc_stage": "Stage 1 – Desperation & doubt: feels rejected, frustrated, and believes she will never be good enough. No internship yet."
+}

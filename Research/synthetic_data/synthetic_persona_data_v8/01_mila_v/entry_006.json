@@ -1,0 +1,43 @@
+{
+  "persona": "mila_v",
+  "entry_index": 6,
+  "arc_stage": "Stage 1 – Desperation & doubt: feels rejected, frustrated, and believes she will never be good enough. No internship yet.",
+  "transcript": "Today's recording is a necessary step to clarify my thoughts and feelings. I successfully initiated the task of documenting my experiences, which has brought me a sense of accomplishment, albeit temporary relief from frustration. The weight of uncertainty still lingers, but for now, it is comforting to have a clear record of my emotions. I hope this journal entry provides a structured framework for my reflection, allowing me to process my thoughts without becoming overwhelmed. I am not sure if my anxiety will allow me to continue in this manner, but I will attempt to press on with caution and attention to detail. School weighs heavily on my mind, a constant source of anxiety that threatens to suffocate me. The thought of not having an internship yet feels like a failure, and I find myself wondering if I'm truly cut out for this career path. The structure and routine of school are a stark contrast to the chaotic mess of emotions swirling inside me. Every lecture, every assignment, every interaction with peers and professors seems like a daunting task, like I'm stuck in a never-ending loop of self-doubt. The sensory details of the classroom - the hum of fluorescent lights, the rustle of papers, the stifling silence - all serve as a reminder that I'm not good enough, that I'll never measure up.\n\nI try to focus on my strengths, on the things I enjoy about learning and growing, but the doubts creep in like a thief in the night. What if I'm just pretending to be something I'm not? What if everyone else is more capable than me? The thought sends a shiver down my spine, and for a moment, I feel like I'm drowning in a sea of uncertainty. My mind keeps drifting back to the internship, and all the uncertainty that comes with it. I've been racking my brain for ways to prove myself, to show that I'm capable of handling the demands of the program. But what if I fail? What if I'm not good enough? The thoughts swirl in my head like a maelstrom, making it hard to focus on anything else.\n\nI try to distract myself by replaying successful moments from school, but even those are tainted with anxiety. What if this is just a fluke? What if I'm lucky and everything falls into place? No, no, that's not how it works. My brain refuses to let me have any sense of security. It's always on the lookout for potential pitfalls, waiting to pounce and snatch my confidence away.\n\nThe thought of all those people in the internship, with their bright smiles and easy banter, makes my stomach twist into knots. What if I get stuck talking to them? What if I say something stupid or embarrassing? My skin crawls at the mere idea, and I can feel my heart racing just thinking about it.\n\nI wish I could just fast-forward through this whole thing, skip straight to the part where I'm done and successful. But that's not how life works, is it? It's all about taking small steps, one by one, and praying that you don't trip over your own feet.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "general",
+      "sentiment": "neutral",
+      "text": "Today's recording is a necessary step to clarify my thoughts and feelings. I successfully initiated the task of documenting my experiences, which has brought me a sense of accomplishment, albeit temporary relief from frustration. The weight of uncertainty still lingers, but for now, it is comforting to have a clear record of my emotions. I hope this journal entry provides a structured framework for my reflection, allowing me to process my thoughts without becoming overwhelmed. I am not sure if my anxiety will allow me to continue in this manner, but I will attempt to press on with caution and attention to detail.",
+      "start_char": 0,
+      "end_char": 620
+    },
+    {
+      "id": 1,
+      "topic": "school",
+      "sentiment": "negative",
+      "text": "School weighs heavily on my mind, a constant source of anxiety that threatens to suffocate me. The thought of not having an internship yet feels like a failure, and I find myself wondering if I'm truly cut out for this career path. The structure and routine of school are a stark contrast to the chaotic mess of emotions swirling inside me. Every lecture, every assignment, every interaction with peers and professors seems like a daunting task, like I'm stuck in a never-ending loop of self-doubt. The sensory details of the classroom - the hum of fluorescent lights, the rustle of papers, the stifling silence - all serve as a reminder that I'm not good enough, that I'll never measure up.\n\nI try to focus on my strengths, on the things I enjoy about learning and growing, but the doubts creep in like a thief in the night. What if I'm just pretending to be something I'm not? What if everyone else is more capable than me? The thought sends a shiver down my spine, and for a moment, I feel like I'm drowning in a sea of uncertainty.",
+      "start_char": 621,
+      "end_char": 1656
+    },
+    {
+      "id": 2,
+      "topic": "internship",
+      "sentiment": "negative",
+      "text": "My mind keeps drifting back to the internship, and all the uncertainty that comes with it. I've been racking my brain for ways to prove myself, to show that I'm capable of handling the demands of the program. But what if I fail? What if I'm not good enough? The thoughts swirl in my head like a maelstrom, making it hard to focus on anything else.\n\nI try to distract myself by replaying successful moments from school, but even those are tainted with anxiety. What if this is just a fluke? What if I'm lucky and everything falls into place? No, no, that's not how it works. My brain refuses to let me have any sense of security. It's always on the lookout for potential pitfalls, waiting to pounce and snatch my confidence away.\n\nThe thought of all those people in the internship, with their bright smiles and easy banter, makes my stomach twist into knots. What if I get stuck talking to them? What if I say something stupid or embarrassing? My skin crawls at the mere idea, and I can feel my heart racing just thinking about it.\n\nI wish I could just fast-forward through this whole thing, skip straight to the part where I'm done and successful. But that's not how life works, is it? It's all about taking small steps, one by one, and praying that you don't trip over your own feet.",
+      "start_char": 1657,
+      "end_char": 2941
+    }
+  ],
+  "topics": [
+    "school",
+    "internship"
+  ],
+  "pii": [],
+  "summary": "Here is a summary of the journal entry in 1-2 sentences:\n\nThe writer is documenting their thoughts and feelings after feeling overwhelmed with anxiety and self-doubt about school and their future career prospects, particularly an upcoming internship. They are struggling to shake off the feeling of uncertainty and insecurity, which threatens to suffocate them and makes everyday interactions feel daunting.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

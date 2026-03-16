@@ -1,0 +1,62 @@
+{
+  "persona": "mila_v",
+  "entry_index": 9,
+  "arc_stage": "Stage 2 – Relief & gratitude: she finally gets an internship, feels intense relief and loyalty, wants to earn her place.",
+  "transcript": "Today's recording is a necessary step to clarify my thoughts and feelings. I hope that makes sense, I am attempting to organize my emotions before committing them to paper. The relief I experienced today was palpable, accompanied by a renewed sense of gratitude for the opportunity to pursue my passion for Media Design. It has been a long time since I have felt this level of stability, and it is almost overwhelming. I want to acknowledge the numerous steps that led to this moment: securing an internship, meeting with potential mentors, and receiving the job offer from Henderson-Liu company. The weight of responsibility settles upon my shoulders, and I can feel my mind racing with the multitude of tasks ahead. My internship at Henderson-Liu company has brought a sense of structure to my life, but it also amplifies my anxiety. Every new project and deadline feels like an insurmountable challenge, and I worry that I won't be able to meet expectations. The fluorescent lights in the design studio seem to hum with an intensity that makes my skin prickle, and the constant influx of new stimuli is overwhelming. My fingers tremble as I contemplate the tasks at hand, and my mind begins to wander to worst-case scenarios. Can I truly hack it in this industry? Or will my insecurities consume me?. Relief and gratitude still linger, but I find myself wondering if it's just a temporary reprieve. The thought of uncertainty lingers, a constant companion that refuses to be silenced. My mind wanders to all the things that could go wrong – what if I don't meet expectations? What if my anxiety gets the better of me? The Henderson-Liu company has offered me a chance at stability, but can I truly trust it? Every step forward feels like a risk, and I'm constantly weighing the pros and cons in my mind. My heart rate still spikes at the mere thought of an uncertain outcome.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "general",
+      "sentiment": "positive",
+      "text": "Today's recording is a necessary step to clarify my thoughts and feelings. I hope that makes sense, I am attempting to organize my emotions before committing them to paper. The relief I experienced today was palpable, accompanied by a renewed sense of gratitude for the opportunity to pursue my passion for Media Design. It has been a long time since I have felt this level of stability, and it is almost overwhelming. I want to acknowledge the numerous steps that led to this moment: securing an internship, meeting with potential mentors, and receiving the job offer from Henderson-Liu company.",
+      "start_char": 0,
+      "end_char": 596
+    },
+    {
+      "id": 1,
+      "topic": "work",
+      "sentiment": "negative",
+      "text": "The weight of responsibility settles upon my shoulders, and I can feel my mind racing with the multitude of tasks ahead. My internship at Henderson-Liu company has brought a sense of structure to my life, but it also amplifies my anxiety. Every new project and deadline feels like an insurmountable challenge, and I worry that I won't be able to meet expectations. The fluorescent lights in the design studio seem to hum with an intensity that makes my skin prickle, and the constant influx of new stimuli is overwhelming. My fingers tremble as I contemplate the tasks at hand, and my mind begins to wander to worst-case scenarios. Can I truly hack it in this industry? Or will my insecurities consume me?.",
+      "start_char": 597,
+      "end_char": 1303
+    },
+    {
+      "id": 2,
+      "topic": "anxiety",
+      "sentiment": "negative",
+      "text": "Relief and gratitude still linger, but I find myself wondering if it's just a temporary reprieve. The thought of uncertainty lingers, a constant companion that refuses to be silenced. My mind wanders to all the things that could go wrong – what if I don't meet expectations? What if my anxiety gets the better of me? The Henderson-Liu company has offered me a chance at stability, but can I truly trust it? Every step forward feels like a risk, and I'm constantly weighing the pros and cons in my mind. My heart rate still spikes at the mere thought of an uncertain outcome.",
+      "start_char": 1304,
+      "end_char": 1878
+    }
+  ],
+  "topics": [
+    "work",
+    "anxiety"
+  ],
+  "pii": [
+    {
+      "type": "COMPANY_NAME",
+      "text": "Henderson-Liu",
+      "start_char": 574,
+      "end_char": 587
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Henderson-Liu",
+      "start_char": 735,
+      "end_char": 748
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Henderson-Liu",
+      "start_char": 1625,
+      "end_char": 1638
+    }
+  ],
+  "summary": "Here is a summary of the journal entry in 1-2 sentences:\n\nThe writer is feeling a mix of relief and anxiety as they reflect on securing an internship and job offer, acknowledging both the stability it brings and the overwhelming tasks ahead that make them worry about meeting expectations. Despite feeling grateful, they are struggling to shake off self-doubt and uncertainty, wondering if they can truly trust themselves and succeed in their new role.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

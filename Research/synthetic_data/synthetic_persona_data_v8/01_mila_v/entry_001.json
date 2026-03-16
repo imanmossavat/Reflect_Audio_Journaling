@@ -1,0 +1,34 @@
+{
+  "persona": "mila_v",
+  "entry_index": 1,
+  "arc_stage": "Stage 1 – Desperation & doubt: feels rejected, frustrated, and believes she will never be good enough. No internship yet.",
+  "transcript": "Today's task has been successfully initiated. I have begun recording my thoughts and feelings in this journal, a method I have employed to attempt to organize my chaotic mind. The sensation of creating order from chaos is somewhat comforting, although it does not entirely eliminate the anxiety that accompanies such an endeavor. Receiving the job offer was unexpected, yet it seems logical given my current skillset and experience. I hope this entry will provide a satisfactory account of how today's events have affected me, though I am uncertain if I can fully articulate my emotions. The job offer, while exciting, has brought about a new wave of anxiety - specifically regarding social interaction. The thought of meeting with colleagues and potential supervisors fills me with dread. I worry that my awkwardness will be palpable, that I'll stumble over words or make some embarrassing mistake. The idea of small talk and forced conversation makes my stomach twist into knots. Even the simplest tasks, like ordering food or asking for directions, feel like minefield situations waiting to unfold. I've always struggled with people-pleasing, and now it seems like this is going to be a constant battle.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "general",
+      "sentiment": "positive",
+      "text": "Today's task has been successfully initiated. I have begun recording my thoughts and feelings in this journal, a method I have employed to attempt to organize my chaotic mind. The sensation of creating order from chaos is somewhat comforting, although it does not entirely eliminate the anxiety that accompanies such an endeavor. Receiving the job offer was unexpected, yet it seems logical given my current skillset and experience. I hope this entry will provide a satisfactory account of how today's events have affected me, though I am uncertain if I can fully articulate my emotions.",
+      "start_char": 0,
+      "end_char": 587
+    },
+    {
+      "id": 1,
+      "topic": "social interaction",
+      "sentiment": "negative",
+      "text": "The job offer, while exciting, has brought about a new wave of anxiety - specifically regarding social interaction. The thought of meeting with colleagues and potential supervisors fills me with dread. I worry that my awkwardness will be palpable, that I'll stumble over words or make some embarrassing mistake. The idea of small talk and forced conversation makes my stomach twist into knots. Even the simplest tasks, like ordering food or asking for directions, feel like minefield situations waiting to unfold. I've always struggled with people-pleasing, and now it seems like this is going to be a constant battle.",
+      "start_char": 588,
+      "end_char": 1206
+    }
+  ],
+  "topics": [
+    "social interaction"
+  ],
+  "pii": [],
+  "summary": "Here is a summary of the journal entry in 1-2 sentences:\n\nThe writer has started recording their thoughts and feelings in a journal after receiving an unexpected job offer, which has brought on both excitement and anxiety, particularly regarding social interactions. They feel overwhelmed by the prospect of navigating new relationships and conversations, fearing they will come across as awkward or make mistakes.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

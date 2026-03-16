@@ -1,0 +1,52 @@
+{
+  "persona": "mila_v",
+  "entry_index": 0,
+  "arc_stage": "Stage 1 – Desperation & doubt: feels rejected, frustrated, and believes she will never be good enough. No internship yet.",
+  "transcript": "March 12th, 2023\n\nI hope this entry makes sense. I've been trying to calm myself down for what feels like hours. Today was supposed to be an ordinary day - attend classes, work on projects, and maybe squeeze in some phone calls with potential internship leads. But as soon as the morning sun streamed through my window (too bright), I felt my anxiety spike.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "general",
+      "sentiment": "neutral",
+      "text": "March 12th, 2023\n\nI hope this entry makes sense.",
+      "start_char": 0,
+      "end_char": 48
+    },
+    {
+      "id": 1,
+      "topic": "anxiety",
+      "sentiment": "negative",
+      "text": "I've been trying to calm myself down for what feels like hours.",
+      "start_char": 49,
+      "end_char": 112
+    },
+    {
+      "id": 2,
+      "topic": "work",
+      "sentiment": "neutral",
+      "text": "Today was supposed to be an ordinary day - attend classes, work on projects, and maybe squeeze in some phone calls with potential internship leads.",
+      "start_char": 113,
+      "end_char": 260
+    },
+    {
+      "id": 3,
+      "topic": "anxiety",
+      "sentiment": "negative",
+      "text": "But as soon as the morning sun streamed through my window (too bright), I felt my anxiety spike.",
+      "start_char": 261,
+      "end_char": 357
+    }
+  ],
+  "topics": [
+    "anxiety",
+    "work",
+    "general"
+  ],
+  "pii": [],
+  "summary": "The writer is struggling with anxiety on March 12th, 2023, which began with a sudden trigger - the morning sunlight - and disrupted their plans for an ordinary day of attending classes and making phone calls about potential internships. They've been trying to calm down for hours.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "persona_id": 1,
+  "persona_code": "mila_v",
+  "persona_name": "Mila",
+  "persona_age": 20,
+  "neurotype": "ASD + High Anxiety",
+  "entry_index": 3,
+  "transcript": "Dear Journal,\n\nI'm sitting in my small apartment, surrounded by the familiar comforts of home. The lights are too bright today, and I find myself squinting at the fluorescent glow emanating from the ceiling. My fingers drum a nervous rhythm on the armrest of the chair, a habit I've developed when I'm feeling anxious.\n\nToday was one of those days where I felt like I'm stuck in a never-ending loop. I had an anxiety attack during my lunch break, and now I'm struggling to shake off the feeling of being overwhelmed. My mind kept wandering back to Phillip Jackson's expectations from me at Barnes-Peters. What if I'm not good enough? What if I fail?\n\nI hope that makes sense, but it doesn't feel like it right now. I've been replaying our conversation in my head, trying to decipher what he meant by \"more engagement\" and \"better customer service skills.\" I'm not sure if I'm overthinking this, but every time I try to visualize the scenario playing out, I end up feeling like I'll trip over my words or spill coffee all over my shirt.\n\nI tried to call Christopher Cordova later, but my anxiety got the better of me. I ended up leaving multiple messages, apologizing for not being able to talk. I'm not sure if he's even responded yet.\n\nI wish I could be more like Curtis Torres, always so calm and collected. But that's just not who I am. At least, not right now. David Schmidt has been trying to reassure me, saying I'll get there eventually, but it's hard to shake off the feeling of inadequacy.\n\nI'm going to try to take some deep breaths and focus on one thing at a time. Maybe that's where my problem lies – I'm getting too caught up in the what-ifs and not enough on the nows. Tomorrow is a new day, and I'll face whatever comes with a fresh perspective. Or maybe not. Either way, I need to keep moving forward.\n\nSincerely,\nTurner",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "social interaction",
+      "text": "Dear Journal,\n\nI'm sitting in my small apartment, surrounded by the familiar comforts of home. The lights are too bright today, and I find myself squinting at the fluorescent glow emanating from the ceiling. My fingers drum a nervous rhythm on the armrest of the chair, a habit I've developed when I'm feeling anxious.\n\nToday was one of those days where I felt like I'm stuck in a never-ending loop. I had an anxiety attack during my lunch break, and now I'm struggling to shake off the feeling of being overwhelmed. My mind kept wandering back to Phillip Jackson's expectations from me at Barnes-Peters. What if I'm not good enough? What if I fail?\n\nI hope that makes sense, but it doesn't feel like it right now. I've been replaying our conversation in my head, trying to decipher what he meant by \"more engagement\" and \"better customer service skills.\" I'm not sure if I'm overthinking this, but every time I try to visualize the scenario playing out, I end up feeling like I'll trip over my words or spill coffee all over my shirt.\n\nI tried to call Christopher Cordova later, but my anxiety got the better of me. I ended up leaving multiple messages, apologizing for not being able to talk. I'm not sure if he's even responded yet.\n\nI wish I could be more like Curtis Torres, always so calm and collected. But that's just not who I am. At least, not right now. David Schmidt has been trying to reassure me, saying I'll get there eventually, but it's hard to shake off the feeling of inadequacy.\n\nI'm going to try to take some deep breaths and focus on one thing at a time. Maybe that's where my problem lies – I'm getting too caught up in the what-ifs and not enough on the nows. Tomorrow is a new day, and I'll face whatever comes with a fresh perspective. Or maybe not. Either way, I need to keep moving forward.\n\nSincerely,\nTurner",
+      "start_char": 0,
+      "end_char": 1837
+    }
+  ],
+  "topics": [
+    "social interaction"
+  ],
+  "pii": [
+    {
+      "type": "PARTNER_NAME",
+      "text": "David Schmidt",
+      "start_char": 1365,
+      "end_char": 1378
+    },
+    {
+      "type": "MOTHER_NAME",
+      "text": "Curtis Torres",
+      "start_char": 1265,
+      "end_char": 1278
+    },
+    {
+      "type": "CLOSE_FRIEND",
+      "text": "Christopher Cordova",
+      "start_char": 1053,
+      "end_char": 1072
+    },
+    {
+      "type": "BOSS_NAME",
+      "text": "Phillip Jackson",
+      "start_char": 548,
+      "end_char": 563
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Barnes-Peters",
+      "start_char": 590,
+      "end_char": 603
+    }
+  ],
+  "summary": "Here is a concise, emotionally aware summary of the journal entry:\n\nTurner feels overwhelmed and uncertain about their performance at work, replaying conversations with colleagues in their head and fearing they're not good enough. They struggle to shake off feelings of anxiety and inadequacy, longing for the calm and confidence of others while trying to focus on the present moment.",
+  "arc_stage": "Stage 1 – Desperation & doubt: feels rejected, frustrated, and believes she will never be good enough. No internship yet."
+}

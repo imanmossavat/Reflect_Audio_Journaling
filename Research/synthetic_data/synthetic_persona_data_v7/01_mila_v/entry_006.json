@@ -1,0 +1,26 @@
+{
+  "persona": "mila_v",
+  "entry_index": 6,
+  "arc_stage": "Stage 1 – Desperation & doubt: feels rejected, frustrated, and believes she will never be good enough. No internship yet.",
+  "transcript": "March 15, 20XX\n\nI have been sitting in my small town apartment for what feels like an eternity, staring at the same four walls as I attempt to process the events that transpired today. The fluorescent light above my desk casts a harsh glare, illuminating every imperfection on the surface of my notebook. My hands are still, my mind racing with questions and doubts. What if this opportunity is too good to be true? What if I'm not qualified enough? What if...I hope that makes sense. As I try to shake off the feeling of rejection that's been weighing on me all day, my mind keeps drifting back to the email I received from the company that offered me an internship. \"We were impressed by your application,\" it said, but what did that even mean? Did they just take pity on me because I'm desperate for any kind of experience? The more I think about it, the more my anxiety starts to spike - what if this is a mistake? What if they realize I'm not good enough now that we're face to face?\n\nI can feel my heart racing and my palms growing sweaty just thinking about walking into their office tomorrow. It's like my brain is trying to protect me from the unknown, but it's only making things worse. The fluorescent light overhead seems to be pulsing with an otherworldly energy, casting eerie shadows on the walls as I sit here trying to calm myself down.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "internship",
+      "sentiment": "negative",
+      "text": "As I try to shake off the feeling of rejection that's been weighing on me all day, my mind keeps drifting back to the email I received from the company that offered me an internship. \"We were impressed by your application,\" it said, but what did that even mean? Did they just take pity on me because I'm desperate for any kind of experience? The more I think about it, the more my anxiety starts to spike - what if this is a mistake? What if they realize I'm not good enough now that we're face to face?\n\nI can feel my heart racing and my palms growing sweaty just thinking about walking into their office tomorrow. It's like my brain is trying to protect me from the unknown, but it's only making things worse. The fluorescent light overhead seems to be pulsing with an otherworldly energy, casting eerie shadows on the walls as I sit here trying to calm myself down.",
+      "start_char": 485,
+      "end_char": 1353
+    }
+  ],
+  "topics": [
+    "internship"
+  ],
+  "pii": [],
+  "summary": "The writer is struggling with anxiety and self-doubt after receiving an internship offer from a company, wondering if they're truly qualified and whether the opportunity is too good to be true. They're fearing rejection and feeling overwhelmed by the prospect of facing their interviewer tomorrow.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

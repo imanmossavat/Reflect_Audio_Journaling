@@ -1,0 +1,39 @@
+{
+  "persona": "mila_v",
+  "entry_index": 3,
+  "arc_stage": "Stage 1 – Desperation & doubt: feels rejected, frustrated, and believes she will never be good enough. No internship yet.",
+  "transcript": "Today's reflection began with an overwhelming sense of dread as I stared blankly at my computer screen. The fluorescent lights overhead seemed to hum in unison with the anxiety swirling in my chest. I hope that makes sense | As I sat there, my mind replayed every email, every phone call, and every application I'd submitted - all for naught. My thoughts drifted to Tamara, who had reassured me just yesterday that I was capable of landing an internship. But the weight of doubt still lingered. What if I wasn't good enough? What if Douglas Inc. didn't want someone like me? Cynthia's words echoed in my mind: \"You need to believe in yourself.\" Easy for her to say, when she had Cynthia's outgoing personality and Tamara's supportive nature. Not everyone can understand what it's like to be me - introverted, anxious, and struggling to find one's place. As I tried to shake off the feeling of desperation, my eyes wandered to the clock on my computer screen. The time read 3:47 PM. I was supposed to have a meeting with Lisa Clark, my mentor, in an hour. What if I couldn't think clearly? What if I stumbled over my words? The thought sent a shiver down my spine. My hands began to shake slightly as I took a few deep breaths, trying to calm myself. The more I breathed, the more centered I became. Maybe today wouldn't be so bad after all. I stood up from my chair and stretched my arms above my head, attempting to loosen the knot of anxiety that had formed in my chest. It was time to face this meeting head-on, one step at a time.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "general",
+      "sentiment": "neutral",
+      "text": "Today's reflection began with an overwhelming sense of dread as I stared blankly at my computer screen. The fluorescent lights overhead seemed to hum in unison with the anxiety swirling in my chest. I hope that makes sense | As I sat there, my mind replayed every email, every phone call, and every application I'd submitted - all for naught. My thoughts drifted to Tamara, who had reassured me just yesterday that I was capable of landing an internship. But the weight of doubt still lingered. What if I wasn't good enough? What if Douglas Inc. didn't want someone like me? Cynthia's words echoed in my mind: \"You need to believe in yourself.\" Easy for her to say, when she had Cynthia's outgoing personality and Tamara's supportive nature. Not everyone can understand what it's like to be me - introverted, anxious, and struggling to find one's place. As I tried to shake off the feeling of desperation, my eyes wandered to the clock on my computer screen. The time read 3:47 PM. I was supposed to have a meeting with Lisa Clark, my mentor, in an hour. What if I couldn't think clearly? What if I stumbled over my words? The thought sent a shiver down my spine. My hands began to shake slightly as I took a few deep breaths, trying to calm myself. The more I breathed, the more centered I became. Maybe today wouldn't be so bad after all. I stood up from my chair and stretched my arms above my head, attempting to loosen the knot of anxiety that had formed in my chest. It was time to face this meeting head-on, one step at a time.",
+      "start_char": 0,
+      "end_char": 1534
+    }
+  ],
+  "topics": [
+    "general"
+  ],
+  "pii": [
+    {
+      "type": "MENTOR_NAME",
+      "text": "Lisa Clark",
+      "start_char": 1020,
+      "end_char": 1030
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Douglas Inc",
+      "start_char": 533,
+      "end_char": 544
+    }
+  ],
+  "summary": "The writer is struggling with self-doubt and anxiety as they prepare for an internship meeting, feeling like their introverted and anxious nature makes them unworthy of the opportunity. Despite feeling overwhelmed, they take a few deep breaths, calm themselves, and mentally prepare to face the meeting head-on.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

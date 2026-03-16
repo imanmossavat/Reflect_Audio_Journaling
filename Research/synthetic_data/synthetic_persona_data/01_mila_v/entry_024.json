@@ -1,0 +1,61 @@
+{
+  "persona_id": 1,
+  "persona_code": "mila_v",
+  "persona_name": "Mila",
+  "persona_age": 20,
+  "neurotype": "ASD + High Anxiety",
+  "entry_index": 24,
+  "transcript": "Dear Journal,\n\nI am sitting in my small apartment, surrounded by the familiar comforts of home. The morning sunlight streaming through the window highlights the dust motes dancing in the air, casting a faint shimmer on the walls. I hope that makes sense. Today, I received an email from Phillip Jackson at Barnes-Peters, and it contained a job offer for the internship I've been striving to secure.\n\nA mix of emotions flooded my mind as I read those words – joy, fear, and a pinch of imposter syndrome. Why would they want me, someone who struggles with social interactions and anxiety, for this prestigious opportunity? I am not sure if I'm overthinking, but the prospect of failure weighs heavily on me.\n\nI must admit, the initial excitement was overwhelming. The sounds around me – the ticking clock, the hum of the air conditioner, and the distant chatter from neighboring apartments – all blend together in a cacophony that makes my head spin. Christopher called earlier to congratulate me, his voice a welcome respite from the chaos. He reminded me of my strengths, which I've been trying to ignore.\n\nI am trying to be optimistic, but self-doubt creeps in with each passing thought. What if I'm not good enough? What if I fail to impress Phillip Jackson or the team at Barnes-Peters? Curtis and David exchanged worried glances when we spoke this morning; they sense my unease. They want me to take a chance, to believe in myself.\n\nI need to focus on the benefits – the experience, the skills I'll acquire, and the connections I might make. Phillip Jackson is keen to emphasize the growth opportunities available at Barnes-Peters. David Cordova's words echoed in my mind: \"You have this, Jacqueline.\" I hope that makes sense.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "internship",
+      "text": "Dear Journal,\n\nI am sitting in my small apartment, surrounded by the familiar comforts of home. The morning sunlight streaming through the window highlights the dust motes dancing in the air, casting a faint shimmer on the walls. I hope that makes sense. Today, I received an email from Phillip Jackson at Barnes-Peters, and it contained a job offer for the internship I've been striving to secure.\n\nA mix of emotions flooded my mind as I read those words – joy, fear, and a pinch of imposter syndrome. Why would they want me, someone who struggles with social interactions and anxiety, for this prestigious opportunity? I am not sure if I'm overthinking, but the prospect of failure weighs heavily on me.\n\nI must admit, the initial excitement was overwhelming. The sounds around me – the ticking clock, the hum of the air conditioner, and the distant chatter from neighboring apartments – all blend together in a cacophony that makes my head spin. Christopher called earlier to congratulate me, his voice a welcome respite from the chaos. He reminded me of my strengths, which I've been trying to ignore.\n\nI am trying to be optimistic, but self-doubt creeps in with each passing thought. What if I'm not good enough? What if I fail to impress Phillip Jackson or the team at Barnes-Peters? Curtis and David exchanged worried glances when we spoke this morning; they sense my unease. They want me to take a chance, to believe in myself.\n\nI need to focus on the benefits – the experience, the skills I'll acquire, and the connections I might make. Phillip Jackson is keen to emphasize the growth opportunities available at Barnes-Peters. David Cordova's words echoed in my mind: \"You have this, Jacqueline.\" I hope that makes sense.",
+      "start_char": 0,
+      "end_char": 1730
+    }
+  ],
+  "topics": [
+    "internship"
+  ],
+  "pii": [
+    {
+      "type": "BOSS_NAME",
+      "text": "Phillip Jackson",
+      "start_char": 287,
+      "end_char": 302
+    },
+    {
+      "type": "BOSS_NAME",
+      "text": "Phillip Jackson",
+      "start_char": 1244,
+      "end_char": 1259
+    },
+    {
+      "type": "BOSS_NAME",
+      "text": "Phillip Jackson",
+      "start_char": 1546,
+      "end_char": 1561
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Barnes-Peters",
+      "start_char": 306,
+      "end_char": 319
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Barnes-Peters",
+      "start_char": 1275,
+      "end_char": 1288
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Barnes-Peters",
+      "start_char": 1621,
+      "end_char": 1634
+    }
+  ],
+  "summary": "Here is a 2-sentence summary of the journal entry:\n\nThe writer is both thrilled and terrified by a job offer for an internship they've been striving for, struggling with self-doubt about their abilities to succeed despite their anxiety and social struggles. Despite feeling overwhelmed, they're trying to focus on the benefits and opportunities that this experience could bring, as encouraged by supportive friends and mentors who believe in them.",
+  "arc_stage": "Stage 4 – Shock at job offer: receives a job offer from the internship, feels joy + fear + imposter syndrome."
+}

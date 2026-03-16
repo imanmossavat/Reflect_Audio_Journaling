@@ -1,0 +1,66 @@
+{
+  "persona": "mila_v",
+  "entry_index": 7,
+  "arc_stage": "Stage 1 – Desperation & doubt: feels rejected, frustrated, and believes she will never be good enough. No internship yet.",
+  "transcript": "March 21st, 2023\n\nI hope this entry makes sense. I am attempting to write without excessive repetition, as it has been a recurring issue for me lately. Today was a day of mixed emotions, and I'm not sure where to begin. This morning, I received an email from Mario Long at Weaver, Erickson and Johnson informing me that they would be extending the internship offer I received three weeks ago. I must admit, I felt a surge of surprise and excitement.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "anxiety",
+      "sentiment": "neutral",
+      "text": "March 21st, 2023\n\nI hope this entry makes sense. I am attempting to write without excessive repetition, as it has been a recurring issue for me lately.",
+      "start_char": 0,
+      "end_char": 151
+    },
+    {
+      "id": 1,
+      "topic": "emotions",
+      "sentiment": "neutral",
+      "text": "Today was a day of mixed emotions, and I'm not sure where to begin.",
+      "start_char": 152,
+      "end_char": 219
+    },
+    {
+      "id": 2,
+      "topic": "internship",
+      "sentiment": "neutral",
+      "text": "This morning, I received an email from Mario Long at Weaver, Erickson and Johnson informing me that they would be extending the internship offer I received three weeks ago.",
+      "start_char": 220,
+      "end_char": 392
+    },
+    {
+      "id": 3,
+      "topic": "general",
+      "sentiment": "positive",
+      "text": "I must admit, I felt a surge of surprise and excitement.",
+      "start_char": 393,
+      "end_char": 449
+    }
+  ],
+  "topics": [
+    "general",
+    "internship",
+    "anxiety",
+    "emotions"
+  ],
+  "pii": [
+    {
+      "type": "BOSS_NAME",
+      "text": "Mario Long",
+      "start_char": 259,
+      "end_char": 269
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Weaver, Erickson and Johnson",
+      "start_char": 273,
+      "end_char": 301
+    }
+  ],
+  "summary": "The writer received an update on their internship application, and was informed by Mario Long that the offer had been extended from three weeks prior. The news caused a mix of emotions, with the writer feeling both surprised and excited.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

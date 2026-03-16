@@ -1,0 +1,26 @@
+{
+  "persona": "mila_v",
+  "entry_index": 5,
+  "arc_stage": "Stage 1 – Desperation & doubt: feels rejected, frustrated, and believes she will never be good enough. No internship yet.",
+  "transcript": "March 15, 20XX\n\nI have been sitting in my small town apartment for what feels like an eternity, staring at the same four walls as I attempt to process the events that transpired today. My anxiety is attempting to consume me, as it often does when confronted with uncertainty. The fluorescent lights above my desk seem particularly harsh today, casting an unforgiving glare on the pages of my notes and design sketches. My hands are shaking slightly as I write this, a physical manifestation of the turmoil brewing within me. I hope that makes sense, but I'm not sure if I'm overthinking already. School, the place where I'm supposed to be excelling but feels like a prison to me. The thought of another day of sitting in a crowded classroom, trying to hide my anxiety from everyone around me, makes my stomach twist into knots. What if I say something wrong? What if I don't contribute enough? The what-ifs swirl in my head like a vortex, pulling me under with every passing moment. My eyes wander to the notes and design sketches scattered across my desk, a reminder of all the things I thought I was capable of, but now seem so far out of reach.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "school",
+      "sentiment": "negative",
+      "text": "School, the place where I'm supposed to be excelling but feels like a prison to me. The thought of another day of sitting in a crowded classroom, trying to hide my anxiety from everyone around me, makes my stomach twist into knots. What if I say something wrong? What if I don't contribute enough? The what-ifs swirl in my head like a vortex, pulling me under with every passing moment. My eyes wander to the notes and design sketches scattered across my desk, a reminder of all the things I thought I was capable of, but now seem so far out of reach.",
+      "start_char": 596,
+      "end_char": 1147
+    }
+  ],
+  "topics": [
+    "school"
+  ],
+  "pii": [],
+  "summary": "The writer is struggling with anxiety and feelings of inadequacy after an uncertain event, feeling trapped in their small town apartment and overwhelmed by the prospect of returning to school. Their mind is consumed by self-doubt and worst-case scenarios, making it hard for them to focus on their goals and aspirations.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

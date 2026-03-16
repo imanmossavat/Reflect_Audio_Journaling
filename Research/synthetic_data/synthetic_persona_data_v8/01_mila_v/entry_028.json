@@ -1,0 +1,34 @@
+{
+  "persona": "mila_v",
+  "entry_index": 28,
+  "arc_stage": "Stage 4 – Shock at job offer: receives a job offer from the internship, feels joy + fear + imposter syndrome.",
+  "transcript": "Today's events have left me in a state of heightened uncertainty, my mind struggling to reconcile the conflicting emotions swirling within. The warmth on my skin has begun to fade, replaced by a sense of exhaustion that permeates every fiber of my being. I am still trying to grasp the significance of this unexpected job offer, one that feels both an incredible opportunity and a crushing weight of responsibility. My thoughts are an entangled web of excitement and trepidation, each strand tangled with anxiety's insidious grip. Joy and fear wrestle for dominance in my chest, leaving me feeling lightheaded and uncertain about the future. I hope this makes sense; I'm not sure if I'm overthinking, but it's difficult to shake the feeling that I'm on the cusp of something momentous, yet simultaneously spiraling out of control. The irony of feeling like I'm being offered a lifeline, yet simultaneously suffocating under the weight of expectations. My mind keeps replaying the conversation with my interviewer, where I somehow managed to stumble through an answer to a question that seems so simplistic now - \"What are your greatest strengths and weaknesses?\" It's funny how one simple question can unleash a torrent of self-doubt. Every time I close my eyes, I'm flooded with images of failure: myself walking into the office, only to be met with disappointment or worse, being asked to leave. The hum in my mind grows louder, a constant reminder that my anxiety is always lurking, waiting to pounce on any perceived weakness. Joy and excitement seem so far away now, replaced by an anxious anticipation of what's to come.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "general",
+      "sentiment": "negative",
+      "text": "Today's events have left me in a state of heightened uncertainty, my mind struggling to reconcile the conflicting emotions swirling within. The warmth on my skin has begun to fade, replaced by a sense of exhaustion that permeates every fiber of my being. I am still trying to grasp the significance of this unexpected job offer, one that feels both an incredible opportunity and a crushing weight of responsibility. My thoughts are an entangled web of excitement and trepidation, each strand tangled with anxiety's insidious grip. Joy and fear wrestle for dominance in my chest, leaving me feeling lightheaded and uncertain about the future. I hope this makes sense; I'm not sure if I'm overthinking, but it's difficult to shake the feeling that I'm on the cusp of something momentous, yet simultaneously spiraling out of control.",
+      "start_char": 0,
+      "end_char": 830
+    },
+    {
+      "id": 1,
+      "topic": "anxiety",
+      "sentiment": "negative",
+      "text": "The irony of feeling like I'm being offered a lifeline, yet simultaneously suffocating under the weight of expectations. My mind keeps replaying the conversation with my interviewer, where I somehow managed to stumble through an answer to a question that seems so simplistic now - \"What are your greatest strengths and weaknesses?\" It's funny how one simple question can unleash a torrent of self-doubt. Every time I close my eyes, I'm flooded with images of failure: myself walking into the office, only to be met with disappointment or worse, being asked to leave. The hum in my mind grows louder, a constant reminder that my anxiety is always lurking, waiting to pounce on any perceived weakness. Joy and excitement seem so far away now, replaced by an anxious anticipation of what's to come.",
+      "start_char": 831,
+      "end_char": 1626
+    }
+  ],
+  "topics": [
+    "anxiety"
+  ],
+  "pii": [],
+  "summary": "The writer has received a job offer that feels both exciting and overwhelming, leaving them in a state of uncertainty and anxiety as they grapple with the prospect of new responsibility. Despite feeling like they're on the cusp of something momentous, their mind is consumed by self-doubt and fear of failure, making it difficult to shake the feeling of being suffocated by expectations.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

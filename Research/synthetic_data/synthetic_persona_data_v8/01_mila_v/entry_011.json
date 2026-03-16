@@ -1,0 +1,34 @@
+{
+  "persona": "mila_v",
+  "entry_index": 11,
+  "arc_stage": "Stage 2 – Relief & gratitude: she finally gets an internship, feels intense relief and loyalty, wants to earn her place.",
+  "transcript": "Today was a day of considerable relief, I believe. My thoughts have been consumed by the weight of uncertainty that has been lifted from my shoulders, allowing me to finally exhale a breath of air. The intense anxiety that had been simmering beneath the surface has begun to dissipate, replaced by a sense of calm that is both unfamiliar and welcome. I hope that makes sense - it's still difficult for me to articulate my emotions in a way that feels coherent. My heart rate remains slightly elevated, but I'm not sure if I'm overthinking. The weight of self-worth. It's a burden I've carried for so long, and yet, today's news feels like a reprieve from its constant scrutiny. The internship offer still resonates within me, a tangible proof that my hard work has been noticed. For the first time in what feels like an eternity, I can focus on my abilities rather than my perceived shortcomings. It's a fleeting sense of confidence, perhaps, but it's enough to sustain me for now.\n\nI find myself wondering if this is why I've always felt like I'm not good enough - because I've been conditioned to believe that my worth is tied to external validation? The anxiety that comes with self-doubt still lingers, a nagging voice in the back of my mind. But today, for the first time, I feel like I can silence it slightly. My hands are steady as I write this, and my breath feels less shallow.\n\nIt's funny how the smallest things can shift our perspective. The relief I feel is not just about the internship itself, but about being seen - recognized for who I am, rather than trying to fit into someone else's mold. It's a fragile sense of self-worth, perhaps, but it's mine.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "general",
+      "sentiment": "neutral",
+      "text": "Today was a day of considerable relief, I believe. My thoughts have been consumed by the weight of uncertainty that has been lifted from my shoulders, allowing me to finally exhale a breath of air. The intense anxiety that had been simmering beneath the surface has begun to dissipate, replaced by a sense of calm that is both unfamiliar and welcome. I hope that makes sense - it's still difficult for me to articulate my emotions in a way that feels coherent. My heart rate remains slightly elevated, but I'm not sure if I'm overthinking.",
+      "start_char": 0,
+      "end_char": 539
+    },
+    {
+      "id": 1,
+      "topic": "self-worth",
+      "sentiment": "positive",
+      "text": "The weight of self-worth. It's a burden I've carried for so long, and yet, today's news feels like a reprieve from its constant scrutiny. The internship offer still resonates within me, a tangible proof that my hard work has been noticed. For the first time in what feels like an eternity, I can focus on my abilities rather than my perceived shortcomings. It's a fleeting sense of confidence, perhaps, but it's enough to sustain me for now.\n\nI find myself wondering if this is why I've always felt like I'm not good enough - because I've been conditioned to believe that my worth is tied to external validation? The anxiety that comes with self-doubt still lingers, a nagging voice in the back of my mind. But today, for the first time, I feel like I can silence it slightly. My hands are steady as I write this, and my breath feels less shallow.\n\nIt's funny how the smallest things can shift our perspective. The relief I feel is not just about the internship itself, but about being seen - recognized for who I am, rather than trying to fit into someone else's mold. It's a fragile sense of self-worth, perhaps, but it's mine.",
+      "start_char": 540,
+      "end_char": 1669
+    }
+  ],
+  "topics": [
+    "self-worth"
+  ],
+  "pii": [],
+  "summary": "Here is a 1-2 sentence summary of the journal entry:\n\nThe writer has received news that alleviates their intense anxiety and uncertainty, allowing them to feel a sense of calm and relief for the first time in a long time. This newfound sense of confidence is fragile, but it's enough to give them the strength to focus on their abilities rather than self-doubt, and they're finally able to see themselves as recognized and worthy for who they are.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

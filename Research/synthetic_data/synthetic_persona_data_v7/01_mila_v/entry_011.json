@@ -1,0 +1,44 @@
+{
+  "persona": "mila_v",
+  "entry_index": 11,
+  "arc_stage": "Stage 2 – Relief & gratitude: she finally gets an internship, feels intense relief and loyalty, wants to earn her place.",
+  "transcript": "I have been sitting in my small town apartment for what feels like an eternity, staring at the same four walls as I attempt to process the events that transpired today. The fluorescent light overhead casts a harsh glow on the worn couch, making me squint. My heart rate is elevated, and my mind is racing with thoughts of tomorrow's tasks. I am struggling to reorganize my priorities, as the sudden shift in circumstances has left me feeling disoriented. I hope that makes sense.\n\nI took a few deep breaths, attempting to calm myself down, but my hands are still shaking slightly. The unexpected turn of events is causing me to question everything I thought I knew about my future. As I sit here, trying to collect my thoughts, I find myself wondering what it means to finally have an internship lined up. The excitement is still coursing through my veins, but it's tempered by a growing sense of responsibility and anxiety about not wanting to let anyone down. My mind keeps drifting back to the phone call this morning - the sound of my friend's voice on the other end, congratulating me and telling me how proud they are. It was such a small moment, but it brought tears to my eyes, reminding me that I'm not alone in this journey. The relief is still there, but it's now mixed with a sense of trepidation about what comes next. What does it mean to earn my place in the program?. As I sit here, trying to make sense of the news that just shook me, my mind keeps wandering back to school. It's a place where I've always struggled, not because it's inherently difficult, but because it's so... loud. So many new sights and sounds can be overwhelming for me, and the constant pressure to perform can be suffocating at times. But today's news has given me something new to think about - what if I don't have to navigate that world alone? What if I can find a way to make it work for me, rather than against me? The thought is both exhilarating and terrifying, like a rollercoaster I'm not sure I want to ride. As I sit here trying to make sense of the phone call that changed everything, my thoughts keep drifting back to tomorrow's internship orientation. What if I mess up? What if I say something wrong or forget something crucial? The anxiety is already starting to creep in, making my stomach twist into knots. I try to push the thoughts away, focusing on the excitement and relief that came with finally receiving the offer. It feels like a weight has been lifted off my shoulders, but at the same time, I'm terrified of disappointing anyone or not meeting expectations. The fluorescent light seems to be shining brighter now, highlighting all the doubts swirling in my mind.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "work",
+      "sentiment": "neutral",
+      "text": "As I sit here, trying to collect my thoughts, I find myself wondering what it means to finally have an internship lined up. The excitement is still coursing through my veins, but it's tempered by a growing sense of responsibility and anxiety about not wanting to let anyone down. My mind keeps drifting back to the phone call this morning - the sound of my friend's voice on the other end, congratulating me and telling me how proud they are. It was such a small moment, but it brought tears to my eyes, reminding me that I'm not alone in this journey. The relief is still there, but it's now mixed with a sense of trepidation about what comes next. What does it mean to earn my place in the program?.",
+      "start_char": 682,
+      "end_char": 1383
+    },
+    {
+      "id": 1,
+      "topic": "school",
+      "sentiment": "neutral",
+      "text": "As I sit here, trying to make sense of the news that just shook me, my mind keeps wandering back to school. It's a place where I've always struggled, not because it's inherently difficult, but because it's so... loud. So many new sights and sounds can be overwhelming for me, and the constant pressure to perform can be suffocating at times. But today's news has given me something new to think about - what if I don't have to navigate that world alone? What if I can find a way to make it work for me, rather than against me? The thought is both exhilarating and terrifying, like a rollercoaster I'm not sure I want to ride.",
+      "start_char": 1384,
+      "end_char": 2009
+    },
+    {
+      "id": 2,
+      "topic": "internship",
+      "sentiment": "negative",
+      "text": "As I sit here trying to make sense of the phone call that changed everything, my thoughts keep drifting back to tomorrow's internship orientation. What if I mess up? What if I say something wrong or forget something crucial? The anxiety is already starting to creep in, making my stomach twist into knots. I try to push the thoughts away, focusing on the excitement and relief that came with finally receiving the offer. It feels like a weight has been lifted off my shoulders, but at the same time, I'm terrified of disappointing anyone or not meeting expectations. The fluorescent light seems to be shining brighter now, highlighting all the doubts swirling in my mind.",
+      "start_char": 2010,
+      "end_char": 2681
+    }
+  ],
+  "topics": [
+    "work",
+    "school",
+    "internship"
+  ],
+  "pii": [],
+  "summary": "Here is a 1-2 sentence summary:\n\nThe writer is struggling to process a recent phone call that revealed they've been accepted into an internship program, leaving them feeling overwhelmed with excitement, anxiety, and uncertainty about their future. As they try to calm down, they're flooded with thoughts of what this means for their education, personal growth, and potential disappointment.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

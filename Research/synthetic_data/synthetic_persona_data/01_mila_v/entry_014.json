@@ -1,0 +1,44 @@
+{
+  "persona_id": 1,
+  "persona_code": "mila_v",
+  "persona_name": "Mila",
+  "persona_age": 20,
+  "neurotype": "ASD + High Anxiety",
+  "entry_index": 14,
+  "transcript": "Dear Journal,\n\nI am sitting in my small apartment, surrounded by the familiar comforts of home. The sunlight filtering through the blinds casts an uneven glow on the walls, making me feel a bit nauseous. I've been trying to avoid looking at it for hours now.\n\nToday was a day I can almost believe in, where the anxiety and doubt don't take over entirely. Phillip Jackson from Barnes-Peters called to inform me that I got the internship I applied for. The relief washes over me like a gentle wave, making my chest feel lighter. I hope that makes sense.\n\nI think about Christopher's words of encouragement during our conversation yesterday: \"You're going to crush it.\" It gave me a spark of confidence. David was also on the phone when Phillip called, and he sounded happy for me too. Their voices are soothing balm for my frazzled nerves.\n\nThe school year is almost over, and I feel like I'm finally starting to get a handle on things. I've been attending seminars at West Stephanie University more regularly, and it's helped me build some connections with classmates who share similar interests. Social interactions can still be overwhelming at times – I found myself zoning out during the last group discussion – but it's progress.\n\nI want to earn my place here, prove that I'm not just a struggling student trying to survive. Curtis always says I have so much potential, and for once, I feel like I believe her. Phillip's words of encouragement also keep echoing in my mind: \"You're capable of more than you think.\"\n\nAs I write this, the sounds outside – people walking by, cars driving – are a gentle hum in the background, almost calming. I try to focus on the present moment, letting go of worries about the future or past. It's not easy, but it's a start.\n\nI'm going to take a deep breath and remind myself that I got this internship because I deserve it.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "school",
+      "text": "Dear Journal,\n\nI am sitting in my small apartment, surrounded by the familiar comforts of home. The sunlight filtering through the blinds casts an uneven glow on the walls, making me feel a bit nauseous. I've been trying to avoid looking at it for hours now.\n\nToday was a day I can almost believe in, where the anxiety and doubt don't take over entirely. Phillip Jackson from Barnes-Peters called to inform me that I got the internship I applied for. The relief washes over me like a gentle wave, making my chest feel lighter. I hope that makes sense.\n\nI think about Christopher's words of encouragement during our conversation yesterday: \"You're going to crush it.\" It gave me a spark of confidence. David was also on the phone when Phillip called, and he sounded happy for me too. Their voices are soothing balm for my frazzled nerves.\n\nThe school year is almost over, and I feel like I'm finally starting to get a handle on things. I've been attending seminars at West Stephanie University more regularly, and it's helped me build some connections with classmates who share similar interests. Social interactions can still be overwhelming at times – I found myself zoning out during the last group discussion – but it's progress.\n\nI want to earn my place here, prove that I'm not just a struggling student trying to survive. Curtis always says I have so much potential, and for once, I feel like I believe her. Phillip's words of encouragement also keep echoing in my mind: \"You're capable of more than you think.\"\n\nAs I write this, the sounds outside – people walking by, cars driving – are a gentle hum in the background, almost calming. I try to focus on the present moment, letting go of worries about the future or past. It's not easy, but it's a start.\n\nI'm going to take a deep breath and remind myself that I got this internship because I deserve it.",
+      "start_char": 0,
+      "end_char": 1861
+    }
+  ],
+  "topics": [
+    "social interaction",
+    "school"
+  ],
+  "pii": [
+    {
+      "type": "BOSS_NAME",
+      "text": "Phillip Jackson",
+      "start_char": 355,
+      "end_char": 370
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Barnes-Peters",
+      "start_char": 376,
+      "end_char": 389
+    },
+    {
+      "type": "CITY",
+      "text": "West Stephanie",
+      "start_char": 967,
+      "end_char": 981
+    }
+  ],
+  "summary": "This journal entry captures the writer's sense of relief and determination after receiving good news about their internship. With each sentence, they convey a growing confidence in themselves, reminding themselves that they have what it takes to succeed and prove their worth.",
+  "arc_stage": "Stage 2 – Relief & gratitude: she finally gets an internship, feels intense relief and loyalty, wants to earn her place."
+}

@@ -1,0 +1,39 @@
+{
+  "persona": "mila_v",
+  "entry_index": 2,
+  "arc_stage": "Stage 1 – Desperation & doubt: feels rejected, frustrated, and believes she will never be good enough. No internship yet.",
+  "transcript": "March 15, 20XX\n\nToday's events have left me questioning my ability to successfully navigate a professional environment. Despite repeated efforts, I am still awaiting confirmation on an internship opportunity, and the prospect of rejection weighs heavily on my mind. In contrast, my recent interview with Mrs. Sharon Ritter at Kathleen Yang's recommendation has given me cause for cautious optimism. However, I struggle to reconcile these differing outcomes in my own mental framework, as the uncertainty surrounding one situation only serves to amplify my anxiety regarding the other. I hope this entry makes sense. As I sit here trying to calm my racing thoughts, I find myself lost in the labyrinth of social interactions. The interview with Mrs. Ritter still lingers in my mind, and I'm still grappling with the nuances of her smile and the way she asked questions that felt almost too casual for someone who's been recommending me to a potential employer. It made me realize how deeply ingrained anxiety is in my nature - the thought of having to make small talk, ask follow-up questions, and engage in what feels like an endless exchange of pleasantries exhausts me. I feel like I'm constantly playing catch-up, trying to decipher social cues and navigate the uncharted territories of human connection. The sensory overload hits me when I think about meeting new people in a professional setting - all those faces, voices, and conversations blending together into a cacophony that threatens to overwhelm me at any moment.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "social interaction",
+      "sentiment": "negative",
+      "text": "As I sit here trying to calm my racing thoughts, I find myself lost in the labyrinth of social interactions. The interview with Mrs. Ritter still lingers in my mind, and I'm still grappling with the nuances of her smile and the way she asked questions that felt almost too casual for someone who's been recommending me to a potential employer. It made me realize how deeply ingrained anxiety is in my nature - the thought of having to make small talk, ask follow-up questions, and engage in what feels like an endless exchange of pleasantries exhausts me. I feel like I'm constantly playing catch-up, trying to decipher social cues and navigate the uncharted territories of human connection. The sensory overload hits me when I think about meeting new people in a professional setting - all those faces, voices, and conversations blending together into a cacophony that threatens to overwhelm me at any moment.",
+      "start_char": 616,
+      "end_char": 1526
+    }
+  ],
+  "topics": [
+    "social interaction"
+  ],
+  "pii": [
+    {
+      "type": "PARTNER_NAME",
+      "text": "Mrs. Sharon Ritter",
+      "start_char": 304,
+      "end_char": 322
+    },
+    {
+      "type": "CLOSE_FRIEND",
+      "text": "Kathleen Yang",
+      "start_char": 326,
+      "end_char": 339
+    }
+  ],
+  "summary": "The writer is struggling with anxiety and uncertainty after being denied an internship opportunity despite having a promising interview with Mrs. Ritter, which has left them questioning their ability to navigate professional social interactions. They feel overwhelmed by the prospect of making small talk and engaging in human connection in a professional setting.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "persona": "mila_v",
+  "entry_index": 7,
+  "arc_stage": "Stage 1 – Desperation & doubt: feels rejected, frustrated, and believes she will never be good enough. No internship yet.",
+  "transcript": "Today's recording is a necessary step to clarify my thoughts and feelings. I successfully completed an internship interview, despite feeling rejected by the very idea of not getting the job. My anxiety has been heightened due to my desperate need for validation, which often leads me to overthink and reevaluate every interaction. The bright lights in the office made it difficult for me to focus, but my efforts were rewarded when I was offered a position that aligns with my interests and skills. This unexpected turn of events has left me questioning my abilities and feeling uncertain about what the future holds. The internship interview was a blur of nerves and preparation. I replayed every interaction with myself, analyzing what I did right and wrong. The bright lights and loud chatter made my head spin, but I pushed through it all, trying to focus on the task at hand. Now that the dust has settled, I'm left wondering if I was good enough, if I truly belong in this field. My mind is racing with questions and doubts, making it hard for me to sleep at night. Will I be able to keep up? What if I make mistakes? The uncertainty is suffocating, but I know I have to push through it. I still can't believe I got the internship, despite feeling like I was totally unprepared for it. The interview itself was a blur - I remember being nervous and trying to recall every single detail of my projects from school, but somehow managing to stumble through it without too many disasters. The office, with its fluorescent lights and constant hum, felt like a sensory assault on my system, making my anxiety spike whenever I looked around at the other candidates who seemed so confident and carefree. But despite all that, I think I must have made a good impression somehow, because when they called me to offer me the job, I was actually surprised - not by the fact that I got it, but by how easy it felt.\n\nNow that I've been offered the internship, my mind is racing with thoughts of what this means for my future. Do I really have what it takes to succeed in a real work environment? Will I be able to handle the stress and pressure of meeting deadlines and working with colleagues who may not share my same level of anxiety? The questions swirl around in my head like a tornado, making it hard for me to focus on anything else.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "general",
+      "sentiment": "negative",
+      "text": "Today's recording is a necessary step to clarify my thoughts and feelings. I successfully completed an internship interview, despite feeling rejected by the very idea of not getting the job. My anxiety has been heightened due to my desperate need for validation, which often leads me to overthink and reevaluate every interaction. The bright lights in the office made it difficult for me to focus, but my efforts were rewarded when I was offered a position that aligns with my interests and skills. This unexpected turn of events has left me questioning my abilities and feeling uncertain about what the future holds.",
+      "start_char": 0,
+      "end_char": 617
+    },
+    {
+      "id": 1,
+      "topic": "work",
+      "sentiment": "negative",
+      "text": "The internship interview was a blur of nerves and preparation. I replayed every interaction with myself, analyzing what I did right and wrong. The bright lights and loud chatter made my head spin, but I pushed through it all, trying to focus on the task at hand. Now that the dust has settled, I'm left wondering if I was good enough, if I truly belong in this field. My mind is racing with questions and doubts, making it hard for me to sleep at night. Will I be able to keep up? What if I make mistakes? The uncertainty is suffocating, but I know I have to push through it.",
+      "start_char": 618,
+      "end_char": 1193
+    },
+    {
+      "id": 2,
+      "topic": "internship",
+      "sentiment": "neutral",
+      "text": "I still can't believe I got the internship, despite feeling like I was totally unprepared for it. The interview itself was a blur - I remember being nervous and trying to recall every single detail of my projects from school, but somehow managing to stumble through it without too many disasters. The office, with its fluorescent lights and constant hum, felt like a sensory assault on my system, making my anxiety spike whenever I looked around at the other candidates who seemed so confident and carefree. But despite all that, I think I must have made a good impression somehow, because when they called me to offer me the job, I was actually surprised - not by the fact that I got it, but by how easy it felt.\n\nNow that I've been offered the internship, my mind is racing with thoughts of what this means for my future. Do I really have what it takes to succeed in a real work environment? Will I be able to handle the stress and pressure of meeting deadlines and working with colleagues who may not share my same level of anxiety? The questions swirl around in my head like a tornado, making it hard for me to focus on anything else.",
+      "start_char": 1194,
+      "end_char": 2332
+    }
+  ],
+  "topics": [
+    "work",
+    "internship"
+  ],
+  "pii": [],
+  "summary": "Here is a 1-2 sentence summary of the journal entry:\n\nThe writer reflects on their successful internship interview, despite feeling anxious and uncertain about their abilities, and expresses relief and surprise at receiving the job offer. Now, they are struggling with doubts and uncertainty about whether they have what it takes to succeed in a real work environment, leaving them questioning their future prospects.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

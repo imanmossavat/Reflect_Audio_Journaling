@@ -1,0 +1,43 @@
+{
+  "persona_id": 1,
+  "persona_code": "mila_v",
+  "persona_name": "Mila",
+  "persona_age": 20,
+  "neurotype": "ASD + High Anxiety",
+  "entry_index": 25,
+  "transcript": "Dear Journal,\n\nI am sitting in my small apartment, surrounded by the familiar comforts of home. The sunlight streaming through the window casts an uneven glow on the walls, making me feel slightly anxious. I hope that makes sense.\n\nToday was a day of mixed emotions. Phillip Jackson extended me a job offer at Barnes-Peters, and while I'm thrilled, I'm also terrified. What if I don't deserve it? What if I fail? These thoughts keep creeping into my mind, making it difficult to focus. I told David about it over the phone earlier, and he was reassuring as always. \"You got this,\" he said.\n\nI replayed our conversation in my head, trying to pinpoint what made me doubt myself. Was it something Phillip said during the interview? Or was it my own fears? I've been working hard at Barnes-Peters, but what if that's not enough? Curtis would want me to be confident, but she'd also want me to acknowledge my doubts.\n\nI'm trying to remind myself of all the times I've accomplished things and overcome challenges. But fear is a powerful opponent. What if I prove to myself that I'm not capable of succeeding in this role? The thought sends shivers down my spine. I need to push it away, but it's hard when every fiber of me is screaming \"What if?\".\n\nI hope that makes sense.\n\nIt's reassuring to think about David's support, even as my anxiety creeps back in. Maybe, just maybe, I can do this.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "self-worth",
+      "text": "Dear Journal,\n\nI am sitting in my small apartment, surrounded by the familiar comforts of home. The sunlight streaming through the window casts an uneven glow on the walls, making me feel slightly anxious. I hope that makes sense.\n\nToday was a day of mixed emotions. Phillip Jackson extended me a job offer at Barnes-Peters, and while I'm thrilled, I'm also terrified. What if I don't deserve it? What if I fail? These thoughts keep creeping into my mind, making it difficult to focus. I told David about it over the phone earlier, and he was reassuring as always. \"You got this,\" he said.\n\nI replayed our conversation in my head, trying to pinpoint what made me doubt myself. Was it something Phillip said during the interview? Or was it my own fears? I've been working hard at Barnes-Peters, but what if that's not enough? Curtis would want me to be confident, but she'd also want me to acknowledge my doubts.\n\nI'm trying to remind myself of all the times I've accomplished things and overcome challenges. But fear is a powerful opponent. What if I prove to myself that I'm not capable of succeeding in this role? The thought sends shivers down my spine. I need to push it away, but it's hard when every fiber of me is screaming \"What if?\".\n\nI hope that makes sense.\n\nIt's reassuring to think about David's support, even as my anxiety creeps back in. Maybe, just maybe, I can do this.",
+      "start_char": 0,
+      "end_char": 1386
+    }
+  ],
+  "topics": [
+    "self-worth"
+  ],
+  "pii": [
+    {
+      "type": "BOSS_NAME",
+      "text": "Phillip Jackson",
+      "start_char": 267,
+      "end_char": 282
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Barnes-Peters",
+      "start_char": 310,
+      "end_char": 323
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Barnes-Peters",
+      "start_char": 779,
+      "end_char": 792
+    }
+  ],
+  "summary": "Here is a summary of the journal entry in 1-2 concise, emotionally aware sentences:\n\nThe writer is struggling with anxiety and self-doubt after receiving a job offer at Barnes-Peters, fearing that they may not be worthy of it or capable of succeeding. Despite David's reassuring words, fear and uncertainty are overwhelming them, leaving them questioning their own abilities.",
+  "arc_stage": "Stage 4 – Shock at job offer: receives a job offer from the internship, feels joy + fear + imposter syndrome."
+}

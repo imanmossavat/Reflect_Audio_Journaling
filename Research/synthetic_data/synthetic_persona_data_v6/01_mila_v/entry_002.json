@@ -1,0 +1,46 @@
+{
+  "persona": "mila_v",
+  "entry_index": 2,
+  "arc_stage": "Stage 1 – Desperation & doubt: feels rejected, frustrated, and believes she will never be good enough. No internship yet.",
+  "transcript": "I'm sitting in my small apartment, surrounded by the familiar comforts of fluorescent lighting that seems too harsh today. The morning light streaming through the window casts an unforgiving glare on the walls, making me squint slightly as I take a sip from my lukewarm tea. It's a typical Bensonmouth morning - grey skies and a sense of impending uncertainty that clings to every surface like a damp mist. As I scan my schedule for the day, I notice that today is the day I'm supposed to start at Smith, Myers and Moore as an intern in their Media Design department. I've been preparing for this moment for months, rehearsing my answers to common interview questions and practicing my portfolio presentation until it's second nature. But despite all my preparations, a nagging voice in the back of my mind keeps whispering doubts - what if I'm not good enough? What if I fail? I force myself to push these thoughts aside, telling myself that I've come too far to let fear get the better of me. Yet, as I take another sip of tea and gaze out the window at the grey, unyielding cityscape, my anxiety begins to seep back in like a slow-moving tide. As I sit here feeling drained and uncertain, another thing that's been weighing on me lately is the fear of being alone in a conversation. Social Interaction: A Complex Web of Nerves\n\nAs I prepare to step into the corporate world, the thought of navigating social interactions fills me with a sense of trepidation. The idea of small talk, casual conversations, and building relationships in a professional setting makes my mind reel. In my experience, social interactions have always been a source of anxiety, and I've found myself relying on scripts and rehearsed responses to get through them unscathed. However, with this internship at Smith, Myers and Moore, I'll be faced with the daunting task of engaging with colleagues and clients in a setting where I'm not entirely sure what's expected of me. The prospect of making mistakes or saying something \"wrong\" weighs heavily on my mind, causing me to mentally rehearse responses to potential questions and scenarios. I've always been someone who values clarity and directness in communication, which may lead to misunderstandings if I don't tread carefully. Despite my best efforts, I worry that my social anxiety will resurface, making it difficult for me to establish a foothold in this new environment. I hope that by acknowledging these concerns, I can begin to address them and develop strategies for navigating the complex web of social interactions ahead.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "social interaction",
+      "sentiment": "negative",
+      "transition_text": "As I sit here feeling drained and uncertain, another thing that's been weighing on me lately is the fear of being alone in a conversation.",
+      "text": "Social Interaction: A Complex Web of Nerves\n\nAs I prepare to step into the corporate world, the thought of navigating social interactions fills me with a sense of trepidation. The idea of small talk, casual conversations, and building relationships in a professional setting makes my mind reel. In my experience, social interactions have always been a source of anxiety, and I've found myself relying on scripts and rehearsed responses to get through them unscathed. However, with this internship at Smith, Myers and Moore, I'll be faced with the daunting task of engaging with colleagues and clients in a setting where I'm not entirely sure what's expected of me. The prospect of making mistakes or saying something \"wrong\" weighs heavily on my mind, causing me to mentally rehearse responses to potential questions and scenarios. I've always been someone who values clarity and directness in communication, which may lead to misunderstandings if I don't tread carefully. Despite my best efforts, I worry that my social anxiety will resurface, making it difficult for me to establish a foothold in this new environment. I hope that by acknowledging these concerns, I can begin to address them and develop strategies for navigating the complex web of social interactions ahead.",
+      "start_char": 1286,
+      "end_char": 2563
+    }
+  ],
+  "topics": [
+    "social interaction"
+  ],
+  "pii": [
+    {
+      "type": "COMPANY_NAME",
+      "text": "Smith, Myers and Moore",
+      "start_char": 498,
+      "end_char": 520
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Smith, Myers and Moore",
+      "start_char": 1786,
+      "end_char": 1808
+    },
+    {
+      "type": "CITY",
+      "text": "Bensonmouth",
+      "start_char": 290,
+      "end_char": 301
+    }
+  ],
+  "summary": "Here is a summary of the journal entry in 1-2 sentences:\n\nThe writer is anxious about starting their internship at Smith, Myers and Moore, worrying about being overwhelmed by the corporate world and navigating social interactions, which fills them with trepidation due to past experiences and a tendency to rely on scripts. Despite preparing for months, doubts and fears creep back in, making them feel drained and uncertain about their ability to succeed in this new environment.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

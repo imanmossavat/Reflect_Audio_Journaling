@@ -1,0 +1,26 @@
+{
+  "persona": "mila_v",
+  "entry_index": 13,
+  "arc_stage": "Stage 2 – Relief & gratitude: she finally gets an internship, feels intense relief and loyalty, wants to earn her place.",
+  "transcript": "March 15, 20XX\n\nI have been sitting in my small town apartment for what feels like an eternity, staring at the same four walls as I attempt to process the events that transpired today. The fluorescent lights overhead cast a harsh glow, illuminating the faint smudge of yesterday's tea stain on the edge of the table. The silence is oppressive, punctuated only by the steady hum of the computer fan in my lap. My hands are clenched into fists, and my mind is racing with fragmented thoughts and emotions that refuse to coalesce. I hope this entry makes sense; I'm not sure if I've composed myself yet. As I sit here trying to wrap my head around the news that I've finally landed an internship, a wave of relief washes over me. It's like I'm finally standing on solid ground after being stuck in this limbo for what feels like forever. The thought of having a structured schedule and meaningful work is almost too much to process - my mind is reeling with the possibilities. But alongside this excitement, a nagging voice of self-doubt tries to creep in, whispering that I don't deserve it, that I'm not good enough. My heart rate quickens at the mere thought, and I can feel the familiar knot in my stomach starting to form. Yet, as I look back on all the late nights spent poring over job descriptions and practicing interview responses, I know that I've earned this chance - and that's what keeps me anchored to this feeling of pride and accomplishment.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "internship",
+      "sentiment": "positive",
+      "text": "As I sit here trying to wrap my head around the news that I've finally landed an internship, a wave of relief washes over me. It's like I'm finally standing on solid ground after being stuck in this limbo for what feels like forever. The thought of having a structured schedule and meaningful work is almost too much to process - my mind is reeling with the possibilities. But alongside this excitement, a nagging voice of self-doubt tries to creep in, whispering that I don't deserve it, that I'm not good enough. My heart rate quickens at the mere thought, and I can feel the familiar knot in my stomach starting to form. Yet, as I look back on all the late nights spent poring over job descriptions and practicing interview responses, I know that I've earned this chance - and that's what keeps me anchored to this feeling of pride and accomplishment.",
+      "start_char": 601,
+      "end_char": 1455
+    }
+  ],
+  "topics": [
+    "internship"
+  ],
+  "pii": [],
+  "summary": "The writer is reflecting on a mix of emotions after learning they've landed an internship, feeling relief and excitement at the prospect of structure and meaningful work, but also struggling with self-doubt and uncertainty about whether they truly deserve it. Despite these doubts, they're trying to anchor themselves in their hard work and accomplishments that have led them to this opportunity.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

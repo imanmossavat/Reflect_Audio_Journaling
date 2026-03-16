@@ -1,0 +1,35 @@
+{
+  "persona": "mila_v",
+  "entry_index": 13,
+  "arc_stage": "Stage 2 – Relief & gratitude: she finally gets an internship, feels intense relief and loyalty, wants to earn her place.",
+  "transcript": "Today's relief is palpable, and I can still feel the weight of it lifting off my shoulders. Getting that internship offer was a huge blow to my anxiety - all the worst-case scenarios I'd been conjuring up in my head suddenly seemed less likely. The thought of having a real opportunity to prove myself, to earn my place among people who understand me and appreciate me for who I am, is almost overwhelming. My mind is still racing with thoughts of what this means for my future, but it's a different kind of anxiety now - the good kind that comes from feeling like I'm finally on the right path. The warm bath of relief I described earlier still resonates within me, and I can feel it seeping into my pores like a calming balm. My mind was racing with excitement when I received the news about my internship - all those anxious thoughts about not getting it, about being unprepared, suddenly ceased. For the first time in months, I felt a sense of calm wash over me as I thought about the future unfolding before me. I've always known I was meant to be doing something creative and meaningful with my life, and now that's finally becoming a reality. The weight of uncertainty has lifted, replaced by a sense of purpose and belonging. My loyalty to myself and this opportunity is unwavering - I'm ready to put in the work and prove to myself that I can do it.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "anxiety",
+      "sentiment": "positive",
+      "text": "Today's relief is palpable, and I can still feel the weight of it lifting off my shoulders. Getting that internship offer was a huge blow to my anxiety - all the worst-case scenarios I'd been conjuring up in my head suddenly seemed less likely. The thought of having a real opportunity to prove myself, to earn my place among people who understand me and appreciate me for who I am, is almost overwhelming. My mind is still racing with thoughts of what this means for my future, but it's a different kind of anxiety now - the good kind that comes from feeling like I'm finally on the right path.",
+      "start_char": 0,
+      "end_char": 595
+    },
+    {
+      "id": 1,
+      "topic": "internship",
+      "sentiment": "positive",
+      "text": "The warm bath of relief I described earlier still resonates within me, and I can feel it seeping into my pores like a calming balm. My mind was racing with excitement when I received the news about my internship - all those anxious thoughts about not getting it, about being unprepared, suddenly ceased. For the first time in months, I felt a sense of calm wash over me as I thought about the future unfolding before me. I've always known I was meant to be doing something creative and meaningful with my life, and now that's finally becoming a reality. The weight of uncertainty has lifted, replaced by a sense of purpose and belonging. My loyalty to myself and this opportunity is unwavering - I'm ready to put in the work and prove to myself that I can do it.",
+      "start_char": 596,
+      "end_char": 1358
+    }
+  ],
+  "topics": [
+    "anxiety",
+    "internship"
+  ],
+  "pii": [],
+  "summary": "The writer has received an internship offer, which has alleviated their anxiety and transformed their emotional state from uncertainty to excitement and a sense of purpose. They now feel like they are on the right path and ready to embark on this new opportunity with confidence, feeling seen and appreciated for who they are.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

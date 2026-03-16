@@ -1,0 +1,52 @@
+{
+  "persona": "mila_v",
+  "entry_index": 5,
+  "arc_stage": "Stage 1 – Desperation & doubt: feels rejected, frustrated, and believes she will never be good enough. No internship yet.",
+  "transcript": "Today, I successfully recorded my thoughts and feelings in a way that makes sense. This marks a small achievement after a long period of feeling rejected and uncertain about my ability to secure an internship. The bright lights in my apartment seemed overwhelming during this task, but I managed to focus on the written words. I hope that makes sense - it's been a while since I've felt this level of accomplishment, and I'm trying not to get ahead of myself. My anxiety is still present, but for now, I can acknowledge this small victory without getting lost in thoughts of self-doubt. The bright lights in my apartment still feel overwhelming, even after completing my task. I tried to focus on the written words, but my mind keeps wandering back to all the things that could go wrong with securing an internship. What if I'm not good enough? What if they reject me again? The thought of being rejected is suffocating, making it hard for me to breathe. My heart racing and palms sweating just thinking about it. Sometimes, I feel like I'm drowning in a sea of self-doubt, unable to find any solid ground to stand on. The words I've written today feel like a fragile bridge between my thoughts and feelings. It's a small victory, but one that makes me wonder why it feels so important to acknowledge my accomplishments. The sense of pride I get from completing this task is quickly overshadowed by the nagging voice in my head that whispers \"you'll never be good enough.\" My mind starts to wander to all the times I've doubted myself, and how those doubts have been reinforced by rejection after rejection. The anxiety that's always present, like a constant companion, starts to simmer just below the surface, waiting to pounce on any moment of self-doubt. The bright lights in my apartment still feel overwhelming, but for now, they're a reminder of my small victory. Recording my thoughts and feelings was a huge accomplishment, and it's helping me to shift focus away from the internship uncertainty that's been plaguing me. I keep replaying our interview in my head, wondering what I could've done differently to make a better impression. My mind is racing with worst-case scenarios - will I get rejected? Will I be stuck in a dead-end job? The anxiety is still there, but I'm trying to remind myself that it's just noise, and I have more control over my thoughts than I thought.\n\nI've been researching different types of internships, trying to find one that aligns with my interests and skills. Some companies seem too big, too corporate, while others seem too small, too uncertain. I want to find a balance between stability and growth, but it's hard when my anxiety is screaming at me to be cautious. Maybe this internship will be the opportunity I need to prove myself, to show that I'm more than just a nervous wreck.\n\nThe thought of being stuck in a job that doesn't suit me is unbearable - it's like a constant knot in my stomach, making it hard to breathe. I know I have to push through these doubts and fears, but it's hard when the world feels so overwhelming. I keep telling myself that I'm not alone, that countless people have navigated similar challenges and come out on top.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "general",
+      "sentiment": "neutral",
+      "text": "Today, I successfully recorded my thoughts and feelings in a way that makes sense. This marks a small achievement after a long period of feeling rejected and uncertain about my ability to secure an internship. The bright lights in my apartment seemed overwhelming during this task, but I managed to focus on the written words. I hope that makes sense - it's been a while since I've felt this level of accomplishment, and I'm trying not to get ahead of myself. My anxiety is still present, but for now, I can acknowledge this small victory without getting lost in thoughts of self-doubt.",
+      "start_char": 0,
+      "end_char": 586
+    },
+    {
+      "id": 1,
+      "topic": "anxiety",
+      "sentiment": "negative",
+      "text": "The bright lights in my apartment still feel overwhelming, even after completing my task. I tried to focus on the written words, but my mind keeps wandering back to all the things that could go wrong with securing an internship. What if I'm not good enough? What if they reject me again? The thought of being rejected is suffocating, making it hard for me to breathe. My heart racing and palms sweating just thinking about it. Sometimes, I feel like I'm drowning in a sea of self-doubt, unable to find any solid ground to stand on.",
+      "start_char": 587,
+      "end_char": 1118
+    },
+    {
+      "id": 2,
+      "topic": "self-worth",
+      "sentiment": "negative",
+      "text": "The words I've written today feel like a fragile bridge between my thoughts and feelings. It's a small victory, but one that makes me wonder why it feels so important to acknowledge my accomplishments. The sense of pride I get from completing this task is quickly overshadowed by the nagging voice in my head that whispers \"you'll never be good enough.\" My mind starts to wander to all the times I've doubted myself, and how those doubts have been reinforced by rejection after rejection. The anxiety that's always present, like a constant companion, starts to simmer just below the surface, waiting to pounce on any moment of self-doubt.",
+      "start_char": 1119,
+      "end_char": 1757
+    },
+    {
+      "id": 3,
+      "topic": "internship",
+      "sentiment": "positive",
+      "text": "The bright lights in my apartment still feel overwhelming, but for now, they're a reminder of my small victory. Recording my thoughts and feelings was a huge accomplishment, and it's helping me to shift focus away from the internship uncertainty that's been plaguing me. I keep replaying our interview in my head, wondering what I could've done differently to make a better impression. My mind is racing with worst-case scenarios - will I get rejected? Will I be stuck in a dead-end job? The anxiety is still there, but I'm trying to remind myself that it's just noise, and I have more control over my thoughts than I thought.\n\nI've been researching different types of internships, trying to find one that aligns with my interests and skills. Some companies seem too big, too corporate, while others seem too small, too uncertain. I want to find a balance between stability and growth, but it's hard when my anxiety is screaming at me to be cautious. Maybe this internship will be the opportunity I need to prove myself, to show that I'm more than just a nervous wreck.\n\nThe thought of being stuck in a job that doesn't suit me is unbearable - it's like a constant knot in my stomach, making it hard to breathe. I know I have to push through these doubts and fears, but it's hard when the world feels so overwhelming. I keep telling myself that I'm not alone, that countless people have navigated similar challenges and come out on top.",
+      "start_char": 1758,
+      "end_char": 3194
+    }
+  ],
+  "topics": [
+    "anxiety",
+    "self-worth",
+    "internship"
+  ],
+  "pii": [],
+  "summary": "Here is a summary of the journal entry in 1-2 sentences:\n\nThe writer successfully recorded their thoughts and feelings, marking a small achievement after feeling rejected and uncertain about securing an internship. Despite this accomplishment, anxiety still lingers, fueled by self-doubt and worst-case scenarios, but they're trying to shift focus away from uncertainty and cultivate control over their thoughts.\n\nNote that I've tried to capture both the sense of accomplishment and the ongoing struggles with anxiety and self-doubt, as well as the writer's efforts to push through those feelings and find a balance in their search for an internship.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

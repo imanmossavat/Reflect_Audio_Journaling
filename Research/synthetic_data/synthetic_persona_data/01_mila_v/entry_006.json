@@ -1,0 +1,37 @@
+{
+  "persona_id": 1,
+  "persona_code": "mila_v",
+  "persona_name": "Mila",
+  "persona_age": 20,
+  "neurotype": "ASD + High Anxiety",
+  "entry_index": 6,
+  "transcript": "Dear Journal,\n\nI am sitting in my small apartment, surrounded by the familiar comforts of home. The morning light streaming through the window casts a harsh glow on the wall opposite me, making me feel like I'm staring directly into the sun. I should probably close the curtains, but for now, I'll just sit here and try to gather my thoughts.\n\nI've been ruminating on the internship application all morning. I hope that makes sense. It's not like I haven't done it before, but every time I fill out that form, I feel like I'm leaving a part of myself behind. I'm supposed to be confident in my abilities, but what if Phillip Jackson thinks otherwise? What if he sees right through the facade and judges me based on my weaknesses?\n\nI tried calling Christopher again, hoping he could offer some reassurance. His calm demeanor always makes me feel better, but today his voice just seemed... distant. I'm not sure if I'm overthinking this, but I couldn't shake the feeling that he was too polite. Too accommodating.\n\nDavid told me to focus on my strengths and not worry about what others might think. Easy for him to say – he's got a successful career under his belt. What if I'm just not cut out for this? What if Barnes-Peters is just a stepping stone for someone else?\n\nI'm trying to push these thoughts away, but they linger in the back of my mind like a persistent hum. I need to get out there and prove myself, but what if it's all just too much? Too bright, too loud, too overwhelming.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "internship",
+      "text": "Dear Journal,\n\nI am sitting in my small apartment, surrounded by the familiar comforts of home. The morning light streaming through the window casts a harsh glow on the wall opposite me, making me feel like I'm staring directly into the sun. I should probably close the curtains, but for now, I'll just sit here and try to gather my thoughts.\n\nI've been ruminating on the internship application all morning. I hope that makes sense. It's not like I haven't done it before, but every time I fill out that form, I feel like I'm leaving a part of myself behind. I'm supposed to be confident in my abilities, but what if Phillip Jackson thinks otherwise? What if he sees right through the facade and judges me based on my weaknesses?\n\nI tried calling Christopher again, hoping he could offer some reassurance. His calm demeanor always makes me feel better, but today his voice just seemed... distant. I'm not sure if I'm overthinking this, but I couldn't shake the feeling that he was too polite. Too accommodating.\n\nDavid told me to focus on my strengths and not worry about what others might think. Easy for him to say – he's got a successful career under his belt. What if I'm just not cut out for this? What if Barnes-Peters is just a stepping stone for someone else?\n\nI'm trying to push these thoughts away, but they linger in the back of my mind like a persistent hum. I need to get out there and prove myself, but what if it's all just too much? Too bright, too loud, too overwhelming.",
+      "start_char": 0,
+      "end_char": 1488
+    }
+  ],
+  "topics": [
+    "internship"
+  ],
+  "pii": [
+    {
+      "type": "BOSS_NAME",
+      "text": "Phillip Jackson",
+      "start_char": 617,
+      "end_char": 632
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Barnes-Peters",
+      "start_char": 1211,
+      "end_char": 1224
+    }
+  ],
+  "summary": "Here is a summary of the journal entry in 1-2 concise, emotionally aware sentences:\n\nThe writer is grappling with self-doubt and anxiety about an upcoming internship application, feeling like they're presenting a curated version of themselves to the world. They're struggling to shake off fears that others will see through their facade and judge them based on their perceived weaknesses.",
+  "arc_stage": "Stage 1 – Desperation & doubt: feels rejected, frustrated, and believes she will never be good enough. No internship yet."
+}

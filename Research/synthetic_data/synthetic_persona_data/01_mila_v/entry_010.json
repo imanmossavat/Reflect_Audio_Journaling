@@ -1,0 +1,32 @@
+{
+  "persona_id": 1,
+  "persona_code": "mila_v",
+  "persona_name": "Mila",
+  "persona_age": 20,
+  "neurotype": "ASD + High Anxiety",
+  "entry_index": 10,
+  "transcript": "I am sitting in my small apartment, surrounded by the familiar comforts of home. The lights are slightly too bright, casting an unforgiving glow over everything, but it is a comfort I can tolerate. Today was the day I received the email - the internship offer. I hope that makes sense. I still feel a bit stunned. Phillip Jackson's words echoed in my mind: \"You've done an exceptional job on your portfolio.\" Exceptional? It feels like he's selling me short. Still, it is something.\n\nI keep thinking about what Curtis would say if she were here. Would she be proud of me? Or would she worry that I'm not ready? I try to push those thoughts away. David seems more focused on the practicalities - the hours, the pay, the benefits. He's right, of course. This is a chance to prove myself, to earn my place.\n\nI've been thinking about self-worth a lot lately. Is it tied to this internship? Can I find value in other areas of my life if this one doesn't work out? I'm not sure if I'm overthinking again. Christopher would probably tell me to take a deep breath and focus on the present moment. Maybe he's right. I need to remind myself that one small accomplishment does not define me.\n\nI'm feeling a sense of relief wash over me now - loyalty. The feeling is almost overwhelming, like it's going to consume me whole. I hope that makes sense. I just want to prove to myself that I'm capable of more than I thought.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "internship",
+      "text": "I am sitting in my small apartment, surrounded by the familiar comforts of home. The lights are slightly too bright, casting an unforgiving glow over everything, but it is a comfort I can tolerate. Today was the day I received the email - the internship offer. I hope that makes sense. I still feel a bit stunned. Phillip Jackson's words echoed in my mind: \"You've done an exceptional job on your portfolio.\" Exceptional? It feels like he's selling me short. Still, it is something.\n\nI keep thinking about what Curtis would say if she were here. Would she be proud of me? Or would she worry that I'm not ready? I try to push those thoughts away. David seems more focused on the practicalities - the hours, the pay, the benefits. He's right, of course. This is a chance to prove myself, to earn my place.\n\nI've been thinking about self-worth a lot lately. Is it tied to this internship? Can I find value in other areas of my life if this one doesn't work out? I'm not sure if I'm overthinking again. Christopher would probably tell me to take a deep breath and focus on the present moment. Maybe he's right. I need to remind myself that one small accomplishment does not define me.\n\nI'm feeling a sense of relief wash over me now - loyalty. The feeling is almost overwhelming, like it's going to consume me whole. I hope that makes sense. I just want to prove to myself that I'm capable of more than I thought.",
+      "start_char": 0,
+      "end_char": 1409
+    }
+  ],
+  "topics": [
+    "self-worth",
+    "internship"
+  ],
+  "pii": [
+    {
+      "type": "BOSS_NAME",
+      "text": "Phillip Jackson",
+      "start_char": 314,
+      "end_char": 329
+    }
+  ],
+  "summary": "Here is a concise summary of the journal entry in 1-2 emotionally aware sentences:\n\nThe writer feels a mix of emotions after receiving an internship offer, from surprise and gratitude to self-doubt and uncertainty about their self-worth. They're struggling to balance pride and anxiety about this opportunity while trying to cultivate a sense of inner peace and confidence that transcends external validation.",
+  "arc_stage": "Stage 2 – Relief & gratitude: she finally gets an internship, feels intense relief and loyalty, wants to earn her place."
+}

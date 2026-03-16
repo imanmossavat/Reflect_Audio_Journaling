@@ -1,0 +1,50 @@
+{
+  "persona_id": 1,
+  "persona_code": "mila_v",
+  "persona_name": "Mila",
+  "persona_age": 20,
+  "neurotype": "ASD + High Anxiety",
+  "entry_index": 15,
+  "transcript": "Dear Journal,\n\nI am sitting in my small apartment, surrounded by the familiar comforts of home. The soft glow of the evening lights casts a gentle hue on the walls, and I can almost feel the calming effect of the silence. However, despite these reassuring surroundings, my mind is still reeling from today's events.\n\nI hope that makes sense - the constant barrage of stimuli at Barnes-Peters has been wearing me down. Phillip Jackson's expectations for our projects seem endless, and I fear that I may not be meeting his standards. The anxiety creeps in whenever I think about it - what if I'm not good enough? What if I fail?\n\nBut, as I try to push those thoughts aside, I am reminded of the small victories I've achieved thus far. Christopher Cordova's words of encouragement during our last meeting still linger in my mind: \"You're doing great; just take your time.\" And, I must admit, I did manage to complete a task ahead of schedule yesterday.\n\nI am also grateful for David's presence in my life. His calming influence helps me navigate the turbulent waters of self-doubt. We discussed my upcoming internship interview, and he offered insightful advice on how to approach it with confidence. I feel more prepared now, but the fear of failure still lingers.\n\nAs I reflect on today's events, I realize that it's not just about meeting expectations; it's about growth and learning from my mistakes. Curtis Torres' words echo in my mind: \"It's okay to stumble; it's how you get back up that matters.\" I hope that makes sense - I'm still trying to process this.\n\nI should probably call David later to check in, but for now, I'll just sit here and collect my thoughts. The silence is soothing, and I feel a sense of calm wash over me.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "school",
+      "text": "Dear Journal,\n\nI am sitting in my small apartment, surrounded by the familiar comforts of home. The soft glow of the evening lights casts a gentle hue on the walls, and I can almost feel the calming effect of the silence. However, despite these reassuring surroundings, my mind is still reeling from today's events.\n\nI hope that makes sense - the constant barrage of stimuli at Barnes-Peters has been wearing me down. Phillip Jackson's expectations for our projects seem endless, and I fear that I may not be meeting his standards. The anxiety creeps in whenever I think about it - what if I'm not good enough? What if I fail?\n\nBut, as I try to push those thoughts aside, I am reminded of the small victories I've achieved thus far. Christopher Cordova's words of encouragement during our last meeting still linger in my mind: \"You're doing great; just take your time.\" And, I must admit, I did manage to complete a task ahead of schedule yesterday.\n\nI am also grateful for David's presence in my life. His calming influence helps me navigate the turbulent waters of self-doubt. We discussed my upcoming internship interview, and he offered insightful advice on how to approach it with confidence. I feel more prepared now, but the fear of failure still lingers.\n\nAs I reflect on today's events, I realize that it's not just about meeting expectations; it's about growth and learning from my mistakes. Curtis Torres' words echo in my mind: \"It's okay to stumble; it's how you get back up that matters.\" I hope that makes sense - I'm still trying to process this.\n\nI should probably call David later to check in, but for now, I'll just sit here and collect my thoughts. The silence is soothing, and I feel a sense of calm wash over me.",
+      "start_char": 0,
+      "end_char": 1734
+    }
+  ],
+  "topics": [
+    "school",
+    "work"
+  ],
+  "pii": [
+    {
+      "type": "MOTHER_NAME",
+      "text": "Curtis Torres",
+      "start_char": 1402,
+      "end_char": 1415
+    },
+    {
+      "type": "CLOSE_FRIEND",
+      "text": "Christopher Cordova",
+      "start_char": 733,
+      "end_char": 752
+    },
+    {
+      "type": "BOSS_NAME",
+      "text": "Phillip Jackson",
+      "start_char": 418,
+      "end_char": 433
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Barnes-Peters",
+      "start_char": 378,
+      "end_char": 391
+    }
+  ],
+  "summary": "Here is a summary of the journal entry in 2 concise, emotionally aware sentences:\n\nThe writer feels overwhelmed by pressure from their job at Barnes-Peters, but finds comfort in small victories and words of encouragement from loved ones. They acknowledge the anxiety that comes with self-doubt, but take heart in learning to view mistakes as opportunities for growth.",
+  "arc_stage": "Stage 3 – Overwhelmed but proud: worries she won't meet expectations, but starts recognizing her growth and small wins."
+}

@@ -1,0 +1,57 @@
+{
+  "persona": "mila_v",
+  "entry_index": 2,
+  "arc_stage": "Stage 1 – Desperation & doubt: feels rejected, frustrated, and believes she will never be good enough. No internship yet.",
+  "transcript": "Today's reflection began with an overwhelming sense of dread as I stared blankly at my computer screen. The bright fluorescent lights overhead seemed to pulse in sync with the racing thoughts in my mind, making it difficult to focus. I hope that makes sense - it feels like my brain is stuck in a perpetual state of self-doubt. As I began to think about today's events, I realized that social interaction was the central theme. I had an unexpected conversation with Cynthia at lunch, and it made me feel both anxious and excited. She asked me about my internship search, and I found myself revealing more than I intended. I'm not sure if I'm overthinking this, but it felt like a weight was lifted off my shoulders when she reassured me that Douglas Inc is taking applications. But then, the conversation took an unexpected turn when Cynthia mentioned her friend Tamara's new project at Douglas Inc. My heart skipped a beat as I heard the name - Dawn Taylor, our boss, was somehow involved. I felt like I'd been punched in the gut, and my mind went blank. I'm not sure if that makes sense, but it felt like my entire world had shifted. As I reflected on this unexpected turn of events, I realized that my anxiety is still simmering beneath the surface. The thought of meeting with Dawn Taylor again - after receiving a job offer I never expected - has me both thrilled and terrified. I hope that makes sense - I feel like I'm walking on eggshells, waiting for the other shoe to drop. I've been thinking about this nonstop, trying to analyze every possible scenario. What if I don't accept the offer? What if I do, but it's not what I expected? The uncertainty is suffocating me at times. But then, I remind myself of all the reasons why I think this could be my chance at success. Lisa Clark has been a constant source of guidance and support, and I know that she believes in me. As I write this, I'm trying to calm my racing thoughts and focus on the present moment. It's not easy, but I'm determined to face whatever comes next with courage and determination. Tomorrow is another day, and I'll take it one step at a time.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "general",
+      "sentiment": "neutral",
+      "text": "Today's reflection began with an overwhelming sense of dread as I stared blankly at my computer screen. The bright fluorescent lights overhead seemed to pulse in sync with the racing thoughts in my mind, making it difficult to focus. I hope that makes sense - it feels like my brain is stuck in a perpetual state of self-doubt. As I began to think about today's events, I realized that social interaction was the central theme. I had an unexpected conversation with Cynthia at lunch, and it made me feel both anxious and excited. She asked me about my internship search, and I found myself revealing more than I intended. I'm not sure if I'm overthinking this, but it felt like a weight was lifted off my shoulders when she reassured me that Douglas Inc is taking applications. But then, the conversation took an unexpected turn when Cynthia mentioned her friend Tamara's new project at Douglas Inc. My heart skipped a beat as I heard the name - Dawn Taylor, our boss, was somehow involved. I felt like I'd been punched in the gut, and my mind went blank. I'm not sure if that makes sense, but it felt like my entire world had shifted. As I reflected on this unexpected turn of events, I realized that my anxiety is still simmering beneath the surface. The thought of meeting with Dawn Taylor again - after receiving a job offer I never expected - has me both thrilled and terrified. I hope that makes sense - I feel like I'm walking on eggshells, waiting for the other shoe to drop. I've been thinking about this nonstop, trying to analyze every possible scenario. What if I don't accept the offer? What if I do, but it's not what I expected? The uncertainty is suffocating me at times. But then, I remind myself of all the reasons why I think this could be my chance at success. Lisa Clark has been a constant source of guidance and support, and I know that she believes in me. As I write this, I'm trying to calm my racing thoughts and focus on the present moment. It's not easy, but I'm determined to face whatever comes next with courage and determination. Tomorrow is another day, and I'll take it one step at a time.",
+      "start_char": 0,
+      "end_char": 2123
+    }
+  ],
+  "topics": [
+    "general"
+  ],
+  "pii": [
+    {
+      "type": "MENTOR_NAME",
+      "text": "Lisa Clark",
+      "start_char": 1781,
+      "end_char": 1791
+    },
+    {
+      "type": "BOSS_NAME",
+      "text": "Dawn Taylor",
+      "start_char": 946,
+      "end_char": 957
+    },
+    {
+      "type": "BOSS_NAME",
+      "text": "Dawn Taylor",
+      "start_char": 1281,
+      "end_char": 1292
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Douglas Inc",
+      "start_char": 742,
+      "end_char": 753
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Douglas Inc",
+      "start_char": 887,
+      "end_char": 898
+    }
+  ],
+  "summary": "The writer reflects on an unexpected conversation with Cynthia that revealed their boss, Dawn Taylor, was involved in a project at Douglas Inc, sparking anxiety about meeting with her again after receiving a job offer. Despite the uncertainty, they remind themselves of reasons why this opportunity could be a chance for success and are determined to face it with courage and determination.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

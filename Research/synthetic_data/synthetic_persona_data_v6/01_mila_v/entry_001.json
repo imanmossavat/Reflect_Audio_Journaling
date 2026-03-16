@@ -1,0 +1,46 @@
+{
+  "persona": "mila_v",
+  "entry_index": 1,
+  "arc_stage": "Stage 1 – Desperation & doubt: feels rejected, frustrated, and believes she will never be good enough. No internship yet.",
+  "transcript": "I'm sitting in my small apartment, surrounded by the familiar comforts of fluorescent lighting that seems too harsh today. The hum of the ceiling fan is a constant reminder that I've been waiting for what feels like an eternity to start my internship at Smith, Myers and Moore. Despite my best efforts, I still can't shake off the feeling that I'm not good enough - that all my hard work has been for nothing, and I'll be stuck in this dead-end job forever. The rejection letters from previous companies still linger in my mind, a harsh reminder of my inadequacies. As I try to calm my racing thoughts, I catch myself wondering if the email I received yesterday was too good to be true - a job offer that seems almost too perfect, but also raises more questions than answers. As I struggle to shake off the feeling of rejection and inadequacy, my attention turns to a more manageable task: searching for internship opportunities. The familiar anxiety of not meeting expectations begins to take a backseat to a sense of determination about finding a path forward. I've been ruminating on my internship at Smith, Myers and Moore, trying to reconcile the mixed emotions swirling within me. On one hand, I'm thrilled to have finally landed an opportunity that aligns with my Media Design studies, a dream that seemed perpetually out of reach in our small town. The prospect of working alongside industry professionals, learning from their expertise, and gaining hands-on experience is exhilarating. However, the enormity of this leap still feels daunting – what if I fail to meet expectations? What if my lack of real-world experience proves insurmountable?\n\nI've been rehearsing potential scenarios in my mind, trying to anticipate challenges and develop strategies to overcome them. But the anxiety lingers, threatening to undermine my confidence. I'm not sure if this offer is a genuine chance for growth or a ploy to exploit someone like me – desperate and eager to prove myself. Despite these trepidations, I want to trust that Smith, Myers and Moore genuinely believe in my abilities, that they're willing to take a chance on an uncertain talent.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "internship",
+      "sentiment": "negative",
+      "transition_text": "As I struggle to shake off the feeling of rejection and inadequacy, my attention turns to a more manageable task: searching for internship opportunities. The familiar anxiety of not meeting expectations begins to take a backseat to a sense of determination about finding a path forward.",
+      "text": "I've been ruminating on my internship at Smith, Myers and Moore, trying to reconcile the mixed emotions swirling within me. On one hand, I'm thrilled to have finally landed an opportunity that aligns with my Media Design studies, a dream that seemed perpetually out of reach in our small town. The prospect of working alongside industry professionals, learning from their expertise, and gaining hands-on experience is exhilarating. However, the enormity of this leap still feels daunting – what if I fail to meet expectations? What if my lack of real-world experience proves insurmountable?\n\nI've been rehearsing potential scenarios in my mind, trying to anticipate challenges and develop strategies to overcome them. But the anxiety lingers, threatening to undermine my confidence. I'm not sure if this offer is a genuine chance for growth or a ploy to exploit someone like me – desperate and eager to prove myself. Despite these trepidations, I want to trust that Smith, Myers and Moore genuinely believe in my abilities, that they're willing to take a chance on an uncertain talent.",
+      "start_char": 1063,
+      "end_char": 2148
+    }
+  ],
+  "topics": [
+    "internship"
+  ],
+  "pii": [
+    {
+      "type": "COMPANY_NAME",
+      "text": "Smith, Myers and Moore",
+      "start_char": 254,
+      "end_char": 276
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Smith, Myers and Moore",
+      "start_char": 1104,
+      "end_char": 1126
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Smith, Myers and Moore",
+      "start_char": 2029,
+      "end_char": 2051
+    }
+  ],
+  "summary": "Here is a 1-2 sentence summary of the journal entry:\n\nThe writer is grappling with anxiety and self-doubt as they await confirmation about their internship offer at Smith, Myers and Moore, a job that aligns with their Media Design studies and feels like a dream come true. Despite trepidations about meeting expectations and feeling uncertain about the company's intentions, they're trying to reconcile their excitement and determination with the looming anxiety and self-doubt.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

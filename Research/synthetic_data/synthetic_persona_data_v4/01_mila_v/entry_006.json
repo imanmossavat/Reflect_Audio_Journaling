@@ -1,0 +1,69 @@
+{
+  "persona": "mila_v",
+  "entry_index": 6,
+  "arc_stage": "Stage 1 – Desperation & doubt: feels rejected, frustrated, and believes she will never be good enough. No internship yet.",
+  "transcript": "Today's reflection began with an overwhelming sense of dread as I stared blankly at my computer screen. The fluorescent lights above casting harsh shadows on the walls made it difficult for me to focus. I hope that makes sense, but the anxiety often gets the better of me. As I slowly regained composure, I recalled the numerous attempts I made to secure an internship at Douglas Inc. My mother, Mr. Keith Mason, had expressed concern about my lack of progress, and I couldn't blame her. Cynthia West, my close friend, had also offered words of encouragement, but even her reassurance couldn't shake off the feeling of inadequacy. Today's email from Dawn Taylor, the company's hiring manager, changed everything. The subject line read \"Internship Opportunity at Douglas Inc.\" and I felt like I was reading a dream. An internship? With my favorite company? It was too good to be true. I'm not sure if I'm overthinking this, but what if it is? Lisa Clark, my mentor, had told me that persistence and dedication were key to securing an internship. And now, here I am, with a job offer on the table. I keep thinking about Tamara Henderson's words of encouragement – \"You're worthy of this opportunity.\" I hope she was right. The possibilities are endless, but so is my anxiety. What if I fail? What if I'm not good enough? The questions swirl in my head like the fluorescent lights above. But perhaps today marks a turning point. Maybe it's time to take a deep breath and trust myself.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "general",
+      "sentiment": "neutral",
+      "text": "Today's reflection began with an overwhelming sense of dread as I stared blankly at my computer screen. The fluorescent lights above casting harsh shadows on the walls made it difficult for me to focus. I hope that makes sense, but the anxiety often gets the better of me. As I slowly regained composure, I recalled the numerous attempts I made to secure an internship at Douglas Inc. My mother, Mr. Keith Mason, had expressed concern about my lack of progress, and I couldn't blame her. Cynthia West, my close friend, had also offered words of encouragement, but even her reassurance couldn't shake off the feeling of inadequacy. Today's email from Dawn Taylor, the company's hiring manager, changed everything. The subject line read \"Internship Opportunity at Douglas Inc.\" and I felt like I was reading a dream. An internship? With my favorite company? It was too good to be true. I'm not sure if I'm overthinking this, but what if it is? Lisa Clark, my mentor, had told me that persistence and dedication were key to securing an internship. And now, here I am, with a job offer on the table. I keep thinking about Tamara Henderson's words of encouragement – \"You're worthy of this opportunity.\" I hope she was right. The possibilities are endless, but so is my anxiety. What if I fail? What if I'm not good enough? The questions swirl in my head like the fluorescent lights above. But perhaps today marks a turning point. Maybe it's time to take a deep breath and trust myself.",
+      "start_char": 0,
+      "end_char": 1481
+    }
+  ],
+  "topics": [
+    "general"
+  ],
+  "pii": [
+    {
+      "type": "PARTNER_NAME",
+      "text": "Tamara Henderson",
+      "start_char": 1118,
+      "end_char": 1134
+    },
+    {
+      "type": "MOTHER_NAME",
+      "text": "Mr. Keith Mason",
+      "start_char": 396,
+      "end_char": 411
+    },
+    {
+      "type": "CLOSE_FRIEND",
+      "text": "Cynthia West",
+      "start_char": 488,
+      "end_char": 500
+    },
+    {
+      "type": "MENTOR_NAME",
+      "text": "Lisa Clark",
+      "start_char": 942,
+      "end_char": 952
+    },
+    {
+      "type": "BOSS_NAME",
+      "text": "Dawn Taylor",
+      "start_char": 650,
+      "end_char": 661
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Douglas Inc",
+      "start_char": 372,
+      "end_char": 383
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Douglas Inc",
+      "start_char": 762,
+      "end_char": 773
+    }
+  ],
+  "summary": "The writer reflects on their feelings of dread and anxiety about not securing an internship at Douglas Inc., but receives an unexpected email offering them the opportunity, sparking a mix of hope and self-doubt. As they consider the possibilities, they must confront their fears of failure and inadequacy to potentially take a crucial step towards realizing their dreams.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

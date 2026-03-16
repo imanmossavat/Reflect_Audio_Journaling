@@ -1,0 +1,26 @@
+{
+  "persona": "mila_v",
+  "entry_index": 3,
+  "arc_stage": "Stage 1 – Desperation & doubt: feels rejected, frustrated, and believes she will never be good enough. No internship yet.",
+  "transcript": "March 15, 20XX\n\nI have been sitting in my small town apartment for what feels like an eternity, staring at the same four walls as I attempt to process the events that transpired today. My fingers hover over the keyboard, hesitant to begin writing as my mind struggles to organize its thoughts. The fluorescent lights above my desk seem too bright, casting an unforgiving glare on the scattered papers and notes surrounding me. My heart rate has been elevated for what feels like hours, making it difficult to focus. I hope that makes sense. As I sit here trying to gather my thoughts, I keep replaying the conversation with the recruiter from today's interview. They seemed so confident and assured, while I couldn't help but feel like I was stumbling over my words. The way they asked me about teamwork and collaboration made my mind go blank - how can I possibly fit into a team when social interactions are already overwhelming for me? My anxiety spiked as I tried to think of examples from my previous projects, only to realize that even those seem forced now.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "social interaction",
+      "sentiment": "negative",
+      "text": "As I sit here trying to gather my thoughts, I keep replaying the conversation with the recruiter from today's interview. They seemed so confident and assured, while I couldn't help but feel like I was stumbling over my words. The way they asked me about teamwork and collaboration made my mind go blank - how can I possibly fit into a team when social interactions are already overwhelming for me? My anxiety spiked as I tried to think of examples from my previous projects, only to realize that even those seem forced now.",
+      "start_char": 541,
+      "end_char": 1064
+    }
+  ],
+  "topics": [
+    "social interaction"
+  ],
+  "pii": [],
+  "summary": "The writer is struggling to process their emotions after a recent interview, feeling anxious and uncertain about fitting in with a potential new job due to social anxiety. They're having trouble organizing their thoughts and feel like they're stuck, replaying the conversation with the recruiter and doubting their ability to succeed in a team-based environment.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

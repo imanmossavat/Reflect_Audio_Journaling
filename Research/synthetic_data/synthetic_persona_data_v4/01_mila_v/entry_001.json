@@ -1,0 +1,45 @@
+{
+  "persona": "mila_v",
+  "entry_index": 1,
+  "arc_stage": "Stage 1 – Desperation & doubt: feels rejected, frustrated, and believes she will never be good enough. No internship yet.",
+  "transcript": "Today's reflection began with an overwhelming sense of dread as I stared blankly at my computer screen. The bright fluorescent lights above seemed to hum in sync with the racing thoughts in my mind. I've been searching for an internship for what feels like an eternity, and yet, I still haven't received a response from any potential employers. As I re-read my cover letter for what felt like the hundredth time, I couldn't help but wonder if it was simply not good enough. Will they think I'm too unpolished? That I lack the finesse required to succeed in this field? The voices of self-doubt swirled around me, making it difficult to focus. But then, like a fleeting ray of hope, an email from Tamara popped into my inbox. We had met briefly at a networking event last month, and she mentioned that her company, Douglas Inc., was looking for someone with skills similar to mine. My heart skipped a beat as I hesitated for what felt like an eternity before opening the email. And then, it hit me: a job offer. Not just any job offer, but one from my dream company, in the city I've always wanted to live in. New Troy is calling, and I feel both thrilled and terrified at the prospect of leaving behind the comfort of my small town. As I scribble these words by the window, trying to make sense of this whirlwind turn of events, I find myself thinking about all the what-ifs. What if I'm not good enough? What if I fail? But then, a gentle whisper from Cynthia's words echoes in my mind: \"You're talented and capable. Trust yourself.\" It's a phrase that has been ingrained in me since childhood by Mr. Keith Mason, but hearing it now feels like a lifeline. With this newfound sense of determination, I will delve into the interview process with renewed vigor. I hope that makes sense. Tomorrow marks another day of uncertainty, and I'm not sure if I'll be prepared for what's to come.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "general",
+      "sentiment": "neutral",
+      "text": "Today's reflection began with an overwhelming sense of dread as I stared blankly at my computer screen. The bright fluorescent lights above seemed to hum in sync with the racing thoughts in my mind. I've been searching for an internship for what feels like an eternity, and yet, I still haven't received a response from any potential employers. As I re-read my cover letter for what felt like the hundredth time, I couldn't help but wonder if it was simply not good enough. Will they think I'm too unpolished? That I lack the finesse required to succeed in this field? The voices of self-doubt swirled around me, making it difficult to focus. But then, like a fleeting ray of hope, an email from Tamara popped into my inbox. We had met briefly at a networking event last month, and she mentioned that her company, Douglas Inc., was looking for someone with skills similar to mine. My heart skipped a beat as I hesitated for what felt like an eternity before opening the email. And then, it hit me: a job offer. Not just any job offer, but one from my dream company, in the city I've always wanted to live in. New Troy is calling, and I feel both thrilled and terrified at the prospect of leaving behind the comfort of my small town. As I scribble these words by the window, trying to make sense of this whirlwind turn of events, I find myself thinking about all the what-ifs. What if I'm not good enough? What if I fail? But then, a gentle whisper from Cynthia's words echoes in my mind: \"You're talented and capable. Trust yourself.\" It's a phrase that has been ingrained in me since childhood by Mr. Keith Mason, but hearing it now feels like a lifeline. With this newfound sense of determination, I will delve into the interview process with renewed vigor. I hope that makes sense. Tomorrow marks another day of uncertainty, and I'm not sure if I'll be prepared for what's to come.",
+      "start_char": 0,
+      "end_char": 1884
+    }
+  ],
+  "topics": [
+    "general"
+  ],
+  "pii": [
+    {
+      "type": "MOTHER_NAME",
+      "text": "Mr. Keith Mason",
+      "start_char": 1598,
+      "end_char": 1613
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Douglas Inc",
+      "start_char": 814,
+      "end_char": 825
+    },
+    {
+      "type": "CITY",
+      "text": "New Troy",
+      "start_char": 1109,
+      "end_char": 1117
+    }
+  ],
+  "summary": "The writer is reflecting on their recent internship search and feeling overwhelmed by self-doubt, but receives an email from a potential employer, Douglas Inc., offering them a job in their dream company, New Troy. This unexpected turn of events has left the writer both thrilled and terrified, prompting them to re-evaluate their doubts and trust themselves with renewed determination.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

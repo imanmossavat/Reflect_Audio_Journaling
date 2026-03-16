@@ -1,0 +1,35 @@
+{
+  "persona": "mila_v",
+  "entry_index": 14,
+  "arc_stage": "Stage 2 – Relief & gratitude: she finally gets an internship, feels intense relief and loyalty, wants to earn her place.",
+  "transcript": "March 15, 20XX\n\nI have been sitting in my small town apartment for what feels like an eternity, staring at the same four walls as I attempt to process the events that transpired today. The fluorescent lights above my desk cast an unforgiving glare, making my eyes ache with a dull throb. My hands tremble slightly as I grasp my pen, the weight of the moment settling upon me like a physical presence. I am not certain how much more of this I can sustain.\n\nI hope that makes sense. As I sit here, trying to wrap my head around the news that just landed on my lap – an internship at my dream company – all I can think about is the weight of expectation. What does it mean for me to finally have a foothold in this industry? Will I be able to prove myself worthy of their trust? The anxiety that's been lurking beneath the surface, waiting to pounce, seems to be growing by the minute. My mind keeps racing back to all the times I've felt like an imposter, like I don't belong. But today, something shifted inside me – a sense of determination and loyalty to myself that I hadn't felt in ages. It's like I'm finally standing on solid ground, and for the first time in a long while, I feel like I can breathe again. As I sit here, trying to make sense of the day's events, my mind keeps drifting back to social interactions. The thought of meeting new people, making conversation, and navigating unfamiliar situations is already exhausting me. My anxiety spikes at the mere idea of being in a group setting or having to engage with strangers. I can almost feel my heart racing just thinking about it. Today's internship news brought some much-needed relief, but it's also made me realize how anxious I am around others. I wonder if this internship will be any different from the countless other social interactions that have left me feeling drained and overwhelmed.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "school",
+      "sentiment": "positive",
+      "text": "As I sit here, trying to wrap my head around the news that just landed on my lap – an internship at my dream company – all I can think about is the weight of expectation. What does it mean for me to finally have a foothold in this industry? Will I be able to prove myself worthy of their trust? The anxiety that's been lurking beneath the surface, waiting to pounce, seems to be growing by the minute. My mind keeps racing back to all the times I've felt like an imposter, like I don't belong. But today, something shifted inside me – a sense of determination and loyalty to myself that I hadn't felt in ages. It's like I'm finally standing on solid ground, and for the first time in a long while, I feel like I can breathe again.",
+      "start_char": 481,
+      "end_char": 1211
+    },
+    {
+      "id": 1,
+      "topic": "social interaction",
+      "sentiment": "negative",
+      "text": "As I sit here, trying to make sense of the day's events, my mind keeps drifting back to social interactions. The thought of meeting new people, making conversation, and navigating unfamiliar situations is already exhausting me. My anxiety spikes at the mere idea of being in a group setting or having to engage with strangers. I can almost feel my heart racing just thinking about it. Today's internship news brought some much-needed relief, but it's also made me realize how anxious I am around others. I wonder if this internship will be any different from the countless other social interactions that have left me feeling drained and overwhelmed.",
+      "start_char": 1212,
+      "end_char": 1861
+    }
+  ],
+  "topics": [
+    "school",
+    "social interaction"
+  ],
+  "pii": [],
+  "summary": "The writer, after receiving an internship offer at their dream company, is experiencing overwhelming anxiety about meeting new people and navigating social interactions, despite feeling a sense of determination and relief upon securing the opportunity. This news has brought up their underlying fear of being an \"imposter\" and dealing with social anxiety, leaving them unsure if this internship will be any different from previous experiences.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}

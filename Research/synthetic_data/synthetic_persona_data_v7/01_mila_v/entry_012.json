@@ -1,0 +1,69 @@
+{
+  "persona": "mila_v",
+  "entry_index": 12,
+  "arc_stage": "Stage 2 – Relief & gratitude: she finally gets an internship, feels intense relief and loyalty, wants to earn her place.",
+  "transcript": "March 15, 20XX\n\nI have been sitting in my small town apartment for what feels like an eternity, staring at the same four walls as I attempt to process the events that transpired today. The fluorescent lights overhead are particularly harsh, casting an unforgiving glare on the surface of the coffee table where my hands are clenched into fists. I am trying to retrace the sequence of events in a logical and sequential manner: receiving the internship offer, accepting it, and then being offered a job at Taylor Group without any prior discussion or negotiation. My mind is attempting to reconcile these disparate pieces of information while maintaining a sense of emotional equilibrium. As I sit here, trying to calm my racing thoughts, I find myself thinking about what it means to me when people say \"you deserve it.\" What does that even mean? Is it just a phrase we use to make others feel better or to make ourselves feel better about our own perceived worthlessness? It's hard for me to shake off the feeling that I only got the internship offer because my parents guilt-tripped Taylor Group into giving me a chance. Does that mean I'm somehow less deserving than someone who didn't have the same family dynamics at play? The more I think about it, the more anxious I become, and my mind starts to wander back to all the times when I doubted myself - did I really deserve this opportunity or was it just a fluke?. As I sit here, trying to make sense of it all, my mind keeps wandering back to the interview at Taylor Group. The way the interviewer's smile seemed so genuine and welcoming, but also somehow rehearsed and calculated. It left me with a nagging feeling that there was more to it than met the eye. I try to push the thought aside, focusing on the excitement of having a job offer without any prior discussion or negotiation - it feels like a dream come true, a validation of all my hard work. But what if this is just the beginning? What if there's more to this role than I'm being told? The uncertainty creeps in, making my stomach twist with anxiety. As I sit here, trying to catch my breath after the whirlwind of news, my mind keeps wandering back to all the what-ifs. What if I had negotiated harder for that job at Taylor Group? Would they have offered me more money or better benefits? The not knowing is eating away at me, and it's making my anxiety spike. I can feel my heart racing and my palms getting sweaty just thinking about it. I try to calm myself down by focusing on the fact that I got an internship in the first place, but those doubts linger. The fluorescent lights seem to be shining brighter now, making my eyes water with irritation.",
+  "segments": [
+    {
+      "id": 0,
+      "topic": "self-worth",
+      "sentiment": "negative",
+      "text": "As I sit here, trying to calm my racing thoughts, I find myself thinking about what it means to me when people say \"you deserve it.\" What does that even mean? Is it just a phrase we use to make others feel better or to make ourselves feel better about our own perceived worthlessness? It's hard for me to shake off the feeling that I only got the internship offer because my parents guilt-tripped Taylor Group into giving me a chance. Does that mean I'm somehow less deserving than someone who didn't have the same family dynamics at play? The more I think about it, the more anxious I become, and my mind starts to wander back to all the times when I doubted myself - did I really deserve this opportunity or was it just a fluke?.",
+      "start_char": 688,
+      "end_char": 1419
+    },
+    {
+      "id": 1,
+      "topic": "work",
+      "sentiment": "negative",
+      "text": "As I sit here, trying to make sense of it all, my mind keeps wandering back to the interview at Taylor Group. The way the interviewer's smile seemed so genuine and welcoming, but also somehow rehearsed and calculated. It left me with a nagging feeling that there was more to it than met the eye. I try to push the thought aside, focusing on the excitement of having a job offer without any prior discussion or negotiation - it feels like a dream come true, a validation of all my hard work. But what if this is just the beginning? What if there's more to this role than I'm being told? The uncertainty creeps in, making my stomach twist with anxiety.",
+      "start_char": 1420,
+      "end_char": 2070
+    },
+    {
+      "id": 2,
+      "topic": "anxiety",
+      "sentiment": "negative",
+      "text": "As I sit here, trying to catch my breath after the whirlwind of news, my mind keeps wandering back to all the what-ifs. What if I had negotiated harder for that job at Taylor Group? Would they have offered me more money or better benefits? The not knowing is eating away at me, and it's making my anxiety spike. I can feel my heart racing and my palms getting sweaty just thinking about it. I try to calm myself down by focusing on the fact that I got an internship in the first place, but those doubts linger. The fluorescent lights seem to be shining brighter now, making my eyes water with irritation.",
+      "start_char": 2071,
+      "end_char": 2675
+    }
+  ],
+  "topics": [
+    "self-worth",
+    "work",
+    "anxiety"
+  ],
+  "pii": [
+    {
+      "type": "COMPANY_NAME",
+      "text": "Taylor Group",
+      "start_char": 505,
+      "end_char": 517
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Taylor Group",
+      "start_char": 1085,
+      "end_char": 1097
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Taylor Group",
+      "start_char": 1516,
+      "end_char": 1528
+    },
+    {
+      "type": "COMPANY_NAME",
+      "text": "Taylor Group",
+      "start_char": 2239,
+      "end_char": 2251
+    }
+  ],
+  "summary": "The writer is struggling to process a whirlwind of news, including an internship offer and a job offer at Taylor Group, which has left them feeling anxious and uncertain about their worthiness. They are grappling with the idea that they may have only received these opportunities due to external factors, such as parental influence, rather than genuine merit.",
+  "persona_metadata": {
+    "name": "Mila",
+    "age": 20,
+    "neurotype": "ASD + High Anxiety"
+  }
+}
