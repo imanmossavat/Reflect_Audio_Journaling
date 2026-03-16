@@ -9,7 +9,7 @@ import json
 import ollama
 
 import question_prompt
-import dictionary_question_prompt
+import Backend.app.dictionary_question_prompt as dictionary_question_prompt
 import simpler_dictionary_question_prompt
 import topic_prompt
 
