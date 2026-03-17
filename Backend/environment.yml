@@ -30,6 +30,8 @@ dependencies:
     - ollama==0.6.1
     - pytest==8.3.4
     - pytest-asyncio==0.25.2
+    - sqlmodel==0.0.37
+    - alembic==1.18.4
     # SpaCy language models
     - nl-core-news-lg @ https://github.com/explosion/spacy-models/releases/download/nl_core_news_lg-3.8.0/nl_core_news_lg-3.8.0-py3-none-any.whl
     - en-core-web-trf @ https://github.com/explosion/spacy-models/releases/download/en_core_web_trf-3.8.0/en_core_web_trf-3.8.0-py3-none-any.whl

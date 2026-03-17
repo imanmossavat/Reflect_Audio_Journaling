@@ -4,7 +4,18 @@ Welcome! REFLECT is a private, local tool for recording your thoughts and gettin
 
 ---
 
-## 🚀 Getting Started
+## 🧠 Install Ollama
+
+REFLECT uses a local AI model via Ollama.
+
+1. Install Ollama: https://ollama.com
+2. Pull the model:
+
+```bash
+ollama pull qwen3.5:4b
+```
+
+## 🚀 Getting Started With The Terminal
 
 You'll need **two terminals** open — one for the backend, one for the frontend.
 
@@ -25,10 +36,16 @@ conda activate REFLECT
 
 > If you don't have Conda, install it from [conda.io](https://docs.conda.io/en/latest/miniconda.html)
 
+### Create the local database
+
+```bash
+alembic upgrade head
+```
+
 ### Run the backend
 
 ```bash
-uvicorn main:app --reload
+uvicorn app.main:app --reload
 ```
 
 The backend will start on `http://localhost:8000`
