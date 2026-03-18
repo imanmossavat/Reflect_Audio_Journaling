@@ -4,10 +4,10 @@ from fastapi.responses import StreamingResponse
 from fastapi import Response
 from pydantic import BaseModel
 from enum import Enum
-from typing import Annotated
+from typing import Optional, Annotated
 
-from requests_cache import datetime
-from sqlmodel import SQLModel, Field, Session, create_engine, select
+import datetime
+from sqlmodel import SQLModel, Field, Session, create_engine, select, TIMESTAMP
 import httpx
 import json
 import ollama
@@ -34,22 +34,29 @@ OLLAMA_URL = "http://localhost:11434/api/generate"
 MODEL = "qwen3.5:4b"
 
 class JournalEntry(SQLModel, table=True):
-    id: int | None = Field(default=None, primary_key=True)
+    id: Optional[int] | None = Field(default=None, primary_key=True)
     filename: str
     content: str
     test: str | None = None
+    created_at: datetime.datetime = Field(
+        default_factory=datetime.datetime.utcnow,
+    )
+    edited_at: datetime.datetime = Field(
+        default_factory=datetime.datetime.utcnow,
+        sa_column_kwargs={"onupdate": datetime.datetime.utcnow},
+    )
 
 class TopicEntry(SQLModel, table=True):
-    id: int | None = Field(default=None, primary_key=True)
+    id: Optional[int] | None = Field(default=None, primary_key=True)
     journal_id: int = Field(foreign_key="journalentry.id")
     name: str
     summary: str
     quotes: str  # store as JSON string
 
 class QAEntry(SQLModel, table=True):
-    id: int | None = Field(default=None, primary_key=True)
+    id: Optional[int] | None = Field(default=None, primary_key=True)
     journal_id: int = Field(foreign_key="journalentry.id")
-    timestamp: datetime = Field(default_factory=datetime.now)
+    timestamp: datetime.datetime = Field(default_factory=datetime.datetime.now)
     question: str
     answer: str
 
@@ -94,7 +101,7 @@ class TopicResponse(BaseModel):
 
 class SaveAnswerRequest(BaseModel):
     journal_id: int
-    timestamp: datetime = Field(default_factory=datetime.now)
+    timestamp: datetime.datetime = Field(default_factory=datetime.datetime.now)
     question: str
     answer: str
 
