@@ -17,6 +17,7 @@ const API_BASE = "http://localhost:8000";
 export interface UploadJournalResponse {
     word_count: number;
     filename: string;
+    journal_id: number;
 }
 
 export interface ExtractTopicsResponse {
@@ -25,6 +26,7 @@ export interface ExtractTopicsResponse {
 }
 
 export interface GenerateQuestionRequest {
+    journal_id: number;
     mode: Mode;
     step: number | null;
     topic: string | null;
@@ -48,14 +50,14 @@ export async function uploadJournal(file: File): Promise<UploadJournalResponse> 
     });
 
     if (!res.ok) {
-        throw await parseError(res, "Something went wrong");
+        throw await parseError(res, "Something went wrong while uploading journal");
     }
 
     return res.json();
 }
 
-export async function extractTopics(): Promise<ExtractTopicsResponse> {
-    const res = await fetch(`${API_BASE}/topics`, { method: "POST" });
+export async function extractTopics(journal_id: number): Promise<ExtractTopicsResponse> {
+    const res = await fetch(`${API_BASE}/topics?journal_id=${journal_id}`, { method: "POST" });
 
     if (!res.ok) {
         throw await parseError(res, "Failed to extract topics");
@@ -75,7 +77,7 @@ export async function generateQuestionStream(
     });
 
     if (!res.ok) {
-        throw await parseError(res, "Something went wrong");
+        throw await parseError(res, "Something went wrong while generating question");
     }
 
     const reader = res.body?.getReader();
@@ -112,12 +114,28 @@ export async function generateQuestionStream(
                     onToken(parsed.token);
                 }
             } catch {
-                // Keep streaming if a single chunk is malformed.
             }
         }
 
         if (streamDone) {
             break;
         }
+    }
+}
+
+export async function saveAnswer(payload: {
+    journal_id: number;
+    timestamp: string;
+    question: string;
+    answer: string;
+}): Promise<void> {
+    const res = await fetch(`${API_BASE}/save-answer`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+        throw await parseError(res, "Failed to save answer");
     }
 }

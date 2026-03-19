@@ -2,7 +2,7 @@
 
 import { useState, useRef, ChangeEvent, JSX, } from "react";
 import { customScrollbar } from '../lib/scrollbar';
-import { uploadJournal, extractTopics, generateQuestionStream, Mode, QAEntry, Topic } from "../lib/reflectionApi";
+import { uploadJournal, extractTopics, generateQuestionStream, Mode, QAEntry, Topic, saveAnswer } from "../lib/reflectionApi";
 
 type Stage = "upload" | "choose" | "deep-dive-setup" | "topic-select" | "question" | "deep-dive-options";
 
@@ -51,6 +51,7 @@ export default function Home(): JSX.Element {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
   const fileRef = useRef<HTMLInputElement>(null);
+  const [journalId, setJournalId] = useState<number | null>(null);
 
   async function handleUpload(e: ChangeEvent<HTMLInputElement>): Promise<void> {
     const file = e.target.files?.[0];
@@ -60,6 +61,7 @@ export default function Home(): JSX.Element {
     try {
       const data = await uploadJournal(file);
       setFilename(data.filename);
+      setJournalId(data.journal_id);
       setStage("choose");
     } catch (err) {
       const error = err instanceof Error ? err.message : "Unknown error";
@@ -75,6 +77,7 @@ export default function Home(): JSX.Element {
     setError("");
     try {
       await generateQuestionStream({
+        journal_id: journalId!,
         mode: m,
         step: m === "deep_dive" ? step : null,
         topic: topicName ?? null,
@@ -107,7 +110,13 @@ export default function Home(): JSX.Element {
     return updated;
   }
 
-  function handleSubmitAnswer(): void {
+  async function handleSubmitAnswer(): Promise<void> {
+    await saveAnswer({
+      journal_id: journalId!,
+      timestamp: new Date().toISOString(),
+      question,
+      answer,
+    });
     saveAnswerAndGetHistory();
     if (mode === "deep_dive") {
       setStage("deep-dive-options");
@@ -173,7 +182,7 @@ export default function Home(): JSX.Element {
     setHoveredTopic(null);
     setActiveDeepDiveTopic(null);
     try {
-      const data = await extractTopics();
+      const data = await extractTopics(journalId!);
       setTopics(data.topics);
       setJournalText(data.journal_text);
       setStage("topic-select");

@@ -1,1 +1,13 @@
 *.txt
+
+#cache files
+__pycache__/
+**.pyc
+**.pyo
+**.pyd
+
+#logs
+*.log
+
+#database files
+**.db

@@ -1,4 +1,4 @@
-def build_messages(journal_text: str, mode: str, topic: str | None = None, step: int | None = None, history: list[dict] | None = None) -> list[dict]:
+def build_messages(journal_text: str, mode: str, topic: str | None = None, topic_summary: str | None = None, step: int | None = None, history: list[dict] | None = None) -> list[dict]:
 
     common_rules = """
 Rules:
