@@ -20,25 +20,77 @@ Most AI tools send your voice to a server in the cloud. **REFLECT is different.*
 - **Analyzes:** Finds "PII" (private info), splits talk into topics, and checks mood/tone.
 - **Searchable:** Search your journals by meaning, not just exact words.
 
-### The full pipeline
-<img src="./Images/Algorithmic pipeline.png" width="1000" alt="Algorithmic pipeline" />
-![pipeline](./Images/Algorithmic%20pipeline.png)
+## 🔄 The Full Pipeline
 
-**Record/upload audio:** this does that and that does this
+REFLECT processes your audio step-by-step into structured, searchable insights — fully locally.
 
-**Get transcription:** it does get the transcription
+The diagram below shows how audio is transformed into structured insights:
 
-**Personal identifiers detection:**
+<img src="./Images/Algorithmic pipeline.png" width="1000" alt="Pipeline" />
+
+### 1. 🎙️ Record or Upload Audio
+You start by recording your thoughts or uploading an audio file.
+
+- Low barrier to entry (no typing required)
+- Designed for natural, unstructured input
+
+---
+
+### 2. 📝 Speech-to-Text Transcription
+Your audio is converted into text automatically.
+
+- Uses local speech recognition
+- Produces a raw transcript of your thoughts
+
+---
+
+### 3. 🔒 Personal Information Detection (PII)
+Sensitive information is identified in the transcript.
+
+- Detects names, locations, and other personal data
+- Enables safer storage and future processing
+- Supports privacy-first design
 
 <img src="./Images/PII Detection.png" width="700" alt="PII Detection" />
 
-**Prosody features:**
+---
 
-**Text segmentation:**
+### 4. 🎧 Prosody & Tone Analysis
+The system analyzes *how* something is said, not just *what* is said.
+
+- Detects tone, stress, and emotional cues
+- Adds context to the written transcript
+- Supports deeper reflection insights
+
+---
+
+### 5. ✂️ Text Segmentation & Topic Detection
+The transcript is split into meaningful sections.
+
+- Identifies topic boundaries
+- Assigns labels to different parts of your journal
+- Makes long recordings easier to navigate
 
 <img src="./Images/Text segmentation and topic names.png" width="500" alt="Text segmentation and topic names" />
 
-**Semantic search:**
+---
+
+### 6. 🔍 Semantic Search
+All entries become searchable by meaning.
+
+- Search by concept, not exact words
+- Find patterns across multiple journal entries
+- Enables long-term reflection
+
+---
+
+## ✅ Result
+You end up with:
+- A clean transcript  
+- Structured topics    
+- Searchable insights  
+
+All processed **locally and privately**.
 ---
 
 ## 🚀 One-Click Setup
