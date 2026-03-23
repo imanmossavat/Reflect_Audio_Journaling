@@ -19,8 +19,10 @@ class Journal(SQLModel, table=True):
     __tablename__ = "journal"
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    text: str
-    source_type: str = Field(max_length=255)
+    filename: Optional[str] = Field(default=None, max_length=255)
+    file_type: Optional[str] = Field(default=None, max_length=255)
+    file_path: Optional[str] = Field(default=None)
+    text: Optional[str] = Field(default=None) 
     status: str = Field(max_length=255, default="not processed")
     created_at: datetime = Field(default_factory=datetime.utcnow)
     edited_at: datetime = Field(default_factory=datetime.utcnow)

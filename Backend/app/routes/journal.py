@@ -1,67 +1,90 @@
-from datetime import datetime
-
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, Depends, HTTPException,  UploadFile, File, Form 
 from sqlmodel import Session
 
-from app.db import engine, get_latest_journal
-from app.services.chunking import chunk_text
-from app.services.rag import index_chunks
-from database.models import Journal, Chunk
+from app.db import get_session
+from app.services import journalService
+
+import os
 
 router = APIRouter()
 
+ALLOWED_EXTENSIONS = {".wav", ".mp3", ".txt", ".md"}
+ALLOWED_MIME_TYPES = {"audio/mpeg", "audio/wav", "text/plain", "text/markdown"}
 
-@router.post("/upload", tags=["Journal"])
-async def upload_journal(file: UploadFile = File(...)):
-    if file.content_type != "text/plain":
-        raise HTTPException(status_code=400, detail="Only plain text files are allowed.")
+@router.get("/journals", tags=["Journal"])
+async def get_all_journals(
+    session: Session = Depends(get_session),
+):
+    return journalService.get_all_journals(session)
 
-    content = await file.read()
-    text = content.decode("utf-8")
-    word_count = len(text.split())
-    now = datetime.utcnow()
+@router.get("/unprocessed-journals", tags=["Journal"])
+async def get_unprocessed_journals(
+    session: Session = Depends(get_session),
+):
+    return journalService.get_unprocessed_journals(session)
 
-    with Session(engine) as session:
-        # 1. Store journal in SQLite
-        journal_entry = Journal(
-            text=text,
-            source_type=file.content_type,
-            created_at=now,
-            edited_at=now,
-        )
-        session.add(journal_entry)
-        session.commit()
-        session.refresh(journal_entry)
-        journal_id = journal_entry.id
-
-        # 2. Split into chunks
-        raw_chunks = chunk_text(text)
-
-        # 3. Store chunks in SQLite
-        db_chunks = []
-        for chunk_text_content in raw_chunks:
-            chunk = Chunk(
-                journal_id=journal_id,
-                chunk_text=chunk_text_content,
-            )
-            session.add(chunk)
-            session.commit()
-            session.refresh(chunk)
-            db_chunks.append({"id": chunk.id, "text": chunk.chunk_text, "journal_id": journal_id})
-
-    # 4+5. Embed chunks and store in ChromaDB (outside session — no DB needed)
-    index_chunks(db_chunks)
-
-    return {
-        "word_count": word_count,
-        "filename": file.filename,
-        "journal_id": journal_id,
-        "chunks_created": len(db_chunks),
-    }
+@router.get("/journal/{journal_id}", tags=["Journal"])
+async def get_journal_by_id(
+    journal_id: int,
+    session: Session = Depends(get_session),
+):
+    return journalService.get_journal_by_id(session, journal_id)
 
 
-@router.get("/journal-text", tags=["Journal"])
-async def get_journal_text():
-    with Session(engine) as session:
-        journal = get_latest_journal(session)
-        return {"journal_text": journal.text}
+@router.get("/journal-text/{journal_id}", tags=["Journal"])
+async def get_journal_text(
+    journal_id: int,
+    session: Session = Depends(get_session),
+):
+    journal = journalService.get_journal_by_id(session, journal_id)
+    return journal.text
+
+
+@router.post("/journal/uploadFile/processed", tags=["Journal"], description="Upload a journal file that will be processed immediately. Transcription is performed if the file is an audio file. Only supports: .wav, .mp3, .txt and .md files.")
+async def upload_journal(
+    file: UploadFile = File(...),
+    session: Session = Depends(get_session),
+):
+    extension = os.path.splitext(file.filename)[1].lower()
+
+    if extension not in ALLOWED_EXTENSIONS:
+        raise HTTPException(status_code=400, detail="Unsupported file type. Only .wav, .mp3, .txt and .md files are supported.")
+    return await journalService.save_processed_journal_file(session, file)
+
+
+@router.post("/journal/uploadFile/raw", tags=["Journal"], description="Upload a journal file that will be processed later. Transcription is performed if the file is an audio file. Only supports: .wav, .mp3, .txt and .md files.")
+async def upload_raw_journal(
+    file: UploadFile = File(...),
+    session: Session = Depends(get_session),
+):
+    extension = os.path.splitext(file.filename)[1].lower()
+
+    if extension not in ALLOWED_EXTENSIONS:
+        raise HTTPException(status_code=400, detail="Unsupported file extension type.")
+    print("api called")
+    return await journalService.save_raw_journal_file(session, file)
+
+@router.post("/journal/uploadText/processed", tags=["Journal"], description="Upload a journal as text. The journal will be processed immediately.")
+async def upload_text_journal(
+    journal_text: str = Form(...),
+    session: Session = Depends(get_session),
+):
+    return await journalService.save_processed_journal_text(session, journal_text)
+
+
+@router.post("/journal/uploadText/raw", tags=["Journal"], description="Upload a journal as raw text. The journal will be processed immediately.")
+async def upload_text_journal(
+    journal_text: str = Form(...),
+    session: Session = Depends(get_session),
+):
+    print("api called")
+    return await journalService.save_raw_journal_text(session, journal_text)
+
+
+@router.post("/journal/process/{journal_id}", tags=["Journal"], description="Process a journal by its ID. This is for journals that were uploaded as raw and need to be processed later. Processing includes transcription, chunking and indexing.")
+async def process_journal(
+    journal_id: int,
+    session: Session = Depends(get_session),
+):
+    print("api called")
+    return await journalService.process_journal(session, journal_id)

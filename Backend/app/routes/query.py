@@ -1,4 +1,4 @@
-from datetime import datetime
+import datetime
 from pydantic import BaseModel
 import json
 
@@ -82,7 +82,7 @@ async def extract_topics(journal_id: int) -> TopicResponse:
                 for t in raw_topics
             ]
 
-            now = datetime.utcnow()
+            now = datetime.datetime.utcnow()
             with Session(engine) as session:
                 for t in topics:
                     db_topic = Topic(
@@ -147,7 +147,7 @@ async def generate_question(req: GenerateRequest):
 
 @router.post("/save-answer", tags=["Query"])
 async def save_answer(req: SaveAnswerRequest):
-    now = datetime.utcnow()
+    now = datetime.datetime.utcnow()
     with Session(engine) as session:
         question = Question(
             journal_id=req.journal_id,

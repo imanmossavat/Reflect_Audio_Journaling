@@ -1,8 +1,8 @@
 """init
 
-Revision ID: 754764cbcf92
+Revision ID: e36510b9f747
 Revises: 
-Create Date: 2026-03-18 15:37:29.459683
+Create Date: 2026-03-20 09:29:44.857176
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '754764cbcf92'
+revision: str = 'e36510b9f747'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -25,6 +25,7 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('text', sa.Text(), nullable=False),
     sa.Column('source_type', sa.String(length=255), nullable=False),
+    sa.Column('status', sa.String(length=255), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.Column('edited_at', sa.DateTime(), nullable=False),
     sa.PrimaryKeyConstraint('id')
@@ -70,7 +71,7 @@ def upgrade() -> None:
     op.create_table('topicquotes',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('topic_id', sa.Integer(), nullable=False),
-    sa.Column('quote', sa.Text(), nullable=False),
+    sa.Column('quote', sa.String(length=255), nullable=False),
     sa.ForeignKeyConstraint(['topic_id'], ['topics.id'], ),
     sa.PrimaryKeyConstraint('id')
     )

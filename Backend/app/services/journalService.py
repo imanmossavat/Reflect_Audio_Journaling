@@ -1,0 +1,154 @@
+import os
+import uuid
+
+from pathlib import Path
+from fastapi import HTTPException, UploadFile
+from sqlmodel import Session
+import strip_markdown
+
+from app.repositories import journalRepo
+from app.services.chunking import chunk_text
+from app.services.rag import index_chunks
+from app.services.transcription import transcribe
+
+BASE_DIR = Path(__file__).resolve().parent.parent.parent / "database" / "uploads"
+(BASE_DIR / "audio").mkdir(parents=True, exist_ok=True)
+(BASE_DIR / "text").mkdir(parents=True, exist_ok=True)
+
+def get_all_journals(session: Session):
+    return journalRepo.get_all_journals(session)
+
+def get_journal_by_id(session: Session, journal_id: int) -> dict:
+	journal = journalRepo.get_journal_by_id(session, journal_id)
+	if not journal:
+		raise HTTPException(status_code=404, detail="Journal not found.")
+
+	return journal
+
+def get_unprocessed_journals(session: Session):
+    return session.exec(
+        journalRepo.get_unprocessed_journals_query()
+    ).all()
+
+async def save_raw_journal_file(session: Session, file: UploadFile):
+    ext = os.path.splitext(file.filename)[1].lower()
+    content_type = file.content_type or ""
+
+    if content_type.startswith("audio/") or ext in [".wav", ".mp3"]:
+        file_type = "audio"
+        subfolder = "audio"
+    elif ext == ".md":
+        file_type = "markdown"
+        subfolder = "text"
+    elif ext == ".txt":
+        file_type = "text"
+        subfolder = "text"
+    else:
+        raise HTTPException(status_code=400, detail="Unsupported file type.")
+
+    file_id = uuid.uuid4()
+    disk_filename = f"{file_id}{ext}"
+    filepath = BASE_DIR / subfolder / disk_filename
+
+    raw_bytes = await file.read()
+    with open(filepath, "wb") as f:
+        f.write(raw_bytes)
+
+    journal = journalRepo.create_journal(
+        session=session,
+        filename=file.filename,
+        file_path=str(filepath),
+        file_type=file_type,
+        status="not processed",
+    )
+
+    return journal
+
+
+async def save_processed_journal_file(session: Session, file: UploadFile):
+    content_type = file.content_type or ""
+    if content_type not in ["audio/mpeg", "audio/wav", "text/plain", "text/markdown"]:
+        raise HTTPException(status_code=400, detail="Unsupported file type.")
+    if content_type.startswith("audio/"):
+        try:
+            text = await transcribe(file)
+        except NotImplementedError as exc:
+            raise HTTPException(status_code=501, detail=str(exc)) from exc
+    else:
+        text = (await file.read()).decode("utf-8")
+
+    journal = journalRepo.create_journal(session=session, text=text, status="processed")
+    chunks = chunk_text(text)
+    db_chunks = journalRepo.create_chunks(session, journal.id, chunks)
+    index_chunks(
+        [
+            {"id": str(chunk.id), "text": chunk.chunk_text, "journal_id": str(journal.id)}
+            for chunk in db_chunks
+        ]
+    )
+
+    return journal
+
+async def process_journal(session: Session, journal_id: int):
+    journal = journalRepo.get_journal_by_id(session, journal_id)
+    if not journal:
+        raise HTTPException(status_code=404, detail="Journal not found.")
+    if journal.status == "processed":
+        raise HTTPException(status_code=400, detail="Journal is already processed.")
+
+    if journal.text is None:
+        if journal.file_type == "audio":
+            if not journal.file_path:
+                raise HTTPException(status_code=400, detail="No file path found for audio journal.")
+            try:
+                journal.text = await transcribe(journal.file_path)
+            except NotImplementedError as exc:
+                raise HTTPException(status_code=501, detail=str(exc)) from exc
+        elif journal.file_type in ("text", "markdown"):
+            if not journal.file_path:
+                raise HTTPException(status_code=400, detail="No file path found for text journal.")
+            with open(journal.file_path, "r", encoding="utf-8") as f:
+                journal.text = f.read()
+        else:
+            raise HTTPException(status_code=400, detail="Cannot process journal without text or file.")
+
+    if journal.file_type == "markdown":
+        text_to_chunk = strip_markdown.strip_markdown(journal.text)
+    else:
+        text_to_chunk = journal.text
+
+    chunks = chunk_text(text_to_chunk)
+    db_chunks = journalRepo.create_chunks(session, journal.id, chunks)
+
+    chunk_dicts = [
+        {
+            "id": str(chunk.id),
+            "text": chunk.chunk_text,
+            "journal_id": str(journal.id),
+        }
+        for chunk in db_chunks
+    ]
+
+    index_chunks(chunk_dicts)
+
+    return journal
+
+async def save_processed_journal_text(session: Session, journal_text: str):
+    journal = journalRepo.create_journal(session=session, text=journal_text, status="processed")
+    chunks = chunk_text(journal_text)
+    db_chunks = journalRepo.create_chunks(session, journal.id, chunks)
+    index_chunks(
+        [
+            {"id": str(chunk.id), "text": chunk.chunk_text, "journal_id": str(journal.id)}
+            for chunk in db_chunks
+        ]
+    )
+
+    return journal
+
+async def save_raw_journal_text(session: Session, journal_text: str):
+    print("service called")
+    journal = journalRepo.create_journal(session=session, text=journal_text, status="not processed")
+    return journal
+
+
