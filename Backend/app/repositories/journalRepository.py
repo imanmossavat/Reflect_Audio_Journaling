@@ -63,3 +63,23 @@ def create_chunks(session: Session, journal_id: int, chunks: list[str]) -> list[
         session.refresh(chunk)
 
     return db_chunks
+
+
+def revert_processing(session: Session, journal_id: int, chunk_ids: list[int]) -> Journal:
+    journal = session.exec(select(Journal).where(Journal.id == journal_id)).first()
+    if not journal:
+        raise ValueError(f"Journal {journal_id} not found")
+
+    if chunk_ids:
+        chunks_to_delete = session.exec(select(Chunk).where(Chunk.id.in_(chunk_ids))).all()
+        for chunk in chunks_to_delete:
+            session.delete(chunk)
+
+    journal.status = "not processed"
+    journal.edited_at = datetime.now()
+
+    session.add(journal)
+    session.commit()
+    session.refresh(journal)
+
+    return journal

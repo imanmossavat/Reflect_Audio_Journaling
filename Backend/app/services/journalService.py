@@ -7,7 +7,7 @@ from fastapi import HTTPException, UploadFile
 from sqlmodel import Session
 import strip_markdown
 
-from app.repositories import journalRepo
+from Backend.app.repositories import journalRepository
 from app.services.chunking import chunk_text
 from app.services.rag import index_chunks
 from app.services.transcription import TranscriptionManager
@@ -19,10 +19,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent / "database" / "uploads
 (BASE_DIR / "text").mkdir(parents=True, exist_ok=True)
 
 def get_all_journals(session: Session):
-    return journalRepo.get_all_journals(session)
+    return journalRepository.get_all_journals(session)
 
 def get_journal_by_id(session: Session, journal_id: int) -> dict:
-	journal = journalRepo.get_journal_by_id(session, journal_id)
+	journal = journalRepository.get_journal_by_id(session, journal_id)
 	if not journal:
 		raise HTTPException(status_code=404, detail="Journal not found.")
 
@@ -30,7 +30,7 @@ def get_journal_by_id(session: Session, journal_id: int) -> dict:
 
 def get_unprocessed_journals(session: Session):
     return session.exec(
-        journalRepo.get_unprocessed_journals_query()
+        journalRepository.get_unprocessed_journals_query()
     ).all()
 
 async def save_raw_journal_file(session: Session, file: UploadFile):
@@ -57,7 +57,7 @@ async def save_raw_journal_file(session: Session, file: UploadFile):
     with open(filepath, "wb") as f:
         f.write(raw_bytes)
 
-    journal = journalRepo.create_journal(
+    journal = journalRepository.create_journal(
         session=session,
         filename=file.filename,
         file_path=str(filepath),
@@ -101,7 +101,7 @@ async def save_processed_journal_file(session: Session, file: UploadFile):
     else:
         text = raw_bytes.decode("utf-8")
 
-    journal = journalRepo.create_journal(
+    journal = journalRepository.create_journal(
         session=session,
         filename=file.filename,
         file_path=str(filepath),
@@ -111,37 +111,44 @@ async def save_processed_journal_file(session: Session, file: UploadFile):
     )
 
     chunks = chunk_text(strip_markdown.strip_markdown(text) if file_type == "markdown" else text)
-    db_chunks = journalRepo.create_chunks(session, journal.id, chunks)
-    index_chunks([
-        {"id": str(chunk.id), "text": chunk.chunk_text, "journal_id": str(journal.id)}
-        for chunk in db_chunks
-    ])
+    db_chunks = journalRepository.create_chunks(session, journal.id, chunks)
+    try:
+        index_chunks([
+            {"id": str(chunk.id), "text": chunk.chunk_text, "journal_id": str(journal.id)}
+            for chunk in db_chunks
+        ])
+    except Exception as exc:
+        journalRepository.revert_processing(session, journal.id, [chunk.id for chunk in db_chunks if chunk.id is not None])
+        raise HTTPException(status_code=500, detail="Failed to index journal chunks.") from exc
 
     return journal
 
 
 
 async def save_processed_journal_text(session: Session, journal_text: str):
-    journal = journalRepo.create_journal(session=session, text=journal_text, status="processed")
+    journal = journalRepository.create_journal(session=session, text=journal_text, status="processed")
     chunks = chunk_text(journal_text)
-    db_chunks = journalRepo.create_chunks(session, journal.id, chunks)
-    index_chunks(
-        [
-            {"id": str(chunk.id), "text": chunk.chunk_text, "journal_id": str(journal.id)}
-            for chunk in db_chunks
-        ]
-    )
+    db_chunks = journalRepository.create_chunks(session, journal.id, chunks)
+    try:
+        index_chunks(
+            [
+                {"id": str(chunk.id), "text": chunk.chunk_text, "journal_id": str(journal.id)}
+                for chunk in db_chunks
+            ]
+        )
+    except Exception as exc:
+        journalRepository.revert_processing(session, journal.id, [chunk.id for chunk in db_chunks if chunk.id is not None])
+        raise HTTPException(status_code=500, detail="Failed to index journal chunks.") from exc
 
     return journal
 
 async def save_raw_journal_text(session: Session, journal_text: str):
-    print("service called")
-    journal = journalRepo.create_journal(session=session, text=journal_text, status="not processed")
+    journal = journalRepository.create_journal(session=session, text=journal_text, status="not processed")
     return journal
 
 
 async def process_journal(session: Session, journal_id: int):
-    journal = journalRepo.get_journal_by_id(session, journal_id)
+    journal = journalRepository.get_journal_by_id(session, journal_id)
     if not journal:
         raise HTTPException(status_code=404, detail="Journal not found.")
     if journal.status == "processed":
@@ -152,7 +159,6 @@ async def process_journal(session: Session, journal_id: int):
             if not journal.file_path:
                 raise HTTPException(status_code=400, detail="No file path found for audio journal.")
             try:
-                print(f"Processing audio journal: {journal.file_path} and now calling transcribe")
                 recording = SimpleRecording(path=journal.file_path, id=str(journal.id))
                 journal.text = TranscriptionManager().transcribe(recording).text
             except NotImplementedError as exc:
@@ -171,7 +177,7 @@ async def process_journal(session: Session, journal_id: int):
         text_to_chunk = journal.text
 
     chunks = chunk_text(text_to_chunk)
-    db_chunks = journalRepo.create_chunks(session, journal.id, chunks)
+    db_chunks = journalRepository.create_chunks(session, journal.id, chunks)
 
     chunk_dicts = [
         {
@@ -182,6 +188,10 @@ async def process_journal(session: Session, journal_id: int):
         for chunk in db_chunks
     ]
 
-    index_chunks(chunk_dicts)
+    try:
+        index_chunks(chunk_dicts)
+    except Exception as exc:
+        journalRepository.revert_processing(session, journal.id, [chunk.id for chunk in db_chunks if chunk.id is not None])
+        raise HTTPException(status_code=500, detail="Failed to index journal chunks.") from exc
 
     return journal

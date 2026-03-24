@@ -11,3 +11,5 @@ __pycache__/
 
 #database files
 **.db
+/Backend/database/chroma
+/Backend/database/uploads
