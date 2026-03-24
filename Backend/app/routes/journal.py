@@ -8,7 +8,7 @@ import os
 
 router = APIRouter()
 
-ALLOWED_EXTENSIONS = {".wav", ".mp3", ".txt", ".md"}
+ALLOWED_EXTENSIONS = {".wav", ".mp3", ".m4a",".txt", ".md"}
 ALLOWED_MIME_TYPES = {"audio/mpeg", "audio/wav", "text/plain", "text/markdown"}
 
 @router.get("/journals", tags=["Journal"])
@@ -61,7 +61,6 @@ async def upload_raw_journal(
 
     if extension not in ALLOWED_EXTENSIONS:
         raise HTTPException(status_code=400, detail="Unsupported file extension type.")
-    print("api called")
     return await journalService.save_raw_journal_file(session, file)
 
 @router.post("/journal/uploadText/processed", tags=["Journal"], description="Upload a journal as text. The journal will be processed immediately.")
@@ -77,7 +76,6 @@ async def upload_text_journal(
     journal_text: str = Form(...),
     session: Session = Depends(get_session),
 ):
-    print("api called")
     return await journalService.save_raw_journal_text(session, journal_text)
 
 
@@ -86,5 +84,4 @@ async def process_journal(
     journal_id: int,
     session: Session = Depends(get_session),
 ):
-    print("api called")
     return await journalService.process_journal(session, journal_id)

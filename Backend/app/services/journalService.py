@@ -2,6 +2,7 @@ import os
 import uuid
 
 from pathlib import Path
+from app.schemas import SimpleRecording
 from fastapi import HTTPException, UploadFile
 from sqlmodel import Session
 import strip_markdown
@@ -9,7 +10,9 @@ import strip_markdown
 from app.repositories import journalRepo
 from app.services.chunking import chunk_text
 from app.services.rag import index_chunks
-from app.services.transcription import transcribe
+from app.services.transcription import TranscriptionManager
+from app.schemas import Transcript
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent / "database" / "uploads"
 (BASE_DIR / "audio").mkdir(parents=True, exist_ok=True)
@@ -34,7 +37,7 @@ async def save_raw_journal_file(session: Session, file: UploadFile):
     ext = os.path.splitext(file.filename)[1].lower()
     content_type = file.content_type or ""
 
-    if content_type.startswith("audio/") or ext in [".wav", ".mp3"]:
+    if content_type.startswith("audio/") or ext in [".wav", ".mp3", ".m4a"]:
         file_type = "audio"
         subfolder = "audio"
     elif ext == ".md":
@@ -66,19 +69,61 @@ async def save_raw_journal_file(session: Session, file: UploadFile):
 
 
 async def save_processed_journal_file(session: Session, file: UploadFile):
+    ext = os.path.splitext(file.filename)[1].lower()
     content_type = file.content_type or ""
-    if content_type not in ["audio/mpeg", "audio/wav", "text/plain", "text/markdown"]:
+
+    if content_type.startswith("audio/") or ext in [".wav", ".mp3", ".m4a"]:
+        file_type = "audio"
+        subfolder = "audio"
+    elif ext == ".md":
+        file_type = "markdown"
+        subfolder = "text"
+    elif ext == ".txt":
+        file_type = "text"
+        subfolder = "text"
+    else:
         raise HTTPException(status_code=400, detail="Unsupported file type.")
-    if content_type.startswith("audio/"):
+
+    file_id = uuid.uuid4()
+    disk_filename = f"{file_id}{ext}"
+    filepath = BASE_DIR / subfolder / disk_filename
+
+    raw_bytes = await file.read()
+    with open(filepath, "wb") as f:
+        f.write(raw_bytes)
+
+    if file_type == "audio":
         try:
-            text = await transcribe(file)
+            recording = SimpleRecording(path=str(filepath), id=str(uuid.uuid4()))
+            text = TranscriptionManager().transcribe(recording).text
         except NotImplementedError as exc:
             raise HTTPException(status_code=501, detail=str(exc)) from exc
     else:
-        text = (await file.read()).decode("utf-8")
+        text = raw_bytes.decode("utf-8")
 
-    journal = journalRepo.create_journal(session=session, text=text, status="processed")
-    chunks = chunk_text(text)
+    journal = journalRepo.create_journal(
+        session=session,
+        filename=file.filename,
+        file_path=str(filepath),
+        file_type=file_type,
+        text=text,
+        status="processed",
+    )
+
+    chunks = chunk_text(strip_markdown.strip_markdown(text) if file_type == "markdown" else text)
+    db_chunks = journalRepo.create_chunks(session, journal.id, chunks)
+    index_chunks([
+        {"id": str(chunk.id), "text": chunk.chunk_text, "journal_id": str(journal.id)}
+        for chunk in db_chunks
+    ])
+
+    return journal
+
+
+
+async def save_processed_journal_text(session: Session, journal_text: str):
+    journal = journalRepo.create_journal(session=session, text=journal_text, status="processed")
+    chunks = chunk_text(journal_text)
     db_chunks = journalRepo.create_chunks(session, journal.id, chunks)
     index_chunks(
         [
@@ -88,6 +133,12 @@ async def save_processed_journal_file(session: Session, file: UploadFile):
     )
 
     return journal
+
+async def save_raw_journal_text(session: Session, journal_text: str):
+    print("service called")
+    journal = journalRepo.create_journal(session=session, text=journal_text, status="not processed")
+    return journal
+
 
 async def process_journal(session: Session, journal_id: int):
     journal = journalRepo.get_journal_by_id(session, journal_id)
@@ -101,7 +152,9 @@ async def process_journal(session: Session, journal_id: int):
             if not journal.file_path:
                 raise HTTPException(status_code=400, detail="No file path found for audio journal.")
             try:
-                journal.text = await transcribe(journal.file_path)
+                print(f"Processing audio journal: {journal.file_path} and now calling transcribe")
+                recording = SimpleRecording(path=journal.file_path, id=str(journal.id))
+                journal.text = TranscriptionManager().transcribe(recording).text
             except NotImplementedError as exc:
                 raise HTTPException(status_code=501, detail=str(exc)) from exc
         elif journal.file_type in ("text", "markdown"):
@@ -132,23 +185,3 @@ async def process_journal(session: Session, journal_id: int):
     index_chunks(chunk_dicts)
 
     return journal
-
-async def save_processed_journal_text(session: Session, journal_text: str):
-    journal = journalRepo.create_journal(session=session, text=journal_text, status="processed")
-    chunks = chunk_text(journal_text)
-    db_chunks = journalRepo.create_chunks(session, journal.id, chunks)
-    index_chunks(
-        [
-            {"id": str(chunk.id), "text": chunk.chunk_text, "journal_id": str(journal.id)}
-            for chunk in db_chunks
-        ]
-    )
-
-    return journal
-
-async def save_raw_journal_text(session: Session, journal_text: str):
-    print("service called")
-    journal = journalRepo.create_journal(session=session, text=journal_text, status="not processed")
-    return journal
-
-

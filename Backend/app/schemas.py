@@ -1,4 +1,6 @@
 from enum import Enum
+from dataclasses import dataclass, field
+from typing import Optional
 
 from pydantic import BaseModel
 
@@ -41,3 +43,31 @@ class SaveAnswerRequest(BaseModel):
     question_text: str
     answer_text: str
     topic_id: int | None = None
+
+@dataclass  
+class SimpleRecording:
+    path: str
+    id: str    
+
+@dataclass
+class WordToken:
+    word: str
+    start_s: Optional[float] = None
+    end_s: Optional[float] = None
+    prob: Optional[float] = None
+
+@dataclass
+class Sentence:
+    id: int
+    text: str
+    start_s: Optional[float] = None
+    end_s: Optional[float] = None
+    meta: dict = field(default_factory=dict)
+
+@dataclass
+class Transcript:
+    recording_id: str
+    text: str
+    words: list[WordToken] = field(default_factory=list)
+    sentences: list[Sentence] = field(default_factory=list)
+    source: str = "whisperx"

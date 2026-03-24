@@ -10,7 +10,7 @@ OLLAMA_BASE_URL = "http://localhost:11434"
 EMBED_MODEL = "nomic-embed-text"
 LLM_MODEL = "llama3"
 
-# ── Configure LlamaIndex globals once ──────────────────────────────────────────
+# Configure LlamaIndex globals once
 Settings.embed_model = OllamaEmbedding(
     model_name=EMBED_MODEL,
     base_url=OLLAMA_BASE_URL,
