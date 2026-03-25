@@ -44,25 +44,37 @@ def create_journal(
     return new_journal
 
 
-def create_chunks(session: Session, journal_id: int, chunks: list[str]) -> list[Chunk]:
-    journal = session.exec(select(Journal).where(Journal.id == journal_id)).first()
-    if not journal:
-        raise ValueError(f"Journal {journal_id} not found")
+def create_chunks(session: Session, journal_id: int, chunks: list[dict[str, str]]) -> list[Chunk]:
+    try:
+        journal = session.exec(select(Journal).where(Journal.id == journal_id)).first()
+        if not journal:
+            raise ValueError(f"Journal {journal_id} not found")
 
-    db_chunks: list[Chunk] = []
-    for chunk_text in chunks:
-        chunk = Chunk(journal_id=journal_id, chunk_text=chunk_text)
-        session.add(chunk)
-        db_chunks.append(chunk)
+        db_chunks: list[Chunk] = []
+        for chunk_data in chunks:
+            chunk_text = chunk_data.get("text", "").strip()
+            if not chunk_text:
+                continue
 
-    journal.status = "processed"
-    journal.edited_at = datetime.now()
-    session.commit()
+            chunk = Chunk(journal_id=journal_id, chunk_text=chunk_text)
+            session.add(chunk)
+            db_chunks.append(chunk)
 
-    for chunk in db_chunks:
-        session.refresh(chunk)
+        if not db_chunks:
+            raise ValueError(f"No chunks generated for journal {journal_id}.")
 
-    return db_chunks
+        journal.status = "processed"
+        journal.edited_at = datetime.now()
+        session.commit()
+
+        for chunk in db_chunks:
+            session.refresh(chunk)
+
+        return db_chunks
+    except Exception as exc:
+        session.rollback()
+        print(f"Error creating chunks for journal {journal_id}: {exc}")
+        raise exc
 
 
 def revert_processing(session: Session, journal_id: int, chunk_ids: list[int]) -> Journal:

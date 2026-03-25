@@ -3,6 +3,9 @@ from llama_index.core.schema import TextNode
 from llama_index.vector_stores.chroma import ChromaVectorStore
 from llama_index.embeddings.ollama import OllamaEmbedding
 from llama_index.llms.ollama import Ollama
+from llama_index.core.prompts import PromptTemplate
+
+from typing import Any
 
 from app.services.chroma import get_chroma_collection
 
@@ -19,6 +22,7 @@ Settings.llm = Ollama(
     model=LLM_MODEL,
     base_url=OLLAMA_BASE_URL,
     request_timeout=120.0,
+    temperature=0.0,
 )
 
 
@@ -30,12 +34,7 @@ def _get_index() -> VectorStoreIndex:
         vector_store, storage_context=storage_context
     )
 
-
 def index_chunks(chunks: list[dict]):
-    """
-    chunks: list of {id, text, journal_id}
-    Embeds and stores each chunk into ChromaDB via LlamaIndex.
-    """
     collection = get_chroma_collection()
     vector_store = ChromaVectorStore(chroma_collection=collection)
     storage_context = StorageContext.from_defaults(vector_store=vector_store)
@@ -51,9 +50,26 @@ def index_chunks(chunks: list[dict]):
 
     VectorStoreIndex(nodes, storage_context=storage_context)
 
-
-def query_journals(question: str, top_k: int = 5) -> str:
+def query_journals(question: str, top_k: int = 5) -> dict[str, Any]:
     index = _get_index()
     query_engine = index.as_query_engine(similarity_top_k=top_k)
     response = query_engine.query(question)
-    return str(response)
+
+    sources = []
+    for source in getattr(response, "source_nodes", []) or []:
+        node = source.node
+        metadata = node.metadata or {}
+        sources.append(
+            {
+                "journal_id": metadata.get("journal_id"),
+                "chunk_id": metadata.get("chunk_id"),
+                "score": source.score,
+                "node_id": node.node_id,
+                "text": node.get_content(),
+            }
+        )
+
+    return {
+        "answer": str(response),
+        "sources": sources,
+    }

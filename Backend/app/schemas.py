@@ -71,3 +71,15 @@ class Transcript:
     words: list[WordToken] = field(default_factory=list)
     sentences: list[Sentence] = field(default_factory=list)
     source: str = "whisperx"
+
+class QuerySource(BaseModel):
+    journal_id: str | None = None
+    chunk_id: str | None = None
+    score: float | None = None
+    node_id: str | None = None
+    text: str
+
+class QueryResponse(BaseModel):
+    question: str
+    answer: str
+    sources: list[QuerySource]

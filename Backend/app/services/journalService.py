@@ -7,16 +7,18 @@ from fastapi import HTTPException, UploadFile
 from sqlmodel import Session
 import strip_markdown
 
-from Backend.app.repositories import journalRepository
+from app.repositories import journalRepository
 from app.services.chunking import chunk_text
 from app.services.rag import index_chunks
 from app.services.transcription import TranscriptionManager
 from app.schemas import Transcript
+from app import logging_config
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent / "database" / "uploads"
 (BASE_DIR / "audio").mkdir(parents=True, exist_ok=True)
 (BASE_DIR / "text").mkdir(parents=True, exist_ok=True)
+logger = logging_config.logger
 
 def get_all_journals(session: Session):
     return journalRepository.get_all_journals(session)
@@ -72,6 +74,7 @@ async def save_processed_journal_file(session: Session, file: UploadFile):
     ext = os.path.splitext(file.filename)[1].lower()
     content_type = file.content_type or ""
 
+
     if content_type.startswith("audio/") or ext in [".wav", ".mp3", ".m4a"]:
         file_type = "audio"
         subfolder = "audio"
@@ -100,7 +103,7 @@ async def save_processed_journal_file(session: Session, file: UploadFile):
             raise HTTPException(status_code=501, detail=str(exc)) from exc
     else:
         text = raw_bytes.decode("utf-8")
-
+    
     journal = journalRepository.create_journal(
         session=session,
         filename=file.filename,
@@ -110,8 +113,17 @@ async def save_processed_journal_file(session: Session, file: UploadFile):
         status="processed",
     )
 
-    chunks = chunk_text(strip_markdown.strip_markdown(text) if file_type == "markdown" else text)
-    db_chunks = journalRepository.create_chunks(session, journal.id, chunks)
+    chunks = chunk_text(strip_markdown.strip_markdown(text) if file_type == "markdown" else text, journal.id)
+    if not chunks:
+        journalRepository.revert_processing(session, journal.id, [])
+        raise HTTPException(status_code=500, detail="Chunk generation produced no chunks.")
+
+    try:
+        db_chunks = journalRepository.create_chunks(session, journal.id, chunks)
+    except Exception as exc:
+        logger.exception(f"Failed to persist chunks for journal {journal.id}: {exc}")
+        raise HTTPException(status_code=500, detail="Failed to save journal chunks.") from exc
+
     try:
         index_chunks([
             {"id": str(chunk.id), "text": chunk.chunk_text, "journal_id": str(journal.id)}
@@ -127,8 +139,17 @@ async def save_processed_journal_file(session: Session, file: UploadFile):
 
 async def save_processed_journal_text(session: Session, journal_text: str):
     journal = journalRepository.create_journal(session=session, text=journal_text, status="processed")
-    chunks = chunk_text(journal_text)
-    db_chunks = journalRepository.create_chunks(session, journal.id, chunks)
+    chunks = chunk_text(journal_text, journal.id)
+    if not chunks:
+        journalRepository.revert_processing(session, journal.id, [])
+        raise HTTPException(status_code=500, detail="Chunk generation produced no chunks.")
+
+    try:
+        db_chunks = journalRepository.create_chunks(session, journal.id, chunks)
+    except Exception as exc:
+        logger.exception(f"Failed to persist chunks for journal {journal.id}: {exc}")
+        raise HTTPException(status_code=500, detail="Failed to save journal chunks.") from exc
+
     try:
         index_chunks(
             [
@@ -176,8 +197,16 @@ async def process_journal(session: Session, journal_id: int):
     else:
         text_to_chunk = journal.text
 
-    chunks = chunk_text(text_to_chunk)
-    db_chunks = journalRepository.create_chunks(session, journal.id, chunks)
+    chunks = chunk_text(text_to_chunk, journal.id)
+    if not chunks:
+        journalRepository.revert_processing(session, journal.id, [])
+        raise HTTPException(status_code=500, detail="Chunk generation produced no chunks.")
+
+    try:
+        db_chunks = journalRepository.create_chunks(session, journal.id, chunks)
+    except Exception as exc:
+        logger.exception(f"Failed to persist chunks for journal {journal.id}: {exc}")
+        raise HTTPException(status_code=500, detail="Failed to save journal chunks.") from exc
 
     chunk_dicts = [
         {

@@ -14,7 +14,7 @@ from app import logging_config
 from app.db import engine, get_latest_journal
 from app.prompts import simpler_dictionary_question_prompt
 from app.prompts import topic_prompt
-from app.schemas import GenerateRequest, SaveAnswerRequest, TopicResponse, TopicSchema
+from app.schemas import GenerateRequest, SaveAnswerRequest, TopicResponse, TopicSchema, QueryResponse
 from database.models import Answer, Question, Topic, TopicQuote
 
 router = APIRouter()
@@ -30,13 +30,13 @@ class QueryRequest(BaseModel):
     top_k: int = 5
 
 
-@router.post("/query", tags=["Query"])
+@router.post("/query", tags=["Query"], response_model=QueryResponse)
 async def query(request: QueryRequest):
     if not request.question.strip():
         raise HTTPException(status_code=400, detail="Question cannot be empty.")
 
-    answer = query_journals(request.question, top_k=request.top_k)
-    return {"question": request.question, "answer": answer}
+    result = query_journals(request.question, top_k=request.top_k)
+    return QueryResponse(question=request.question, answer=result["answer"], sources=result["sources"])
 
 @router.post("/topics", tags=["Query"])
 async def extract_topics(journal_id: int) -> TopicResponse:
