@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlmodel import SQLModel
 
 from app.db import engine
-from app.routes import journal, query
+from app.routes import journal, query, tags
 
 app = FastAPI(title="Journal Reflection API")
 
@@ -17,3 +17,5 @@ app.add_middleware(
 
 app.include_router(journal.router)
 app.include_router(query.router)
+app.include_router(tags.router)
+app.include_router(tags.search_router)

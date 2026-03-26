@@ -44,6 +44,10 @@ class SaveAnswerRequest(BaseModel):
     answer_text: str
     topic_id: int | None = None
 
+
+class JournalPatchRequest(BaseModel):
+    text: str
+
 @dataclass  
 class SimpleRecording:
     path: str

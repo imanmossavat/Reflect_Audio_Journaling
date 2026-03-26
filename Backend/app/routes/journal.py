@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException,  UploadFile, File, Form 
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlmodel import Session
 
 from app.db import get_session
+from app.schemas.journalSchemas import JournalPatchRequest
 from app.services import journalService
 
 import os
@@ -72,14 +73,31 @@ async def upload_text_journal(
 
 
 @router.post("/journal/uploadText/raw", tags=["Journal"], description="Upload a journal as raw text. The journal will be processed immediately.")
-async def upload_text_journal(
+async def upload_raw_text_journal(
     journal_text: str = Form(...),
     session: Session = Depends(get_session),
 ):
     return await journalService.save_raw_journal_text(session, journal_text)
 
 
-@router.post("/journal/process/{journal_id}", tags=["Journal"], description="Process a journal by its ID. This is for journals that were uploaded as raw and need to be processed later. Processing includes transcription, chunking and indexing.")
+@router.post("/journal/transcribe/{journal_id}", tags=["Journal"], description="Transcribe an audio journal by its ID. This endpoint only performs transcription and stores editable transcript text.")
+async def transcribe_journal(
+    journal_id: int,
+    session: Session = Depends(get_session),
+):
+    return await journalService.transcribe_journal(session, journal_id)
+
+
+@router.patch("/journal/{journal_id}", tags=["Journal"], description="Update a journal transcript/text before processing.")
+async def patch_journal(
+    journal_id: int,
+    payload: JournalPatchRequest,
+    session: Session = Depends(get_session),
+):
+    return await journalService.update_journal_text(session, journal_id, payload.text)
+
+
+@router.post("/journal/process/{journal_id}", tags=["Journal"], description="Process a journal by its ID. This endpoint performs chunking and vector indexing for journals that already have text/transcript.")
 async def process_journal(
     journal_id: int,
     session: Session = Depends(get_session),

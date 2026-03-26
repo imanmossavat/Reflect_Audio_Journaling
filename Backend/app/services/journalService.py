@@ -2,7 +2,7 @@ import os
 import uuid
 
 from pathlib import Path
-from app.schemas import SimpleRecording
+from app.schemas.journalSchemas import SimpleRecording
 from fastapi import HTTPException, UploadFile
 from sqlmodel import Session
 import strip_markdown
@@ -11,7 +11,6 @@ from app.repositories import journalRepository
 from app.services.chunking import chunk_text
 from app.services.rag import index_chunks
 from app.services.transcription import TranscriptionManager
-from app.schemas import Transcript
 from app import logging_config
 
 
@@ -115,7 +114,7 @@ async def save_processed_journal_file(session: Session, file: UploadFile):
 
     chunks = chunk_text(strip_markdown.strip_markdown(text) if file_type == "markdown" else text, journal.id)
     if not chunks:
-        journalRepository.revert_processing(session, journal.id, [])
+        session.rollback()
         raise HTTPException(status_code=500, detail="Chunk generation produced no chunks.")
 
     try:
@@ -130,7 +129,7 @@ async def save_processed_journal_file(session: Session, file: UploadFile):
             for chunk in db_chunks
         ])
     except Exception as exc:
-        journalRepository.revert_processing(session, journal.id, [chunk.id for chunk in db_chunks if chunk.id is not None])
+        session.rollback()
         raise HTTPException(status_code=500, detail="Failed to index journal chunks.") from exc
 
     return journal
@@ -141,7 +140,7 @@ async def save_processed_journal_text(session: Session, journal_text: str):
     journal = journalRepository.create_journal(session=session, text=journal_text, status="processed")
     chunks = chunk_text(journal_text, journal.id)
     if not chunks:
-        journalRepository.revert_processing(session, journal.id, [])
+        session.rollback()
         raise HTTPException(status_code=500, detail="Chunk generation produced no chunks.")
 
     try:
@@ -158,7 +157,7 @@ async def save_processed_journal_text(session: Session, journal_text: str):
             ]
         )
     except Exception as exc:
-        journalRepository.revert_processing(session, journal.id, [chunk.id for chunk in db_chunks if chunk.id is not None])
+        session.rollback()
         raise HTTPException(status_code=500, detail="Failed to index journal chunks.") from exc
 
     return journal
@@ -166,6 +165,37 @@ async def save_processed_journal_text(session: Session, journal_text: str):
 async def save_raw_journal_text(session: Session, journal_text: str):
     journal = journalRepository.create_journal(session=session, text=journal_text, status="not processed")
     return journal
+
+
+async def transcribe_journal(session: Session, journal_id: int):
+    journal = journalRepository.get_journal_by_id(session, journal_id)
+    if not journal:
+        raise HTTPException(status_code=404, detail="Journal not found.")
+
+    if journal.file_type != "audio":
+        raise HTTPException(status_code=400, detail="Only audio journals can be transcribed.")
+
+    if not journal.file_path:
+        raise HTTPException(status_code=400, detail="No file path found for audio journal.")
+
+    try:
+        recording = SimpleRecording(path=journal.file_path, id=str(journal.id))
+        transcript_text = TranscriptionManager().transcribe(recording).text
+    except NotImplementedError as exc:
+        raise HTTPException(status_code=501, detail=str(exc)) from exc
+
+    return journalRepository.update_journal_text(session, journal, transcript_text)
+
+
+async def update_journal_text(session: Session, journal_id: int, journal_text: str):
+    journal = journalRepository.get_journal_by_id(session, journal_id)
+    if not journal:
+        raise HTTPException(status_code=404, detail="Journal not found.")
+
+    if journal.status == "processed":
+        raise HTTPException(status_code=400, detail="Cannot edit a processed journal.")
+
+    return journalRepository.update_journal_text(session, journal, journal_text)
 
 
 async def process_journal(session: Session, journal_id: int):
@@ -176,19 +206,17 @@ async def process_journal(session: Session, journal_id: int):
         raise HTTPException(status_code=400, detail="Journal is already processed.")
 
     if journal.text is None:
-        if journal.file_type == "audio":
-            if not journal.file_path:
-                raise HTTPException(status_code=400, detail="No file path found for audio journal.")
-            try:
-                recording = SimpleRecording(path=journal.file_path, id=str(journal.id))
-                journal.text = TranscriptionManager().transcribe(recording).text
-            except NotImplementedError as exc:
-                raise HTTPException(status_code=501, detail=str(exc)) from exc
-        elif journal.file_type in ("text", "markdown"):
+        if journal.file_type in ("text", "markdown"):
             if not journal.file_path:
                 raise HTTPException(status_code=400, detail="No file path found for text journal.")
             with open(journal.file_path, "r", encoding="utf-8") as f:
                 journal.text = f.read()
+            journal = journalRepository.update_journal_text(session, journal, journal.text)
+        elif journal.file_type == "audio":
+            raise HTTPException(
+                status_code=400,
+                detail="Audio journal has no transcript yet. Run transcription first, then process.",
+            )
         else:
             raise HTTPException(status_code=400, detail="Cannot process journal without text or file.")
 
@@ -199,7 +227,7 @@ async def process_journal(session: Session, journal_id: int):
 
     chunks = chunk_text(text_to_chunk, journal.id)
     if not chunks:
-        journalRepository.revert_processing(session, journal.id, [])
+        session.rollback()
         raise HTTPException(status_code=500, detail="Chunk generation produced no chunks.")
 
     try:
@@ -220,7 +248,7 @@ async def process_journal(session: Session, journal_id: int):
     try:
         index_chunks(chunk_dicts)
     except Exception as exc:
-        journalRepository.revert_processing(session, journal.id, [chunk.id for chunk in db_chunks if chunk.id is not None])
+        session.rollback()
         raise HTTPException(status_code=500, detail="Failed to index journal chunks.") from exc
 
     return journal

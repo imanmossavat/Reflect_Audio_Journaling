@@ -9,7 +9,7 @@ ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
 
 
 
-from app.schemas import Transcript, Sentence, WordToken
+from app.schemas.journalSchemas import Transcript, Sentence, WordToken
 from app.config import settings
 
 

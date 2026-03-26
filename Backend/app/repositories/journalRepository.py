@@ -1,9 +1,6 @@
 from datetime import datetime
-
 from typing import Optional
-
 from sqlmodel import Session, select
-
 from database.models import Chunk, Journal
 
 def get_all_journals(session: Session):
@@ -77,17 +74,8 @@ def create_chunks(session: Session, journal_id: int, chunks: list[dict[str, str]
         raise exc
 
 
-def revert_processing(session: Session, journal_id: int, chunk_ids: list[int]) -> Journal:
-    journal = session.exec(select(Journal).where(Journal.id == journal_id)).first()
-    if not journal:
-        raise ValueError(f"Journal {journal_id} not found")
-
-    if chunk_ids:
-        chunks_to_delete = session.exec(select(Chunk).where(Chunk.id.in_(chunk_ids))).all()
-        for chunk in chunks_to_delete:
-            session.delete(chunk)
-
-    journal.status = "not processed"
+def update_journal_text(session: Session, journal: Journal, text: str) -> Journal:
+    journal.text = text
     journal.edited_at = datetime.now()
 
     session.add(journal)
