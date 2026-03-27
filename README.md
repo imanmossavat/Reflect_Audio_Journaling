@@ -1,3 +1,8 @@
+ollama serve
+ollama pull nomic-embed-text
+ollama pull llama3
+ollama list
+
 # 🎙️ REFLECT – Your Private AI Audio Journal
 
 Welcome! REFLECT is a private, local tool for recording your thoughts and getting AI-powered insights — without your data ever leaving your computer.

@@ -4,14 +4,14 @@ from typing import List
 
 from app.db import get_session
 from database.models import Journal
-from repositories import tagRepository as repo
-from schemas.tagSchemas import (
+from app.repositories import tagRepository as repo
+from app.schemas.tagSchemas import (
     TagCreate,
     TagRead,
     TagSuggestionsResponse,
     BulkTagConfirm,
 )
-from services.tagService import suggest_tags_via_llm
+from app.services.tagService import suggest_tags_via_llm
 
 router = APIRouter(prefix="/journals/{journal_id}/tags", tags=["tags"])
 

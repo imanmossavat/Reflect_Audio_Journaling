@@ -49,7 +49,7 @@ def _call_llm(user_prompt: str) -> str:
                 {"role": "user",   "content": user_prompt},
             ],
         },
-        timeout=60,
+        timeout=httpx.Timeout(connect=10.0, read=300.0, write=10.0, pool=10.0),
     )
     response.raise_for_status()
     return response.json()["message"]["content"]

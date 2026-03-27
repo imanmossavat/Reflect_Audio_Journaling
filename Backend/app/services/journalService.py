@@ -11,7 +11,7 @@ from app.repositories import journalRepository
 from app.services.chunking import chunk_text
 from app.services.rag import index_chunks
 from app.services.transcription import TranscriptionManager
-from app import logging_config
+from app import     logging_config
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent / "database" / "uploads"
@@ -145,6 +145,7 @@ async def save_processed_journal_text(session: Session, journal_text: str):
 
     try:
         db_chunks = journalRepository.create_chunks(session, journal.id, chunks)
+        logger.info(f"Created {len(db_chunks)} chunks, first chunk attrs: {vars(db_chunks[0])}")
     except Exception as exc:
         logger.exception(f"Failed to persist chunks for journal {journal.id}: {exc}")
         raise HTTPException(status_code=500, detail="Failed to save journal chunks.") from exc

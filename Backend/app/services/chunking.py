@@ -5,7 +5,7 @@ import spacy
 
 from typing import List
 
-nlp = spacy.load("en_core_web_sm")
+nlp = spacy.load("en_core_web_trf")
 
 def llm_split_journal(text: str) -> List[str]:
     prompt = f"""Your task is to split a journal into individual entries or segments.
@@ -93,7 +93,11 @@ def chunk_text(text: str, journal_id: int):
 
     # 2. If no structure → sentence chunking
     if not segments:
+        print("no segments from regex")
         segments = sentence_chunk(text)
+
+    print("check")
+    print(segments)
 
     # 3. If there is still only 1 chunk and it's very long → try LLM split (expensive)
     if len(segments) == 1 and len(segments[0]) > 1000:
@@ -103,6 +107,6 @@ def chunk_text(text: str, journal_id: int):
             pass  # keep previous result
 
     return [
-        {"text": segment, "journal_id": str(journal_id)}
+        {"text": segment, "journal_id": journal_id}
         for segment in segments if segment
     ]
