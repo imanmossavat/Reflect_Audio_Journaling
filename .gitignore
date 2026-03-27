@@ -1,4 +1,3 @@
-*.txt
 
 #cache files
 __pycache__/
@@ -13,3 +12,4 @@ __pycache__/
 **.db
 /Backend/database/chroma
 /Backend/database/uploads
+/Backend/app/database/text

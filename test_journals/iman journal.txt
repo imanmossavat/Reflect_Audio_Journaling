@@ -1,0 +1,3 @@
+I have two interns, one of them works on robotics (Aleix), and one works on journaling (Mathijs) and reflection with a RAG system that supports refleciton. ironically, both projects have something to do with reflection because even the robotics on is focused on finding errors and replanning the robot using a LLM. 
+I also teach at semester one where my students are supposed to do some reflection, but they are generally not very good at it. it takes time to build the ability to do a proper analysis of what has happened. 
+I also act as assessor of two interns, Rik and Tim. These are also working on AI related topics for building RAG systems. 
