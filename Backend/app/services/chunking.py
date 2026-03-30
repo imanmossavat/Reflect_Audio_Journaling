@@ -5,7 +5,7 @@ import spacy
 
 from typing import List
 
-nlp = spacy.load("en_core_web_trf")
+nlp = spacy.load("en_core_web_sm")
 
 def llm_split_journal(text: str) -> List[str]:
     prompt = f"""Your task is to split a journal into individual entries or segments.

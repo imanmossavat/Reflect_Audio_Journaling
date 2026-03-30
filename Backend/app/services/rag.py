@@ -11,7 +11,19 @@ from app.services.chroma import get_chroma_collection
 
 OLLAMA_BASE_URL = "http://localhost:11434"
 EMBED_MODEL = "nomic-embed-text"
-LLM_MODEL = "llama3"
+LLM_MODEL = "mistral"
+
+TEXT_QA_TEMPLATE = PromptTemplate(
+    "Context information is below.\n"
+    "---------------------\n"
+    "{context_str}\n"
+    "---------------------\n"
+    "Using the context above, answer the following question.\n"
+    "Always use 'you' and 'your' in your response. "
+    "Do NOT use 'I' or 'me'.\n"
+    "Question: {query_str}\n"
+    "Answer: "
+)
 
 # Configure LlamaIndex globals once
 Settings.embed_model = OllamaEmbedding(
@@ -22,7 +34,7 @@ Settings.llm = Ollama(
     model=LLM_MODEL,
     base_url=OLLAMA_BASE_URL,
     request_timeout=120.0,
-    temperature=0.0,
+    temperature=0.0
 )
 
 
@@ -52,8 +64,10 @@ def index_chunks(chunks: list[dict]):
 
 def query_journals(question: str, top_k: int = 5) -> dict[str, Any]:
     index = _get_index()
-    query_engine = index.as_query_engine(similarity_top_k=top_k)
+    query_engine = index.as_query_engine(similarity_top_k=top_k, text_qa_template=TEXT_QA_TEMPLATE,)
+    print(f"Querying with question: {question}")
     response = query_engine.query(question)
+    answer_text = response.response
 
     sources = []
     for source in getattr(response, "source_nodes", []) or []:
@@ -70,6 +84,6 @@ def query_journals(question: str, top_k: int = 5) -> dict[str, Any]:
         )
 
     return {
-        "answer": str(response),
+        "answer": answer_text,
         "sources": sources,
     }
