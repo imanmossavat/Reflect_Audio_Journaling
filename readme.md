@@ -48,7 +48,7 @@ The REFLECT pipeline processes raw audio into structured insights:
 4. Analyze prosody
 5. Segment and label topics
 6. Store and enable semantic retrieval
-7. (Optional) Generate reflections via local LLM (RAG)
+7. (Prototype) Generate reflections via local LLM (RAG)
 
 <p align="center">
   <img src="basic-functionality/Images/Algorithmic%20pipeline.png" width="800"/>
@@ -133,7 +133,6 @@ See:
 ├── basic-functionality   # Stable end-to-end demo
 ├── RAG-solution          # LLM + RAG prototype
 ├── Research              # Experiments, notebooks, papers
-└── test_journals         # Sample data
 ```
 
 ---
