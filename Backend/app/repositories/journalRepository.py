@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional
+from typing import Any, Optional
 from sqlmodel import Session, select
 from database.models import Chunk, Journal
 
@@ -41,19 +41,30 @@ def create_journal(
     return new_journal
 
 
-def create_chunks(session: Session, journal_id: int, chunks: list[dict[str, str]]) -> list[Chunk]:
+def create_chunks(session: Session, journal_id: int, chunks: list[dict[str, Any]]) -> list[Chunk]:
     try:
         journal = session.exec(select(Journal).where(Journal.id == journal_id)).first()
         if not journal:
             raise ValueError(f"Journal {journal_id} not found")
 
         db_chunks: list[Chunk] = []
-        for chunk_data in chunks:
-            chunk_text = chunk_data.get("text", "").strip()
+        for idx, chunk_data in enumerate(chunks):
+            chunk_text = str(chunk_data.get("text", "")).strip()
             if not chunk_text:
                 continue
 
-            chunk = Chunk(journal_id=journal_id, chunk_text=chunk_text)
+            # Keep caller-provided order when available, otherwise use list order.
+            raw_chunk_index = chunk_data.get("chunk_index", idx)
+            try:
+                chunk_index = int(raw_chunk_index)
+            except (TypeError, ValueError):
+                chunk_index = idx
+
+            chunk = Chunk(
+                journal_id=journal_id,
+                chunk_text=chunk_text,
+                chunk_index=chunk_index,
+            )
             session.add(chunk)
             db_chunks.append(chunk)
 

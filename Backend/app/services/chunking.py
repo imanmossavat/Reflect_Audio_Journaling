@@ -12,7 +12,7 @@ def llm_split_journal(text: str) -> List[str]:
 
 Rules:
 - If you see day labels (Monday, Tuesday, Next Monday, etc.) ALWAYS split on them, each day is its own segment.
-- If no day labels exist, split where the topic, mood, or time clearly shifts
+- If no day labels exist, split where the theme, mood, or time clearly shifts
 - Every segment must be a separate element in the array
 
 Return ONLY a raw JSON array of strings. Example format:

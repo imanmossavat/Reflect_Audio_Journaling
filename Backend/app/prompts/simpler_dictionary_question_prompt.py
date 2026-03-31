@@ -1,4 +1,11 @@
-def build_messages(journal_text: str, mode: str, topic: str | None = None, topic_summary: str | None = None, step: int | None = None, history: list[dict] | None = None) -> list[dict]:
+def build_messages(
+    journal_text: str,
+    mode: str,
+    focus_tag: str | None = None,
+    focus_tag_summary: str | None = None,
+    step: int | None = None,
+    history: list[dict] | None = None,
+) -> list[dict]:
 
     common_rules = """
 Rules:
@@ -49,8 +56,10 @@ Journal entry:
 {journal_text}
 """
 
-    if topic:
-        user_content += f"\nFocus topic: {topic}"
+    if focus_tag:
+        user_content += f"\nFocus tag: {focus_tag}"
+        if focus_tag_summary:
+            user_content += f"\nTag context: {focus_tag_summary}"
 
     messages.append({"role": "user", "content": user_content})
 

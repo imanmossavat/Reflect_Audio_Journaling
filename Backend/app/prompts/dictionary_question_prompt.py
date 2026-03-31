@@ -1,4 +1,11 @@
-def build_messages(journal_text: str, mode: str, topic: str | None, topic_summary: str | None, step: int | None, history: list[dict] | None = None) -> list[dict]:
+def build_messages(
+    journal_text: str,
+    mode: str,
+    focus_tag: str | None,
+    focus_tag_summary: str | None,
+    step: int | None,
+    history: list[dict] | None = None,
+) -> list[dict]:
     # Build the system message based on mode
     if mode == "clarifying":
         system_content = """You are a reflective question-asker. Your ONLY job is to ask ONE short clarifying question about the user's journal entry.
@@ -22,7 +29,11 @@ RULES (strictly follow ALL of these):
 Your entire response must be exactly one question, no other text."""
 
     elif mode == "deep_dive":
-        topic_instruction = f'Focus on statements related to: "{topic}"' if topic else "Choose the most emotionally significant theme from the journal."
+        tag_instruction = (
+            f'Focus on statements related to tag: "{focus_tag}"'
+            if focus_tag
+            else "Choose the most emotionally significant theme from the journal."
+        )
         step_questions = {
             1: "Ask the user to describe a concrete experience, situation, or moment from the journal.",
             2: "Ask the user to name or describe how they felt during the experience.",
@@ -36,7 +47,7 @@ Your entire response must be exactly one question, no other text."""
         system_content = f"""You are a reflective question-asker using the Gibbs reflective cycle. Your ONLY job is to ask ONE question.
 
 Current Gibbs step {step}: {step_instruction}
-{topic_instruction}
+{tag_instruction}
 
 RULES (strictly follow ALL of these):
 - Output ONLY a single question. Nothing else.
@@ -69,10 +80,10 @@ Your entire response must be exactly one question, no other text."""
 {journal_text}
 \"\"\""""
 
-    if topic:
-        user_context += f'\n\nFocused Topic: "{topic}"'
-        if topic_summary:
-            user_context += f"\nTopic summary: {topic_summary}"
+    if focus_tag:
+        user_context += f'\n\nFocus tag: "{focus_tag}"'
+        if focus_tag_summary:
+            user_context += f"\nTag context: {focus_tag_summary}"
 
     messages.append({'role': 'user', 'content': user_context})
 

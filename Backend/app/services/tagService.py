@@ -12,13 +12,13 @@ def suggest_tags_via_llm(journal_text: str) -> list[dict]:
 # ── Prompt ───────────────────────────────────────────────────────────────────
 
 _SYSTEM_PROMPT = """You are a neutral tagging assistant for a reflective journaling app.
-Your only job is to suggest short keyword tags that describe what topics appear in the journal.
+Your only job is to suggest short keyword tags that describe the key themes in the journal.
 
 Rules:
 - Suggest between 3 and 8 tags.
 - Tags must be single words or short phrases (max 3 words), all lowercase.
 - Never interpret emotions, assign importance, or draw conclusions.
-- Only surface topics that are clearly present in the text.
+- Only surface themes that are clearly present in the text.
 - For each tag provide a brief, factual reason (one sentence, max 15 words).
 - Respond ONLY with a JSON array. No preamble, no markdown fences.
 

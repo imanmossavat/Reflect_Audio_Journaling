@@ -11,7 +11,7 @@ from app.services.chroma import get_chroma_collection
 
 OLLAMA_BASE_URL = "http://localhost:11434"
 EMBED_MODEL = "nomic-embed-text"
-LLM_MODEL = "mistral"
+LLM_MODEL = "gpt-oss:20b"
 
 TEXT_QA_TEMPLATE = PromptTemplate(
     "Context information is below.\n"

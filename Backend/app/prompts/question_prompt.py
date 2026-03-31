@@ -1,4 +1,11 @@
-def build_prompt(journal_text: str, mode: str, topic: str | None, step: int | None, history: list[dict] | None = None, topic_summary: str | None = None) -> str:
+def build_prompt(
+    journal_text: str,
+    mode: str,
+    focus_tag: str | None,
+    step: int | None,
+    history: list[dict] | None = None,
+    focus_tag_summary: str | None = None,
+) -> str:
     base = f"""You are a thoughtful journaling coach. A user has shared their journal entry with you.
 
 Journal Entry:
@@ -7,12 +14,12 @@ Journal Entry:
 \"\"\"
 """
 
-    if topic:
+    if focus_tag:
         base += f"""
-Focused Topic: "{topic}"
+Focus tag: "{focus_tag}"
 """
-        if topic_summary:
-            base += f"""Topic summary: {topic_summary}
+        if focus_tag_summary:
+            base += f"""Tag context: {focus_tag_summary}
 """
 
     if history:
@@ -39,13 +46,17 @@ Guidelines:
 Format your response as raw text, 1 question. No preamble or explanation."""
 
     elif mode == "deep_dive":
-        topic_instruction = f'Focus on statements related to: "{topic}"' if topic else "Choose the most emotionally significant theme from the journal."
+        tag_instruction = (
+            f'Focus on statements related to tag: "{focus_tag}"'
+            if focus_tag
+            else "Choose the most emotionally significant theme from the journal."
+        )
         return base + f"""
 You are a reflective facilitator using the Gibbs cycle internally. Use the sources as a stream of thought journal. And help with reflection, by guiding the user through the 6 stages of the Gibbs cycle, one step at a time. Follow the guidelines and process below.
 Ask one question based on the current step. The other steps do not need to be mentioned, but keep them in mind as you ask questions to just stay true to step {step.value}.
 Format questions as raw text.
 The question should be based on the current step of the Gibbs cycle, and related to the journal entry, especially:
-{topic_instruction}
+{tag_instruction}
 
 Guidelines:
  -Respect the user’s epistemic agency: they decide what happened, what matters, and how to describe it.

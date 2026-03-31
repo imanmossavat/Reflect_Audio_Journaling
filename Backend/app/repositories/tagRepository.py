@@ -1,13 +1,27 @@
 from sqlalchemy import func
 from sqlmodel import Session, select
 
-from database.models import Journal, JournalTag, Tag
+from database.models import Journal, JournalTag, Tag, TagCluster
 
 
 
 
 def get_tag_by_name(session: Session, name: str) -> Tag | None:
     return session.exec(select(Tag).where(Tag.name == name.strip().lower())).first()
+
+
+def get_cluster_by_name(session: Session, name: str) -> TagCluster | None:
+    return session.exec(select(TagCluster).where(TagCluster.name == name.strip().lower())).first()
+
+
+def get_or_create_cluster(session: Session, *, name: str, description: str | None = None) -> TagCluster:
+    normalised = name.strip().lower()
+    cluster = get_cluster_by_name(session, normalised)
+    if not cluster:
+        cluster = TagCluster(name=normalised, description=description)
+        session.add(cluster)
+        session.flush()
+    return cluster
 
 
 def get_tag_by_id(session: Session, tag_id: int) -> Tag | None:
@@ -22,7 +36,12 @@ def get_or_create_tag(session: Session, *, name: str) -> Tag:
     normalised = name.strip().lower()
     tag = get_tag_by_name(session, normalised)
     if not tag:
-        tag = Tag(name=normalised)
+        default_cluster = get_or_create_cluster(
+            session,
+            name="general",
+            description="Default cluster for extracted and manual tags",
+        )
+        tag = Tag(name=normalised, tag_cluster_id=default_cluster.id)
         session.add(tag)
         session.flush()
     return tag

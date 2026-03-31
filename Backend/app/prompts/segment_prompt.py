@@ -22,9 +22,9 @@ CRITICAL RULES:
 
 Example format (for a text of 891 characters with 3 segments):
 [
-  {{"name": "example topic", "summary": "...", "startIndex": 0, "endIndex": 300}},
-  {{"name": "another topic", "summary": "...", "startIndex": 300, "endIndex": 600}},
-  {{"name": "final topic", "summary": "...", "startIndex": 600, "endIndex": 891}}
+  {{"name": "example segment", "summary": "...", "startIndex": 0, "endIndex": 300}},
+  {{"name": "another segment", "summary": "...", "startIndex": 300, "endIndex": 600}},
+  {{"name": "final segment", "summary": "...", "startIndex": 600, "endIndex": 891}}
 ]
 
 Journal entry ({text_length} characters):

@@ -19,7 +19,7 @@ class StepN(int, Enum):
     action = 6
 
 
-class TopicSchema(BaseModel):
+class ExtractedTagSchema(BaseModel):
     name: str
     summary: str
     quotes: list[str]
@@ -28,13 +28,13 @@ class TopicSchema(BaseModel):
 class GenerateRequest(BaseModel):
     mode: Mode
     step: StepN | None = None
-    topic: str | None = None
-    topic_summary: str | None = None
+    focus_tag: str | None = None
+    focus_tag_summary: str | None = None
     history: list[dict] | None = None
 
 
-class TopicResponse(BaseModel):
-    topics: list[TopicSchema]
+class ExtractedTagsResponse(BaseModel):
+    tags: list[ExtractedTagSchema]
     journal_text: str
 
 
@@ -42,7 +42,6 @@ class SaveAnswerRequest(BaseModel):
     journal_id: int
     question_text: str
     answer_text: str
-    topic_id: int | None = None
 
 
 class JournalPatchRequest(BaseModel):
