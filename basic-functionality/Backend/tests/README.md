@@ -2,7 +2,7 @@
 
 This directory contains a comprehensive test suite for the REFLECT engine, ensuring reliability across services, processing pipelines, and API endpoints.
 
-## 📂 Structure & Coverage
+## Structure & Coverage
 
 The tests are organized into three layers, mirroring the application architecture:
 
@@ -27,7 +27,7 @@ Tests the REST interface using FastAPI's `TestClient`.
 
 ---
 
-## 🛠 Shared Fixtures (`conftest.py`)
+## Shared Fixtures (`conftest.py`)
 
 We use several global fixtures to ensure tests are fast, clean, and isolated:
 
@@ -40,7 +40,7 @@ We use several global fixtures to ensure tests are fast, clean, and isolated:
 
 ---
 
-## 🧪 Developer Guidelines
+## Developer Guidelines
 
 ### Running Tests
 Run the full suite from the `Backend` directory:

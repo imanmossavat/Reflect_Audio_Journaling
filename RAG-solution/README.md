@@ -1,4 +1,4 @@
-# 🧠 REFLECT – RAG-Based Reflection Engine (Development)
+# REFLECT — RAG-Based Reflection Engine (Development)
 
 This module contains the **LLM-powered version of REFLECT**, focused on deeper reflection through Retrieval-Augmented Generation (RAG).
 
@@ -10,7 +10,7 @@ Unlike the basic version, this implementation uses **local AI models** to:
 All processing remains **fully local and privacy-first**.
 
 
-## ⚠️ Status
+## Status
 This module is **under active development**.
 
 - Core RAG pipeline is implemented
@@ -18,29 +18,29 @@ This module is **under active development**.
 - Integration with full pipeline (transcription, PII, etc.) is planned
 
 
-## 🧠 Key Features
+## Key Features
 
-### 📥 Journal Ingestion
+### Journal Ingestion
 - Upload journal entries manually
 - Text is processed and prepared for AI analysis
 
 
-### ✂️ Topic Segmentation
+### Topic Segmentation
 - Journals are split into **semantic topics** (not just fixed chunks)
 - Uses local LLMs for more meaningful structure
 
 
-### 🧩 Vector Storage (Chroma)
+### Vector Storage (Chroma)
 - Topics are embedded and stored in a **vector database (Chroma)**
 - Enables efficient semantic retrieval
 
 
-### 🔍 Retrieval-Augmented Generation (RAG)
+### Retrieval-Augmented Generation (RAG)
 - Relevant journal segments are retrieved based on context
 - Provides grounded input for the LLM
 
 
-### 🧠 Reflection Support (LLM)
+### Reflection Support (LLM)
 Using local models via Ollama, the system can:
 
 - Ask **clarifying questions**
@@ -49,13 +49,13 @@ Using local models via Ollama, the system can:
 - Encourage deeper and more structured reflection
 
 
-### 🔒 Privacy First
+### Privacy First
 - Runs entirely locally via Ollama
 - No external API calls
 - No data leaves the user’s machine
 
 
-## ⚙️ Tech Stack
+## Tech Stack
 
 - **LLM Runtime:** Ollama  
 - **Models:** qwen3.5:4b (default)  
@@ -65,7 +65,7 @@ Using local models via Ollama, the system can:
 - **Frontend:** React (Vite)
 
 
-## 🧠 Install Ollama
+## Install Ollama
 
 REFLECT uses a local AI model via Ollama.
 
@@ -78,7 +78,7 @@ ollama pull llama3:8b
 ollama pull nomic-embed-text
 ```
 
-## 🚀 Getting Started With The Terminal
+## Getting Started With The Terminal
 
 You'll need **two terminals** open — one for the backend, one for the frontend.
 
@@ -138,7 +138,7 @@ The app will be available at `http://localhost:3000`
 
 ---
 
-## ✅ You're all set!
+## You're all set!
 
 Open your browser and go to **http://localhost:3000**
 

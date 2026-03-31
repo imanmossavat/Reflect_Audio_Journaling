@@ -1,19 +1,19 @@
-# 💻 REFLECT – The Website (Frontend)
+# REFLECT — Website (Frontend)
 
 This is the "face" of the project. It's the website where you record your audio and see your journals.
 
 ---
 
-## 📑 Index
-1. [Simple Overview](#-simple-overview)
-2. [One-Click Setup](#-one-click-setup)
-3. [Manual Setup](#-manual-setup)
-4. [How to Update](#-how-to-update)
-5. [For Developers](#-for-developers)
+## Index
+1. [Simple overview](#simple-overview)
+2. [One-click setup](#one-click-setup)
+3. [Manual setup](#manual-setup)
+4. [How to update](#how-to-update)
+5. [For developers](#for-developers)
 
 ---
 
-## 💡 Simple Overview
+## Simple overview
 This part of the project handles the **look and feel**. It doesn't do any "thinking" (that's the Backend's job). 
 
 **What can you do here?**
@@ -24,7 +24,7 @@ This part of the project handles the **look and feel**. It doesn't do any "think
 
 ---
 
-## 🚀 One-Click Setup
+## One-click setup
 If you haven't done so yet, go back to the [Main Folder](../) and run:
 - **Windows:** `setup.bat`
 - **Mac:** `setup.command`
@@ -33,7 +33,7 @@ This will automatically install all the design tools and set up the website for 
 
 ---
 
-## 🛠️ Manual Setup
+## Manual setup
 1. Make sure you have **Node.js** installed.
 2. Open your terminal in this `Frontend` folder.
 3. Run `npm install` (this downloads the design tools).
@@ -42,7 +42,7 @@ This will automatically install all the design tools and set up the website for 
 
 ---
 
-## 🔄 How to Update
+## How to update
 To get the latest visual changes and dashboard features, run this command in the main project folder:
 ```bash
 git pull
@@ -50,7 +50,7 @@ git pull
 
 ---
 
-## 🏗️ For Developers
+## For developers
 This project is built with **Next.js 15** and **Tailwind CSS**.
 
 ### Folder Map:

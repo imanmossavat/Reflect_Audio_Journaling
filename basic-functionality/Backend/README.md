@@ -1,20 +1,20 @@
-# 🧠 REFLECT – The AI Engine (Backend)
+# REFLECT — AI Engine (Backend)
 
 This is the "brain" of the project. It uses Artificial Intelligence to listen to your voice and understand what you said.
 
 ---
 
-## 📑 Index
-1. [Simple Overview](#-simple-overview)
-2. [What's inside?](#-whats-inside)
-3. [One-Click Setup](#-one-click-setup)
-4. [Advanced Setup](#-advanced-setup)
-5. [How it works](#-how-it-works)
-6. [How to Update](#-how-to-update)
+## Index
+1. [Simple overview](#simple-overview)
+2. [What's inside?](#whats-inside)
+3. [One-click setup](#one-click-setup)
+4. [Advanced setup](#advanced-setup)
+5. [How it works](#how-it-works)
+6. [How to update](#how-to-update)
 
 ---
 
-## 💡 Simple Overview
+## Simple overview
 You don't need to touch the code in here to use the app. You just need to make sure this "Engine" is running in the background. 
 
 **Wait, what does it actually do?**
@@ -25,7 +25,7 @@ You don't need to touch the code in here to use the app. You just need to make s
 
 ---
 
-## 📂 What's inside?
+## What's inside?
 If you want to explore the files, here is the map:
 - **`api/`**: The "Receptionist." This handles the messages coming from the website.
 - **`services/`**: The "Specialists." Granular services for specific tasks (storage, prosody, search).
@@ -35,7 +35,7 @@ If you want to explore the files, here is the map:
 
 ---
 
-## 🧪 Testing
+## Testing
 We maintain high code quality with a comprehensive test suite. To run them:
 1. Activate your environment.
 2. Run `pytest`.
@@ -43,7 +43,7 @@ This checks everything from PII detection to file storage integrity.
 
 ---
 
-## 🚀 One-Click Setup
+## One-click setup
 If you haven't done so yet, go back to the [Main Folder](../) and run:
 - **Windows:** `setup.bat`
 - **Mac:** `setup.command`
@@ -52,7 +52,7 @@ This will automatically create your virtual environment and install all necessar
 
 ---
 
-## 🛠️ Advanced Setup
+## Advanced setup
 For the person taking over this project:
 
 ### 1. Requirements
@@ -74,7 +74,7 @@ source .venv/bin/activate
 
 ---
 
-## 🔄 How to Update
+## How to update
 To get the latest engine updates and AI models, run this command in the main project folder:
 ```bash
 git pull
@@ -82,7 +82,7 @@ git pull
 
 ---
 
-## ⚙️ How it works
+## How it works
 This engine is "Local-First." We use tools like **Whisper** (for text), **Spacy** (for finding names), and **Sentence-Transformers** (for semantic search).
 
 If you want to add a new AI feature, you should:

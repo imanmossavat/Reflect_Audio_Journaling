@@ -1,26 +1,27 @@
-# 🎙️ REFLECT – Your Private AI Audio Journal
+# REFLECT — Basic Functionality (Local-First AI Audio Journal)
 
 Welcome! **REFLECT** is a private, local tool for recording your thoughts and getting AI-powered insights without your data ever leaving your computer.
 
+
+## Table of Contents
+1. [What is REFLECT?](#what-is-reflect)
+2. [The Pipeline](#the-pipeline)
+3. [One-Click Setup](#one-click-setup)
+4. [Quick Start Guide (Daily Use)](#quick-start-guide-daily-use)
+5. [Updating & Maintenance](#updating--maintenance)
+6. [Project Layout](#project-layout)
+7. [Troubleshooting](#troubleshooting)
+
 ---
 
-## 📑 Table of Contents
-1. [What is REFLECT?](#-what-is-reflect)
-2. [🚀 One-Click Setup](#-one-click-setup)
-3. [⚡ Quick Start Guide (Daily Use)](#-quick-start-guide-daily-use)
-4. [🔄 Updating & Maintenance](#-updating--maintenance)
-5. [📂 Project Layout](#-project-layout)
-
----
-
-## 🌟 What is REFLECT?
+## What is REFLECT?
 Most AI tools send your voice to a server in the cloud. **REFLECT is different.** 
 - **Private:** Processes everything on your own machine.
 - **Transcribes:** Turns your voice into text automatically.
 - **Analyzes:** Finds "PII" (private info), splits talk into topics, and checks mood/tone.
 - **Searchable:** Search your journals by meaning, not just exact words.
 
-## 🔄 The Full Pipeline
+## The Pipeline
 
 REFLECT processes your audio step-by-step into structured, searchable insights — fully locally.
 
@@ -28,7 +29,7 @@ The diagram below shows how audio is transformed into structured insights:
 
 <img src="./Images/Algorithmic pipeline.png" width="1000" alt="Pipeline" />
 
-### 1. 🎙️ Record or Upload Audio
+### 1. Record or Upload Audio
 You start by recording your thoughts or uploading an audio file.
 
 - Low barrier to entry (no typing required)
@@ -36,7 +37,7 @@ You start by recording your thoughts or uploading an audio file.
 
 ---
 
-### 2. 📝 Speech-to-Text Transcription
+### 2. Speech-to-Text Transcription
 Your audio is converted into text automatically.
 
 - Uses local speech recognition
@@ -44,7 +45,7 @@ Your audio is converted into text automatically.
 
 ---
 
-### 3. 🔒 Personal Information Detection (PII)
+### 3. Personal Information Detection (PII)
 Sensitive information is identified in the transcript.
 
 - Detects names, locations, and other personal data
@@ -55,7 +56,7 @@ Sensitive information is identified in the transcript.
 
 ---
 
-### 4. 🎧 Prosody & Tone Analysis
+### 4. Prosody & Tone Analysis
 The system analyzes *how* something is said, not just *what* is said.
 
 - Detects tone, stress, and emotional cues
@@ -64,7 +65,7 @@ The system analyzes *how* something is said, not just *what* is said.
 
 ---
 
-### 5. ✂️ Text Segmentation & Topic Detection
+### 5. Text Segmentation & Topic Detection
 The transcript is split into meaningful sections.
 
 - Identifies topic boundaries
@@ -75,7 +76,7 @@ The transcript is split into meaningful sections.
 
 ---
 
-### 6. 🔍 Semantic Search
+### 6. Semantic Search
 All entries become searchable by meaning.
 
 - Search by concept, not exact words
@@ -84,7 +85,7 @@ All entries become searchable by meaning.
 
 ---
 
-## ✅ Result
+## Result
 You end up with:
 - A clean transcript  
 - Structured topics    
@@ -93,7 +94,7 @@ You end up with:
 All processed **locally and privately**.
 ---
 
-## 🚀 One-Click Setup
+## One-Click Setup
 If you just downloaded the project, follow these two steps:
 
 1.  **Install Requirements:** Download and install [Python (3.10.11)](https://www.python.org/downloads/release/python-31011/) and [Node.js](https://nodejs.org/).
@@ -106,7 +107,7 @@ If you just downloaded the project, follow these two steps:
 
 ---
 
-## ⚡ Quick Start Guide (Daily Use)
+## Quick Start Guide (Daily Use)
 Once setup is complete, you can start the entire system every day with one click:
 
 1.  **Windows:** Double-click `start_engine.bat`
@@ -120,7 +121,7 @@ Once setup is complete, you can start the entire system every day with one click
 
 ---
 
-## 🔄 Updating & Maintenance
+## Updating & Maintenance
 To get new features or fixes, open a terminal in this main folder and run:
 ```bash
 git pull
@@ -129,7 +130,7 @@ git pull
 
 ---
 
-## 📂 Project Layout
+## Project Layout
 - **[Backend](./Backend):** The **Engine**. This is where the AI lives.
 - **[Frontend](./Frontend):** The **Dashboard**. This is what you see and click on.
 - **[Research](./Research):** The **Architect's Blueprints**. Tests and notes from development.
@@ -137,7 +138,7 @@ git pull
 
 ---
 
-## ❓ Troubleshooting
+## Troubleshooting
 - **"Command not found":** Restart your computer after installing Python and Node.js.
 - **Engine Offline:** Ensure the terminal window opened by `start_engine` is still running.
 - **Setup Failed:** Ensure you have an active internet connection to download the AI models.

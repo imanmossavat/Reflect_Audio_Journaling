@@ -1,17 +1,17 @@
-# 🧪 REFLECT – The Research Lab
+# REFLECT — Research
 
 This folder is the "Backstage" of the project. It's where we tested our ideas before putting them into the final app.
 
 ---
 
-## 📑 Index
-1. [What is this?](#-what-is-this)
-2. [Folder Map](#-folder-map)
-3. [Important Info for Developers](#-important-info-for-developers)
+## Index
+1. [What is this?](#what-is-this)
+2. [Folder Map](#folder-map)
+3. [Important Info for Developers](#important-info-for-developers)
 
 ---
 
-## 💡 What is this?
+## What is this?
 Before we wrote the main app, we had to figure out things like:
 - Which AI model is the best at listening?
 - How do we find a person's name in a sentence?
@@ -21,7 +21,7 @@ This folder contains the **Experiments** we did to answer those questions.
 
 ---
 
-## 📂 Folder Map
+## Folder Map
 - **`PII/`**: Tests for finding "Private Info" (names, phones, emails).
 - **`Transcription/`**: Tests for turning audio into text.
 - **`Testing Notebooks/`**: Rough drafts and messy code where we tried things for the first time.
@@ -32,7 +32,7 @@ This folder contains the **Experiments** we did to answer those questions.
 
 ---
 
-## ⚠️ Important Info for Developers
+## Important Info for Developers
 **You don't need to run anything in here to use REFLECT.**
 
 This code is purely for history and research. Some of it might be messy or not work perfectly—it's meant for "experts" who want to understand the deep science behind the project.
