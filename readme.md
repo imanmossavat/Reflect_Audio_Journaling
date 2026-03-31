@@ -132,8 +132,6 @@ See:
 .
 ├── basic-functionality   # Stable end-to-end demo
 ├── RAG-solution          # LLM + RAG prototype
-├── Backend               # Current backend (WIP)
-├── Frontend              # Current frontend (WIP)
 ├── Research              # Experiments, notebooks, papers
 └── test_journals         # Sample data
 ```
@@ -163,8 +161,8 @@ See:
 
 This repository contains:
 
-* Stable demo components (`basic-functionality`)
-* Experimental prototypes (`RAG-solution`, `Backend`, `Frontend`)
+* Stable demo component (`basic-functionality`)
+* Experimental prototype (`RAG-solution`)
 * Research artifacts
 
 Expect ongoing changes and iteration.
