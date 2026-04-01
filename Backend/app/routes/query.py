@@ -7,7 +7,7 @@ from app.services.rag import query_journals
 import httpx
 import ollama
 from fastapi import APIRouter, HTTPException, Response
-from fastapi.responses import StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from sqlmodel import Session
 
 from app import logging_config
@@ -157,6 +157,8 @@ async def generate_question(req: GenerateRequest):
 async def save_answer(req: SaveAnswerRequest):
     now = datetime.datetime.utcnow()
     with Session(engine) as session:
+        if not session.get(Journal, req.journal_id):
+            raise HTTPException(status_code=404, detail="Journal not found")
         question = Question(
             journal_id=req.journal_id,
             question_text=req.question_text,
@@ -188,4 +190,7 @@ async def health():
             )
     except Exception as e:
         logger.warning(f"Ollama unreachable: {e}")
-        return {"status": "ok", "ollama": "unreachable", "error": str(e)}
+        return JSONResponse(
+            status_code=503,
+            content={"status": "degraded", "ollama": "unreachable", "error": str(e)},
+        )

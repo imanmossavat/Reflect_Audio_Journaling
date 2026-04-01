@@ -71,10 +71,20 @@ def confirm_suggested_tags(
     if not session.get(Journal, journal_id):
         raise HTTPException(status_code=404, detail="Journal not found")
     saved = []
-    for name in body.names:
-        tag = repo.get_or_create_tag(session, name=name)
-        repo.add_tag_to_journal(session, journal_id=journal_id, tag_id=tag.id)
-        saved.append(tag)
+    try:
+        for name in body.names:
+            tag = repo.get_or_create_tag(session, name=name)
+            repo.add_tag_to_journal(
+                session,
+                journal_id=journal_id,
+                tag_id=tag.id,
+                commit=False,
+            )
+            saved.append(tag)
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
     return saved
 
 

@@ -2,7 +2,6 @@ import time
 import subprocess
 import os
 import numpy as np
-import whisperx
 import imageio_ffmpeg
 
 ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
@@ -16,9 +15,6 @@ from app.config import settings
 from app.logging_config import logger
 
 class TranscriptionManager:
-    """
-    Handles transcription and word alignment using WhisperX.
-    """
 
     def __init__(self):
         self.device = settings.DEVICE
@@ -26,21 +22,21 @@ class TranscriptionManager:
         self.compute_type = settings.COMPUTE_TYPE
         self.sample_rate = getattr(settings, "SAMPLE_RATE", 16000) or 16000
         self.language = settings.LANGUAGE
+        self.whisperx = self._load_whisperx()
 
         logger.info(f"Loading WhisperX ({self.model_size}) on {self.device}...")
-        self.asr_model = whisperx.load_model(
+        self.asr_model = self.whisperx.load_model(
             self.model_size,
             device=self.device,
             compute_type=self.compute_type,
             language=self.language,
         )
 
-        self.alignment_model, self.align_metadata = whisperx.load_align_model(
+        self.alignment_model, self.align_metadata = self.whisperx.load_align_model(
             language_code=self.language,
             device=self.device,
         )
 
-    # ---------------- PUBLIC METHODS ---------------- #
 
     def transcribe(self, recording):
         """
@@ -55,12 +51,12 @@ class TranscriptionManager:
         logger.info(f"Raw transcription done in {time.time() - start_time:.2f}s")
     
         if result.get("language") and result["language"] != self.align_metadata.get("language"):
-            self.alignment_model, self.align_metadata = whisperx.load_align_model(
+            self.alignment_model, self.align_metadata = self.whisperx.load_align_model(
                 language_code=result["language"],
                 device=self.device,
             )
     
-        result_aligned = whisperx.align(
+        result_aligned = self.whisperx.align(
             transcript=result["segments"],
             model=self.alignment_model,
             align_model_metadata=self.align_metadata,
@@ -83,7 +79,27 @@ class TranscriptionManager:
             sentences=sentences,
             source="whisperx",
         )
-    # ---------------- HELPER METHODS ---------------- #
+
+    @staticmethod
+    def _load_whisperx():
+        try:
+            import whisperx
+
+            return whisperx
+        except Exception as exc:
+            detail = str(exc)
+            if "_libsvm" in detail and "blocked" in detail.lower():
+                message = (
+                    "Transcription is unavailable: Windows Application Control blocked "
+                    "scikit-learn's _libsvm binary dependency used by WhisperX/pyannote. "
+                    "Ask IT to allow this binary or use a transcription path without WhisperX."
+                )
+            else:
+                message = f"Transcription dependencies failed to load: {detail}"
+
+            logger.exception(message)
+            raise NotImplementedError(message) from exc
+
 
     @staticmethod
     def _load_audio_ffmpeg(path: str, sr: int = 16000) -> np.ndarray:

@@ -20,7 +20,7 @@ def get_session():
 
 
 def get_latest_journal(session: Session) -> Journal:
-    journal = session.exec(select(Journal)).first()
+    journal = session.exec(select(Journal).order_by(Journal.id.desc())).first()
     if not journal:
         raise HTTPException(status_code=404, detail="No journal uploaded yet.")
     if not journal.text:

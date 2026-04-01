@@ -67,11 +67,16 @@ def get_junction(session: Session, journal_id: int, tag_id: int) -> JournalTag |
     ).first()
 
 
-def add_tag_to_journal(session: Session, *, journal_id: int, tag_id: int) -> bool:
+def add_tag_to_journal(
+    session: Session, *, journal_id: int, tag_id: int, commit: bool = True
+) -> bool:
     if get_junction(session, journal_id, tag_id):
         return False
     session.add(JournalTag(journal_id=journal_id, tag_id=tag_id))
-    session.commit()
+    if commit:
+        session.commit()
+    else:
+        session.flush()
     return True
 
 

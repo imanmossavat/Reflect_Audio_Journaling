@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import List, Optional
 
+from sqlalchemy import JSON, Column
 from sqlmodel import Field, Relationship, SQLModel
 
 
@@ -31,7 +32,6 @@ class TagCluster(SQLModel, table=True):
 
     # Relationships
     tags: List["Tag"] = Relationship(back_populates="tag_cluster")
-    scale_questions: List["ScaleQuestion"] = Relationship(back_populates="tag_cluster")
 
 
 class Journal(SQLModel, table=True):
@@ -49,6 +49,7 @@ class Journal(SQLModel, table=True):
     # Relationships
     chunks: List["Chunk"] = Relationship(back_populates="journal")
     questions: List["Question"] = Relationship(back_populates="journal")
+    scale_questions: List["ScaleQuestion"] = Relationship(back_populates="journal")
     tags: List["Tag"] = Relationship(back_populates="journals", link_model=JournalTag)
 
 
@@ -85,6 +86,8 @@ class Question(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     journal_id: int = Field(foreign_key="journal.id")
     question_text: str
+    trigger_type: Optional[str] = Field(default=None, max_length=100)
+    trigger_context: Optional[dict] = Field(default=None, sa_column=Column(JSON))
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     # Relationships
@@ -109,13 +112,14 @@ class ScaleQuestion(SQLModel, table=True):
     __tablename__ = "scale_question"
 
     id: Optional[int] = Field(default=None, primary_key=True)
+    journal_id: int = Field(foreign_key="journal.id")
     question_text: str
     scale_max: int
-    tag_cluster_id: int = Field(foreign_key="tag_cluster.id")
-    is_active: bool = Field(default=True)
+    trigger_type: str = Field(max_length=100)
+    trigger_context: Optional[dict] = Field(default=None, sa_column=Column(JSON))
 
     # Relationships
-    tag_cluster: Optional[TagCluster] = Relationship(back_populates="scale_questions")
+    journal: Optional[Journal] = Relationship(back_populates="scale_questions")
     responses: List["ScaleResponse"] = Relationship(back_populates="scale_question")
 
 
