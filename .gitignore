@@ -13,3 +13,4 @@ __pycache__/
 /Backend/database/chroma
 /Backend/database/uploads
 /Backend/app/database/text
+Backend/docs_qr.png

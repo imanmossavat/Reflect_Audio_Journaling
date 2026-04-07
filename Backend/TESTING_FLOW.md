@@ -1,19 +1,7 @@
 # Backend Testing Flow (Step-by-Step)
-
-## File Placement
-Place this file in:
-- Backend/TESTING_FLOW.md
-
-Reason:
-- It is backend-only test guidance.
-- It sits next to backend setup files (environment.yml, alembic.ini).
-- Teacher can run everything from the Backend folder without searching elsewhere.
-
----
-
 ## 1. Start Required Services
 
-1. Open terminal 1:
+1. Open terminal 1 — start Ollama:
 ```bash
 ollama serve
 ```
@@ -24,23 +12,27 @@ ollama pull qwen3.5:4b
 ollama pull mistral
 ollama pull nomic-embed-text
 ollama pull llama3
+ollama pull gpt-oss:20b
 ```
 
-3. Open terminal 2:
+3. Open terminal 2 — start backend:
 ```bash
 cd Backend
 conda activate REFLECT
 alembic upgrade head
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+python start_backend.py
 ```
 
-4. Open Swagger:
+This prints your local and network URLs, opens a QR code for phone access, and starts the server.
+
+4. Open Swagger on desktop:
 - http://localhost:8000/docs
+
+Or scan the QR code to open Swagger on your phone.
 
 ---
 
-## 2. Main Happy Path (Single Upload Type)
-Use only one upload path: processed text file upload.
+## 2. Main Happy Path
 
 1. POST `/journal/uploadFile/processed`
 - Upload one `.txt` file.
@@ -56,10 +48,8 @@ Use only one upload path: processed text file upload.
 ```
 
 3. POST `/extract-tags?journal_id={journal_id}`
-- Use the `journal.id` from upload.
 
 4. POST `/generate-question`
-- Body example:
 ```json
 {
   "mode": "clarifying",
@@ -69,12 +59,9 @@ Use only one upload path: processed text file upload.
   "history": []
 }
 ```
-- Copy the generated question text from stream output.
+- Copy the generated question text from the stream output.
 
 5. POST `/save-answer`
-- Important flow rule: save only after you have a generated question.
-- Use the generated question text and your answer.
-- Body:
 ```json
 {
   "journal_id": 1,
@@ -88,10 +75,8 @@ Use only one upload path: processed text file upload.
 ## 3. Tag Flow
 
 1. GET `/journals/{journal_id}/tags/suggest`
-- Uses journal text and suggests tags.
 
 2. POST `/journals/{journal_id}/tags/suggest/confirm`
-- Body:
 ```json
 {
   "names": ["stress", "planning"]
@@ -99,45 +84,15 @@ Use only one upload path: processed text file upload.
 ```
 
 3. GET `/journals/search?tags=stress,planning&match=any`
-- Confirms tag-based retrieval works.
 
 ---
 
-## 4. Mobile Upload Over HTTP (Current Temporary Setup)
+## 4. Mobile Upload Over HTTP
 
-1. Run backend with host binding enabled:
-```bash
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
-```
+Phone and laptop must be on the same Wi-Fi. The network URL and QR code are printed automatically when you run `start_backend.py`.
 
-2. Put phone and laptop on the same Wi-Fi.
+1. Scan the QR code or open the printed network URL on your phone.
+2. POST `/journal/uploadFile/raw` from phone with any eligible file.
+3. Verify with GET `/journal/{journal_id}` using the returned id.
 
-3. Find laptop IPv4 (Windows):
-```bash
-ipconfig
-```
-
-4. On phone browser open:
-- `http://<LAPTOP_IPV4>:8000/docs`
-
-5. Test POST `/journal/uploadFile/processed` from phone with `.txt` file.
-
-6. Verify upload result by checking returned `journal.id` and then calling:
-- GET `/journal/{journal_id}`
-
-Notes:
-- This is plain HTTP for local-network testing only.
-- No HTTPS/TLS expected in this stage.
-
----
-
-## 5. Quick Error Checks
-
-1. Upload unsupported extension to `/journal/uploadFile/processed`.
-- Expect HTTP 400.
-
-2. POST `/query` with empty question.
-- Expect HTTP 400.
-
-3. Tag endpoint with unknown journal id.
-- Expect HTTP 404.
+> Plain HTTP for local-network testing only. No HTTPS/TLS at this stage.
