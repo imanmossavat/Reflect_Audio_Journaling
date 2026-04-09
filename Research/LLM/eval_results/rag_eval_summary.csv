@@ -1,0 +1,3 @@
+model,faithfulness,answer_relevancy,context_precision
+llama3,4.0,4.0,3.5
+mistral,1.571,1.571,1.429

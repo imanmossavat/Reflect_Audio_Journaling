@@ -2,6 +2,10 @@
 import socket, os, sys, subprocess
 import qrcode
 
+CYAN = "\033[96m"
+BOLD = "\033[1m"
+RESET = "\033[0m"
+
 def get_local_ip():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.connect(("8.8.8.8", 80))
@@ -12,9 +16,11 @@ def get_local_ip():
 ip = get_local_ip()
 url = f"http://{ip}:8000/docs"
 
-print(f"Starting REFLECT backend...")
-print(f"Local:   http://localhost:8000/docs")
-print(f"Network: {url}")
+print(f"\n{BOLD}{'='*50}{RESET}")
+print(f"{BOLD}  REFLECT Backend{RESET}")
+print(f"  Desktop:  {CYAN}{BOLD}http://localhost:8000/docs{RESET}")
+print(f"  Network:  {CYAN}{BOLD}{url}{RESET}")
+print(f"{BOLD}{'='*50}{RESET}\n")
 
 qrcode.make(url).save("docs_qr.png")
 os.system(("open" if sys.platform == "darwin" else "start") + " docs_qr.png")
