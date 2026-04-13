@@ -187,3 +187,7 @@ cython_debug/
 /Research/PII/.idea/copilot.data.migration.agent.xml
 /Research/synthetic_data/Faker/
 /Research/synthetic_data/llm/
+/Backend/database/uploads
+/Backend/database/chroma
+Backend/database/database.db
+Backend/docs_qr.png
