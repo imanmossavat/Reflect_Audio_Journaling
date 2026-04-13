@@ -1,0 +1,4 @@
+model,samples,specificity,depth,grounding,rule_following_det,strict_rule_pass_rate,judge_valid_rate
+llama3,15,3.9,4.133,4.733,3.933,0.467,0.967
+gpt-oss:20b,15,3.867,3.867,4.633,5.0,1.0,0.9
+mistral,15,3.533,3.8,4.367,3.267,0.267,0.967
