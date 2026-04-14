@@ -1,35 +1,44 @@
-import { Geist, Geist_Mono } from "next/font/google";
-import type { Metadata } from "next";
-import "./globals.css"
-import { JSX } from "react/jsx-runtime";
+import type { Metadata } from 'next'
+import { Geist, Geist_Mono } from 'next/font/google'
+import { Analytics } from '@vercel/analytics/next'
+import './globals.css'
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+const _geist = Geist({ subsets: ["latin"] });
+const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "REFLECT",
-  description: "The best reflection helper",
-};
+  title: 'REFLECT - AI-Powered Sources',
+  description: 'Ethical AI-powered source tracking for students with speech-to-text, AI structuring, and semantic search',
+  generator: 'v0.app',
+  icons: {
+    icon: [
+      {
+            url:'/mind_light.png',
+            media:'(prefers-color-scheme: light)',
+      },
+      {
+        url:'/mind_dark.png',
+        media:'(prefers-color-scheme: dark)',
+      },
+      {
+        url:'/mind_light.png',
+        type:'image/png',
+      }
+    ]
+  }
+}
 
 export default function RootLayout({
   children,
-}: {
-  children: React.ReactNode;
-}): JSX.Element {
+}: Readonly<{
+  children: React.ReactNode
+}>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className="font-sans antialiased">
         {children}
+        {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>
-  );
+  )
 }

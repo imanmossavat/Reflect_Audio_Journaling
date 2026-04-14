@@ -7,7 +7,7 @@ _collection = None
 
 CHROMA_PATH = Path(__file__).resolve().parent.parent.parent / "database" / "chroma"
 CHROMA_PATH.mkdir(parents=True, exist_ok=True)
-COLLECTION_NAME = "journal_chunks"
+COLLECTION_NAME = "source_chunks"
 
 def get_chroma_collection():
     global _client, _collection
@@ -22,7 +22,7 @@ def get_chroma_collection():
 
 def upsert_chunks(chunks: list[dict]):
     """
-    chunks: list of {id, text, journal_id, chunk_id}
+    chunks: list of {id, text, source_id, chunk_id}
     Embeddings are handled by LlamaIndex, so we store raw docs here
     and let LlamaIndex manage the vector side via its ChromaVectorStore.
     This util is for direct upserts if needed outside LlamaIndex.
@@ -31,5 +31,5 @@ def upsert_chunks(chunks: list[dict]):
     collection.upsert(
         ids=[str(c["id"]) for c in chunks],
         documents=[c["text"] for c in chunks],
-        metadatas=[{"journal_id": c["journal_id"], "chunk_id": c["id"]} for c in chunks],
+        metadatas=[{"source_id": c["source_id"], "chunk_id": c["id"]} for c in chunks],
     )

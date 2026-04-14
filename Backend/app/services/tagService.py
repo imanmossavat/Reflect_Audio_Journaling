@@ -3,16 +3,16 @@ import re
 import httpx
 
 
-def suggest_tags_via_llm(journal_text: str) -> list[dict]:
-    prompt = _build_prompt(journal_text)
+def suggest_tags_via_llm(source_text: str) -> list[dict]:
+    prompt = _build_prompt(source_text)
     raw = _call_llm(prompt)
     return _parse_response(raw)
 
 
 # ── Prompt ───────────────────────────────────────────────────────────────────
 
-_SYSTEM_PROMPT = """You are a neutral tagging assistant for a reflective journaling app.
-Your only job is to suggest short keyword tags that describe the key themes in the journal.
+_SYSTEM_PROMPT = """You are a neutral tagging assistant for a reflective source app.
+Your only job is to suggest short keyword tags that describe the key themes in the source.
 
 Rules:
 - Suggest between 3 and 8 tags.
@@ -29,10 +29,10 @@ Format:
 ]"""
 
 
-def _build_prompt(journal_text: str) -> str:
-    # Truncate to avoid blowing the context window on very long journals
-    truncated = journal_text[:4000]
-    return f"Journal entry:\n\n{truncated}"
+def _build_prompt(source_text: str) -> str:
+    # Truncate to avoid blowing the context window on very long sources
+    truncated = source_text[:4000]
+    return f"Source entry:\n\n{truncated}"
 
 
 

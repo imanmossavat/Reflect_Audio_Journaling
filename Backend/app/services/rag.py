@@ -55,14 +55,14 @@ def index_chunks(chunks: list[dict]):
         TextNode(
             text=c["text"],
             id_=str(c["id"]),
-            metadata={"journal_id": c["journal_id"], "chunk_id": c["id"]},
+            metadata={"source_id": c["source_id"], "chunk_id": c["id"]},
         )
         for c in chunks
     ]
 
     VectorStoreIndex(nodes, storage_context=storage_context)
 
-def query_journals(question: str, top_k: int = 5) -> dict[str, Any]:
+def query_sources(question: str, top_k: int = 5) -> dict[str, Any]:
     index = _get_index()
     query_engine = index.as_query_engine(similarity_top_k=top_k, text_qa_template=TEXT_QA_TEMPLATE,)
     print(f"Querying with question: {question}")
@@ -75,7 +75,7 @@ def query_journals(question: str, top_k: int = 5) -> dict[str, Any]:
         metadata = node.metadata or {}
         sources.append(
             {
-                "journal_id": metadata.get("journal_id"),
+                "source_id": metadata.get("source_id"),
                 "chunk_id": metadata.get("chunk_id"),
                 "score": source.score,
                 "node_id": node.node_id,

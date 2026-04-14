@@ -7,8 +7,8 @@ from typing import List
 
 nlp = spacy.load("en_core_web_sm")
 
-def llm_split_journal(text: str) -> List[str]:
-    prompt = f"""Your task is to split a journal into individual entries or segments.
+def llm_split_source(text: str) -> List[str]:
+    prompt = f"""Your task is to split a source into individual entries or segments.
 
 Rules:
 - If you see day labels (Monday, Tuesday, Next Monday, etc.) ALWAYS split on them, each day is its own segment.
@@ -18,7 +18,7 @@ Rules:
 Return ONLY a raw JSON array of strings. Example format:
 ["segment one text", "segment two text", "segment three text"]
 
-Journal:
+Source:
 {text}
 """
     response = ollama.chat(
@@ -84,7 +84,7 @@ def sentence_chunk(text: str):
     return chunks
 
 
-def chunk_text(text: str, journal_id: int):
+def chunk_text(text: str, source_id: int):
     if not text or not text.strip():
         return []
 
@@ -102,11 +102,11 @@ def chunk_text(text: str, journal_id: int):
     # 3. If there is still only 1 chunk and it's very long → try LLM split (expensive)
     if len(segments) == 1 and len(segments[0]) > 1000:
         try:
-            segments = llm_split_journal(text)
+            segments = llm_split_source(text)
         except Exception:
             pass  # keep previous result
 
     return [
-        {"text": segment, "journal_id": journal_id}
+        {"text": segment, "source_id": source_id}
         for segment in segments if segment
     ]

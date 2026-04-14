@@ -2,7 +2,7 @@ import datetime
 from pydantic import BaseModel
 import json
 
-from app.services.rag import query_journals
+from app.services.rag import query_sources
 
 import httpx
 import ollama
@@ -11,7 +11,7 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from sqlmodel import Session
 
 from app import logging_config
-from app.db import engine, get_latest_journal
+from app.db import engine, get_latest_source
 from app.prompts import simpler_dictionary_question_prompt
 from app.prompts import tag_extraction_prompt
 from app.repositories import tagRepository
@@ -22,7 +22,7 @@ from app.schemas.journalSchemas import (
     QueryResponse,
     SaveAnswerRequest,
 )
-from database.models import Answer, Journal, Question
+from database.models import Answer, Question, Source
 
 router = APIRouter()
 
@@ -42,20 +42,20 @@ async def query(request: QueryRequest):
     if not request.question.strip():
         raise HTTPException(status_code=400, detail="Question cannot be empty.")
 
-    result = query_journals(request.question, top_k=request.top_k)
+    result = query_sources(request.question, top_k=request.top_k)
     return QueryResponse(question=request.question, answer=result["answer"], sources=result["sources"])
 
 @router.post("/extract-tags", tags=["Query"])
-async def extract_tags(journal_id: int) -> ExtractedTagsResponse:
+async def extract_tags(source_id: int) -> ExtractedTagsResponse:
     with Session(engine) as session:
-        journal = session.get(Journal, journal_id)
-        if not journal:
-            raise HTTPException(status_code=404, detail="Journal not found")
-        if not journal.text:
-            raise HTTPException(status_code=422, detail="Journal has no text")
-        journal_text = journal.text
+        source = session.get(Source, source_id)
+        if not source:
+            raise HTTPException(status_code=404, detail="Source not found")
+        if not source.text:
+            raise HTTPException(status_code=422, detail="Source has no text")
+        source_text = source.text
 
-    prompt = tag_extraction_prompt.build_prompt(journal_text)
+    prompt = tag_extraction_prompt.build_prompt(source_text)
 
     try:
         async with httpx.AsyncClient(
@@ -94,20 +94,20 @@ async def extract_tags(journal_id: int) -> ExtractedTagsResponse:
             ]
 
             with Session(engine) as session:
-                db_journal = session.get(Journal, journal_id)
-                if db_journal:
+                db_source = session.get(Source, source_id)
+                if db_source:
                     for tag_item in tags:
                         normalised_name = tag_item.name.strip().lower()
                         if not normalised_name:
                             continue
                         tag = tagRepository.get_or_create_tag(session, name=normalised_name)
-                        tagRepository.add_tag_to_journal(
+                        tagRepository.add_tag_to_source(
                             session,
-                            journal_id=db_journal.id,
+                            source_id=db_source.id,
                             tag_id=tag.id,
                         )
 
-            return ExtractedTagsResponse(tags=tags, journal_text=journal_text)
+            return ExtractedTagsResponse(tags=tags, source_text=source_text)
 
     except (json.JSONDecodeError, ValueError, KeyError) as e:
         logger.error(f"Failed to parse Ollama tag response: {e}")
@@ -122,12 +122,12 @@ async def extract_tags(journal_id: int) -> ExtractedTagsResponse:
 @router.post("/generate-question", tags=["Query"])
 async def generate_question(req: GenerateRequest):
     with Session(engine) as session:
-        journal = get_latest_journal(session)
-        journal_text = journal.text
+        source = get_latest_source(session)
+        source_text = source.text
 
     try:
         messages = simpler_dictionary_question_prompt.build_messages(
-            journal_text,
+            source_text,
             mode=req.mode,
             focus_tag=req.focus_tag,
             focus_tag_summary=req.focus_tag_summary,
@@ -157,10 +157,10 @@ async def generate_question(req: GenerateRequest):
 async def save_answer(req: SaveAnswerRequest):
     now = datetime.datetime.utcnow()
     with Session(engine) as session:
-        if not session.get(Journal, req.journal_id):
-            raise HTTPException(status_code=404, detail="Journal not found")
+        if not session.get(Source, req.source_id):
+            raise HTTPException(status_code=404, detail="Source not found")
         question = Question(
-            journal_id=req.journal_id,
+            source_id=req.source_id,
             question_text=req.question_text,
             created_at=now,
         )

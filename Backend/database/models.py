@@ -7,10 +7,10 @@ from sqlmodel import Field, Relationship, SQLModel
 
 # ─── Many to Many table ───────────────────────────────────────────────────────────
 
-class JournalTag(SQLModel, table=True):
-    __tablename__ = "journal_tag"
+class SourceTag(SQLModel, table=True):
+    __tablename__ = "source_tag"
 
-    journal_id: int = Field(foreign_key="journal.id", primary_key=True)
+    source_id: int = Field(foreign_key="source.id", primary_key=True)
     tag_id: int = Field(foreign_key="tag.id", primary_key=True)
 
 
@@ -34,8 +34,8 @@ class TagCluster(SQLModel, table=True):
     tags: List["Tag"] = Relationship(back_populates="tag_cluster")
 
 
-class Journal(SQLModel, table=True):
-    __tablename__ = "journal"
+class Source(SQLModel, table=True):
+    __tablename__ = "source"
 
     id: Optional[int] = Field(default=None, primary_key=True)
     filename: Optional[str] = Field(default=None, max_length=255)
@@ -47,23 +47,23 @@ class Journal(SQLModel, table=True):
     edited_at: datetime = Field(default_factory=datetime.utcnow)
 
     # Relationships
-    chunks: List["Chunk"] = Relationship(back_populates="journal")
-    questions: List["Question"] = Relationship(back_populates="journal")
-    scale_questions: List["ScaleQuestion"] = Relationship(back_populates="journal")
-    tags: List["Tag"] = Relationship(back_populates="journals", link_model=JournalTag)
+    chunks: List["Chunk"] = Relationship(back_populates="source")
+    questions: List["Question"] = Relationship(back_populates="source")
+    scale_questions: List["ScaleQuestion"] = Relationship(back_populates="source")
+    tags: List["Tag"] = Relationship(back_populates="sources", link_model=SourceTag)
 
 
 class Chunk(SQLModel, table=True):
     __tablename__ = "chunk"
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    journal_id: int = Field(foreign_key="journal.id")
+    source_id: int = Field(foreign_key="source.id")
     chunk_text: str
     chunk_index: int
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     # Relationships
-    journal: Optional[Journal] = Relationship(back_populates="chunks")
+    source: Optional[Source] = Relationship(back_populates="chunks")
 
 
 class Tag(SQLModel, table=True):
@@ -75,7 +75,7 @@ class Tag(SQLModel, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     # Relationships
-    journals: List[Journal] = Relationship(back_populates="tags", link_model=JournalTag)
+    sources: List[Source] = Relationship(back_populates="tags", link_model=SourceTag)
     questions: List["Question"] = Relationship(back_populates="tags", link_model=QuestionTag)
     tag_cluster: Optional[TagCluster] = Relationship(back_populates="tags")
 
@@ -84,14 +84,14 @@ class Question(SQLModel, table=True):
     __tablename__ = "question"
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    journal_id: int = Field(foreign_key="journal.id")
+    source_id: int = Field(foreign_key="source.id")
     question_text: str
     trigger_type: Optional[str] = Field(default=None, max_length=100)
     trigger_context: Optional[dict] = Field(default=None, sa_column=Column(JSON))
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     # Relationships
-    journal: Optional[Journal] = Relationship(back_populates="questions")
+    source: Optional[Source] = Relationship(back_populates="questions")
     answers: List["Answer"] = Relationship(back_populates="question")
     tags: List[Tag] = Relationship(back_populates="questions", link_model=QuestionTag)
 
@@ -112,14 +112,14 @@ class ScaleQuestion(SQLModel, table=True):
     __tablename__ = "scale_question"
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    journal_id: int = Field(foreign_key="journal.id")
+    source_id: int = Field(foreign_key="source.id")
     question_text: str
     scale_max: int
     trigger_type: str = Field(max_length=100)
     trigger_context: Optional[dict] = Field(default=None, sa_column=Column(JSON))
 
     # Relationships
-    journal: Optional[Journal] = Relationship(back_populates="scale_questions")
+    source: Optional[Source] = Relationship(back_populates="scale_questions")
     responses: List["ScaleResponse"] = Relationship(back_populates="scale_question")
 
 

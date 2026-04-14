@@ -1,7 +1,7 @@
 from sqlalchemy import func
 from sqlmodel import Session, select
 
-from database.models import Journal, JournalTag, Tag, TagCluster
+from database.models import Source, SourceTag, Tag, TagCluster
 
 
 
@@ -49,30 +49,30 @@ def get_or_create_tag(session: Session, *, name: str) -> Tag:
 
 
 
-def get_tags_for_journal(session: Session, journal_id: int) -> list[Tag]:
+def get_tags_for_source(session: Session, source_id: int) -> list[Tag]:
     stmt = (
         select(Tag)
-        .join(JournalTag, Tag.id == JournalTag.tag_id)
-        .where(JournalTag.journal_id == journal_id)
+        .join(SourceTag, Tag.id == SourceTag.tag_id)
+        .where(SourceTag.source_id == source_id)
     )
     return session.exec(stmt).all()
 
 
-def get_junction(session: Session, journal_id: int, tag_id: int) -> JournalTag | None:
+def get_junction(session: Session, source_id: int, tag_id: int) -> SourceTag | None:
     return session.exec(
-        select(JournalTag).where(
-            JournalTag.journal_id == journal_id,
-            JournalTag.tag_id == tag_id,
+        select(SourceTag).where(
+            SourceTag.source_id == source_id,
+            SourceTag.tag_id == tag_id,
         )
     ).first()
 
 
-def add_tag_to_journal(
-    session: Session, *, journal_id: int, tag_id: int, commit: bool = True
+def add_tag_to_source(
+    session: Session, *, source_id: int, tag_id: int, commit: bool = True
 ) -> bool:
-    if get_junction(session, journal_id, tag_id):
+    if get_junction(session, source_id, tag_id):
         return False
-    session.add(JournalTag(journal_id=journal_id, tag_id=tag_id))
+    session.add(SourceTag(source_id=source_id, tag_id=tag_id))
     if commit:
         session.commit()
     else:
@@ -80,8 +80,8 @@ def add_tag_to_journal(
     return True
 
 
-def remove_tag_from_journal(session: Session, *, journal_id: int, tag_id: int) -> bool:
-    junction = get_junction(session, journal_id, tag_id)
+def remove_tag_from_source(session: Session, *, source_id: int, tag_id: int) -> bool:
+    junction = get_junction(session, source_id, tag_id)
     if not junction:
         return False
     session.delete(junction)
@@ -91,30 +91,30 @@ def remove_tag_from_journal(session: Session, *, journal_id: int, tag_id: int) -
 
 
 
-def get_journals_by_tags(
+def get_sources_by_tags(
     session: Session,
     *,
     tag_names: list[str],
     match: str = "any",  # "any" (OR) | "all" (AND)
-) -> list[Journal]:
+) -> list[Source]:
     normalised = [n.strip().lower() for n in tag_names if n.strip()]
     if not normalised:
         return []
 
     if match == "all":
         stmt = (
-            select(Journal)
-            .join(JournalTag, Journal.id == JournalTag.journal_id)
-            .join(Tag, Tag.id == JournalTag.tag_id)
+            select(Source)
+            .join(SourceTag, Source.id == SourceTag.source_id)
+            .join(Tag, Tag.id == SourceTag.tag_id)
             .where(Tag.name.in_(normalised))
-            .group_by(Journal.id)
+            .group_by(Source.id)
             .having(func.count(func.distinct(Tag.id)) == len(normalised))
         )
     else:
         stmt = (
-            select(Journal)
-            .join(JournalTag, Journal.id == JournalTag.journal_id)
-            .join(Tag, Tag.id == JournalTag.tag_id)
+            select(Source)
+            .join(SourceTag, Source.id == SourceTag.source_id)
+            .join(Tag, Tag.id == SourceTag.tag_id)
             .where(Tag.name.in_(normalised))
             .distinct()
         )

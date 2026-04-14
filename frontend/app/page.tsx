@@ -1,506 +1,713 @@
-'use client'
+"use client"
 
-import { useState, useRef, ChangeEvent, JSX, } from "react";
-import { customScrollbar } from '../lib/scrollbar';
-import { uploadJournal, extractTopics, generateQuestionStream, Mode, QAEntry, Topic, saveAnswer } from "../lib/reflectionApi";
+import { useEffect, useMemo, useState } from "react"
+import { Plus, FileText, Mic, FileUp, Type, Sparkles, MessageCircle, Send, Play, Pause, X, File } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
+import { GraphView } from "@/components/graph-view"
+import { OnboardingModal, type OnboardingProfile } from "@/components/onboarding-modal"
+import { TopNav } from "@/components/top-nav"
+import { api, type SourceRecord } from "@/lib/api"
 
-type Stage = "upload" | "choose" | "deep-dive-setup" | "topic-select" | "question" | "deep-dive-options";
-
-interface Step {
-  n: number;
-  label: string;
+interface RawSource {
+  id: string
+  type: "recording" | "file" | "text"
+  name: string
+  content?: string
+  duration?: string
+  timestamp: string
+  included: boolean
+  tags: { name: string; color: string }[]
 }
 
-interface GenerateOptions {
-  step: number;
-  mode?: Mode;
-  topicName?: string;
-  topicSummary?: string;
-  history?: QAEntry[];
+interface ChatEntry {
+  id: string
+  type: "reflection" | "scale" | "freeform"
+  question?: string
+  answer: string
+  scaleValue?: number
+  timestamp: string
+  tags: { name: string; color: string }[]
 }
 
-interface DeepDiveTopicContext {
-  name: string;
-  summary?: string;
+type QuestionType = "clarifying" | "guided" | "quantitative"
+type AddSourceMode = null | "recording" | "file" | "text"
+
+const quantitativeQuestions = [
+  { question: "How much is stress affecting your life right now?", lowLabel: "Not at all", highLabel: "Significantly" },
+  { question: "How energized do you feel today?", lowLabel: "Exhausted", highLabel: "Very energized" },
+  { question: "How confident are you feeling about your progress?", lowLabel: "Not confident", highLabel: "Very confident" },
+  { question: "How well did you sleep last night?", lowLabel: "Very poorly", highLabel: "Very well" },
+  { question: "How anxious are you feeling right now?", lowLabel: "Not at all", highLabel: "Extremely" },
+]
+
+const guidedQuestions = [
+  "What moment from today are you most grateful for?",
+  "What challenge did you face recently, and what did you learn from it?",
+  "How did you take care of yourself this week?",
+  "What's one thing you'd like to let go of?",
+  "What are you looking forward to?",
+]
+
+const clarifyingQuestions = [
+  "Can you tell me more about what led to that?",
+  "How did that make you feel in the moment?",
+  "What do you think triggered that response?",
+  "What would the ideal outcome look like for you?",
+  "Is there a pattern you've noticed here before?",
+]
+
+const profileStorageKey = "reflect_profile"
+
+const mapSourceType = (source: SourceRecord): RawSource["type"] => {
+  const fileType = (source.file_type ?? "").toLowerCase()
+  if (fileType.includes("audio")) return "recording"
+  if (fileType.includes("text") || !source.filename) return "text"
+  return "file"
 }
 
-const STEPS: Step[] = [
-  { n: 1, label: "Description" },
-  { n: 2, label: "Feelings" },
-  { n: 3, label: "Evaluation" },
-  { n: 4, label: "Analysis" },
-  { n: 5, label: "Conclusion" },
-  { n: 6, label: "Action" },
-];
+const mapBackendSource = (source: SourceRecord): RawSource => ({
+  id: String(source.id),
+  type: mapSourceType(source),
+  name: source.filename || "Quick thought",
+  content: source.text ?? undefined,
+  timestamp: new Date(source.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+  included: true,
+  tags: [],
+})
 
-export default function Home(): JSX.Element {
-  const [stage, setStage] = useState<Stage>("upload");
-  const [filename, setFilename] = useState<string>("");
-  const [mode, setMode] = useState<Mode>(null);
-  const [step, setStep] = useState<number>(1);
-  const [deepDiveStep, setDeepDiveStep] = useState<number | null>(null);
-  const [question, setQuestion] = useState<string>("");
-  const [answer, setAnswer] = useState<string>("");
-  const [history, setHistory] = useState<QAEntry[]>([]);
-  const [topics, setTopics] = useState<Topic[]>([]);
-  const [journalText, setJournalText] = useState<string>("");
-  const [selectedTopic, setSelectedTopic] = useState<number | null>(null);
-  const [hoveredTopic, setHoveredTopic] = useState<number | null>(null);
-  const [manualTopic, setManualTopic] = useState<string>("");
-  const [activeDeepDiveTopic, setActiveDeepDiveTopic] = useState<DeepDiveTopicContext | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string>("");
-  const fileRef = useRef<HTMLInputElement>(null);
-  const [journalId, setJournalId] = useState<number | null>(null);
+export default function HomePage() {
+  const [rawSources, setRawSources] = useState<RawSource[]>([])
+  const [chatEntries, setChatEntries] = useState<ChatEntry[]>([])
+  const [currentQuestion, setCurrentQuestion] = useState<{ type: QuestionType; content: string; scaleData?: { lowLabel: string; highLabel: string } } | null>(null)
+  const [inputValue, setInputValue] = useState("")
+  const [rightPanel, setRightPanel] = useState<"tools" | "graph">("tools")
+  const [addSourceMode, setAddSourceMode] = useState<AddSourceMode>(null)
+  const [newSourceText, setNewSourceText] = useState("")
+  const [isRecording, setIsRecording] = useState(false)
+  const [toolsNotice, setToolsNotice] = useState<string | null>(null)
+  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false)
+  const [isLoadingSources, setIsLoadingSources] = useState(true)
+  const [isSavingSource, setIsSavingSource] = useState(false)
+  const [isRunningSearch, setIsRunningSearch] = useState(false)
+  const [isGeneratingQuestion, setIsGeneratingQuestion] = useState(false)
 
-  async function handleUpload(e: ChangeEvent<HTMLInputElement>): Promise<void> {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setError("");
-    setLoading(true);
-    try {
-      const data = await uploadJournal(file);
-      setFilename(data.filename);
-      setJournalId(data.journal_id);
-      setStage("choose");
-    } catch (err) {
-      const error = err instanceof Error ? err.message : "Unknown error";
-      setError(error);
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    const loadSources = async () => {
+      setIsLoadingSources(true)
+      try {
+        const sources = await api.getSources()
+        const mapped = sources.map(mapBackendSource).sort((a, b) => a.id.localeCompare(b.id))
+        setRawSources(mapped)
+
+        const hasProfile = Boolean(window.localStorage.getItem(profileStorageKey))
+        setIsOnboardingOpen(!hasProfile && mapped.length === 0)
+      } catch (error) {
+        setToolsNotice(`Could not load sources from backend: ${error instanceof Error ? error.message : "Unknown error"}`)
+      } finally {
+        setIsLoadingSources(false)
+      }
     }
-  }
 
-  async function generate({ step, mode: m = mode, topicName, topicSummary, history: historyOverride }: GenerateOptions): Promise<void> {
-    setLoading(true);
-    setQuestion("");
-    setError("");
-    try {
-      await generateQuestionStream({
-        journal_id: journalId!,
-        mode: m,
-        step: m === "deep_dive" ? step : null,
-        topic: topicName ?? null,
-        topic_summary: topicSummary ?? null,
-        history: historyOverride ?? history,
-      }, (token) => {
-        setQuestion((q) => q + token);
-      });
-      setStage("question");
-    } catch (err) {
-      const error = err instanceof Error ? err.message : "Unknown error";
-      setError(error);
-    } finally {
-      setLoading(false);
+    void loadSources()
+  }, [])
+
+  const includedSources = useMemo(() => rawSources.filter((source) => source.included), [rawSources])
+  const hasIncludedSources = includedSources.length > 0
+
+  const pickFallbackQuestion = (type: QuestionType) => {
+    if (type === "guided") {
+      return guidedQuestions[Math.floor(Math.random() * guidedQuestions.length)]
     }
+    return clarifyingQuestions[Math.floor(Math.random() * clarifyingQuestions.length)]
   }
 
-  function handleModeSelect(m: Mode): void {
-    setMode(m);
-    setAnswer("");
-    setQuestion("");
-    if (m === "clarifying") generate({ step: 0, mode: m });
-  }
+  const handleSelectQuestionType = async (type: QuestionType) => {
+    let question: string
+    let scaleData: { lowLabel: string; highLabel: string } | undefined
 
-  function saveAnswerAndGetHistory(): QAEntry[] {
-    if (!answer.trim()) return history;
-    const updated = [...history, { timestamp: new Date().toISOString(), question, answer }];
-    setHistory(updated);
-    setAnswer("");
-    return updated;
-  }
-
-  async function handleSubmitAnswer(): Promise<void> {
-    await saveAnswer({
-      journal_id: journalId!,
-      timestamp: new Date().toISOString(),
-      question,
-      answer,
-    });
-    saveAnswerAndGetHistory();
-    if (mode === "deep_dive") {
-      setStage("deep-dive-options");
-      setQuestion("");
-    } else if (mode === "clarifying" && deepDiveStep !== null) {
-      setMode("deep_dive");
-      setStep(deepDiveStep);
-      setStage("deep-dive-options");
-      setQuestion("");
+    if (type === "quantitative") {
+      const random = quantitativeQuestions[Math.floor(Math.random() * quantitativeQuestions.length)]
+      question = random.question
+      scaleData = { lowLabel: random.lowLabel, highLabel: random.highLabel }
     } else {
-      goBackToModes();
+      setIsGeneratingQuestion(true)
+      try {
+        const mode = type === "guided" ? "deep_dive" : "clarifying"
+        question = await new Promise<string>((resolve, reject) => {
+          let generated = ""
+          api.streamGeneratedQuestion(
+            { mode },
+            {
+              onToken(token) {
+                generated += token
+              },
+              onDone() {
+                resolve(generated.trim())
+              },
+              onError(error) {
+                reject(error)
+              },
+            }
+          )
+        })
+
+        if (!question) {
+          question = pickFallbackQuestion(type)
+          setToolsNotice("Question generator returned no content, so a local prompt was used.")
+        }
+      } catch (error) {
+        question = pickFallbackQuestion(type)
+        setToolsNotice(
+          `Question generation is unavailable (${error instanceof Error ? error.message : "Unknown error"}). Using a local prompt.`
+        )
+      } finally {
+        setIsGeneratingQuestion(false)
+      }
     }
+
+    setCurrentQuestion({ type, content: question, scaleData })
   }
 
-  function deepDiveAskAnother(): void {
-    const topic = selectedTopic !== null ? topics[selectedTopic] : undefined;
-    generate({
-      step,
-      mode: "deep_dive",
-      topicName: topic?.name ?? activeDeepDiveTopic?.name,
-      topicSummary: topic?.summary ?? activeDeepDiveTopic?.summary,
-      history,
-    });
+  const handleScaleSelect = (value: number) => {
+    const newEntry: ChatEntry = {
+      id: String(Date.now()),
+      type: "scale",
+      question: currentQuestion?.content,
+      answer: `${value}/10`,
+      scaleValue: value,
+      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      tags: [],
+    }
+    setChatEntries((prev) => [...prev, newEntry])
+    setCurrentQuestion(null)
   }
 
-  function deepDiveNextStep(): void {
-    const next = step + 1;
-    setStep(next);
-    const topic = selectedTopic !== null ? topics[selectedTopic] : undefined;
-    generate({
-      step: next,
-      mode: "deep_dive",
-      topicName: topic?.name ?? activeDeepDiveTopic?.name,
-      topicSummary: topic?.summary ?? activeDeepDiveTopic?.summary,
-      history,
-    });
+  const handleSubmitText = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!inputValue.trim()) return
+
+    const newEntry: ChatEntry = {
+      id: String(Date.now()),
+      type: currentQuestion?.type === "guided" ? "reflection" : "freeform",
+      question: currentQuestion?.content,
+      answer: inputValue,
+      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      tags: [],
+    }
+    setChatEntries((prev) => [...prev, newEntry])
+    setInputValue("")
+    setCurrentQuestion(null)
   }
 
-  function startClarifyingDetour(): void {
-    setDeepDiveStep(step);
-    setMode("clarifying");
-    setAnswer("");
-    generate({ step: 0, mode: "clarifying", history });
+  const handleSetSourceIncluded = (sourceId: string, included: boolean) => {
+    setRawSources((prev) =>
+      prev.map((source) => (source.id === sourceId ? { ...source, included } : source))
+    )
   }
 
-  function goBackToModes(): void {
-    setStage("choose");
-    setMode(null);
-    setQuestion("");
-    setAnswer("");
-    setDeepDiveStep(null);
-    setManualTopic("");
-    setActiveDeepDiveTopic(null);
-    setError("");
-  }
-
-  async function startDeepDiveWithTopics(): Promise<void> {
-    setLoading(true);
-    setError("");
-    setMode("deep_dive");
-    setTopics([]);
-    setSelectedTopic(null);
-    setHoveredTopic(null);
-    setActiveDeepDiveTopic(null);
+  const handleAddTextSource = async () => {
+    if (!newSourceText.trim()) return
+    setIsSavingSource(true)
     try {
-      const data = await extractTopics(journalId!);
-      setTopics(data.topics);
-      setJournalText(data.journal_text);
-      setStage("topic-select");
-    } catch (err) {
-      const error = err instanceof Error ? err.message : "Unknown error";
-      setError(error);
+      const created = await api.uploadTextSource(newSourceText)
+      setRawSources((prev) => [mapBackendSource(created), ...prev])
+      setNewSourceText("")
+      setAddSourceMode(null)
+      setToolsNotice("Source added and saved to backend.")
+    } catch (error) {
+      setToolsNotice(`Could not save source: ${error instanceof Error ? error.message : "Unknown error"}`)
     } finally {
-      setLoading(false);
+      setIsSavingSource(false)
     }
   }
 
-  function openDeepDiveSetup(): void {
-    setError("");
-    setStage("deep-dive-setup");
-  }
-
-  function startDeepDiveWithoutTopics(): void {
-    setMode("deep_dive");
-    setTopics([]);
-    setSelectedTopic(null);
-    setHoveredTopic(null);
-    setActiveDeepDiveTopic(null);
-    setStep(1);
-    generate({ step: 1, mode: "deep_dive" });
-  }
-
-  function startDeepDiveWithManualTopic(): void {
-    const topic = manualTopic.trim();
-    if (!topic) {
-      setError("Please enter a topic before starting.");
-      return;
-    }
-    setError("");
-    setMode("deep_dive");
-    setTopics([]);
-    setSelectedTopic(null);
-    setHoveredTopic(null);
-    setActiveDeepDiveTopic({ name: topic });
-    setStep(1);
-    generate({ step: 1, mode: "deep_dive", topicName: topic });
-  }
-
-  function selectTopicAndDive(topicIndex: number): void {
-    setSelectedTopic(topicIndex);
-    setMode("deep_dive");
-    const topic = topics[topicIndex];
-    setActiveDeepDiveTopic({ name: topic.name, summary: topic.summary });
-    setStep(1);
-    generate({ step: 1, mode: "deep_dive", topicName: topic.name, topicSummary: topic.summary });
-  }
-
-  /** Render journal text with quote highlights for the active (hovered or selected) topic */
-  function renderHighlightedText(activeTopic: Topic | null, activeColor: string): JSX.Element {
-    if (!activeTopic || activeTopic.quotes.length === 0) {
-      return <>{journalText}</>;
+  const handleToggleRecording = () => {
+    if (isRecording) {
+      setIsRecording(false)
+      setAddSourceMode(null)
+      setToolsNotice("Recording UI is present; connect microphone capture to upload audio next.")
+      return
     }
 
-    // Find all quote occurrences and build highlight ranges
-    const ranges: { start: number; end: number }[] = [];
-    for (const quote of activeTopic.quotes) {
-      let searchFrom = 0;
-      while (searchFrom < journalText.length) {
-        const idx = journalText.indexOf(quote, searchFrom);
-        if (idx === -1) break;
-        ranges.push({ start: idx, end: idx + quote.length });
-        searchFrom = idx + 1;
-      }
+    setIsRecording(true)
+  }
+
+  const exportToMarkdown = () => {
+    if (!hasIncludedSources) {
+      setToolsNotice("Select at least one included source before exporting.")
+      return
     }
 
-    if (ranges.length === 0) return <>{journalText}</>;
+    let markdown = `# Reflection\n\n`
+    markdown += `## Sources\n\n`
 
-    // Sort and merge overlapping ranges
-    ranges.sort((a, b) => a.start - b.start);
-    const merged: { start: number; end: number }[] = [ranges[0]];
-    for (let i = 1; i < ranges.length; i++) {
-      const last = merged[merged.length - 1];
-      if (ranges[i].start <= last.end) {
-        last.end = Math.max(last.end, ranges[i].end);
+    includedSources.forEach((source) => {
+      if (source.type === "recording") {
+        markdown += `- Voice note (${source.duration}) - ${source.timestamp}\n`
+      } else if (source.type === "text") {
+        markdown += `- ${source.content} - ${source.timestamp}\n`
       } else {
-        merged.push(ranges[i]);
+        markdown += `- File: ${source.name} - ${source.timestamp}\n`
       }
-    }
+    })
 
-    const parts: JSX.Element[] = [];
-    let lastEnd = 0;
-    merged.forEach((r, i) => {
-      if (r.start > lastEnd) {
-        parts.push(<span key={`gap-${i}`}>{journalText.slice(lastEnd, r.start)}</span>);
+    markdown += `\n## Reflections\n\n`
+
+    chatEntries.forEach((entry) => {
+      if (entry.question) {
+        markdown += `**Q:** ${entry.question}\n\n`
       }
-      parts.push(
-        <span
-          key={`hl-${i}`}
-          className="rounded px-0.5 transition-colors duration-200"
-          style={{ backgroundColor: activeColor + "33", borderBottom: `2px solid ${activeColor}` }}
-        >
-          {journalText.slice(r.start, r.end)}
-        </span>
-      );
-      lastEnd = r.end;
-    });
-    if (lastEnd < journalText.length) {
-      parts.push(<span key="tail">{journalText.slice(lastEnd)}</span>);
-    }
-    return <>{parts}</>;
+      markdown += `**A:** ${entry.answer}\n\n`
+      markdown += `*${entry.timestamp}*\n\n---\n\n`
+    })
+
+    const blob = new Blob([markdown], { type: "text/markdown" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = "reflection.md"
+    a.click()
+    URL.revokeObjectURL(url)
+    setToolsNotice(`Exported ${includedSources.length} included source${includedSources.length === 1 ? "" : "s"}.`)
   }
 
-  const colors = ["#c8b89a", "#9ab8c8", "#b89ac8", "#9ac8a3", "#c89a9a", "#c8c09a"];
-  const activeTopicIndex = hoveredTopic ?? selectedTopic;
-  const activeTopic = activeTopicIndex !== null ? topics[activeTopicIndex] : null;
-  const activeColor = activeTopicIndex !== null ? colors[activeTopicIndex % colors.length] : "#c8b89a";
+  const handleAISearch = async () => {
+    if (!hasIncludedSources) {
+      setToolsNotice("Select at least one included source before using AI Search.")
+      return
+    }
+
+    setIsRunningSearch(true)
+    try {
+      const context = includedSources
+        .map((source) => source.content)
+        .filter(Boolean)
+        .join("\n")
+        .slice(0, 2000)
+      const answer = await api.query(
+        `Summarize the key themes in these selected sources and keep it concise:\n${context || "No text available."}`
+      )
+      setToolsNotice(answer.answer)
+    } catch (error) {
+      setToolsNotice(`AI Search failed: ${error instanceof Error ? error.message : "Unknown error"}`)
+    } finally {
+      setIsRunningSearch(false)
+    }
+  }
+
+  const handleOnboardingSkip = () => {
+    setIsOnboardingOpen(false)
+  }
+
+  const handleOnboardingSubmit = (nextProfile: OnboardingProfile) => {
+    window.localStorage.setItem(profileStorageKey, JSON.stringify(nextProfile))
+    setIsOnboardingOpen(false)
+    setToolsNotice(`Welcome ${nextProfile.name}, your onboarding profile is saved locally.`)
+  }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-[#0e0e0e] p-8 font-serif">
-      <div className="w-full max-w-lg bg-[#161616] border border-[#2a2a2a] rounded p-10">
+    <div className="min-h-screen bg-background flex flex-col">
+      <OnboardingModal
+        open={isOnboardingOpen}
+        onSkip={handleOnboardingSkip}
+        onSubmit={handleOnboardingSubmit}
+      />
+      <TopNav activePath="/" />
 
-        {/* Header */}
-        <div className="flex items-center gap-2 mb-8">
-          <span className="text-2xl text-[#c8b89a]">◎</span>
-          <h1 className="text-sm font-normal tracking-widest text-[#e8e0d4]">reflect</h1>
-        </div>
-
-        {loading ? (
-          <div className="flex flex-col items-center gap-3 py-6">
-            <div className="w-5 h-5 rounded-full border border-[#999] border-t-transparent animate-spin" />
-            <p className="text-xs tracking-widest text-[#999]">thinking</p>
-          </div>
-        ) : (
-          <>
-            {/* Upload */}
-            {stage === "upload" && (
-              <div className="flex flex-col gap-5">
-                <p className="text-xs tracking-wide text-[#999]">upload a journal entry to begin</p>
-                <label className="flex flex-col items-center justify-center gap-2 border border-dashed border-[#2e2e2e] rounded p-10 cursor-pointer text-[#555] hover:border-[#444] transition-colors">
-                  <input ref={fileRef} type="file" accept=".txt" onChange={handleUpload} className="hidden" />
-                  <span className="text-2xl text-[#c8b89a]">↑</span>
-                  <span className="text-xs">.txt file</span>
-                </label>
-              </div>
+      <div className="flex-1 flex">
+        <aside className="w-64 border-r flex flex-col bg-muted/10">
+          <div className="p-4 border-b">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-sm font-medium">Sources</h2>
+              <span className="text-xs text-muted-foreground">{includedSources.length}/{rawSources.length}</span>
+            </div>
+            {isLoadingSources && (
+              <p className="text-xs text-muted-foreground mb-2">Loading sources from backend...</p>
             )}
 
-            {/* Choose mode */}
-            {stage === "choose" && (
-              <div className="flex flex-col gap-5">
-                <p className="text-xs text-[#555]">↳ {filename}</p>
-                <p className="text-xs tracking-wide text-[#999]">how do you want to reflect?</p>
-                <div className="flex gap-3 flex-wrap">
-                  <button className="bg-transparent border border-[#3a3a3a] rounded-sm text-[#c8b89a] px-4 py-2 text-xs tracking-wider cursor-pointer hover:border-[#c8b89a] transition-colors disabled:opacity-40"
-                    onClick={() => handleModeSelect("clarifying")}>broad questions</button>
-                  <button className="bg-transparent border border-[#3a3a3a] rounded-sm text-[#c8b89a] px-4 py-2 text-xs tracking-wider cursor-pointer hover:border-[#c8b89a] transition-colors disabled:opacity-40"
-                    onClick={openDeepDiveSetup}>deep dive</button>
+            {!addSourceMode ? (
+              <div className="grid grid-cols-3 gap-1.5">
+                <button
+                  onClick={() => setAddSourceMode("recording")}
+                  className="flex flex-col items-center gap-1 p-2 rounded-lg border border-dashed border-border hover:border-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors"
+                >
+                  <Mic className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-[10px] text-muted-foreground">Record</span>
+                </button>
+                <button
+                  onClick={() => setAddSourceMode("file")}
+                  className="flex flex-col items-center gap-1 p-2 rounded-lg border border-dashed border-border hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                >
+                  <FileUp className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-[10px] text-muted-foreground">File</span>
+                </button>
+                <button
+                  onClick={() => setAddSourceMode("text")}
+                  className="flex flex-col items-center gap-1 p-2 rounded-lg border border-dashed border-border hover:border-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors"
+                >
+                  <Type className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-[10px] text-muted-foreground">Text</span>
+                </button>
+              </div>
+            ) : addSourceMode === "recording" ? (
+              <div className="p-3 rounded-lg border bg-background space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium">Voice recording</span>
+                  <button onClick={() => { setAddSourceMode(null); setIsRecording(false) }} className="p-1 rounded hover:bg-muted">
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+                <div className="flex items-center justify-center gap-3">
+                  <button
+                    onClick={handleToggleRecording}
+                    className={`p-3 rounded-full transition-colors ${isRecording
+                      ? "bg-red-500 text-white animate-pulse"
+                      : "bg-emerald-500 text-white hover:bg-emerald-600"
+                      }`}
+                  >
+                    {isRecording ? <Pause className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                  </button>
+                </div>
+                {isRecording && (
+                  <p className="text-xs text-center text-muted-foreground">Recording... Tap to stop</p>
+                )}
+              </div>
+            ) : addSourceMode === "text" ? (
+              <div className="p-3 rounded-lg border bg-background space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium">Quick thought</span>
+                  <button onClick={() => setAddSourceMode(null)} className="p-1 rounded hover:bg-muted">
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+                <textarea
+                  value={newSourceText}
+                  onChange={(e) => setNewSourceText(e.target.value)}
+                  placeholder="Write a thought..."
+                  className="w-full p-2 text-sm rounded border bg-background resize-none focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  rows={3}
+                />
+                <Button
+                  onClick={handleAddTextSource}
+                  disabled={!newSourceText.trim() || isSavingSource}
+                  size="sm"
+                  className="w-full bg-emerald-600 hover:bg-emerald-700"
+                >
+                  {isSavingSource ? "Saving..." : "Add"}
+                </Button>
+              </div>
+            ) : (
+              <div className="p-3 rounded-lg border bg-background space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium">Upload file</span>
+                  <button onClick={() => setAddSourceMode(null)} className="p-1 rounded hover:bg-muted">
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+                <div className="border-2 border-dashed rounded-lg p-4 text-center space-y-2">
+                  <FileUp className="h-6 w-6 mx-auto text-muted-foreground mb-2" />
+                  <p className="text-xs text-muted-foreground">Choose a .wav, .mp3, .txt, or .md file</p>
+                  <input
+                    type="file"
+                    className="text-xs"
+                    accept=".wav,.mp3,.m4a,.txt,.md"
+                    onChange={async (event) => {
+                      const selectedFile = event.target.files?.[0]
+                      if (!selectedFile) return
+                      setIsSavingSource(true)
+                      try {
+                        const created = await api.uploadFileSource(selectedFile)
+                        setRawSources((prev) => [mapBackendSource(created), ...prev])
+                        setAddSourceMode(null)
+                        setToolsNotice(`Uploaded ${selectedFile.name}`)
+                      } catch (error) {
+                        setToolsNotice(`Upload failed: ${error instanceof Error ? error.message : "Unknown error"}`)
+                      } finally {
+                        setIsSavingSource(false)
+                      }
+                    }}
+                  />
                 </div>
               </div>
             )}
+          </div>
 
-            {/* Deep Dive setup */}
-            {stage === "deep-dive-setup" && (
-              <div className="flex flex-col gap-5">
-                <p className="text-xs text-[#555]">↳ {filename}</p>
-                <p className="text-xs tracking-wide text-[#999]">do you want topic suggestions before deep diving?</p>
-                <div className="flex flex-col gap-3">
-                  <button
-                    className="bg-transparent border border-[#3a3a3a] rounded-sm text-[#c8b89a] px-4 py-2 text-xs tracking-wider cursor-pointer hover:border-[#c8b89a] transition-colors"
-                    onClick={startDeepDiveWithTopics}
-                  >
-                    yes, suggest topics first
-                  </button>
-                  <button
-                    className="bg-transparent border border-[#3a3a3a] rounded-sm text-[#c8b89a] px-4 py-2 text-xs tracking-wider cursor-pointer hover:border-[#c8b89a] transition-colors"
-                    onClick={startDeepDiveWithoutTopics}
-                  >
-                    no, go straight to deep dive
-                  </button>
-                  <div className="flex flex-col gap-2 border border-[#2a2a2a] rounded p-3">
-                    <p className="text-xs tracking-wide text-[#999]">or enter your own topic</p>
-                    <input
-                      className="w-full bg-[#0e0e0e] border border-[#2e2e2e] rounded-sm text-[#e8e0d4] px-3 py-2 text-sm font-serif outline-none focus:border-[#444] transition-colors"
-                      placeholder="e.g. teamwork under pressure"
-                      value={manualTopic}
-                      onChange={(e) => setManualTopic(e.target.value)}
+          <div className="flex-1 overflow-y-auto p-2 space-y-1">
+            {rawSources.map((source) => (
+              <div
+                key={source.id}
+                className={`p-2.5 rounded-lg hover:bg-muted/50 transition-colors group ${source.included ? "" : "opacity-60"}`}
+              >
+                <div className="flex items-start gap-2.5">
+                  <div className={`p-1.5 rounded-md ${source.type === "recording" ? "bg-emerald-100 dark:bg-emerald-900/30" :
+                    source.type === "file" ? "bg-blue-100 dark:bg-blue-900/30" :
+                      "bg-amber-100 dark:bg-amber-900/30"
+                    }`}>
+                    {source.type === "recording" ? (
+                      <Mic className="h-3 w-3 text-emerald-600" />
+                    ) : source.type === "file" ? (
+                      <File className="h-3 w-3 text-blue-600" />
+                    ) : (
+                      <Type className="h-3 w-3 text-amber-600" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium truncate">{source.name}</span>
+                    </div>
+                    {source.type === "recording" && (
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <Play className="h-3 w-3 text-muted-foreground" />
+                        <span className="text-xs text-muted-foreground">{source.duration}</span>
+                      </div>
+                    )}
+                    {source.type === "text" && source.content && (
+                      <p className="text-xs text-muted-foreground truncate mt-0.5">{source.content}</p>
+                    )}
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-[10px] text-muted-foreground">{source.timestamp}</span>
+                      {source.tags.map((tag) => (
+                        <span
+                          key={tag.name}
+                          className="text-[10px] px-1.5 py-0.5 rounded-full bg-muted"
+                        >
+                          {tag.name}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <Checkbox
+                    checked={source.included}
+                    onCheckedChange={(checked) => handleSetSourceIncluded(source.id, checked === true)}
+                    aria-label={`Include ${source.name}`}
+                    className="self-center"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </aside>
+
+        <div className="flex-1 flex flex-col min-w-0">
+          <div className="flex-1 overflow-y-auto p-6">
+            <div className="max-w-2xl mx-auto space-y-4">
+              {chatEntries.map((entry) => (
+                <div key={entry.id} className="space-y-2">
+                  {entry.question && (
+                    <div className="flex justify-start">
+                      <div className="bg-muted rounded-2xl rounded-tl-sm px-4 py-3 max-w-[85%]">
+                        <span className="text-xs text-emerald-600 font-medium block mb-1">REFLECT</span>
+                        <p className="text-[15px]">{entry.question}</p>
+                      </div>
+                    </div>
+                  )}
+                  <div className="flex justify-end">
+                    <div className="bg-emerald-900 text-white rounded-2xl rounded-tr-sm px-4 py-3 max-w-[85%]">
+                      <p className="text-[15px]">{entry.answer}</p>
+                      <div className="flex items-center justify-end gap-2 mt-1.5">
+                        {entry.tags.map((tag) => (
+                          <span
+                            key={tag.name}
+                            className="text-[10px] px-1.5 py-0.5 rounded bg-white/20"
+                          >
+                            {tag.name}
+                          </span>
+                        ))}
+                        <span className="text-[10px] text-white/70">{entry.timestamp}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              {currentQuestion?.type === "quantitative" && currentQuestion.scaleData && (
+                <div className="space-y-2">
+                  <div className="flex justify-start">
+                    <div className="bg-muted rounded-2xl rounded-tl-sm px-4 py-3">
+                      <span className="text-xs text-emerald-600 font-medium block mb-1">REFLECT</span>
+                      <p className="text-[15px]">{currentQuestion.content}</p>
+                    </div>
+                  </div>
+                  <div className="bg-muted/50 rounded-xl p-5 space-y-3">
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>{currentQuestion.scaleData.lowLabel}</span>
+                      <span>{currentQuestion.scaleData.highLabel}</span>
+                    </div>
+                    <div className="flex justify-between gap-2">
+                      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((value) => (
+                        <button
+                          key={value}
+                          onClick={() => handleScaleSelect(value)}
+                          className="flex-1 aspect-square rounded-lg border-2 border-border hover:border-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors flex items-center justify-center font-medium"
+                        >
+                          {value}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {currentQuestion && currentQuestion.type !== "quantitative" && (
+                <div className="space-y-2">
+                  <div className="flex justify-start">
+                    <div className="bg-muted rounded-2xl rounded-tl-sm px-4 py-3">
+                      <span className="text-xs text-emerald-600 font-medium block mb-1">REFLECT</span>
+                      <p className="text-[15px]">{currentQuestion.content}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="border-t bg-background p-4">
+            <div className="max-w-2xl mx-auto">
+              {currentQuestion && currentQuestion.type !== "quantitative" && (
+                <form onSubmit={handleSubmitText} className="flex gap-2 mb-4">
+                  <div className="flex-1 relative">
+                    <textarea
+                      value={inputValue}
+                      onChange={(e) => setInputValue(e.target.value)}
+                      placeholder="Write your response..."
+                      className="w-full min-h-[60px] p-3 pr-10 rounded-xl border bg-background resize-none focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                      rows={2}
                     />
-                    <button
-                      className="bg-transparent border border-[#3a3a3a] rounded-sm text-[#c8b89a] px-4 py-2 text-xs tracking-wider cursor-pointer hover:border-[#c8b89a] transition-colors"
-                      onClick={startDeepDiveWithManualTopic}
-                    >
-                      start with my topic
+                    <button type="button" className="absolute bottom-2 right-2 p-1.5 rounded-lg hover:bg-muted text-muted-foreground">
+                      <Mic className="h-4 w-4" />
                     </button>
                   </div>
-                  <button
-                    className="bg-transparent border border-[#555] rounded-sm text-[#999] px-4 py-2 text-xs tracking-wider cursor-pointer hover:border-[#777] hover:text-[#ccc] transition-colors"
-                    onClick={goBackToModes}
-                  >
-                    back to modes
-                  </button>
-                </div>
-              </div>
-            )}
+                  <Button type="submit" disabled={!inputValue.trim()} className="bg-emerald-600 hover:bg-emerald-700 text-white self-end">
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </form>
+              )}
 
-            {/* Select Topic for Deep Dive */}
-            {stage === "topic-select" && (
-              <div className="flex flex-col gap-5">
-                <p className="text-xs tracking-wide text-[#999]">
-                  hover a topic to highlight related passages, click to explore
-                </p>
-
-                {/* Topic list */}
-                <div className="flex flex-wrap gap-2">
-                  {topics.map((topic, idx) => {
-                    const color = colors[idx % colors.length];
-                    return (
-                      <button
-                        key={idx}
-                        className="text-xs px-3 py-1.5 rounded border cursor-pointer transition-all hover:opacity-80"
-                        style={{
-                          borderColor: activeTopicIndex === idx ? color : "#3a3a3a",
-                          color: color,
-                          backgroundColor: activeTopicIndex === idx ? color + "15" : "transparent",
-                        }}
-                        title={topic.summary}
-                        onMouseEnter={() => setHoveredTopic(idx)}
-                        onMouseLeave={() => setHoveredTopic(null)}
-                        onClick={() => selectTopicAndDive(idx)}
-                      >
-                        {topic.name}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {/* Active topic summary — always reserve space to prevent layout shift */}
-                <p className={`text-xs italic min-h-8 transition-colors duration-200 ${activeTopic ? "text-[#777]" : "text-transparent"}`}>
-                  {activeTopic?.summary ?? "\u00A0"}
-                </p>
-
-                {/* Journal text with highlighted quotes */}
-                <div
-                  className={`${customScrollbar} relative max-h-80 overflow-y-auto border border-[#2a2a2a] rounded p-4 text-sm leading-relaxed text-[#999] whitespace-pre-wrap`}
-                >
-                  {renderHighlightedText(activeTopic, activeColor)}
-                </div>
-
-                <div className="flex gap-3 flex-wrap">
-                  <button
-                    className="bg-transparent border border-[#3a3a3a] rounded-sm text-[#c8b89a] px-4 py-2 text-xs tracking-wider cursor-pointer hover:border-[#c8b89a] transition-colors"
-                    onClick={() => { setMode("deep_dive"); setStep(1); generate({ step: 1, mode: "deep_dive" }); }}
-                  >
-                    skip — explore all
-                  </button>
-                  <button
-                    className="bg-transparent border border-[#555] rounded-sm text-[#999] px-4 py-2 text-xs tracking-wider cursor-pointer hover:border-[#777] hover:text-[#ccc] transition-colors"
-                    onClick={goBackToModes}
-                  >
-                    back to modes
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Question */}
-            {stage === "question" && (
-              <div className="flex flex-col gap-5">
-                {mode === "deep_dive" && (
-                  <div className="flex justify-between w-full">
-                    {STEPS.map((st) => (
-                      <div key={st.n} className="flex flex-col items-center gap-1">
-                        <div className={`w-2 h-2 rounded-full transition-colors duration-300 ${st.n === step ? "bg-[#c8b89a]" : st.n < step ? "bg-[#555]" : "bg-[#2e2e2e]"}`} />
-                        <span className={`text-[10px] tracking-wide transition-colors duration-300 ${st.n === step ? "text-[#c8b89a]" : st.n < step ? "text-[#555]" : "text-[#2e2e2e]"}`}>{st.label.toLowerCase()}</span>
+              {!currentQuestion && (
+                <div className="space-y-3">
+                  <p className="text-sm text-muted-foreground text-center">What would you like to add?</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    <button
+                      onClick={() => void handleSelectQuestionType("clarifying")}
+                      disabled={isGeneratingQuestion}
+                      className="p-3 rounded-xl border-2 border-border hover:border-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors text-left"
+                    >
+                      <MessageCircle className="h-4 w-4 text-amber-600 mb-2" />
+                      <div className="text-sm font-medium">Clarifying</div>
+                      <div className="text-xs text-muted-foreground">
+                        {isGeneratingQuestion ? "Generating..." : "Follow-up questions"}
                       </div>
-                    ))}
+                    </button>
+                    <button
+                      onClick={() => void handleSelectQuestionType("guided")}
+                      disabled={isGeneratingQuestion}
+                      className="p-3 rounded-xl border-2 border-border hover:border-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors text-left"
+                    >
+                      <Sparkles className="h-4 w-4 text-emerald-600 mb-2" />
+                      <div className="text-sm font-medium">Guided</div>
+                      <div className="text-xs text-muted-foreground">
+                        {isGeneratingQuestion ? "Generating..." : "Reflective prompts"}
+                      </div>
+                    </button>
+                    <button
+                      onClick={() => void handleSelectQuestionType("quantitative")}
+                      disabled={isGeneratingQuestion}
+                      className="p-3 rounded-xl border-2 border-border hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors text-left"
+                    >
+                      <span className="text-blue-600 font-bold text-xs block mb-2">1-10</span>
+                      <div className="text-sm font-medium">Quantitative</div>
+                      <div className="text-xs text-muted-foreground">Rate how you feel</div>
+                    </button>
                   </div>
-                )}
-                {mode === "clarifying" && deepDiveStep !== null && (
-                  <p className="text-xs text-[#555]">clarifying detour — will return to step {deepDiveStep}</p>
-                )}
-                <p className="text-base leading-relaxed text-[#e8e0d4] min-h-16">{question || "..."}</p>
-                <textarea
-                  className="w-full bg-[#0e0e0e] border border-[#2e2e2e] rounded-sm text-[#e8e0d4] px-3 py-2 text-sm font-serif outline-none focus:border-[#444] transition-colors resize-none"
-                  placeholder="Your answer..."
-                  rows={4}
-                  value={answer}
-                  onChange={(e) => setAnswer(e.target.value)}
-                />
-                <button className="bg-transparent border border-[#3a3a3a] rounded-sm text-[#c8b89a] px-4 py-2 text-xs tracking-wider cursor-pointer hover:border-[#c8b89a] transition-colors"
-                  onClick={handleSubmitAnswer}>answer</button>
-              </div>
-            )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
 
-            {/* Deep Dive Options (after answering) */}
-            {stage === "deep-dive-options" && (
-              <div className="flex flex-col gap-5">
-                <div className="flex justify-between w-full">
-                  {STEPS.map((st) => (
-                    <div key={st.n} className="flex flex-col items-center gap-1">
-                      <div className={`w-2 h-2 rounded-full transition-colors duration-300 ${st.n === step ? "bg-[#c8b89a]" : st.n < step ? "bg-[#555]" : "bg-[#2e2e2e]"}`} />
-                      <span className={`text-[10px] tracking-wide transition-colors duration-300 ${st.n === step ? "text-[#c8b89a]" : st.n < step ? "text-[#555]" : "text-[#2e2e2e]"}`}>{st.label.toLowerCase()}</span>
-                    </div>
+        <aside className="w-64 border-l flex flex-col bg-muted/10">
+          <div className="flex border-b">
+            <button
+              onClick={() => setRightPanel("tools")}
+              className={`flex-1 py-3 text-sm font-medium transition-colors ${rightPanel === "tools" ? "border-b-2 border-emerald-500 text-foreground" : "text-muted-foreground"
+                }`}
+            >
+              Tools
+            </button>
+            <button
+              onClick={() => setRightPanel("graph")}
+              className={`flex-1 py-3 text-sm font-medium transition-colors ${rightPanel === "graph" ? "border-b-2 border-emerald-500 text-foreground" : "text-muted-foreground"
+                }`}
+            >
+              Graph
+            </button>
+          </div>
+
+          {rightPanel === "tools" ? (
+            <div className="p-4 space-y-4">
+              <div>
+                <h3 className="text-sm font-medium mb-3">Export</h3>
+                <button
+                  onClick={exportToMarkdown}
+                  disabled={!hasIncludedSources}
+                  className="w-full flex items-center gap-3 p-3 rounded-lg border hover:bg-muted transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <FileText className="h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <div className="text-sm font-medium">Export to Markdown</div>
+                    <div className="text-xs text-muted-foreground">Download included sources</div>
+                  </div>
+                </button>
+              </div>
+
+              <div>
+                <h3 className="text-sm font-medium mb-3">Tags</h3>
+                <div className="flex flex-wrap gap-1.5">
+                  {["work", "stress", "sleep"].map((tag) => (
+                    <span
+                      key={tag}
+                      className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-muted hover:bg-muted/80 cursor-pointer"
+                    >
+                      {tag}
+                    </span>
                   ))}
-                </div>
-                <p className="text-xs tracking-wide text-[#999]">what would you like to do next?</p>
-                <div className="flex flex-col gap-3">
-                  <button className="bg-transparent border border-[#3a3a3a] rounded-sm text-[#c8b89a] px-4 py-2 text-xs tracking-wider cursor-pointer hover:border-[#c8b89a] transition-colors"
-                    onClick={deepDiveAskAnother}>ask another — {STEPS[step - 1]?.label.toLowerCase()}</button>
-                  {step < 6 && (
-                    <button className="bg-transparent border border-[#3a3a3a] rounded-sm text-[#c8b89a] px-4 py-2 text-xs tracking-wider cursor-pointer hover:border-[#c8b89a] transition-colors"
-                      onClick={deepDiveNextStep}>next step → {STEPS[step]?.label.toLowerCase()}</button>
-                  )}
-                  <button className="bg-transparent border border-[#3a3a3a] rounded-sm text-[#c8b89a] px-4 py-2 text-xs tracking-wider cursor-pointer hover:border-[#c8b89a] transition-colors"
-                    onClick={startClarifyingDetour}>clarifying question</button>
-                  <button className="bg-transparent border border-[#555] rounded-sm text-[#999] px-4 py-2 text-xs tracking-wider cursor-pointer hover:border-[#777] hover:text-[#ccc] transition-colors"
-                    onClick={goBackToModes}>back to modes</button>
+                  <button className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs text-muted-foreground hover:bg-muted">
+                    <Plus className="h-3 w-3" />
+                    Add
+                  </button>
                 </div>
               </div>
-            )}
 
-            {error && <p className="mt-4 text-xs text-[#a05050]">{error}</p>}
-          </>
-        )}
+              <div>
+                <h3 className="text-sm font-medium mb-3">AI Search</h3>
+                <button
+                  onClick={handleAISearch}
+                  disabled={!hasIncludedSources || isRunningSearch}
+                  className="w-full flex items-center gap-3 p-3 rounded-lg border hover:bg-muted transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <MessageCircle className="h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <div className="text-sm font-medium">{isRunningSearch ? "Searching..." : "Ask about your sources"}</div>
+                    <div className="text-xs text-muted-foreground">Search included sources only</div>
+                  </div>
+                </button>
+              </div>
 
+              {toolsNotice && (
+                <p className="text-xs text-muted-foreground rounded-lg border p-2 bg-background">
+                  {toolsNotice}
+                </p>
+              )}
+            </div>
+          ) : (
+            <div className="flex-1 p-4">
+              <p className="text-xs text-muted-foreground mb-3">Connections in included sources</p>
+              <GraphView sources={includedSources} />
+            </div>
+          )}
+        </aside>
       </div>
-    </main>
-  );
+    </div>
+  )
 }

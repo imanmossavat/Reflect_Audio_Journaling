@@ -3,7 +3,7 @@ from pathlib import Path
 from fastapi import HTTPException
 from sqlmodel import Session, create_engine, select
 
-from database.models import Journal
+from database.models import Source
 
 
 # Database
@@ -19,10 +19,10 @@ def get_session():
         yield session
 
 
-def get_latest_journal(session: Session) -> Journal:
-    journal = session.exec(select(Journal).order_by(Journal.id.desc())).first()
-    if not journal:
-        raise HTTPException(status_code=404, detail="No journal uploaded yet.")
-    if not journal.text:
-        raise HTTPException(status_code=404, detail="Journal is empty.")
-    return journal
+def get_latest_source(session: Session) -> Source:
+    source = session.exec(select(Source).order_by(Source.id.desc())).first()
+    if not source:
+        raise HTTPException(status_code=404, detail="No source uploaded yet.")
+    if not source.text:
+        raise HTTPException(status_code=404, detail="Source is empty.")
+    return source

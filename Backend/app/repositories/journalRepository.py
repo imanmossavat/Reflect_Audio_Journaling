@@ -1,22 +1,22 @@
 from datetime import datetime
 from typing import Any, Optional
 from sqlmodel import Session, select
-from database.models import Chunk, Journal
+from database.models import Chunk, Source
 
-def get_all_journals(session: Session):
-    return session.exec(select(Journal)).all()
+def get_all_sources(session: Session):
+    return session.exec(select(Source)).all()
 
-def get_journal_by_id(session: Session, journal_id: int) -> Journal:
-    return session.exec(select(Journal).where(Journal.id == journal_id)).first()
+def get_source_by_id(session: Session, source_id: int) -> Source:
+    return session.exec(select(Source).where(Source.id == source_id)).first()
 
 
-def get_latest_journal(session: Session) -> Journal:
-    return session.exec(select(Journal).order_by(Journal.id.desc())).first()
+def get_latest_source(session: Session) -> Source:
+    return session.exec(select(Source).order_by(Source.id.desc())).first()
 
-def get_unprocessed_journals_query():
-    return select(Journal).where(Journal.status == "not processed")
+def get_unprocessed_sources_query():
+    return select(Source).where(Source.status == "not processed")
 
-def create_journal(
+def create_source(
     session: Session,
     *,
     status: str,
@@ -24,9 +24,9 @@ def create_journal(
     filename: Optional[str] = None,
     file_path: Optional[str] = None,
     file_type: Optional[str] = None,
-) -> Journal:
+) -> Source:
     now = datetime.now()
-    new_journal = Journal(
+    new_source = Source(
         text=text,
         filename=filename,
         file_path=file_path,
@@ -35,17 +35,17 @@ def create_journal(
         created_at=now,
         edited_at=now,
     )
-    session.add(new_journal)
+    session.add(new_source)
     session.commit()
-    session.refresh(new_journal)
-    return new_journal
+    session.refresh(new_source)
+    return new_source
 
 
-def create_chunks(session: Session, journal_id: int, chunks: list[dict[str, Any]]) -> list[Chunk]:
+def create_chunks(session: Session, source_id: int, chunks: list[dict[str, Any]]) -> list[Chunk]:
     try:
-        journal = session.exec(select(Journal).where(Journal.id == journal_id)).first()
-        if not journal:
-            raise ValueError(f"Journal {journal_id} not found")
+        source = session.exec(select(Source).where(Source.id == source_id)).first()
+        if not source:
+            raise ValueError(f"Source {source_id} not found")
 
         db_chunks: list[Chunk] = []
         for idx, chunk_data in enumerate(chunks):
@@ -61,7 +61,7 @@ def create_chunks(session: Session, journal_id: int, chunks: list[dict[str, Any]
                 chunk_index = idx
 
             chunk = Chunk(
-                journal_id=journal_id,
+                source_id=source_id,
                 chunk_text=chunk_text,
                 chunk_index=chunk_index,
             )
@@ -69,10 +69,10 @@ def create_chunks(session: Session, journal_id: int, chunks: list[dict[str, Any]
             db_chunks.append(chunk)
 
         if not db_chunks:
-            raise ValueError(f"No chunks generated for journal {journal_id}.")
+            raise ValueError(f"No chunks generated for source {source_id}.")
 
-        journal.status = "processed"
-        journal.edited_at = datetime.now()
+        source.status = "processed"
+        source.edited_at = datetime.now()
         session.commit()
 
         for chunk in db_chunks:
@@ -81,16 +81,16 @@ def create_chunks(session: Session, journal_id: int, chunks: list[dict[str, Any]
         return db_chunks
     except Exception as exc:
         session.rollback()
-        print(f"Error creating chunks for journal {journal_id}: {exc}")
+        print(f"Error creating chunks for source {source_id}: {exc}")
         raise exc
 
 
-def update_journal_text(session: Session, journal: Journal, text: str) -> Journal:
-    journal.text = text
-    journal.edited_at = datetime.now()
+def update_source_text(session: Session, source: Source, text: str) -> Source:
+    source.text = text
+    source.edited_at = datetime.now()
 
-    session.add(journal)
+    session.add(source)
     session.commit()
-    session.refresh(journal)
+    session.refresh(source)
 
-    return journal
+    return source

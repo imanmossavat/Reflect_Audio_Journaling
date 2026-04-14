@@ -35,16 +35,16 @@ class GenerateRequest(BaseModel):
 
 class ExtractedTagsResponse(BaseModel):
     tags: list[ExtractedTagSchema]
-    journal_text: str
+    source_text: str
 
 
 class SaveAnswerRequest(BaseModel):
-    journal_id: int
+    source_id: int
     question_text: str
     answer_text: str
 
 
-class JournalPatchRequest(BaseModel):
+class SourcePatchRequest(BaseModel):
     text: str
 
 @dataclass  
@@ -76,7 +76,7 @@ class Transcript:
     source: str = "whisperx"
 
 class QuerySource(BaseModel):
-    journal_id: str | None = None
+    source_id: str | None = None
     chunk_id: str | None = None
     score: float | None = None
     node_id: str | None = None
