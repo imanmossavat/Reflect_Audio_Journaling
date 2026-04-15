@@ -1,5 +1,4 @@
 def build_messages(
-    journal_text: str,
     mode: str,
     focus_tag: str | None,
     focus_tag_summary: str | None,

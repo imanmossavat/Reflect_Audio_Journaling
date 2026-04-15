@@ -1,9 +1,10 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { Plus, FileText, Mic, FileUp, Type, Sparkles, MessageCircle, Send, Play, Pause, X, File } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Skeleton } from "@/components/ui/skeleton"
 import { GraphView } from "@/components/graph-view"
 import { OnboardingModal, type OnboardingProfile } from "@/components/onboarding-modal"
 import { TopNav } from "@/components/top-nav"
@@ -58,6 +59,33 @@ const clarifyingQuestions = [
 ]
 
 const profileStorageKey = "reflect_profile"
+const allowedUploadExtensions = new Set([".wav", ".mp3", ".m4a", ".txt", ".md"])
+const allowedUploadMimeTypes = new Set(["audio/mpeg", "audio/wav", "text/plain", "text/markdown"])
+const allowedM4aMimeTypes = new Set(["audio/mp4", "audio/x-m4a"])
+
+const getFileExtension = (filename: string) => {
+  const dotIndex = filename.lastIndexOf(".")
+  return dotIndex === -1 ? "" : filename.slice(dotIndex).toLowerCase()
+}
+
+const validateUploadFile = (file: File) => {
+  const extension = getFileExtension(file.name)
+  if (!allowedUploadExtensions.has(extension)) {
+    return "Unsupported file type. Use .wav, .mp3, .m4a, .txt, or .md."
+  }
+
+  const mimeType = file.type.toLowerCase()
+  if (!mimeType) {
+    return null
+  }
+
+  const isM4aMime = extension === ".m4a" && allowedM4aMimeTypes.has(mimeType)
+  if (!allowedUploadMimeTypes.has(mimeType) && !isM4aMime) {
+    return "Unsupported file format. Please upload .wav, .mp3, .m4a, .txt, or .md files."
+  }
+
+  return null
+}
 
 const mapSourceType = (source: SourceRecord): RawSource["type"] => {
   const fileType = (source.file_type ?? "").toLowerCase()
@@ -89,8 +117,10 @@ export default function HomePage() {
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false)
   const [isLoadingSources, setIsLoadingSources] = useState(true)
   const [isSavingSource, setIsSavingSource] = useState(false)
+  const [isDragOverUpload, setIsDragOverUpload] = useState(false)
   const [isRunningSearch, setIsRunningSearch] = useState(false)
   const [isGeneratingQuestion, setIsGeneratingQuestion] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     const loadSources = async () => {
@@ -222,6 +252,64 @@ export default function HomePage() {
     }
   }
 
+  const handleAddFileSource = async (selectedFile: File | null) => {
+    if (!selectedFile || isSavingSource) return
+
+    const validationError = validateUploadFile(selectedFile)
+    if (validationError) {
+      setToolsNotice(validationError)
+      return
+    }
+
+    setIsSavingSource(true)
+    try {
+      const created = await api.uploadFileSource(selectedFile)
+      setRawSources((prev) => [mapBackendSource(created), ...prev])
+      setAddSourceMode(null)
+      setToolsNotice(`Uploaded ${selectedFile.name}`)
+    } catch (error) {
+      setToolsNotice(`Upload failed: ${error instanceof Error ? error.message : "Unknown error"}`)
+    } finally {
+      setIsSavingSource(false)
+      setIsDragOverUpload(false)
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ""
+      }
+    }
+  }
+
+  const handleFileDrop = async (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault()
+    event.stopPropagation()
+    setIsDragOverUpload(false)
+    await handleAddFileSource(event.dataTransfer.files?.[0] ?? null)
+  }
+
+  const handleFileDragEnter = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault()
+    event.stopPropagation()
+    if (!isSavingSource) {
+      setIsDragOverUpload(true)
+    }
+  }
+
+  const handleFileDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault()
+    event.stopPropagation()
+    if (!isSavingSource) {
+      setIsDragOverUpload(true)
+    }
+  }
+
+  const handleFileDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault()
+    event.stopPropagation()
+    const nextTarget = event.relatedTarget
+    if (!(nextTarget instanceof Node) || !event.currentTarget.contains(nextTarget)) {
+      setIsDragOverUpload(false)
+    }
+  }
+
   const handleToggleRecording = () => {
     if (isRecording) {
       setIsRecording(false)
@@ -322,9 +410,6 @@ export default function HomePage() {
               <h2 className="text-sm font-medium">Sources</h2>
               <span className="text-xs text-muted-foreground">{includedSources.length}/{rawSources.length}</span>
             </div>
-            {isLoadingSources && (
-              <p className="text-xs text-muted-foreground mb-2">Loading sources from backend...</p>
-            )}
 
             {!addSourceMode ? (
               <div className="grid grid-cols-3 gap-1.5">
@@ -336,7 +421,10 @@ export default function HomePage() {
                   <span className="text-[10px] text-muted-foreground">Record</span>
                 </button>
                 <button
-                  onClick={() => setAddSourceMode("file")}
+                  onClick={() => {
+                    setIsDragOverUpload(false)
+                    setAddSourceMode("file")
+                  }}
                   className="flex flex-col items-center gap-1 p-2 rounded-lg border border-dashed border-border hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
                 >
                   <FileUp className="h-4 w-4 text-muted-foreground" />
@@ -401,91 +489,126 @@ export default function HomePage() {
               <div className="p-3 rounded-lg border bg-background space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-medium">Upload file</span>
-                  <button onClick={() => setAddSourceMode(null)} className="p-1 rounded hover:bg-muted">
+                  <button
+                    onClick={() => {
+                      setAddSourceMode(null)
+                      setIsDragOverUpload(false)
+                    }}
+                    className="p-1 rounded hover:bg-muted"
+                  >
                     <X className="h-3 w-3" />
                   </button>
                 </div>
-                <div className="border-2 border-dashed rounded-lg p-4 text-center space-y-2">
-                  <FileUp className="h-6 w-6 mx-auto text-muted-foreground mb-2" />
-                  <p className="text-xs text-muted-foreground">Choose a .wav, .mp3, .txt, or .md file</p>
+                <div
+                  onDrop={(event) => {
+                    void handleFileDrop(event)
+                  }}
+                  onDragEnter={handleFileDragEnter}
+                  onDragOver={handleFileDragOver}
+                  onDragLeave={handleFileDragLeave}
+                  className={`border-2 border-dashed rounded-lg p-4 text-center space-y-3 transition-colors ${
+                    isDragOverUpload ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20" : "border-border"
+                  }`}
+                >
                   <input
+                    ref={fileInputRef}
                     type="file"
-                    className="text-xs"
+                    className="hidden"
                     accept=".wav,.mp3,.m4a,.txt,.md"
-                    onChange={async (event) => {
-                      const selectedFile = event.target.files?.[0]
-                      if (!selectedFile) return
-                      setIsSavingSource(true)
-                      try {
-                        const created = await api.uploadFileSource(selectedFile)
-                        setRawSources((prev) => [mapBackendSource(created), ...prev])
-                        setAddSourceMode(null)
-                        setToolsNotice(`Uploaded ${selectedFile.name}`)
-                      } catch (error) {
-                        setToolsNotice(`Upload failed: ${error instanceof Error ? error.message : "Unknown error"}`)
-                      } finally {
-                        setIsSavingSource(false)
-                      }
+                    onChange={(event) => {
+                      void handleAddFileSource(event.target.files?.[0] ?? null)
                     }}
                   />
+                  <FileUp className="h-6 w-6 mx-auto text-muted-foreground" />
+                  <p className="text-xs text-muted-foreground">Drag and drop a file here</p>
+                  <p className="text-[10px] text-muted-foreground">or</p>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    disabled={isSavingSource}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    {isSavingSource ? "Uploading..." : "Browse files"}
+                  </Button>
+                  <p className="text-[10px] text-muted-foreground">Allowed: .wav, .mp3, .m4a, .txt, .md</p>
                 </div>
               </div>
             )}
           </div>
-
+            
           <div className="flex-1 overflow-y-auto p-2 space-y-1">
-            {rawSources.map((source) => (
-              <div
-                key={source.id}
-                className={`p-2.5 rounded-lg hover:bg-muted/50 transition-colors group ${source.included ? "" : "opacity-60"}`}
-              >
-                <div className="flex items-start gap-2.5">
-                  <div className={`p-1.5 rounded-md ${source.type === "recording" ? "bg-emerald-100 dark:bg-emerald-900/30" :
-                    source.type === "file" ? "bg-blue-100 dark:bg-blue-900/30" :
-                      "bg-amber-100 dark:bg-amber-900/30"
-                    }`}>
-                    {source.type === "recording" ? (
-                      <Mic className="h-3 w-3 text-emerald-600" />
-                    ) : source.type === "file" ? (
-                      <File className="h-3 w-3 text-blue-600" />
-                    ) : (
-                      <Type className="h-3 w-3 text-amber-600" />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium truncate">{source.name}</span>
-                    </div>
-                    {source.type === "recording" && (
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <Play className="h-3 w-3 text-muted-foreground" />
-                        <span className="text-xs text-muted-foreground">{source.duration}</span>
+            {isLoadingSources ? (
+              Array.from({ length: 3 }).map((_, index) => (
+                <div key={`source-skeleton-${index}`} className="p-2.5 rounded-lg bg-background/40">
+                  <div className="flex items-start gap-2.5">
+                    <Skeleton className="h-6 w-6 rounded-md shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-3 w-36 mt-0.5" />
+                      <div className="flex items-center gap-2 mt-1">
+                        <Skeleton className="h-2.5 w-16" />
+                        <Skeleton className="h-2.5 w-10 rounded-full" />
                       </div>
-                    )}
-                    {source.type === "text" && source.content && (
-                      <p className="text-xs text-muted-foreground truncate mt-0.5">{source.content}</p>
-                    )}
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-[10px] text-muted-foreground">{source.timestamp}</span>
-                      {source.tags.map((tag) => (
-                        <span
-                          key={tag.name}
-                          className="text-[10px] px-1.5 py-0.5 rounded-full bg-muted"
-                        >
-                          {tag.name}
-                        </span>
-                      ))}
                     </div>
+                    <Skeleton className="h-4 w-4 rounded self-center shrink-0" />
                   </div>
-                  <Checkbox
-                    checked={source.included}
-                    onCheckedChange={(checked) => handleSetSourceIncluded(source.id, checked === true)}
-                    aria-label={`Include ${source.name}`}
-                    className="self-center"
-                  />
                 </div>
-              </div>
-            ))}
+              ))
+            ) : (
+              rawSources.map((source) => (
+                <div
+                  key={source.id}
+                  className={`p-2.5 rounded-lg hover:bg-muted/50 transition-colors group ${source.included ? "" : "opacity-60"}`}
+                >
+                  <div className="flex items-start gap-2.5">
+                    <div className={`p-1.5 rounded-md ${source.type === "recording" ? "bg-emerald-100 dark:bg-emerald-900/30" :
+                      source.type === "file" ? "bg-blue-100 dark:bg-blue-900/30" :
+                        "bg-amber-100 dark:bg-amber-900/30"
+                      }`}>
+                      {source.type === "recording" ? (
+                        <Mic className="h-3 w-3 text-emerald-600" />
+                      ) : source.type === "file" ? (
+                        <File className="h-3 w-3 text-blue-600" />
+                      ) : (
+                        <Type className="h-3 w-3 text-amber-600" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium truncate">{source.name}</span>
+                      </div>
+                      {source.type === "recording" && (
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <Play className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-xs text-muted-foreground">{source.duration}</span>
+                        </div>
+                      )}
+                      {source.type === "text" && source.content && (
+                        <p className="text-xs text-muted-foreground truncate mt-0.5">{source.content}</p>
+                      )}
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-[10px] text-muted-foreground">{source.timestamp}</span>
+                        {source.tags.map((tag) => (
+                          <span
+                            key={tag.name}
+                            className="text-[10px] px-1.5 py-0.5 rounded-full bg-muted"
+                          >
+                            {tag.name}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    <Checkbox
+                      checked={source.included}
+                      onCheckedChange={(checked) => handleSetSourceIncluded(source.id, checked === true)}
+                      aria-label={`Include ${source.name}`}
+                      className="self-center"
+                    />
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </aside>
 
