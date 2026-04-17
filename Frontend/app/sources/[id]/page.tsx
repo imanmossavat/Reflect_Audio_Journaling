@@ -81,6 +81,9 @@ export default function SourceDetailPage() {
         try {
             const updatedSource = await api.processSource(source.id)
             setSource(updatedSource)
+            if (typeof updatedSource.text === "string") {
+                setSourceText(updatedSource.text)
+            }
             setProcessNotice("Source processed successfully.")
         } catch (processError) {
             setProcessNotice(`Could not process source: ${processError instanceof Error ? processError.message : "Unknown error"}`)
@@ -89,7 +92,7 @@ export default function SourceDetailPage() {
         }
     }
 
-    const canProcess = source && sourceText.trim().length > 0 && source.status.toLowerCase() !== "processed"
+    const canProcess = source && source.status.toLowerCase() !== "processed"
 
     return (
         <div className="min-h-screen bg-background">

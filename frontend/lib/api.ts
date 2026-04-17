@@ -201,21 +201,49 @@ export const api = {
   getSourceText(sourceId: number) {
     return request<string>(`/source-text/${sourceId}`)
   },
-  uploadTextSource(sourceText: string, processed = false) {
+  uploadRawTextSource(sourceText: string) {
     const body = new FormData()
     body.append("source_text", sourceText)
-    return request<SourceRecord>(processed ? "/source/uploadText/processed" : "/source/uploadText/raw", {
+    return request<SourceRecord>("/source/uploadText/raw", {
+      method: "POST",
+      body,
+    })
+  },
+  uploadProcessedTextSource(sourceText: string) {
+    const body = new FormData()
+    body.append("source_text", sourceText)
+    return request<SourceRecord>("/source/uploadText/processed", {
+      method: "POST",
+      body,
+    })
+  },
+  uploadTextSource(sourceText: string, processed = false) {
+    if (processed) {
+      return this.uploadProcessedTextSource(sourceText)
+    }
+    return this.uploadRawTextSource(sourceText)
+  },
+  uploadRawFileSource(file: File) {
+    const body = new FormData()
+    body.append("file", file)
+    return request<SourceRecord>("/source/uploadFile/raw", {
+      method: "POST",
+      body,
+    })
+  },
+  uploadProcessedFileSource(file: File) {
+    const body = new FormData()
+    body.append("file", file)
+    return request<SourceRecord>("/source/uploadFile/processed", {
       method: "POST",
       body,
     })
   },
   uploadFileSource(file: File, processed = false) {
-    const body = new FormData()
-    body.append("file", file)
-    return request<SourceRecord>(processed ? "/source/uploadFile/processed" : "/source/uploadFile/raw", {
-      method: "POST",
-      body,
-    })
+    if (processed) {
+      return this.uploadProcessedFileSource(file)
+    }
+    return this.uploadRawFileSource(file)
   },
   transcribeSource(sourceId: number) {
     return request<SourceRecord>(`/source/transcribe/${sourceId}`, { method: "POST" }).catch((error) => {

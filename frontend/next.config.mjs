@@ -16,7 +16,7 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  allowedDevOrigins,
+  allowedDevOrigins: ['145.93.96.59'],
   turbopack: {
     root: frontendRoot,
   },

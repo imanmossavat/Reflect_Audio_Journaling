@@ -276,6 +276,9 @@ export default function ProcessUploadPage() {
                             <Link href={`/sources/${createdSource.id}`} className="font-medium text-emerald-700 underline underline-offset-2 dark:text-emerald-300">
                                 Open source view
                             </Link>
+                            <Link href="/" className="font-medium text-emerald-700 underline underline-offset-2 dark:text-emerald-300">
+                                Back to main page
+                            </Link>
                         </div>
                     )}
                 </section>

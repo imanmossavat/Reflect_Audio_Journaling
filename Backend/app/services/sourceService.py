@@ -214,10 +214,18 @@ async def process_source(session: Session, source_id: int):
                 source.text = f.read()
             source = journalRepository.update_source_text(session, source, source.text)
         elif source.file_type == "audio":
-            raise HTTPException(
-                status_code=400,
-                detail="Audio source has no transcript yet. Run transcription first, then process.",
-            )
+            if not source.file_path:
+                raise HTTPException(status_code=400, detail="No file path found for audio source.")
+            try:
+                recording = SimpleRecording(path=source.file_path, id=str(source.id))
+                transcript_text = TranscriptionManager().transcribe(recording).text
+            except NotImplementedError as exc:
+                raise HTTPException(status_code=501, detail=str(exc)) from exc
+
+            if not transcript_text or not transcript_text.strip():
+                raise HTTPException(status_code=500, detail="Transcription produced no text.")
+
+            source = journalRepository.update_source_text(session, source, transcript_text)
         else:
             raise HTTPException(status_code=400, detail="Cannot process source without text or file.")
 

@@ -3,7 +3,6 @@
 import { useRef, useState } from "react"
 import Link from "next/link"
 import { ArrowLeft, FileUp, Smartphone, Type } from "lucide-react"
-import { TopNav } from "@/components/top-nav"
 import { Button } from "@/components/ui/button"
 import { api, type SourceRecord } from "@/lib/api"
 
@@ -58,7 +57,7 @@ export default function RawUploadPage() {
 
         setIsSaving(true)
         try {
-            const created = await api.uploadFileSource(selectedFile, false)
+            const created = await api.uploadRawFileSource(selectedFile)
             setCreatedSource(created)
             setNotice(`Saved ${selectedFile.name} as a raw source.`)
         } catch (error) {
@@ -77,7 +76,7 @@ export default function RawUploadPage() {
 
         setIsSaving(true)
         try {
-            const created = await api.uploadTextSource(textValue, false)
+            const created = await api.uploadRawTextSource(textValue)
             setCreatedSource(created)
             setTextValue("")
             setNotice("Raw text source saved.")
@@ -122,8 +121,6 @@ export default function RawUploadPage() {
 
     return (
         <div className="min-h-screen bg-background">
-            <TopNav activePath="/" />
-
             <main className="mx-auto w-full max-w-xl px-4 py-8 sm:px-6">
 
                 <section className="mt-4 rounded-2xl border bg-card p-5 shadow-sm sm:p-6">
@@ -131,9 +128,9 @@ export default function RawUploadPage() {
                         <Smartphone className="h-4 w-4" />
                         <p className="text-xs font-semibold uppercase tracking-[0.18em]">Phone upload</p>
                     </div>
-                    <h1 className="mt-2 text-2xl font-semibold tracking-tight"> Upload file with processing</h1>
+                    <h1 className="mt-2 text-2xl font-semibold tracking-tight">Upload raw source</h1>
                     <p className="mt-1 text-sm text-muted-foreground">
-                        Perfect for fast capture from your phone. These uploads stay unprocessed so you can process or edit them later.
+                        Perfect for fast capture from your phone. These uploads stay unprocessed, with no immediate transcription or chunk processing.
                     </p>
 
                     <div className="mt-5 grid grid-cols-2 gap-2">
@@ -226,6 +223,9 @@ export default function RawUploadPage() {
                             <span className="text-emerald-700 dark:text-emerald-300">Saved source #{createdSource.id}</span>
                             <Link href={`/sources/${createdSource.id}`} className="font-medium text-emerald-700 underline underline-offset-2 dark:text-emerald-300">
                                 Open source view
+                            </Link>
+                            <Link href="/" className="font-medium text-emerald-700 underline underline-offset-2 dark:text-emerald-300">
+                                Back to main page
                             </Link>
                         </div>
                     )}

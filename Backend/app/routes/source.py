@@ -53,7 +53,7 @@ async def upload_source(
     return await sourceService.save_processed_source_file(session, file)
 
 
-@router.post("/source/uploadFile/raw", tags=["Source"], description="Upload a source file that will be processed later. Transcription is performed if the file is an audio file. Only supports: .wav, .mp3, .txt and .md files.")
+@router.post("/source/uploadFile/raw", tags=["Source"], description="Upload a source file that stays raw and unprocessed. No transcription or chunk processing is run at upload time.")
 async def upload_raw_source(
     file: UploadFile = File(...),
     session: Session = Depends(get_session),
@@ -72,7 +72,7 @@ async def upload_text_source(
     return await sourceService.save_processed_source_text(session, source_text)
 
 
-@router.post("/source/uploadText/raw", tags=["Source"], description="Upload a source as raw text. The source will be processed immediately.")
+@router.post("/source/uploadText/raw", tags=["Source"], description="Upload a source as raw text. The source is stored as not processed and can be processed later.")
 async def upload_raw_text_source(
     source_text: str = Form(...),
     session: Session = Depends(get_session),
@@ -97,7 +97,7 @@ async def patch_source(
     return await sourceService.update_source_text(session, source_id, payload.text)
 
 
-@router.post("/source/process/{source_id}", tags=["Source"], description="Process a source by its ID. This endpoint performs chunking and vector indexing for sources that already have text/transcript.")
+@router.post("/source/process/{source_id}", tags=["Source"], description="Process a source by its ID. This endpoint performs chunking and vector indexing, and for audio sources without transcript text it runs transcription first.")
 async def process_source(
     source_id: int,
     session: Session = Depends(get_session),
