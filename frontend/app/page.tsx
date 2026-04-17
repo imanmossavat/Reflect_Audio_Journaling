@@ -1,7 +1,8 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState } from "react"
-import { Plus, FileText, Mic, FileUp, Type, Sparkles, MessageCircle, Send, Play, Pause, X, File } from "lucide-react"
+import { Plus, FileText, Mic, FileUp, Type, Sparkles, MessageCircle, Send, Play, Pause, X, File, Smartphone } from "lucide-react"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -32,7 +33,7 @@ interface ChatEntry {
 }
 
 type QuestionType = "clarifying" | "guided" | "quantitative"
-type AddSourceMode = null | "recording" | "file" | "text"
+type AddSourceMode = null | "recording" | "file" | "text" | "phone"
 
 const quantitativeQuestions = [
   { question: "How much is stress affecting your life right now?", lowLabel: "Not at all", highLabel: "Significantly" },
@@ -59,6 +60,7 @@ const clarifyingQuestions = [
 ]
 
 const profileStorageKey = "reflect_profile"
+const mobileOriginStorageKey = "reflect_mobile_origin"
 const allowedUploadExtensions = new Set([".wav", ".mp3", ".m4a", ".txt", ".md"])
 const allowedUploadMimeTypes = new Set(["audio/mpeg", "audio/wav", "text/plain", "text/markdown"])
 const allowedM4aMimeTypes = new Set(["audio/mp4", "audio/x-m4a"])
@@ -120,6 +122,8 @@ export default function HomePage() {
   const [isDragOverUpload, setIsDragOverUpload] = useState(false)
   const [isRunningSearch, setIsRunningSearch] = useState(false)
   const [isGeneratingQuestion, setIsGeneratingQuestion] = useState(false)
+  const [rawUploadUrl, setRawUploadUrl] = useState("/upload/raw")
+  const [mobileOriginInput, setMobileOriginInput] = useState("")
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -142,8 +146,29 @@ export default function HomePage() {
     void loadSources()
   }, [])
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const savedOrigin = window.localStorage.getItem(mobileOriginStorageKey)
+      if (savedOrigin) {
+        const normalized = savedOrigin.replace(/\/$/, "")
+        setMobileOriginInput(normalized)
+        setRawUploadUrl(`${normalized}/upload/raw`)
+      } else {
+        setRawUploadUrl(`${window.location.origin}/upload/raw`)
+      }
+    }
+  }, [])
+
   const includedSources = useMemo(() => rawSources.filter((source) => source.included), [rawSources])
   const hasIncludedSources = includedSources.length > 0
+  const latestIncludedSourceId = useMemo(() => {
+    const numericIds = includedSources
+      .map((source) => Number(source.id))
+      .filter((id) => Number.isInteger(id) && id > 0)
+
+    if (numericIds.length === 0) return null
+    return Math.max(...numericIds)
+  }, [includedSources])
 
   const pickFallbackQuestion = (type: QuestionType) => {
     if (type === "guided") {
@@ -162,6 +187,7 @@ export default function HomePage() {
       scaleData = { lowLabel: random.lowLabel, highLabel: random.highLabel }
     } else {
       setIsGeneratingQuestion(true)
+      setCurrentQuestion({ type, content: "", scaleData: undefined })
       try {
         const mode = type === "guided" ? "deep_dive" : "clarifying"
         question = await new Promise<string>((resolve, reject) => {
@@ -171,6 +197,7 @@ export default function HomePage() {
             {
               onToken(token) {
                 generated += token
+                setCurrentQuestion({ type, content: generated, scaleData: undefined })
               },
               onDone() {
                 resolve(generated.trim())
@@ -200,10 +227,11 @@ export default function HomePage() {
   }
 
   const handleScaleSelect = (value: number) => {
+    const promptQuestion = currentQuestion?.content ?? "How are you feeling right now?"
     const newEntry: ChatEntry = {
       id: String(Date.now()),
       type: "scale",
-      question: currentQuestion?.content,
+      question: promptQuestion,
       answer: `${value}/10`,
       scaleValue: value,
       timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
@@ -211,23 +239,55 @@ export default function HomePage() {
     }
     setChatEntries((prev) => [...prev, newEntry])
     setCurrentQuestion(null)
+
+    if (latestIncludedSourceId === null) {
+      setToolsNotice("Answer was not saved: include at least one source first.")
+      return
+    }
+
+    void api
+      .saveAnswer({
+        source_id: latestIncludedSourceId,
+        question_text: promptQuestion,
+        answer_text: `${value}/10`,
+      })
+      .catch((error) => {
+        setToolsNotice(`Could not save answer: ${error instanceof Error ? error.message : "Unknown error"}`)
+      })
   }
 
   const handleSubmitText = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!inputValue.trim()) return
+    const trimmedAnswer = inputValue.trim()
+    if (!trimmedAnswer) return
+    const promptQuestion = currentQuestion?.content ?? "Reflection"
 
     const newEntry: ChatEntry = {
       id: String(Date.now()),
       type: currentQuestion?.type === "guided" ? "reflection" : "freeform",
-      question: currentQuestion?.content,
-      answer: inputValue,
+      question: promptQuestion,
+      answer: trimmedAnswer,
       timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       tags: [],
     }
     setChatEntries((prev) => [...prev, newEntry])
     setInputValue("")
     setCurrentQuestion(null)
+
+    if (latestIncludedSourceId === null) {
+      setToolsNotice("Answer was not saved: include at least one source first.")
+      return
+    }
+
+    void api
+      .saveAnswer({
+        source_id: latestIncludedSourceId,
+        question_text: promptQuestion,
+        answer_text: trimmedAnswer,
+      })
+      .catch((error) => {
+        setToolsNotice(`Could not save answer: ${error instanceof Error ? error.message : "Unknown error"}`)
+      })
   }
 
   const handleSetSourceIncluded = (sourceId: string, included: boolean) => {
@@ -240,11 +300,11 @@ export default function HomePage() {
     if (!newSourceText.trim()) return
     setIsSavingSource(true)
     try {
-      const created = await api.uploadTextSource(newSourceText)
+      const created = await api.uploadTextSource(newSourceText, true)
       setRawSources((prev) => [mapBackendSource(created), ...prev])
       setNewSourceText("")
       setAddSourceMode(null)
-      setToolsNotice("Source added and saved to backend.")
+      setToolsNotice("Text source uploaded and sent for processing.")
     } catch (error) {
       setToolsNotice(`Could not save source: ${error instanceof Error ? error.message : "Unknown error"}`)
     } finally {
@@ -263,10 +323,10 @@ export default function HomePage() {
 
     setIsSavingSource(true)
     try {
-      const created = await api.uploadFileSource(selectedFile)
+      const created = await api.uploadFileSource(selectedFile, true)
       setRawSources((prev) => [mapBackendSource(created), ...prev])
       setAddSourceMode(null)
-      setToolsNotice(`Uploaded ${selectedFile.name}`)
+      setToolsNotice(`Uploaded ${selectedFile.name} and sent for processing.`)
     } catch (error) {
       setToolsNotice(`Upload failed: ${error instanceof Error ? error.message : "Unknown error"}`)
     } finally {
@@ -319,6 +379,24 @@ export default function HomePage() {
     }
 
     setIsRecording(true)
+  }
+
+  const handleApplyMobileOrigin = () => {
+    if (typeof window === "undefined") return
+
+    const trimmed = mobileOriginInput.trim()
+    if (!trimmed) {
+      window.localStorage.removeItem(mobileOriginStorageKey)
+      setRawUploadUrl(`${window.location.origin}/upload/raw`)
+      setToolsNotice("Phone upload link reset to current origin.")
+      return
+    }
+
+    const withProtocol = /^https?:\/\//i.test(trimmed) ? trimmed : `http://${trimmed}`
+    const normalized = withProtocol.replace(/\/$/, "")
+    window.localStorage.setItem(mobileOriginStorageKey, normalized)
+    setRawUploadUrl(`${normalized}/upload/raw`)
+    setToolsNotice("Phone upload link updated.")
   }
 
   const exportToMarkdown = () => {
@@ -404,7 +482,7 @@ export default function HomePage() {
       <TopNav activePath="/" />
 
       <div className="flex-1 flex">
-        <aside className="w-64 border-r flex flex-col bg-muted/10">
+        <aside className="w-96 border-r flex flex-col bg-muted/10">
           <div className="p-4 border-b">
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-sm font-medium">Sources</h2>
@@ -412,7 +490,7 @@ export default function HomePage() {
             </div>
 
             {!addSourceMode ? (
-              <div className="grid grid-cols-3 gap-1.5">
+              <div className="grid grid-cols-4 gap-1.5">
                 <button
                   onClick={() => setAddSourceMode("recording")}
                   className="flex flex-col items-center gap-1 p-2 rounded-lg border border-dashed border-border hover:border-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors"
@@ -436,6 +514,13 @@ export default function HomePage() {
                 >
                   <Type className="h-4 w-4 text-muted-foreground" />
                   <span className="text-[10px] text-muted-foreground">Text</span>
+                </button>
+                <button
+                  onClick={() => setAddSourceMode("phone")}
+                  className="flex flex-col items-center gap-1 p-2 rounded-lg border border-dashed border-border hover:border-fuchsia-500 hover:bg-fuchsia-50 dark:hover:bg-fuchsia-900/20 transition-colors"
+                >
+                  <Smartphone className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-[10px] text-muted-foreground">Phone</span>
                 </button>
               </div>
             ) : addSourceMode === "recording" ? (
@@ -482,10 +567,10 @@ export default function HomePage() {
                   size="sm"
                   className="w-full bg-emerald-600 hover:bg-emerald-700"
                 >
-                  {isSavingSource ? "Saving..." : "Add"}
+                  {isSavingSource ? "Saving..." : "Add + Process"}
                 </Button>
               </div>
-            ) : (
+            ) : addSourceMode === "file" ? (
               <div className="p-3 rounded-lg border bg-background space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-medium">Upload file</span>
@@ -506,9 +591,8 @@ export default function HomePage() {
                   onDragEnter={handleFileDragEnter}
                   onDragOver={handleFileDragOver}
                   onDragLeave={handleFileDragLeave}
-                  className={`border-2 border-dashed rounded-lg p-4 text-center space-y-3 transition-colors ${
-                    isDragOverUpload ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20" : "border-border"
-                  }`}
+                  className={`border-2 border-dashed rounded-lg p-4 text-center space-y-3 transition-colors ${isDragOverUpload ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20" : "border-border"
+                    }`}
                 >
                   <input
                     ref={fileInputRef}
@@ -534,9 +618,33 @@ export default function HomePage() {
                   <p className="text-[10px] text-muted-foreground">Allowed: .wav, .mp3, .m4a, .txt, .md</p>
                 </div>
               </div>
-            )}
+            ) : addSourceMode === "phone" ? (
+              <div className="p-3 rounded-lg border bg-background space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium">Send from phone</span>
+                  <button onClick={() => setAddSourceMode(null)} className="p-1 rounded hover:bg-muted">
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+                <div className="rounded-lg border bg-muted/30 p-3 space-y-3">
+                  <div className="mx-auto w-40 h-40 p-2 rounded-md border bg-white">
+                    <img
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(rawUploadUrl)}`}
+                      alt="QR code to open raw upload on phone"
+                      className="w-full h-full"
+                    />
+                  </div>
+                  <p className="text-xs text-center text-muted-foreground">Scan to open unprocessed upload on your phone</p>
+                  {(rawUploadUrl.includes("localhost") || rawUploadUrl.includes("127.0.0.1")) && (
+                    <p className="text-[10px] text-amber-600 text-center">
+                      If your phone cannot open this link, replace localhost with your computer&apos;s LAN IP.
+                    </p>
+                  )}
+                </div>
+              </div>
+            ) : null}
           </div>
-            
+
           <div className="flex-1 overflow-y-auto p-2 space-y-1">
             {isLoadingSources ? (
               Array.from({ length: 3 }).map((_, index) => (
@@ -574,7 +682,10 @@ export default function HomePage() {
                         <Type className="h-3 w-3 text-amber-600" />
                       )}
                     </div>
-                    <div className="flex-1 min-w-0">
+                    <Link
+                      href={`/sources/${source.id}`}
+                      className="flex-1 min-w-0 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40"
+                    >
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-medium truncate">{source.name}</span>
                       </div>
@@ -598,7 +709,7 @@ export default function HomePage() {
                           </span>
                         ))}
                       </div>
-                    </div>
+                    </Link>
                     <Checkbox
                       checked={source.included}
                       onCheckedChange={(checked) => handleSetSourceIncluded(source.id, checked === true)}
@@ -644,6 +755,20 @@ export default function HomePage() {
                 </div>
               ))}
 
+              {isGeneratingQuestion && currentQuestion && currentQuestion.type !== "quantitative" && !currentQuestion.content.trim() && (
+                <div className="space-y-2">
+                  <div className="flex justify-start">
+                    <div className="w-full rounded-2xl rounded-tl-sm px-4 py-3 border border-emerald-200/80 bg-emerald-50/80 dark:border-emerald-900/60 dark:bg-emerald-900/20">
+                      <span className="text-xs text-emerald-600 font-medium block mb-2">REFLECT</span>
+                      <div className="space-y-2">
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-full" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {currentQuestion?.type === "quantitative" && currentQuestion.scaleData && (
                 <div className="space-y-2">
                   <div className="flex justify-start">
@@ -672,7 +797,7 @@ export default function HomePage() {
                 </div>
               )}
 
-              {currentQuestion && currentQuestion.type !== "quantitative" && (
+              {currentQuestion && currentQuestion.type !== "quantitative" && currentQuestion.content.trim().length > 0 && (
                 <div className="space-y-2">
                   <div className="flex justify-start">
                     <div className="bg-muted rounded-2xl rounded-tl-sm px-4 py-3">
@@ -687,14 +812,14 @@ export default function HomePage() {
 
           <div className="border-t bg-background p-4">
             <div className="max-w-2xl mx-auto">
-              {currentQuestion && currentQuestion.type !== "quantitative" && (
+              {currentQuestion && currentQuestion.type !== "quantitative" && currentQuestion.content.trim().length > 0 && !isGeneratingQuestion && (
                 <form onSubmit={handleSubmitText} className="flex gap-2 mb-4">
                   <div className="flex-1 relative">
                     <textarea
                       value={inputValue}
                       onChange={(e) => setInputValue(e.target.value)}
                       placeholder="Write your response..."
-                      className="w-full min-h-[60px] p-3 pr-10 rounded-xl border bg-background resize-none focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                      className="w-full min-h-15 p-3 pr-10 rounded-xl border bg-background resize-none focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
                       rows={2}
                     />
                     <button type="button" className="absolute bottom-2 right-2 p-1.5 rounded-lg hover:bg-muted text-muted-foreground">

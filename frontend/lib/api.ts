@@ -40,7 +40,19 @@ export interface GenerateQuestionRequest {
 }
 
 function getBackendBaseUrl() {
-  return (process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000").replace(/\/$/, "")
+  const configured = process.env.NEXT_PUBLIC_BACKEND_URL?.replace(/\/$/, "")
+  if (configured) {
+    return configured
+  }
+
+  if (typeof window !== "undefined") {
+    const protocol = window.location.protocol === "https:" ? "https:" : "http:"
+    const host = window.location.hostname
+    const port = process.env.NEXT_PUBLIC_BACKEND_PORT ?? "8000"
+    return `${protocol}//${host}:${port}`
+  }
+
+  return "http://localhost:8000"
 }
 
 function withTimeout(timeoutMs: number): { signal: AbortSignal; cancel: () => void } {
@@ -50,6 +62,92 @@ function withTimeout(timeoutMs: number): { signal: AbortSignal; cancel: () => vo
     signal: controller.signal,
     cancel: () => clearTimeout(timeoutId),
   }
+}
+
+function extractEventPayloads(rawEvent: string): string[] {
+  const lines = rawEvent.replace(/\r\n/g, "\n").split("\n")
+  const payloads: string[] = []
+
+  for (const line of lines) {
+    const trimmed = line.trim()
+    if (!trimmed) continue
+
+    if (trimmed.startsWith("data:")) {
+      payloads.push(trimmed.slice(5).trimStart())
+      continue
+    }
+
+    // Be tolerant of occasional missing first character in streamed chunks.
+    if (trimmed.startsWith("ata:")) {
+      payloads.push(trimmed.slice(4).trimStart())
+      continue
+    }
+
+    if (trimmed.startsWith("{") || trimmed === "[DONE]") {
+      payloads.push(trimmed)
+    }
+  }
+
+  return payloads
+}
+
+function extractTokensFromAnyText(text: string): string[] {
+  const tokens: string[] = []
+  const tokenPattern = /"token"\s*:\s*"((?:\\.|[^"\\])*)"/g
+  let match: RegExpExecArray | null
+
+  while ((match = tokenPattern.exec(text)) !== null) {
+    try {
+      tokens.push(JSON.parse(`"${match[1]}"`))
+    } catch {
+      tokens.push(match[1].replace(/\\"/g, '"').replace(/\\\\/g, "\\"))
+    }
+  }
+
+  return tokens
+}
+
+function parseNestedTokenPayload(text: string): { tokens: string[]; done: boolean } {
+  const normalized = text
+    .replace(/\\r\\n/g, "\n")
+    .replace(/\\n/g, "\n")
+    .replace(/\r\n/g, "\n")
+
+  const nestedEvents = normalized.split(/\n\n+/)
+  const tokens: string[] = []
+  let done = false
+
+  for (const nestedEvent of nestedEvents) {
+    const payloads = extractEventPayloads(nestedEvent)
+    for (const payload of payloads) {
+      const trimmed = payload.trim()
+      if (!trimmed) continue
+      if (trimmed === "[DONE]") {
+        done = true
+        continue
+      }
+
+      try {
+        const parsed = JSON.parse(trimmed) as { token?: string }
+        if (typeof parsed.token === "string" && parsed.token.length > 0) {
+          tokens.push(parsed.token)
+        }
+      } catch {
+        const fallbackTokens = extractTokensFromAnyText(trimmed)
+        tokens.push(...fallbackTokens)
+      }
+    }
+
+    if (payloads.length === 0) {
+      const fallbackTokens = extractTokensFromAnyText(nestedEvent)
+      tokens.push(...fallbackTokens)
+      if (nestedEvent.includes("[DONE]")) {
+        done = true
+      }
+    }
+  }
+
+  return { tokens, done }
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -186,27 +284,99 @@ export const api = {
         const decoder = new TextDecoder()
         const reader = response.body.getReader()
         let buffer = ""
+        let fullStreamText = ""
+        let emittedTokenCount = 0
+
+        const emitToken = (token: string) => {
+          if (!token) return
+          handlers.onToken(token)
+          emittedTokenCount += 1
+        }
+
+        const processPayload = (payloadText: string): boolean => {
+          const trimmedPayload = payloadText.trim()
+          if (!trimmedPayload) return false
+
+          if (trimmedPayload === "[DONE]") {
+            return true
+          }
+
+          try {
+            const parsed = JSON.parse(trimmedPayload) as { token?: string }
+            if (typeof parsed.token === "string" && parsed.token.length > 0) {
+              const nested = parseNestedTokenPayload(parsed.token)
+              if (nested.tokens.length > 0 && (parsed.token.includes("data:") || parsed.token.includes("ata:") || parsed.token.includes("\"token\""))) {
+                for (const nestedToken of nested.tokens) {
+                  emitToken(nestedToken)
+                }
+              } else {
+                emitToken(parsed.token)
+              }
+
+              if (nested.done) {
+                return true
+              }
+            }
+          } catch {
+            const nested = parseNestedTokenPayload(trimmedPayload)
+            for (const nestedToken of nested.tokens) {
+              emitToken(nestedToken)
+            }
+            if (nested.done || trimmedPayload.includes("[DONE]")) {
+              return true
+            }
+          }
+
+          return false
+        }
+
+        const processEventChunk = (eventChunk: string): boolean => {
+          const payloads = extractEventPayloads(eventChunk)
+          if (payloads.length === 0) {
+            const fallbackTokens = extractTokensFromAnyText(eventChunk)
+            for (const token of fallbackTokens) {
+              emitToken(token)
+            }
+            return eventChunk.includes("[DONE]")
+          }
+
+          for (const payload of payloads) {
+            if (processPayload(payload)) {
+              return true
+            }
+          }
+
+          return false
+        }
 
         while (true) {
           const { value, done } = await reader.read()
           if (done) break
-          buffer += decoder.decode(value, { stream: true })
-          const events = buffer.split("\n\n")
+          const decoded = decoder.decode(value, { stream: true })
+          fullStreamText += decoded
+          buffer += decoded
+          const events = buffer.split(/\r?\n\r?\n/)
           buffer = events.pop() ?? ""
 
           for (const evt of events) {
-            if (!evt.startsWith("data:")) continue
-            const payloadText = evt.replace(/^data:\s*/, "").trim()
-            if (payloadText === "[DONE]") {
+            if (processEventChunk(evt)) {
               handlers.onDone()
               return
             }
-            try {
-              const parsed = JSON.parse(payloadText) as { token?: string }
-              if (parsed.token) handlers.onToken(parsed.token)
-            } catch {
-              // Ignore malformed chunks while streaming.
-            }
+          }
+        }
+
+        if (buffer.trim()) {
+          if (processEventChunk(buffer)) {
+            handlers.onDone()
+            return
+          }
+        }
+
+        if (emittedTokenCount === 0) {
+          const fallbackTokens = extractTokensFromAnyText(fullStreamText)
+          for (const token of fallbackTokens) {
+            emitToken(token)
           }
         }
 
