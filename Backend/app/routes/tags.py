@@ -13,19 +13,38 @@ from app.schemas.tagSchemas import (
 )
 from app.services.tagService import suggest_tags_via_llm
 
-router = APIRouter(prefix="/sources/{source_id}/tags", tags=["tags"])
+router = APIRouter(prefix="/tags", tags=["tags"])
 
 
+@router.get("/all", response_model=List[TagRead])
+def list_all_tags(session: Session = Depends(get_session)):
+    return repo.get_all_tags(session)
 
 
-@router.get("", response_model=List[TagRead])
+@router.get("/search", response_model=list)
+def search_sources_by_tags(
+    tags: str = "",
+    match: str = "any",
+    session: Session = Depends(get_session),
+):
+    """
+    ?tags=stress,procrastination          → sources with ANY of these tags
+    ?tags=stress,procrastination&match=all → sources with ALL of these tags
+    """
+    if not tags:
+        raise HTTPException(status_code=400, detail="Provide at least one tag")
+    tag_names = [t.strip() for t in tags.split(",") if t.strip()]
+    return repo.get_sources_by_tags(session, tag_names=tag_names, match=match)
+
+
+@router.get("/{source_id:int}", response_model=List[TagRead])
 def list_tags_for_source(source_id: int, session: Session = Depends(get_session)):
     if not session.get(Source, source_id):
         raise HTTPException(status_code=404, detail="Source not found")
     return repo.get_tags_for_source(session, source_id)
 
 
-@router.post("", response_model=TagRead, status_code=201)
+@router.post("/{source_id:int}", response_model=TagRead, status_code=201)
 def add_tag_to_source(
     source_id: int,
     body: TagCreate,
@@ -38,7 +57,7 @@ def add_tag_to_source(
     return tag
 
 
-@router.delete("/{tag_id}", status_code=204)
+@router.delete("/{source_id:int}/{tag_id:int}", status_code=204)
 def remove_tag_from_source(
     source_id: int,
     tag_id: int,
@@ -51,7 +70,7 @@ def remove_tag_from_source(
 
 
 
-@router.get("/suggest", response_model=TagSuggestionsResponse)
+@router.get("/{source_id:int}/suggest", response_model=TagSuggestionsResponse)
 def suggest_tags(source_id: int, session: Session = Depends(get_session)):
     source = session.get(Source, source_id)
     if not source:
@@ -62,7 +81,7 @@ def suggest_tags(source_id: int, session: Session = Depends(get_session)):
     return TagSuggestionsResponse(suggestions=suggestions)
 
 
-@router.post("/suggest/confirm", response_model=List[TagRead], status_code=201)
+@router.post("/{source_id:int}/suggest/confirm", response_model=List[TagRead], status_code=201)
 def confirm_suggested_tags(
     source_id: int,
     body: BulkTagConfirm,
@@ -86,24 +105,3 @@ def confirm_suggested_tags(
         session.rollback()
         raise
     return saved
-
-
-
-
-search_router = APIRouter(prefix="/sources", tags=["tags"])
-
-
-@search_router.get("/search", response_model=list)
-def search_sources_by_tags(
-    tags: str = "",
-    match: str = "any",
-    session: Session = Depends(get_session),
-):
-    """
-    ?tags=stress,procrastination          → sources with ANY of these tags
-    ?tags=stress,procrastination&match=all → sources with ALL of these tags
-    """
-    if not tags:
-        raise HTTPException(status_code=400, detail="Provide at least one tag")
-    tag_names = [t.strip() for t in tags.split(",") if t.strip()]
-    return repo.get_sources_by_tags(session, tag_names=tag_names, match=match)

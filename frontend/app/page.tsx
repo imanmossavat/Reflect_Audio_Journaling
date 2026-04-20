@@ -1,12 +1,11 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState } from "react"
-import { Plus, FileText, Mic, FileUp, Type, Sparkles, MessageCircle, Send, Play, Pause, X, File, Smartphone } from "lucide-react"
+import { FileText, Mic, FileUp, Type, Sparkles, MessageCircle, Send, Play, Pause, X, File, Smartphone } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Skeleton } from "@/components/ui/skeleton"
-import { GraphView } from "@/components/graph-view"
 import { OnboardingModal, type OnboardingProfile } from "@/components/onboarding-modal"
 import { TopNav } from "@/components/top-nav"
 import { api, type SourceRecord } from "@/lib/api"
@@ -29,7 +28,6 @@ interface ChatEntry {
   answer: string
   scaleValue?: number
   timestamp: string
-  tags: { name: string; color: string }[]
 }
 
 type QuestionType = "clarifying" | "guided" | "quantitative"
@@ -61,9 +59,22 @@ const clarifyingQuestions = [
 
 const profileStorageKey = "reflect_profile"
 const mobileOriginStorageKey = "reflect_mobile_origin"
+const leftSidebarWidthStorageKey = "reflect_left_sidebar_width"
+const rightSidebarWidthStorageKey = "reflect_right_sidebar_width"
 const allowedUploadExtensions = new Set([".wav", ".mp3", ".m4a", ".txt", ".md"])
 const allowedUploadMimeTypes = new Set(["audio/mpeg", "audio/wav", "text/plain", "text/markdown"])
 const allowedM4aMimeTypes = new Set(["audio/mp4", "audio/x-m4a"])
+
+const LEFT_SIDEBAR_DEFAULT_WIDTH = 384
+const LEFT_SIDEBAR_MIN_WIDTH = 300
+const LEFT_SIDEBAR_MAX_WIDTH = 560
+const RIGHT_SIDEBAR_DEFAULT_WIDTH = 256
+const RIGHT_SIDEBAR_MIN_WIDTH = 220
+const RIGHT_SIDEBAR_MAX_WIDTH = 420
+
+const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value))
+
+const tagPalette = ["#0ea5e9", "#22c55e", "#f59e0b", "#ef4444", "#8b5cf6", "#14b8a6", "#f97316"]
 
 const getFileExtension = (filename: string) => {
   const dotIndex = filename.lastIndexOf(".")
@@ -106,12 +117,19 @@ const mapBackendSource = (source: SourceRecord): RawSource => ({
   tags: [],
 })
 
+const getTagColor = (tagName: string) => {
+  let hash = 0
+  for (let index = 0; index < tagName.length; index += 1) {
+    hash = (hash * 31 + tagName.charCodeAt(index)) >>> 0
+  }
+  return tagPalette[hash % tagPalette.length]
+}
+
 export default function HomePage() {
   const [rawSources, setRawSources] = useState<RawSource[]>([])
   const [chatEntries, setChatEntries] = useState<ChatEntry[]>([])
   const [currentQuestion, setCurrentQuestion] = useState<{ type: QuestionType; content: string; scaleData?: { lowLabel: string; highLabel: string } } | null>(null)
   const [inputValue, setInputValue] = useState("")
-  const [rightPanel, setRightPanel] = useState<"tools" | "graph">("tools")
   const [addSourceMode, setAddSourceMode] = useState<AddSourceMode>(null)
   const [newSourceText, setNewSourceText] = useState("")
   const [isRecording, setIsRecording] = useState(false)
@@ -124,6 +142,12 @@ export default function HomePage() {
   const [isGeneratingQuestion, setIsGeneratingQuestion] = useState(false)
   const [rawUploadUrl, setRawUploadUrl] = useState("/upload/raw")
   const [mobileOriginInput, setMobileOriginInput] = useState("")
+  const [leftSidebarWidth, setLeftSidebarWidth] = useState(LEFT_SIDEBAR_DEFAULT_WIDTH)
+  const [rightSidebarWidth, setRightSidebarWidth] = useState(RIGHT_SIDEBAR_DEFAULT_WIDTH)
+  const [isResizingSidebar, setIsResizingSidebar] = useState<"left" | "right" | null>(null)
+  const resizeStartRef = useRef<{ startX: number; startWidth: number } | null>(null)
+  const leftSidebarWidthRef = useRef(LEFT_SIDEBAR_DEFAULT_WIDTH)
+  const rightSidebarWidthRef = useRef(RIGHT_SIDEBAR_DEFAULT_WIDTH)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -131,7 +155,29 @@ export default function HomePage() {
       setIsLoadingSources(true)
       try {
         const sources = await api.getSources()
-        const mapped = sources.map(mapBackendSource).sort((a, b) => a.id.localeCompare(b.id))
+        const mappedSources = sources.map(mapBackendSource)
+        const mappedWithTags = await Promise.all(
+          mappedSources.map(async (source) => {
+            const numericSourceId = Number(source.id)
+            if (!Number.isInteger(numericSourceId) || numericSourceId <= 0) {
+              return source
+            }
+
+            try {
+              const loadedTags = await api.getSourceTags(numericSourceId)
+              return {
+                ...source,
+                tags: loadedTags.map((tag) => ({
+                  name: tag.name,
+                  color: getTagColor(tag.name),
+                })),
+              }
+            } catch {
+              return source
+            }
+          })
+        )
+        const mapped = mappedWithTags.sort((a, b) => a.id.localeCompare(b.id))
         setRawSources(mapped)
 
         const hasProfile = Boolean(window.localStorage.getItem(profileStorageKey))
@@ -158,6 +204,81 @@ export default function HomePage() {
       }
     }
   }, [])
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+
+    const savedLeftWidth = Number(window.localStorage.getItem(leftSidebarWidthStorageKey))
+    const savedRightWidth = Number(window.localStorage.getItem(rightSidebarWidthStorageKey))
+
+    if (Number.isFinite(savedLeftWidth) && savedLeftWidth > 0) {
+      setLeftSidebarWidth(clamp(savedLeftWidth, LEFT_SIDEBAR_MIN_WIDTH, LEFT_SIDEBAR_MAX_WIDTH))
+    }
+
+    if (Number.isFinite(savedRightWidth) && savedRightWidth > 0) {
+      setRightSidebarWidth(clamp(savedRightWidth, RIGHT_SIDEBAR_MIN_WIDTH, RIGHT_SIDEBAR_MAX_WIDTH))
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!isResizingSidebar || !resizeStartRef.current) return
+
+    const handleMouseMove = (event: MouseEvent) => {
+      const resizeStart = resizeStartRef.current
+      if (!resizeStart) return
+
+      const deltaX = event.clientX - resizeStart.startX
+
+      if (isResizingSidebar === "left") {
+        const nextWidth = clamp(
+          resizeStart.startWidth + deltaX,
+          LEFT_SIDEBAR_MIN_WIDTH,
+          LEFT_SIDEBAR_MAX_WIDTH
+        )
+        leftSidebarWidthRef.current = nextWidth
+        setLeftSidebarWidth(nextWidth)
+        return
+      }
+
+      const nextWidth = clamp(
+        resizeStart.startWidth - deltaX,
+        RIGHT_SIDEBAR_MIN_WIDTH,
+        RIGHT_SIDEBAR_MAX_WIDTH
+      )
+      rightSidebarWidthRef.current = nextWidth
+      setRightSidebarWidth(nextWidth)
+    }
+
+    const handleMouseUp = () => {
+      setIsResizingSidebar(null)
+      resizeStartRef.current = null
+
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(leftSidebarWidthStorageKey, String(leftSidebarWidthRef.current))
+        window.localStorage.setItem(rightSidebarWidthStorageKey, String(rightSidebarWidthRef.current))
+      }
+    }
+
+    document.body.style.cursor = "col-resize"
+    document.body.style.userSelect = "none"
+    window.addEventListener("mousemove", handleMouseMove)
+    window.addEventListener("mouseup", handleMouseUp)
+
+    return () => {
+      document.body.style.cursor = ""
+      document.body.style.userSelect = ""
+      window.removeEventListener("mousemove", handleMouseMove)
+      window.removeEventListener("mouseup", handleMouseUp)
+    }
+  }, [isResizingSidebar])
+
+  useEffect(() => {
+    leftSidebarWidthRef.current = leftSidebarWidth
+  }, [leftSidebarWidth])
+
+  useEffect(() => {
+    rightSidebarWidthRef.current = rightSidebarWidth
+  }, [rightSidebarWidth])
 
   const includedSources = useMemo(() => rawSources.filter((source) => source.included), [rawSources])
   const hasIncludedSources = includedSources.length > 0
@@ -235,7 +356,6 @@ export default function HomePage() {
       answer: `${value}/10`,
       scaleValue: value,
       timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      tags: [],
     }
     setChatEntries((prev) => [...prev, newEntry])
     setCurrentQuestion(null)
@@ -268,7 +388,6 @@ export default function HomePage() {
       question: promptQuestion,
       answer: trimmedAnswer,
       timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      tags: [],
     }
     setChatEntries((prev) => [...prev, newEntry])
     setInputValue("")
@@ -472,6 +591,15 @@ export default function HomePage() {
     setToolsNotice(`Welcome ${nextProfile.name}, your onboarding profile is saved locally.`)
   }
 
+  const handleSidebarResizeStart = (side: "left" | "right", event: React.MouseEvent<HTMLDivElement>) => {
+    event.preventDefault()
+    setIsResizingSidebar(side)
+    resizeStartRef.current = {
+      startX: event.clientX,
+      startWidth: side === "left" ? leftSidebarWidth : rightSidebarWidth,
+    }
+  }
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <OnboardingModal
@@ -482,7 +610,10 @@ export default function HomePage() {
       <TopNav activePath="/" />
 
       <div className="flex-1 flex">
-        <aside className="w-96 border-r flex flex-col bg-muted/10">
+        <aside
+          className="border-r flex flex-col bg-muted/10 relative shrink-0"
+          style={{ width: leftSidebarWidth }}
+        >
           <div className="p-4 border-b">
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-sm font-medium">Sources</h2>
@@ -721,6 +852,13 @@ export default function HomePage() {
               ))
             )}
           </div>
+          <div
+            role="separator"
+            aria-orientation="vertical"
+            aria-label="Resize left sidebar"
+            onMouseDown={(event) => handleSidebarResizeStart("left", event)}
+            className="absolute top-0 right-0 h-full w-1 translate-x-1/2 cursor-col-resize bg-transparent hover:bg-emerald-500/30 transition-colors"
+          />
         </aside>
 
         <div className="flex-1 flex flex-col min-w-0">
@@ -740,14 +878,6 @@ export default function HomePage() {
                     <div className="bg-emerald-900 text-white rounded-2xl rounded-tr-sm px-4 py-3 max-w-[85%]">
                       <p className="text-[15px]">{entry.answer}</p>
                       <div className="flex items-center justify-end gap-2 mt-1.5">
-                        {entry.tags.map((tag) => (
-                          <span
-                            key={tag.name}
-                            className="text-[10px] px-1.5 py-0.5 rounded bg-white/20"
-                          >
-                            {tag.name}
-                          </span>
-                        ))}
                         <span className="text-[10px] text-white/70">{entry.timestamp}</span>
                       </div>
                     </div>
@@ -874,86 +1004,72 @@ export default function HomePage() {
           </div>
         </div>
 
-        <aside className="w-64 border-l flex flex-col bg-muted/10">
-          <div className="flex border-b">
-            <button
-              onClick={() => setRightPanel("tools")}
-              className={`flex-1 py-3 text-sm font-medium transition-colors ${rightPanel === "tools" ? "border-b-2 border-emerald-500 text-foreground" : "text-muted-foreground"
-                }`}
-            >
-              Tools
-            </button>
-            <button
-              onClick={() => setRightPanel("graph")}
-              className={`flex-1 py-3 text-sm font-medium transition-colors ${rightPanel === "graph" ? "border-b-2 border-emerald-500 text-foreground" : "text-muted-foreground"
-                }`}
-            >
-              Graph
-            </button>
+        <aside
+          className="border-l flex flex-col bg-muted/10 relative shrink-0"
+          style={{ width: rightSidebarWidth }}
+        >
+          <div
+            role="separator"
+            aria-orientation="vertical"
+            aria-label="Resize right sidebar"
+            onMouseDown={(event) => handleSidebarResizeStart("right", event)}
+            className="absolute top-0 left-0 h-full w-1 -translate-x-1/2 cursor-col-resize bg-transparent hover:bg-emerald-500/30 transition-colors"
+          />
+          <div className="border-b px-4 py-3">
+            <h2 className="text-sm font-medium">Tools</h2>
           </div>
 
-          {rightPanel === "tools" ? (
-            <div className="p-4 space-y-4">
-              <div>
-                <h3 className="text-sm font-medium mb-3">Export</h3>
-                <button
-                  onClick={exportToMarkdown}
-                  disabled={!hasIncludedSources}
-                  className="w-full flex items-center gap-3 p-3 rounded-lg border hover:bg-muted transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <FileText className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <div className="text-sm font-medium">Export to Markdown</div>
-                    <div className="text-xs text-muted-foreground">Download included sources</div>
-                  </div>
-                </button>
-              </div>
-
-              <div>
-                <h3 className="text-sm font-medium mb-3">Tags</h3>
-                <div className="flex flex-wrap gap-1.5">
-                  {["work", "stress", "sleep"].map((tag) => (
-                    <span
-                      key={tag}
-                      className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-muted hover:bg-muted/80 cursor-pointer"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                  <button className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs text-muted-foreground hover:bg-muted">
-                    <Plus className="h-3 w-3" />
-                    Add
-                  </button>
+          <div className="p-4 space-y-4">
+            <div>
+              <h3 className="text-sm font-medium mb-3">Export</h3>
+              <button
+                onClick={exportToMarkdown}
+                disabled={!hasIncludedSources}
+                className="w-full flex items-center gap-3 p-3 rounded-lg border hover:bg-muted transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <FileText className="h-4 w-4 text-muted-foreground" />
+                <div>
+                  <div className="text-sm font-medium">Export to Markdown</div>
+                  <div className="text-xs text-muted-foreground">Download included sources</div>
                 </div>
-              </div>
-
-              <div>
-                <h3 className="text-sm font-medium mb-3">AI Search</h3>
-                <button
-                  onClick={handleAISearch}
-                  disabled={!hasIncludedSources || isRunningSearch}
-                  className="w-full flex items-center gap-3 p-3 rounded-lg border hover:bg-muted transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <MessageCircle className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <div className="text-sm font-medium">{isRunningSearch ? "Searching..." : "Ask about your sources"}</div>
-                    <div className="text-xs text-muted-foreground">Search included sources only</div>
-                  </div>
-                </button>
-              </div>
-
-              {toolsNotice && (
-                <p className="text-xs text-muted-foreground rounded-lg border p-2 bg-background">
-                  {toolsNotice}
-                </p>
-              )}
+              </button>
             </div>
-          ) : (
-            <div className="flex-1 p-4">
-              <p className="text-xs text-muted-foreground mb-3">Connections in included sources</p>
-              <GraphView sources={includedSources} />
+
+            <div>
+              <h3 className="text-sm font-medium mb-3">AI Search</h3>
+              <button
+                onClick={handleAISearch}
+                disabled={!hasIncludedSources || isRunningSearch}
+                className="w-full flex items-center gap-3 p-3 rounded-lg border hover:bg-muted transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <MessageCircle className="h-4 w-4 text-muted-foreground" />
+                <div>
+                  <div className="text-sm font-medium">{isRunningSearch ? "Searching..." : "Ask about your sources"}</div>
+                  <div className="text-xs text-muted-foreground">Search included sources only</div>
+                </div>
+              </button>
             </div>
-          )}
+
+            <div>
+              <h3 className="text-sm font-medium mb-3">Graph</h3>
+              <Link
+                href="/graph"
+                className="w-full flex items-center gap-3 p-3 rounded-lg border hover:bg-muted transition-colors text-left"
+              >
+                <Sparkles className="h-4 w-4 text-muted-foreground" />
+                <div>
+                  <div className="text-sm font-medium">Open Graph View</div>
+                  <div className="text-xs text-muted-foreground">Explore source tag relationships</div>
+                </div>
+              </Link>
+            </div>
+
+            {toolsNotice && (
+              <p className="text-xs text-muted-foreground rounded-lg border p-2 bg-background">
+                {toolsNotice}
+              </p>
+            )}
+          </div>
         </aside>
       </div>
     </div>

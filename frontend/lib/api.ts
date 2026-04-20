@@ -9,6 +9,11 @@ export interface SourceRecord {
   created_at: string
 }
 
+export interface SourceTag {
+  id: number
+  name: string
+}
+
 export interface QuerySource {
   source_id?: string | null
   chunk_id?: string | null
@@ -150,8 +155,8 @@ function parseNestedTokenPayload(text: string): { tokens: string[]; done: boolea
   return { tokens, done }
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const timeout = withTimeout(20000)
+async function request<T>(path: string, init?: RequestInit, timeoutMs: number = 20000): Promise<T> {
+  const timeout = withTimeout(timeoutMs)
   try {
     const response = await fetch(`${getBackendBaseUrl()}${path}`, {
       ...init,
@@ -261,7 +266,7 @@ export const api = {
     })
   },
   processSource(sourceId: number) {
-    return request<SourceRecord>(`/source/process/${sourceId}`, { method: "POST" })
+    return request<SourceRecord>(`/source/process/${sourceId}`, { method: "POST" }, 600000)
   },
   query(question: string, top_k = 5) {
     return request<QueryResponse>("/query", {
@@ -275,6 +280,22 @@ export const api = {
       `/extract-tags?source_id=${sourceId}`,
       { method: "POST" }
     )
+  },
+  getAllTags() {
+    return request<SourceTag[]>(`/tags/all`)
+  },
+  getSourceTags(sourceId: number) {
+    return request<SourceTag[]>(`/tags/${sourceId}`)
+  },
+  addTagToSource(sourceId: number, name: string) {
+    return request<SourceTag>(`/tags/${sourceId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name }),
+    })
+  },
+  removeTagFromSource(sourceId: number, tagId: number) {
+    return request<void>(`/tags/${sourceId}/${tagId}`, { method: "DELETE" })
   },
   saveAnswer(payload: SaveAnswerRequest) {
     return request<{ ok: boolean; question_id: number; answer_id: number }>("/save-answer", {
