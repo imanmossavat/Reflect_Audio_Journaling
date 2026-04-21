@@ -5,7 +5,7 @@ import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { GraphView } from "@/components/graph-view"
 import { TopNav } from "@/components/top-nav"
-import { api, type SourceRecord } from "@/lib/api"
+import { api } from "@/lib/api"
 
 interface GraphSourceTag {
   name: string
@@ -30,10 +30,10 @@ const getTagColor = (tagName: string) => {
   return tagPalette[hash % tagPalette.length]
 }
 
-const mapSourceType = (source: SourceRecord): GraphSource["type"] => {
-  const fileType = (source.file_type ?? "").toLowerCase()
-  if (fileType.includes("audio")) return "recording"
-  if (fileType.includes("text") || !source.filename) return "text"
+const mapSourceType = (fileType: string | null, filename: string | null): GraphSource["type"] => {
+  const normalisedFileType = (fileType ?? "").toLowerCase()
+  if (normalisedFileType.includes("audio")) return "recording"
+  if (normalisedFileType.includes("text") || !filename) return "text"
   return "file"
 }
 
@@ -48,34 +48,34 @@ export default function GraphPage() {
       setError(null)
 
       try {
-        const backendSources = await api.getSources()
+        const tagsWithSources = await api.getAllTagsWithSources()
+        const sourceMap = new Map<string, GraphSource>()
 
-        const mappedWithTags = await Promise.all(
-          backendSources.map(async (source) => {
-            const sourceId = Number(source.id)
-            let tags: GraphSourceTag[] = []
+        tagsWithSources.forEach((tag) => {
+          const mappedTag: GraphSourceTag = {
+            name: tag.name,
+            color: getTagColor(tag.name),
+          }
 
-            if (Number.isInteger(sourceId) && sourceId > 0) {
-              try {
-                const loadedTags = await api.getSourceTags(sourceId)
-                tags = loadedTags.map((tag) => ({
-                  name: tag.name,
-                  color: getTagColor(tag.name),
-                }))
-              } catch {
-                // Keep this source without tags if tag loading fails.
-              }
+          tag.sources.forEach((source) => {
+            const sourceId = String(source.id)
+            const existingSource = sourceMap.get(sourceId)
+
+            if (existingSource) {
+              existingSource.tags.push(mappedTag)
+              return
             }
 
-            return {
-              id: String(source.id),
-              type: mapSourceType(source),
+            sourceMap.set(sourceId, {
+              id: sourceId,
+              type: mapSourceType(source.file_type, source.filename),
               name: source.filename || "Quick thought",
-              content: source.text ?? undefined,
-              tags,
-            } satisfies GraphSource
+              tags: [mappedTag],
+            })
           })
-        )
+        })
+
+        const mappedWithTags = Array.from(sourceMap.values())
 
         setSources(mappedWithTags)
       } catch (loadError) {

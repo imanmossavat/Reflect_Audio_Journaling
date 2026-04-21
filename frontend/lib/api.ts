@@ -14,6 +14,18 @@ export interface SourceTag {
   name: string
 }
 
+export interface TagSourceMembership {
+  id: number
+  filename: string | null
+  file_type: string | null
+}
+
+export interface TagWithSources {
+  id: number
+  name: string
+  sources: TagSourceMembership[]
+}
+
 export interface QuerySource {
   source_id?: string | null
   chunk_id?: string | null
@@ -283,6 +295,9 @@ export const api = {
   },
   getAllTags() {
     return request<SourceTag[]>(`/tags/all`)
+  },
+  getAllTagsWithSources() {
+    return request<TagWithSources[]>(`/tags/all-with-sources`)
   },
   getSourceTags(sourceId: number) {
     return request<SourceTag[]>(`/tags/${sourceId}`)

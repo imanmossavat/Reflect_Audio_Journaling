@@ -1,5 +1,6 @@
 from sqlalchemy import func
 from sqlmodel import Session, select
+from sqlalchemy.orm import selectinload, load_only
 
 from database.models import Source, SourceTag, Tag, TagCluster
 
@@ -30,6 +31,21 @@ def get_tag_by_id(session: Session, tag_id: int) -> Tag | None:
 
 def get_all_tags(session: Session) -> list[Tag]:
     return session.exec(select(Tag)).all()
+
+
+def get_all_tags_with_sources(session: Session) -> list[Tag]:
+    stmt = (
+        select(Tag)
+        .options(
+            selectinload(Tag.sources).load_only(
+                Source.id,
+                Source.filename,
+                Source.file_type,
+            )
+        )
+        .order_by(Tag.name)
+    )
+    return session.exec(stmt).all()
 
 
 def get_or_create_tag(session: Session, *, name: str) -> Tag:

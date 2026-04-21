@@ -13,6 +13,7 @@ ollama pull mistral
 ollama pull nomic-embed-text
 ollama pull llama3
 ollama pull gpt-oss:20b
+ollama pull gemma:e4b
 ```
 
 3. Open terminal 2 — start backend:

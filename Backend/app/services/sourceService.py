@@ -7,7 +7,7 @@ from fastapi import HTTPException, UploadFile
 from sqlmodel import Session
 import strip_markdown
 
-from app.repositories import journalRepository
+from app.repositories import sourceRepository
 from app.services.chunking import chunk_text
 from app.services.rag import index_chunks
 from app.services.transcription import TranscriptionManager
@@ -20,10 +20,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent / "database" / "uploads
 logger = logging_config.logger
 
 def get_all_sources(session: Session):
-    return journalRepository.get_all_sources(session)
+    return sourceRepository.get_all_sources(session)
 
 def get_source_by_id(session: Session, source_id: int) -> dict:
-	source = journalRepository.get_source_by_id(session, source_id)
+	source = sourceRepository.get_source_by_id(session, source_id)
 	if not source:
 		raise HTTPException(status_code=404, detail="Source not found.")
 
@@ -31,7 +31,7 @@ def get_source_by_id(session: Session, source_id: int) -> dict:
 
 def get_unprocessed_sources(session: Session):
     return session.exec(
-        journalRepository.get_unprocessed_sources_query()
+        sourceRepository.get_unprocessed_sources_query()
     ).all()
 
 async def save_raw_source_file(session: Session, file: UploadFile):
@@ -58,7 +58,7 @@ async def save_raw_source_file(session: Session, file: UploadFile):
     with open(filepath, "wb") as f:
         f.write(raw_bytes)
 
-    source = journalRepository.create_source(
+    source = sourceRepository.create_source(
         session=session,
         filename=file.filename,
         file_path=str(filepath),
@@ -103,7 +103,7 @@ async def save_processed_source_file(session: Session, file: UploadFile):
     else:
         text = raw_bytes.decode("utf-8")
     
-    source = journalRepository.create_source(
+    source = sourceRepository.create_source(
         session=session,
         filename=file.filename,
         file_path=str(filepath),
@@ -118,7 +118,7 @@ async def save_processed_source_file(session: Session, file: UploadFile):
         raise HTTPException(status_code=500, detail="Chunk generation produced no chunks.")
 
     try:
-        db_chunks = journalRepository.create_chunks(session, source.id, chunks)
+        db_chunks = sourceRepository.create_chunks(session, source.id, chunks)
     except Exception as exc:
         logger.exception(f"Failed to persist chunks for source {source.id}: {exc}")
         raise HTTPException(status_code=500, detail="Failed to save source chunks.") from exc
@@ -137,14 +137,14 @@ async def save_processed_source_file(session: Session, file: UploadFile):
 
 
 async def save_processed_source_text(session: Session, source_text: str):
-    source = journalRepository.create_source(session=session, text=source_text, status="processed")
+    source = sourceRepository.create_source(session=session, text=source_text, status="processed")
     chunks = chunk_text(source_text, source.id)
     if not chunks:
         session.rollback()
         raise HTTPException(status_code=500, detail="Chunk generation produced no chunks.")
 
     try:
-        db_chunks = journalRepository.create_chunks(session, source.id, chunks)
+        db_chunks = sourceRepository.create_chunks(session, source.id, chunks)
         logger.info(f"Created {len(db_chunks)} chunks, first chunk attrs: {vars(db_chunks[0])}")
     except Exception as exc:
         logger.exception(f"Failed to persist chunks for source {source.id}: {exc}")
@@ -164,12 +164,12 @@ async def save_processed_source_text(session: Session, source_text: str):
     return source
 
 async def save_raw_source_text(session: Session, source_text: str):
-    source = journalRepository.create_source(session=session, text=source_text, status="not processed")
+    source = sourceRepository.create_source(session=session, text=source_text, status="not processed")
     return source
 
 
 async def transcribe_source(session: Session, source_id: int):
-    source = journalRepository.get_source_by_id(session, source_id)
+    source = sourceRepository.get_source_by_id(session, source_id)
     if not source:
         raise HTTPException(status_code=404, detail="Source not found.")
 
@@ -185,22 +185,22 @@ async def transcribe_source(session: Session, source_id: int):
     except NotImplementedError as exc:
         raise HTTPException(status_code=501, detail=str(exc)) from exc
 
-    return journalRepository.update_source_text(session, source, transcript_text)
+    return sourceRepository.update_source_text(session, source, transcript_text)
 
 
 async def update_source_text(session: Session, source_id: int, source_text: str):
-    source = journalRepository.get_source_by_id(session, source_id)
+    source = sourceRepository.get_source_by_id(session, source_id)
     if not source:
         raise HTTPException(status_code=404, detail="Source not found.")
 
     if source.status == "processed":
         raise HTTPException(status_code=400, detail="Cannot edit a processed source.")
 
-    return journalRepository.update_source_text(session, source, source_text)
+    return sourceRepository.update_source_text(session, source, source_text)
 
 
 async def process_source(session: Session, source_id: int):
-    source = journalRepository.get_source_by_id(session, source_id)
+    source = sourceRepository.get_source_by_id(session, source_id)
     if not source:
         raise HTTPException(status_code=404, detail="Source not found.")
     if source.status == "processed":
@@ -212,7 +212,7 @@ async def process_source(session: Session, source_id: int):
                 raise HTTPException(status_code=400, detail="No file path found for text source.")
             with open(source.file_path, "r", encoding="utf-8") as f:
                 source.text = f.read()
-            source = journalRepository.update_source_text(session, source, source.text)
+            source = sourceRepository.update_source_text(session, source, source.text)
         elif source.file_type == "audio":
             if not source.file_path:
                 raise HTTPException(status_code=400, detail="No file path found for audio source.")
@@ -225,7 +225,7 @@ async def process_source(session: Session, source_id: int):
             if not transcript_text or not transcript_text.strip():
                 raise HTTPException(status_code=500, detail="Transcription produced no text.")
 
-            source = journalRepository.update_source_text(session, source, transcript_text)
+            source = sourceRepository.update_source_text(session, source, transcript_text)
         else:
             raise HTTPException(status_code=400, detail="Cannot process source without text or file.")
 
@@ -240,7 +240,7 @@ async def process_source(session: Session, source_id: int):
         raise HTTPException(status_code=500, detail="Chunk generation produced no chunks.")
 
     try:
-        db_chunks = journalRepository.create_chunks(session, source.id, chunks)
+        db_chunks = sourceRepository.create_chunks(session, source.id, chunks)
     except Exception as exc:
         logger.exception(f"Failed to persist chunks for source {source.id}: {exc}")
         raise HTTPException(status_code=500, detail="Failed to save source chunks.") from exc

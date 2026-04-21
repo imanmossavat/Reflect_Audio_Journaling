@@ -22,7 +22,7 @@ Source:
 {text}
 """
     response = ollama.chat(
-        model="mistral",
+        model="gemma4:e4b",
         messages=[{"role": "user", "content": prompt}],
         format="json",
     )

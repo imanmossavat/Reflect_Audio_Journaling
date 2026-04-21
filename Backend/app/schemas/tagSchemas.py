@@ -39,3 +39,15 @@ class BulkTagConfirm(BaseModel):
     @classmethod
     def normalise_all(cls, v: List[str]) -> List[str]:
         return [name.strip().lower() for name in v if name.strip()]
+    
+class SourceInTagRead(BaseModel):
+    id: int
+    filename: str | None = None
+    file_type: str | None = None
+    model_config = {"from_attributes": True}
+
+class TagWithSourcesRead(BaseModel):
+    id: int
+    name: str
+    sources: List[SourceInTagRead] = []
+    model_config = {"from_attributes": True}

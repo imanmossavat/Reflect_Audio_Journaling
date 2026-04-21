@@ -8,6 +8,7 @@ from app.repositories import tagRepository as repo
 from app.schemas.tagSchemas import (
     TagCreate,
     TagRead,
+    TagWithSourcesRead,
     TagSuggestionsResponse,
     BulkTagConfirm,
 )
@@ -19,6 +20,11 @@ router = APIRouter(prefix="/tags", tags=["tags"])
 @router.get("/all", response_model=List[TagRead])
 def list_all_tags(session: Session = Depends(get_session)):
     return repo.get_all_tags(session)
+
+
+@router.get("/all-with-sources", response_model=List[TagWithSourcesRead])
+def list_all_tags_with_sources(session: Session = Depends(get_session)):
+    return repo.get_all_tags_with_sources(session)
 
 
 @router.get("/search", response_model=list)
