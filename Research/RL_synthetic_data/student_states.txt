@@ -1,0 +1,30 @@
+Day 01 | Action: leisure          | energy: 0.65 | stress: 0.42 | self_efficacy: 0.49 | social_need: 0.45 | days_until_deadline: 0 | reward: +0.07
+Day 02 | Action: socialize        | energy: 0.55 | stress: 0.49 | self_efficacy: 0.51 | social_need: 0.20 | days_until_deadline: 0 | reward: +0.02
+Day 03 | Action: leisure          | energy: 0.70 | stress: 0.41 | self_efficacy: 0.50 | social_need: 0.15 | days_until_deadline: 0 | reward: +0.09
+Day 04 | Action: socialize        | energy: 0.60 | stress: 0.49 | self_efficacy: 0.52 | social_need: 0.00 | days_until_deadline: 0 | reward: +0.03
+Day 05 | Action: study            | energy: 0.40 | stress: 0.42 | self_efficacy: 0.57 | social_need: 0.05 | days_until_deadline: 0 | reward: +0.15
+Day 06 | Action: skip             | energy: 0.50 | stress: 0.55 | self_efficacy: 0.52 | social_need: 0.10 | days_until_deadline: 0 | reward: -0.03
+Day 07 | Action: leisure          | energy: 0.65 | stress: 0.49 | self_efficacy: 0.51 | social_need: 0.05 | days_until_deadline: 0 | reward: +0.02
+Day 08 | Action: skip             | energy: 0.75 | stress: 0.63 | self_efficacy: 0.46 | social_need: 0.10 | days_until_deadline: 0 | reward: -0.17
+Day 09 | Action: attend lecture   | energy: 0.60 | stress: 0.67 | self_efficacy: 0.49 | social_need: 0.15 | days_until_deadline: 0 | reward: -0.18
+Day 10 | Action: rest             | energy: 0.90 | stress: 0.87 | self_efficacy: 0.49 | social_need: 0.20 | days_until_deadline: 0 | reward: -0.38
+Day 11 | Action: rest             | energy: 1.00 | stress: 0.83 | self_efficacy: 0.49 | social_need: 0.25 | days_until_deadline: 0 | reward: -0.34
+Day 12 | Action: rest             | energy: 1.00 | stress: 0.80 | self_efficacy: 0.49 | social_need: 0.30 | days_until_deadline: 0 | reward: -0.31
+Day 13 | Action: socialize        | energy: 0.90 | stress: 0.88 | self_efficacy: 0.51 | social_need: 0.05 | days_until_deadline: 0 | reward: -0.37
+Day 14 | Action: leisure          | energy: 1.00 | stress: 0.80 | self_efficacy: 0.50 | social_need: 0.00 | days_until_deadline: 0 | reward: -0.30
+Day 15 | Action: socialize        | energy: 0.90 | stress: 0.88 | self_efficacy: 0.52 | social_need: 0.00 | days_until_deadline: 0 | reward: -0.36
+Day 16 | Action: rest             | energy: 1.00 | stress: 0.87 | self_efficacy: 0.52 | social_need: 0.05 | days_until_deadline: 0 | reward: -0.35
+Day 17 | Action: leisure          | energy: 1.00 | stress: 0.80 | self_efficacy: 0.51 | social_need: 0.00 | days_until_deadline: 0 | reward: -0.29
+Day 18 | Action: socialize        | energy: 0.90 | stress: 0.89 | self_efficacy: 0.53 | social_need: 0.00 | days_until_deadline: 0 | reward: -0.36
+Day 19 | Action: skip             | energy: 1.00 | stress: 1.00 | self_efficacy: 0.48 | social_need: 0.05 | days_until_deadline: 0 | reward: -0.52
+Day 20 | Action: skip             | energy: 1.00 | stress: 1.00 | self_efficacy: 0.43 | social_need: 0.10 | days_until_deadline: 0 | reward: -0.57
+Day 21 | Action: skip             | energy: 1.00 | stress: 1.00 | self_efficacy: 0.38 | social_need: 0.15 | days_until_deadline: 0 | reward: -0.62
+Day 22 | Action: leisure          | energy: 1.00 | stress: 0.92 | self_efficacy: 0.37 | social_need: 0.10 | days_until_deadline: 0 | reward: -0.55
+Day 23 | Action: study            | energy: 0.70 | stress: 1.00 | self_efficacy: 0.32 | social_need: 0.15 | days_until_deadline: 0 | reward: -0.68
+Day 24 | Action: leisure          | energy: 0.85 | stress: 0.93 | self_efficacy: 0.31 | social_need: 0.10 | days_until_deadline: 0 | reward: -0.62
+Day 25 | Action: rest             | energy: 1.00 | stress: 0.91 | self_efficacy: 0.31 | social_need: 0.15 | days_until_deadline: 0 | reward: -0.60
+Day 26 | Action: attend lecture   | energy: 0.85 | stress: 0.94 | self_efficacy: 0.34 | social_need: 0.20 | days_until_deadline: 0 | reward: -0.60
+Day 27 | Action: rest             | energy: 1.00 | stress: 0.93 | self_efficacy: 0.34 | social_need: 0.25 | days_until_deadline: 0 | reward: -0.59
+Day 28 | Action: rest             | energy: 1.00 | stress: 0.92 | self_efficacy: 0.34 | social_need: 0.30 | days_until_deadline: 0 | reward: -0.58
+Day 29 | Action: attend lecture   | energy: 0.85 | stress: 0.96 | self_efficacy: 0.37 | social_need: 0.35 | days_until_deadline: 0 | reward: -0.59
+Day 30 | Action: leisure          | energy: 1.00 | stress: 0.85 | self_efficacy: 0.36 | social_need: 0.30 | days_until_deadline: 0 | reward: -0.49
