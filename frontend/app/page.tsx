@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState } from "react"
-import { FileText, Mic, FileUp, Type, Sparkles, MessageCircle, Send, Play, Pause, X, File, Smartphone } from "lucide-react"
+import { FileText, Mic, FileUp, Type, Sparkles, MessageCircle, Send, Play, Pause, X, File as FileIcon, Smartphone } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { OnboardingModal, type OnboardingProfile } from "@/components/onboarding-modal"
 import { TopNav } from "@/components/top-nav"
 import { api, type SourceRecord } from "@/lib/api"
+import { toast } from "sonner"
 
 interface RawSource {
   id: string
@@ -61,8 +62,8 @@ const profileStorageKey = "reflect_profile"
 const mobileOriginStorageKey = "reflect_mobile_origin"
 const leftSidebarWidthStorageKey = "reflect_left_sidebar_width"
 const rightSidebarWidthStorageKey = "reflect_right_sidebar_width"
-const allowedUploadExtensions = new Set([".wav", ".mp3", ".m4a", ".txt", ".md"])
-const allowedUploadMimeTypes = new Set(["audio/mpeg", "audio/wav", "text/plain", "text/markdown"])
+const allowedUploadExtensions = new Set([".wav", ".mp3", ".m4a", ".webm", ".ogg", ".txt", ".md"])
+const allowedUploadMimeTypes = new Set(["audio/mpeg", "audio/wav", "audio/webm", "audio/ogg", "text/plain", "text/markdown"])
 const allowedM4aMimeTypes = new Set(["audio/mp4", "audio/x-m4a"])
 
 const LEFT_SIDEBAR_DEFAULT_WIDTH = 384
@@ -133,7 +134,6 @@ export default function HomePage() {
   const [addSourceMode, setAddSourceMode] = useState<AddSourceMode>(null)
   const [newSourceText, setNewSourceText] = useState("")
   const [isRecording, setIsRecording] = useState(false)
-  const [toolsNotice, setToolsNotice] = useState<string | null>(null)
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false)
   const [isLoadingSources, setIsLoadingSources] = useState(true)
   const [isSavingSource, setIsSavingSource] = useState(false)
@@ -149,6 +149,10 @@ export default function HomePage() {
   const leftSidebarWidthRef = useRef(LEFT_SIDEBAR_DEFAULT_WIDTH)
   const rightSidebarWidthRef = useRef(RIGHT_SIDEBAR_DEFAULT_WIDTH)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+  const audioChunksRef = useRef<Blob[]>([])
+  const recordingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const [recordingSeconds, setRecordingSeconds] = useState(0)
 
   useEffect(() => {
     const loadSources = async () => {
@@ -183,7 +187,7 @@ export default function HomePage() {
         const hasProfile = Boolean(window.localStorage.getItem(profileStorageKey))
         setIsOnboardingOpen(!hasProfile && mapped.length === 0)
       } catch (error) {
-        setToolsNotice(`Could not load sources from backend: ${error instanceof Error ? error.message : "Unknown error"}`)
+        toast.error(`Could not load sources: ${error instanceof Error ? error.message : "Unknown error"}`)
       } finally {
         setIsLoadingSources(false)
       }
@@ -332,13 +336,11 @@ export default function HomePage() {
 
         if (!question) {
           question = pickFallbackQuestion(type)
-          setToolsNotice("Question generator returned no content, so a local prompt was used.")
+          toast("Question generator returned no content — using a local prompt.")
         }
       } catch (error) {
         question = pickFallbackQuestion(type)
-        setToolsNotice(
-          `Question generation is unavailable (${error instanceof Error ? error.message : "Unknown error"}). Using a local prompt.`
-        )
+        toast.error(`Question generation unavailable (${error instanceof Error ? error.message : "Unknown error"}). Using a local prompt.`)
       } finally {
         setIsGeneratingQuestion(false)
       }
@@ -361,7 +363,7 @@ export default function HomePage() {
     setCurrentQuestion(null)
 
     if (latestIncludedSourceId === null) {
-      setToolsNotice("Answer was not saved: include at least one source first.")
+      toast.error("Answer was not saved: include at least one source first.")
       return
     }
 
@@ -372,7 +374,7 @@ export default function HomePage() {
         answer_text: `${value}/10`,
       })
       .catch((error) => {
-        setToolsNotice(`Could not save answer: ${error instanceof Error ? error.message : "Unknown error"}`)
+        toast.error(`Could not save answer: ${error instanceof Error ? error.message : "Unknown error"}`)
       })
   }
 
@@ -394,7 +396,7 @@ export default function HomePage() {
     setCurrentQuestion(null)
 
     if (latestIncludedSourceId === null) {
-      setToolsNotice("Answer was not saved: include at least one source first.")
+      toast.error("Answer was not saved: include at least one source first.")
       return
     }
 
@@ -405,7 +407,7 @@ export default function HomePage() {
         answer_text: trimmedAnswer,
       })
       .catch((error) => {
-        setToolsNotice(`Could not save answer: ${error instanceof Error ? error.message : "Unknown error"}`)
+        toast.error(`Could not save answer: ${error instanceof Error ? error.message : "Unknown error"}`)
       })
   }
 
@@ -423,9 +425,9 @@ export default function HomePage() {
       setRawSources((prev) => [mapBackendSource(created), ...prev])
       setNewSourceText("")
       setAddSourceMode(null)
-      setToolsNotice("Text source uploaded and sent for processing.")
+      toast("Text source uploaded and sent for processing.")
     } catch (error) {
-      setToolsNotice(`Could not save source: ${error instanceof Error ? error.message : "Unknown error"}`)
+      toast.error(`Could not save source: ${error instanceof Error ? error.message : "Unknown error"}`)
     } finally {
       setIsSavingSource(false)
     }
@@ -436,7 +438,7 @@ export default function HomePage() {
 
     const validationError = validateUploadFile(selectedFile)
     if (validationError) {
-      setToolsNotice(validationError)
+      toast.error(validationError)
       return
     }
 
@@ -445,9 +447,9 @@ export default function HomePage() {
       const created = await api.uploadFileSource(selectedFile, true)
       setRawSources((prev) => [mapBackendSource(created), ...prev])
       setAddSourceMode(null)
-      setToolsNotice(`Uploaded ${selectedFile.name} and sent for processing.`)
+      toast(`Uploaded ${selectedFile.name} and sent for processing.`)
     } catch (error) {
-      setToolsNotice(`Upload failed: ${error instanceof Error ? error.message : "Unknown error"}`)
+      toast.error(`Upload failed: ${error instanceof Error ? error.message : "Unknown error"}`)
     } finally {
       setIsSavingSource(false)
       setIsDragOverUpload(false)
@@ -489,15 +491,84 @@ export default function HomePage() {
     }
   }
 
+  const formatRecordingDuration = (seconds: number) => {
+    const m = Math.floor(seconds / 60).toString().padStart(2, "0")
+    const s = (seconds % 60).toString().padStart(2, "0")
+    return `${m}:${s}`
+  }
+
   const handleToggleRecording = () => {
     if (isRecording) {
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+        mediaRecorderRef.current.stop()
+      }
+      if (recordingTimerRef.current) {
+        clearInterval(recordingTimerRef.current)
+        recordingTimerRef.current = null
+      }
       setIsRecording(false)
-      setAddSourceMode(null)
-      setToolsNotice("Recording UI is present; connect microphone capture to upload audio next.")
       return
     }
 
-    setIsRecording(true)
+    if (!window.isSecureContext) {
+      toast.error("Microphone unavailable", { description: "Recording requires HTTPS or localhost. Open the app on localhost, or set up HTTPS." })
+      return
+    }
+
+    if (!navigator.mediaDevices?.getUserMedia) {
+      toast.error("Microphone recording is not supported in this browser.")
+      return
+    }
+
+    navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
+      const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+        ? "audio/webm;codecs=opus"
+        : MediaRecorder.isTypeSupported("audio/webm")
+          ? "audio/webm"
+          : "audio/ogg"
+
+      const mediaRecorder = new MediaRecorder(stream, { mimeType })
+      mediaRecorderRef.current = mediaRecorder
+      audioChunksRef.current = []
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data)
+        }
+      }
+
+      mediaRecorder.onstop = () => {
+        stream.getTracks().forEach((track) => track.stop())
+        const baseMime = mimeType.split(";")[0]
+        const extension = baseMime.includes("ogg") ? ".ogg" : ".webm"
+        const audioBlob = new Blob(audioChunksRef.current, { type: baseMime })
+        const audioFile = new File([audioBlob], `recording-${Date.now()}${extension}`, { type: baseMime })
+
+        setIsSavingSource(true)
+        api.uploadFileSource(audioFile, true)
+          .then((created) => {
+            setRawSources((prev) => [mapBackendSource(created), ...prev])
+            setAddSourceMode(null)
+            setRecordingSeconds(0)
+            toast("Recording saved and sent for processing.")
+          })
+          .catch((error) => {
+            toast.error(`Recording upload failed: ${error instanceof Error ? error.message : "Unknown error"}`)
+          })
+          .finally(() => {
+            setIsSavingSource(false)
+          })
+      }
+
+      mediaRecorder.start()
+      setIsRecording(true)
+      setRecordingSeconds(0)
+      recordingTimerRef.current = setInterval(() => {
+        setRecordingSeconds((prev) => prev + 1)
+      }, 1000)
+    }).catch((error) => {
+      toast.error(`Microphone access denied: ${error instanceof Error ? error.message : "Unknown error"}`)
+    })
   }
 
   const handleApplyMobileOrigin = () => {
@@ -507,7 +578,7 @@ export default function HomePage() {
     if (!trimmed) {
       window.localStorage.removeItem(mobileOriginStorageKey)
       setRawUploadUrl(`${window.location.origin}/upload/raw`)
-      setToolsNotice("Phone upload link reset to current origin.")
+      toast("Phone upload link reset to current origin.")
       return
     }
 
@@ -515,12 +586,12 @@ export default function HomePage() {
     const normalized = withProtocol.replace(/\/$/, "")
     window.localStorage.setItem(mobileOriginStorageKey, normalized)
     setRawUploadUrl(`${normalized}/upload/raw`)
-    setToolsNotice("Phone upload link updated.")
+    toast("Phone upload link updated.")
   }
 
   const exportToMarkdown = () => {
     if (!hasIncludedSources) {
-      setToolsNotice("Select at least one included source before exporting.")
+      toast.error("Select at least one included source before exporting.")
       return
     }
 
@@ -554,12 +625,12 @@ export default function HomePage() {
     a.download = "reflection.md"
     a.click()
     URL.revokeObjectURL(url)
-    setToolsNotice(`Exported ${includedSources.length} included source${includedSources.length === 1 ? "" : "s"}.`)
+    toast(`Exported ${includedSources.length} included source${includedSources.length === 1 ? "" : "s"}.`)
   }
 
   const handleAISearch = async () => {
     if (!hasIncludedSources) {
-      setToolsNotice("Select at least one included source before using AI Search.")
+      toast.error("Select at least one included source before using AI Search.")
       return
     }
 
@@ -573,9 +644,9 @@ export default function HomePage() {
       const answer = await api.query(
         `Summarize the key themes in these selected sources and keep it concise:\n${context || "No text available."}`
       )
-      setToolsNotice(answer.answer)
+      toast("AI Search", { description: answer.answer, duration: 12000 })
     } catch (error) {
-      setToolsNotice(`AI Search failed: ${error instanceof Error ? error.message : "Unknown error"}`)
+      toast.error(`AI Search failed: ${error instanceof Error ? error.message : "Unknown error"}`)
     } finally {
       setIsRunningSearch(false)
     }
@@ -588,7 +659,7 @@ export default function HomePage() {
   const handleOnboardingSubmit = (nextProfile: OnboardingProfile) => {
     window.localStorage.setItem(profileStorageKey, JSON.stringify(nextProfile))
     setIsOnboardingOpen(false)
-    setToolsNotice(`Welcome ${nextProfile.name}, your onboarding profile is saved locally.`)
+    toast(`Welcome ${nextProfile.name} — your profile is saved.`)
   }
 
   const handleSidebarResizeStart = (side: "left" | "right", event: React.MouseEvent<HTMLDivElement>) => {
@@ -658,21 +729,48 @@ export default function HomePage() {
               <div className="p-3 rounded-lg border bg-background space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-medium">Voice recording</span>
-                  <button onClick={() => { setAddSourceMode(null); setIsRecording(false) }} className="p-1 rounded hover:bg-muted">
+                  <button
+                    onClick={() => {
+                      if (isRecording) {
+                        if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+                          mediaRecorderRef.current.stop()
+                        }
+                        if (recordingTimerRef.current) {
+                          clearInterval(recordingTimerRef.current)
+                          recordingTimerRef.current = null
+                        }
+                        setIsRecording(false)
+                        setRecordingSeconds(0)
+                      }
+                      setAddSourceMode(null)
+                    }}
+                    className="p-1 rounded hover:bg-muted"
+                    disabled={isSavingSource}
+                  >
                     <X className="h-3 w-3" />
                   </button>
                 </div>
-                <div className="flex items-center justify-center gap-3">
+                <div className="flex flex-col items-center gap-2">
                   <button
                     onClick={handleToggleRecording}
-                    className={`p-3 rounded-full transition-colors ${isRecording
+                    disabled={isSavingSource}
+                    className={`p-3 rounded-full transition-colors disabled:opacity-50 ${isRecording
                       ? "bg-red-500 text-white animate-pulse"
                       : "bg-emerald-500 text-white hover:bg-emerald-600"
                       }`}
                   >
                     {isRecording ? <Pause className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
                   </button>
+                  {isRecording && (
+                    <span className="text-xs tabular-nums text-muted-foreground">{formatRecordingDuration(recordingSeconds)}</span>
+                  )}
                 </div>
+                {isSavingSource && (
+                  <p className="text-xs text-center text-muted-foreground">Uploading recording...</p>
+                )}
+                {!isRecording && !isSavingSource && (
+                  <p className="text-xs text-center text-muted-foreground">Tap to start recording</p>
+                )}
                 {isRecording && (
                   <p className="text-xs text-center text-muted-foreground">Recording... Tap to stop</p>
                 )}
@@ -808,7 +906,7 @@ export default function HomePage() {
                       {source.type === "recording" ? (
                         <Mic className="h-3 w-3 text-emerald-600" />
                       ) : source.type === "file" ? (
-                        <File className="h-3 w-3 text-blue-600" />
+                        <FileIcon className="h-3 w-3 text-blue-600" />
                       ) : (
                         <Type className="h-3 w-3 text-amber-600" />
                       )}
@@ -1064,11 +1162,6 @@ export default function HomePage() {
               </Link>
             </div>
 
-            {toolsNotice && (
-              <p className="text-xs text-muted-foreground rounded-lg border p-2 bg-background">
-                {toolsNotice}
-              </p>
-            )}
           </div>
         </aside>
       </div>

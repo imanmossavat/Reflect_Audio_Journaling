@@ -1,16 +1,18 @@
+import mimetypes
+import os
+
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from fastapi.responses import FileResponse
 from sqlmodel import Session
 
 from app.db import get_session
 from app.schemas.journalSchemas import SourcePatchRequest
 from app.services import sourceService
 
-import os
-
 router = APIRouter()
 
-ALLOWED_EXTENSIONS = {".wav", ".mp3", ".m4a",".txt", ".md"}
-ALLOWED_MIME_TYPES = {"audio/mpeg", "audio/wav", "text/plain", "text/markdown"}
+ALLOWED_EXTENSIONS = {".wav", ".mp3", ".m4a", ".webm", ".ogg", ".txt", ".md"}
+ALLOWED_MIME_TYPES = {"audio/mpeg", "audio/wav", "audio/webm", "audio/ogg", "text/plain", "text/markdown"}
 
 @router.get("/sources", tags=["Source"])
 async def get_all_sources(
@@ -103,3 +105,17 @@ async def process_source(
     session: Session = Depends(get_session),
 ):
     return await sourceService.process_source(session, source_id)
+
+
+@router.get("/source/{source_id}/audio", tags=["Source"], description="Stream the audio file for an audio source.")
+async def get_source_audio(
+    source_id: int,
+    session: Session = Depends(get_session),
+):
+    source = sourceService.get_source_by_id(session, source_id)
+    if source.file_type != "audio":
+        raise HTTPException(status_code=400, detail="Source is not an audio file.")
+    if not source.file_path or not os.path.isfile(source.file_path):
+        raise HTTPException(status_code=404, detail="Audio file not found on disk.")
+    media_type, _ = mimetypes.guess_type(source.file_path)
+    return FileResponse(source.file_path, media_type=media_type or "audio/mpeg")

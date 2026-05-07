@@ -1,10 +1,17 @@
 export type SourceStatus = "processed" | "not processed" | string
 
+export interface TranscriptSegment {
+  text: string
+  start_s: number | null
+  end_s: number | null
+}
+
 export interface SourceRecord {
   id: number
   filename: string | null
   file_type: string | null
   text: string | null
+  transcript_segments: TranscriptSegment[] | null
   status: SourceStatus
   created_at: string
 }
@@ -206,6 +213,9 @@ async function request<T>(path: string, init?: RequestInit, timeoutMs: number = 
 }
 
 export const api = {
+  getSourceAudioUrl(sourceId: number): string {
+    return `${getBackendBaseUrl()}/source/${sourceId}/audio`
+  },
   getSources() {
     return request<SourceRecord[]>("/sources")
   },

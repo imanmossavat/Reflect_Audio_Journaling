@@ -1,14 +1,14 @@
 "use client"
 
-import { useEffect, useMemo, useState, type FormEvent } from "react"
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import { ArrowLeft, CalendarClock, CircleDot, FileAudio2, FileText, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { TopNav } from "@/components/top-nav"
-import { useToast } from "@/hooks/use-toast"
-import { api, type SourceRecord, type SourceTag } from "@/lib/api"
+import { toast } from "sonner"
+import { api, type SourceRecord, type SourceTag, type TranscriptSegment } from "@/lib/api"
 
 const getSourceKind = (source: SourceRecord) => {
     const fileType = (source.file_type ?? "").toLowerCase()
@@ -27,8 +27,6 @@ const getStatusClassName = (status: string) => {
 
 export default function SourceDetailPage() {
     const params = useParams<{ id: string }>()
-    const { toast } = useToast()
-
     const [source, setSource] = useState<SourceRecord | null>(null)
     const [sourceText, setSourceText] = useState("")
     const [sourceTags, setSourceTags] = useState<SourceTag[]>([])
@@ -39,6 +37,9 @@ export default function SourceDetailPage() {
     const [isAddingTag, setIsAddingTag] = useState(false)
     const [tagIdsBeingRemoved, setTagIdsBeingRemoved] = useState<number[]>([])
     const [processNotice, setProcessNotice] = useState<string | null>(null)
+    const [currentTime, setCurrentTime] = useState(0)
+    const audioRef = useRef<HTMLAudioElement>(null)
+    const activeSegmentRef = useRef<HTMLSpanElement>(null)
 
     const sourceId = useMemo(() => {
         const parsed = Number(params.id)
@@ -90,10 +91,7 @@ export default function SourceDetailPage() {
         if (!normalizedName) return
 
         if (sourceTags.some((tag) => tag.name.toLowerCase() === normalizedName)) {
-            toast({
-                title: "Tag already exists",
-                description: `${normalizedName} is already attached to this source.`,
-            })
+            toast("Tag already exists", { description: `${normalizedName} is already attached to this source.` })
             return
         }
 
@@ -107,16 +105,9 @@ export default function SourceDetailPage() {
                 return [...currentTags, addedTag]
             })
             setNewTagName("")
-            toast({
-                title: "Tag added",
-                description: `${addedTag.name} was added.`,
-            })
+            toast("Tag added", { description: `${addedTag.name} was added.` })
         } catch (addTagError) {
-            toast({
-                title: "Could not add tag",
-                description: addTagError instanceof Error ? addTagError.message : "Unknown error",
-                variant: "destructive",
-            })
+            toast.error("Could not add tag", { description: addTagError instanceof Error ? addTagError.message : "Unknown error" })
         } finally {
             setIsAddingTag(false)
         }
@@ -130,16 +121,9 @@ export default function SourceDetailPage() {
         try {
             await api.removeTagFromSource(sourceId, tag.id)
             setSourceTags((currentTags) => currentTags.filter((currentTag) => currentTag.id !== tag.id))
-            toast({
-                title: "Tag removed",
-                description: `${tag.name} was removed.`,
-            })
+            toast("Tag removed", { description: `${tag.name} was removed.` })
         } catch (removeTagError) {
-            toast({
-                title: "Could not remove tag",
-                description: removeTagError instanceof Error ? removeTagError.message : "Unknown error",
-                variant: "destructive",
-            })
+            toast.error("Could not remove tag", { description: removeTagError instanceof Error ? removeTagError.message : "Unknown error" })
         } finally {
             setTagIdsBeingRemoved((currentIds) => currentIds.filter((id) => id !== tag.id))
         }
@@ -162,6 +146,24 @@ export default function SourceDetailPage() {
             setIsProcessing(false)
         }
     }
+
+    const segments: TranscriptSegment[] | null = source?.transcript_segments ?? null
+    const isAudio = source?.file_type?.toLowerCase().includes("audio") ?? false
+
+    const activeSegmentIndex = useMemo(() => {
+        if (!segments) return -1
+        for (let i = 0; i < segments.length; i++) {
+            const seg = segments[i]
+            const start = seg.start_s ?? 0
+            const end = seg.end_s ?? Infinity
+            if (currentTime >= start && currentTime < end) return i
+        }
+        return -1
+    }, [segments, currentTime])
+
+    useEffect(() => {
+        activeSegmentRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" })
+    }, [activeSegmentIndex])
 
     const canProcess = source && source.status.toLowerCase() !== "processed"
     const normalizedNewTag = newTagName.trim().toLowerCase()
@@ -220,7 +222,42 @@ export default function SourceDetailPage() {
                                         <p className="mt-3 rounded-lg border bg-muted/20 p-3 text-sm text-muted-foreground">{processNotice}</p>
                                     )}
 
-                                    {sourceText.trim() ? (
+                                    {isAudio && source && (
+                                        <div className="mt-4">
+                                            <audio
+                                                ref={audioRef}
+                                                src={api.getSourceAudioUrl(source.id)}
+                                                controls
+                                                onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
+                                                className="w-full rounded-lg"
+                                            />
+                                        </div>
+                                    )}
+
+                                    {segments && segments.length > 0 ? (
+                                        <div className="mt-4 space-y-0.5 text-sm leading-7 text-foreground">
+                                            {segments.map((seg, i) => (
+                                                <span
+                                                    key={i}
+                                                    ref={i === activeSegmentIndex ? activeSegmentRef : null}
+                                                    onClick={() => {
+                                                        if (audioRef.current && seg.start_s != null) {
+                                                            audioRef.current.currentTime = seg.start_s
+                                                            void audioRef.current.play()
+                                                        }
+                                                    }}
+                                                    className={[
+                                                        "cursor-pointer rounded px-0.5 transition-colors",
+                                                        i === activeSegmentIndex
+                                                            ? "bg-emerald-100 text-emerald-900 dark:bg-emerald-900/30 dark:text-emerald-200"
+                                                            : "hover:bg-muted/50",
+                                                    ].join(" ")}
+                                                >
+                                                    {seg.text}{" "}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    ) : sourceText.trim() ? (
                                         <pre className="mt-4 whitespace-pre-wrap wrap-break-word text-sm leading-6 text-foreground">{sourceText}</pre>
                                     ) : (
                                         <p className="mt-4 text-sm text-muted-foreground">No transcript or text is available for this source yet.</p>

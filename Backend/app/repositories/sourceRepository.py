@@ -24,6 +24,7 @@ def create_source(
     filename: Optional[str] = None,
     file_path: Optional[str] = None,
     file_type: Optional[str] = None,
+    transcript_segments: Optional[list] = None,
 ) -> Source:
     now = datetime.now()
     new_source = Source(
@@ -31,6 +32,7 @@ def create_source(
         filename=filename,
         file_path=file_path,
         file_type=file_type,
+        transcript_segments=transcript_segments,
         status=status,
         created_at=now,
         edited_at=now,
@@ -87,6 +89,18 @@ def create_chunks(session: Session, source_id: int, chunks: list[dict[str, Any]]
 
 def update_source_text(session: Session, source: Source, text: str) -> Source:
     source.text = text
+    source.edited_at = datetime.now()
+
+    session.add(source)
+    session.commit()
+    session.refresh(source)
+
+    return source
+
+
+def update_source_transcript(session: Session, source: Source, text: str, segments: list) -> Source:
+    source.text = text
+    source.transcript_segments = segments
     source.edited_at = datetime.now()
 
     session.add(source)

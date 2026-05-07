@@ -2,11 +2,11 @@
 
 import { useRef, useState } from "react"
 import Link from "next/link"
-import { ArrowLeft, FileUp, Smartphone, Type } from "lucide-react"
+import { FileUp, Mic, Pause, Smartphone, Type } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { api, type SourceRecord } from "@/lib/api"
 
-type RawUploadMode = "file" | "text"
+type RawUploadMode = "file" | "text" | "recording"
 
 const allowedUploadExtensions = new Set([".wav", ".mp3", ".m4a", ".txt", ".md"])
 const allowedUploadMimeTypes = new Set(["audio/mpeg", "audio/wav", "text/plain", "text/markdown"])
@@ -38,13 +38,97 @@ const validateUploadFile = (file: File) => {
 
 export default function RawUploadPage() {
     const fileInputRef = useRef<HTMLInputElement>(null)
+    const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+    const audioChunksRef = useRef<Blob[]>([])
+    const recordingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
     const [mode, setMode] = useState<RawUploadMode>("file")
     const [textValue, setTextValue] = useState("")
     const [isSaving, setIsSaving] = useState(false)
     const [isDragOver, setIsDragOver] = useState(false)
+    const [isRecording, setIsRecording] = useState(false)
+    const [recordingSeconds, setRecordingSeconds] = useState(0)
     const [notice, setNotice] = useState<string | null>(null)
     const [createdSource, setCreatedSource] = useState<SourceRecord | null>(null)
+
+    const formatDuration = (seconds: number) => {
+        const m = Math.floor(seconds / 60).toString().padStart(2, "0")
+        const s = (seconds % 60).toString().padStart(2, "0")
+        return `${m}:${s}`
+    }
+
+    const handleToggleRecording = () => {
+        if (isRecording) {
+            if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+                mediaRecorderRef.current.stop()
+            }
+            if (recordingTimerRef.current) {
+                clearInterval(recordingTimerRef.current)
+                recordingTimerRef.current = null
+            }
+            setIsRecording(false)
+            return
+        }
+
+        if (!window.isSecureContext) {
+            setNotice("Recording requires HTTPS or localhost. Open the app on localhost, or set up HTTPS.")
+            return
+        }
+
+        if (!navigator.mediaDevices?.getUserMedia) {
+            setNotice("Microphone recording is not supported in this browser.")
+            return
+        }
+
+        navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
+            const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+                ? "audio/webm;codecs=opus"
+                : MediaRecorder.isTypeSupported("audio/webm")
+                    ? "audio/webm"
+                    : "audio/ogg"
+
+            const mediaRecorder = new MediaRecorder(stream, { mimeType })
+            mediaRecorderRef.current = mediaRecorder
+            audioChunksRef.current = []
+
+            mediaRecorder.ondataavailable = (event) => {
+                if (event.data.size > 0) {
+                    audioChunksRef.current.push(event.data)
+                }
+            }
+
+            mediaRecorder.onstop = () => {
+                stream.getTracks().forEach((track) => track.stop())
+                const baseMime = mimeType.split(";")[0]
+                const extension = baseMime.includes("ogg") ? ".ogg" : ".webm"
+                const audioBlob = new Blob(audioChunksRef.current, { type: baseMime })
+                const audioFile = new File([audioBlob], `recording-${Date.now()}${extension}`, { type: baseMime })
+
+                setIsSaving(true)
+                api.uploadRawFileSource(audioFile)
+                    .then((created) => {
+                        setCreatedSource(created)
+                        setRecordingSeconds(0)
+                        setNotice("Recording saved as raw source.")
+                    })
+                    .catch((error) => {
+                        setNotice(`Recording upload failed: ${error instanceof Error ? error.message : "Unknown error"}`)
+                    })
+                    .finally(() => {
+                        setIsSaving(false)
+                    })
+            }
+
+            mediaRecorder.start()
+            setIsRecording(true)
+            setRecordingSeconds(0)
+            recordingTimerRef.current = setInterval(() => {
+                setRecordingSeconds((prev) => prev + 1)
+            }, 1000)
+        }).catch((error) => {
+            setNotice(`Microphone access denied: ${error instanceof Error ? error.message : "Unknown error"}`)
+        })
+    }
 
     const handleUploadFile = async (selectedFile: File | null) => {
         if (!selectedFile || isSaving) return
@@ -133,7 +217,18 @@ export default function RawUploadPage() {
                         Perfect for fast capture from your phone. These uploads stay unprocessed, with no immediate transcription or chunk processing.
                     </p>
 
-                    <div className="mt-5 grid grid-cols-2 gap-2">
+                    <div className="mt-5 grid grid-cols-3 gap-2">
+                        <button
+                            onClick={() => setMode("recording")}
+                            className={`rounded-xl border-2 p-3 text-left transition-colors ${mode === "recording"
+                                ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20"
+                                : "border-border hover:border-emerald-400 hover:bg-emerald-50/50 dark:hover:bg-emerald-900/10"
+                                }`}
+                        >
+                            <Mic className="h-4 w-4 text-emerald-600 mb-2" />
+                            <div className="text-sm font-medium">Record</div>
+                            <div className="text-xs text-muted-foreground">Voice memo</div>
+                        </button>
                         <button
                             onClick={() => setMode("file")}
                             className={`rounded-xl border-2 p-3 text-left transition-colors ${mode === "file"
@@ -157,6 +252,29 @@ export default function RawUploadPage() {
                             <div className="text-xs text-muted-foreground">Quick note</div>
                         </button>
                     </div>
+
+                    {mode === "recording" && (
+                        <div className="mt-4 rounded-xl border bg-muted/20 p-5 space-y-4 text-center">
+                            <div className="flex flex-col items-center gap-3">
+                                <button
+                                    onClick={handleToggleRecording}
+                                    disabled={isSaving}
+                                    className={`p-5 rounded-full transition-colors disabled:opacity-50 ${isRecording
+                                        ? "bg-red-500 text-white animate-pulse"
+                                        : "bg-emerald-500 text-white hover:bg-emerald-600"
+                                        }`}
+                                >
+                                    {isRecording ? <Pause className="h-6 w-6" /> : <Mic className="h-6 w-6" />}
+                                </button>
+                                {isRecording && (
+                                    <span className="text-lg font-mono tabular-nums text-muted-foreground">{formatDuration(recordingSeconds)}</span>
+                                )}
+                            </div>
+                            {isSaving && <p className="text-sm text-muted-foreground">Uploading recording...</p>}
+                            {!isRecording && !isSaving && <p className="text-sm text-muted-foreground">Tap to start recording</p>}
+                            {isRecording && <p className="text-sm text-muted-foreground">Tap to stop and save</p>}
+                        </div>
+                    )}
 
                     {mode === "file" && (
                         <div

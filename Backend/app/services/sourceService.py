@@ -11,7 +11,7 @@ from app.repositories import sourceRepository
 from app.services.chunking import chunk_text
 from app.services.rag import index_chunks
 from app.services.transcription import TranscriptionManager
-from app import     logging_config
+from app import logging_config
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent / "database" / "uploads"
@@ -97,18 +97,25 @@ async def save_processed_source_file(session: Session, file: UploadFile):
     if file_type == "audio":
         try:
             recording = SimpleRecording(path=str(filepath), id=str(uuid.uuid4()))
-            text = TranscriptionManager().transcribe(recording).text
+            transcript = TranscriptionManager().transcribe(recording)
+            text = transcript.text
+            segments = [
+                {"text": s.text, "start_s": s.start_s, "end_s": s.end_s}
+                for s in transcript.sentences
+            ]
         except NotImplementedError as exc:
             raise HTTPException(status_code=501, detail=str(exc)) from exc
     else:
         text = raw_bytes.decode("utf-8")
-    
+        segments = None
+
     source = sourceRepository.create_source(
         session=session,
         filename=file.filename,
         file_path=str(filepath),
         file_type=file_type,
         text=text,
+        transcript_segments=segments,
         status="processed",
     )
 
@@ -181,11 +188,16 @@ async def transcribe_source(session: Session, source_id: int):
 
     try:
         recording = SimpleRecording(path=source.file_path, id=str(source.id))
-        transcript_text = TranscriptionManager().transcribe(recording).text
+        transcript = TranscriptionManager().transcribe(recording)
+        transcript_text = transcript.text
+        segments = [
+            {"text": s.text, "start_s": s.start_s, "end_s": s.end_s}
+            for s in transcript.sentences
+        ]
     except NotImplementedError as exc:
         raise HTTPException(status_code=501, detail=str(exc)) from exc
 
-    return sourceRepository.update_source_text(session, source, transcript_text)
+    return sourceRepository.update_source_transcript(session, source, transcript_text, segments)
 
 
 async def update_source_text(session: Session, source_id: int, source_text: str):
@@ -218,14 +230,19 @@ async def process_source(session: Session, source_id: int):
                 raise HTTPException(status_code=400, detail="No file path found for audio source.")
             try:
                 recording = SimpleRecording(path=source.file_path, id=str(source.id))
-                transcript_text = TranscriptionManager().transcribe(recording).text
+                transcript = TranscriptionManager().transcribe(recording)
+                transcript_text = transcript.text
+                segments = [
+                    {"text": s.text, "start_s": s.start_s, "end_s": s.end_s}
+                    for s in transcript.sentences
+                ]
             except NotImplementedError as exc:
                 raise HTTPException(status_code=501, detail=str(exc)) from exc
 
             if not transcript_text or not transcript_text.strip():
                 raise HTTPException(status_code=500, detail="Transcription produced no text.")
 
-            source = sourceRepository.update_source_text(session, source, transcript_text)
+            source = sourceRepository.update_source_transcript(session, source, transcript_text, segments)
         else:
             raise HTTPException(status_code=400, detail="Cannot process source without text or file.")
 
