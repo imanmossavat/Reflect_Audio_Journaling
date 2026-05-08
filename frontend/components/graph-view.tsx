@@ -456,7 +456,7 @@ export function GraphView({ sources, mode = "embedded" }: GraphViewProps) {
         }
       >
         <p className="text-xs text-muted-foreground text-center">
-          Include at least one source to generate a graph.
+          Include at least one tag to a source to generate a graph. The graph visualizes connections between the tags of the sources.
         </p>
       </div>
     )

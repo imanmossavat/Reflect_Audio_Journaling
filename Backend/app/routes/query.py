@@ -174,8 +174,7 @@ async def save_answer(req: SaveAnswerRequest):
         )
         session.add(answer)
         session.commit()
-
-    return {"ok": True, "question_id": question.id, "answer_id": answer.id}
+        return {"ok": True, "question_id": question.id, "answer_id": answer.id}
 
 
 @router.get("/ollama-health", tags=["Query"])

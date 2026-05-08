@@ -228,6 +228,7 @@ export default function SourceDetailPage() {
                                                 ref={audioRef}
                                                 src={api.getSourceAudioUrl(source.id)}
                                                 controls
+                                                controlsList="nodownload"
                                                 onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
                                                 className="w-full rounded-lg"
                                             />
@@ -272,7 +273,7 @@ export default function SourceDetailPage() {
                                                 <div className="text-xs text-muted-foreground">Created</div>
                                                 <div className="mt-1 flex items-center gap-2 text-sm font-medium">
                                                     <CalendarClock className="h-4 w-4 text-muted-foreground" />
-                                                    {new Date(source.created_at).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}
+                                                    {new Date(source.created_at).toLocaleString('en-US', { dateStyle: "medium", timeStyle: "short" })}
                                                 </div>
                                             </div>
                                             <div className="rounded-lg border bg-muted/20 p-3">
