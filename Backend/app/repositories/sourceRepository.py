@@ -6,6 +6,9 @@ from database.models import Chunk, Source
 def get_all_sources(session: Session):
     return session.exec(select(Source)).all()
 
+def get_sources_since(session: Session, since_id: int):
+    return session.exec(select(Source).where(Source.id > since_id)).all()
+
 def get_source_by_id(session: Session, source_id: int) -> Source:
     return session.exec(select(Source).where(Source.id == source_id)).first()
 
@@ -73,8 +76,6 @@ def create_chunks(session: Session, source_id: int, chunks: list[dict[str, Any]]
         if not db_chunks:
             raise ValueError(f"No chunks generated for source {source_id}.")
 
-        source.status = "processed"
-        source.edited_at = datetime.now()
         session.commit()
 
         for chunk in db_chunks:
@@ -85,6 +86,15 @@ def create_chunks(session: Session, source_id: int, chunks: list[dict[str, Any]]
         session.rollback()
         print(f"Error creating chunks for source {source_id}: {exc}")
         raise exc
+
+
+def update_source_status(session: Session, source: Source, status: str) -> Source:
+    source.status = status
+    source.edited_at = datetime.now()
+    session.add(source)
+    session.commit()
+    session.refresh(source)
+    return source
 
 
 def update_source_text(session: Session, source: Source, text: str) -> Source:

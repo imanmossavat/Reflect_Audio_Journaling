@@ -1,4 +1,22 @@
-export type SourceStatus = "processed" | "not processed" | string
+export type SourceStatus =
+  | "processed"
+  | "not processed"
+  | "queued"
+  | "transcribing"
+  | "chunking"
+  | "indexing"
+  | "failed"
+  | string
+
+export const PROCESSING_STATUSES = new Set<SourceStatus>(["queued", "transcribing", "chunking", "indexing"])
+
+export const PROCESSING_STATUS_LABELS: Record<string, string> = {
+  queued: "Queued...",
+  transcribing: "Transcribing audio...",
+  chunking: "Splitting into chunks...",
+  indexing: "Building search index...",
+  failed: "Processing failed",
+}
 
 export interface TranscriptSegment {
   text: string
@@ -216,8 +234,9 @@ export const api = {
   getSourceAudioUrl(sourceId: number): string {
     return `${getBackendBaseUrl()}/source/${sourceId}/audio`
   },
-  getSources() {
-    return request<SourceRecord[]>("/sources")
+  getSources(sinceId = 0) {
+    const url = sinceId > 0 ? `/sources?since_id=${sinceId}` : "/sources"
+    return request<SourceRecord[]>(url)
   },
   getUnprocessedSources() {
     return request<SourceRecord[]>("/unprocessed-sources")
@@ -271,6 +290,22 @@ export const api = {
       return this.uploadProcessedFileSource(file)
     }
     return this.uploadRawFileSource(file)
+  },
+  dropFileToInbox(file: File) {
+    const body = new FormData()
+    body.append("file", file)
+    return request<{ queued: boolean; filename: string }>("/source/drop-to-inbox", {
+      method: "POST",
+      body,
+    })
+  },
+  dropTextToInbox(sourceText: string) {
+    const body = new FormData()
+    body.append("source_text", sourceText)
+    return request<{ queued: boolean; filename: string }>("/source/drop-text-to-inbox", {
+      method: "POST",
+      body,
+    })
   },
   transcribeSource(sourceId: number) {
     return request<SourceRecord>(`/source/transcribe/${sourceId}`, { method: "POST" }).catch((error) => {

@@ -4,7 +4,7 @@ import { useRef, useState } from "react"
 import Link from "next/link"
 import { FileUp, Mic, Pause, Smartphone, Type } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { api, type SourceRecord } from "@/lib/api"
+import { api } from "@/lib/api"
 
 type RawUploadMode = "file" | "text" | "recording"
 
@@ -49,7 +49,7 @@ export default function RawUploadPage() {
     const [isRecording, setIsRecording] = useState(false)
     const [recordingSeconds, setRecordingSeconds] = useState(0)
     const [notice, setNotice] = useState<string | null>(null)
-    const [createdSource, setCreatedSource] = useState<SourceRecord | null>(null)
+    const [queued, setQueued] = useState(false)
 
     const formatDuration = (seconds: number) => {
         const m = Math.floor(seconds / 60).toString().padStart(2, "0")
@@ -105,11 +105,11 @@ export default function RawUploadPage() {
                 const audioFile = new File([audioBlob], `recording-${Date.now()}${extension}`, { type: baseMime })
 
                 setIsSaving(true)
-                api.uploadRawFileSource(audioFile)
-                    .then((created) => {
-                        setCreatedSource(created)
+                api.dropFileToInbox(audioFile)
+                    .then(() => {
+                        setQueued(true)
                         setRecordingSeconds(0)
-                        setNotice("Recording saved as raw source.")
+                        setNotice("Recording queued for processing.")
                     })
                     .catch((error) => {
                         setNotice(`Recording upload failed: ${error instanceof Error ? error.message : "Unknown error"}`)
@@ -141,9 +141,9 @@ export default function RawUploadPage() {
 
         setIsSaving(true)
         try {
-            const created = await api.uploadRawFileSource(selectedFile)
-            setCreatedSource(created)
-            setNotice(`Saved ${selectedFile.name} as a raw source.`)
+            await api.dropFileToInbox(selectedFile)
+            setQueued(true)
+            setNotice(`${selectedFile.name} queued for processing.`)
         } catch (error) {
             setNotice(`Upload failed: ${error instanceof Error ? error.message : "Unknown error"}`)
         } finally {
@@ -160,10 +160,10 @@ export default function RawUploadPage() {
 
         setIsSaving(true)
         try {
-            const created = await api.uploadRawTextSource(textValue)
-            setCreatedSource(created)
+            await api.dropTextToInbox(textValue)
+            setQueued(true)
             setTextValue("")
-            setNotice("Raw text source saved.")
+            setNotice("Text note queued for processing.")
         } catch (error) {
             setNotice(`Could not save source: ${error instanceof Error ? error.message : "Unknown error"}`)
         } finally {
@@ -336,12 +336,9 @@ export default function RawUploadPage() {
                         <p className="mt-4 rounded-lg border bg-background p-3 text-sm text-muted-foreground">{notice}</p>
                     )}
 
-                    {createdSource && (
+                    {queued && (
                         <div className="mt-4 flex flex-wrap items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm dark:border-emerald-900/40 dark:bg-emerald-900/20">
-                            <span className="text-emerald-700 dark:text-emerald-300">Saved source #{createdSource.id}</span>
-                            <Link href={`/sources/${createdSource.id}`} className="font-medium text-emerald-700 underline underline-offset-2 dark:text-emerald-300">
-                                Open source view
-                            </Link>
+                            <span className="text-emerald-700 dark:text-emerald-300">Queued — transcription and indexing will run automatically.</span>
                             <Link href="/" className="font-medium text-emerald-700 underline underline-offset-2 dark:text-emerald-300">
                                 Back to main page
                             </Link>

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { TopNav } from "@/components/top-nav"
 import { toast } from "sonner"
-import { api, type SourceRecord, type SourceTag, type TranscriptSegment } from "@/lib/api"
+import { api, type SourceRecord, type SourceTag, type TranscriptSegment, PROCESSING_STATUSES, PROCESSING_STATUS_LABELS } from "@/lib/api"
 
 const getSourceKind = (source: SourceRecord) => {
     const fileType = (source.file_type ?? "").toLowerCase()
@@ -83,6 +83,31 @@ export default function SourceDetailPage() {
         void loadSource()
     }, [sourceId])
 
+    // Poll while source is being processed in background
+    useEffect(() => {
+        if (!source || !PROCESSING_STATUSES.has(source.status)) return
+
+        const interval = setInterval(async () => {
+            try {
+                const updated = await api.getSourceById(source.id)
+                setSource(updated)
+                if (updated.text && updated.text !== sourceText) {
+                    setSourceText(updated.text)
+                }
+                if (!PROCESSING_STATUSES.has(updated.status)) {
+                    clearInterval(interval)
+                    if (updated.status === "processed") {
+                        setProcessNotice("Processing complete.")
+                    }
+                }
+            } catch {
+                // ignore transient errors
+            }
+        }, 2500)
+
+        return () => clearInterval(interval)
+    }, [source?.status, source?.id])
+
     const handleAddTag = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault()
         if (!source || sourceId === null || isAddingTag) return
@@ -136,10 +161,7 @@ export default function SourceDetailPage() {
         try {
             const updatedSource = await api.processSource(source.id)
             setSource(updatedSource)
-            if (typeof updatedSource.text === "string") {
-                setSourceText(updatedSource.text)
-            }
-            setProcessNotice("Source processed successfully.")
+            setProcessNotice("Processing started — this page will update automatically.")
         } catch (processError) {
             setProcessNotice(`Could not process source: ${processError instanceof Error ? processError.message : "Unknown error"}`)
         } finally {
@@ -165,7 +187,8 @@ export default function SourceDetailPage() {
         activeSegmentRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" })
     }, [activeSegmentIndex])
 
-    const canProcess = source && source.status.toLowerCase() !== "processed"
+    const isSourceInProgress = source ? PROCESSING_STATUSES.has(source.status) : false
+    const canProcess = source && source.status !== "processed" && !isSourceInProgress
     const normalizedNewTag = newTagName.trim().toLowerCase()
     const isDuplicateNewTag = normalizedNewTag.length > 0 && sourceTags.some((tag) => tag.name.toLowerCase() === normalizedNewTag)
     const sourceKind = source ? getSourceKind(source) : "File"
@@ -193,9 +216,26 @@ export default function SourceDetailPage() {
                             <div>
                                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-600">Source detail</p>
                                 <h1 className="mt-2 text-2xl font-semibold tracking-tight">{source.filename || "Quick thought"}</h1>
-                                <div className={`mt-3 inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium ${getStatusClassName(source.status)}`}>
-                                    <CircleDot className="h-3 w-3" />
-                                    {source.status}
+                                <div className={`mt-3 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${
+                                    isSourceInProgress
+                                        ? "border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300"
+                                        : getStatusClassName(source.status)
+                                }`}>
+                                    {isSourceInProgress ? (
+                                        <>
+                                            <span className="flex gap-0.5">
+                                                <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce [animation-delay:0ms]" />
+                                                <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce [animation-delay:150ms]" />
+                                                <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce [animation-delay:300ms]" />
+                                            </span>
+                                            {PROCESSING_STATUS_LABELS[source.status] ?? "Processing..."}
+                                        </>
+                                    ) : (
+                                        <>
+                                            <CircleDot className="h-3 w-3" />
+                                            {source.status}
+                                        </>
+                                    )}
                                 </div>
                             </div>
 
@@ -203,7 +243,11 @@ export default function SourceDetailPage() {
                                 <div className="rounded-xl border bg-background p-4 sm:p-5">
                                     <div className="flex flex-wrap items-center justify-between gap-3">
                                         <h2 className="text-base font-semibold">Complete transcript</h2>
-                                        {canProcess && (
+                                        {isSourceInProgress ? (
+                                            <span className="text-xs text-emerald-600 animate-pulse">
+                                                {PROCESSING_STATUS_LABELS[source.status] ?? "Processing..."}
+                                            </span>
+                                        ) : canProcess ? (
                                             <Button
                                                 type="button"
                                                 size="sm"
@@ -213,9 +257,9 @@ export default function SourceDetailPage() {
                                                     void handleProcess()
                                                 }}
                                             >
-                                                {isProcessing ? "Processing..." : "Process source"}
+                                                {isProcessing ? "Starting..." : "Process source"}
                                             </Button>
-                                        )}
+                                        ) : null}
                                     </div>
 
                                     {processNotice && (

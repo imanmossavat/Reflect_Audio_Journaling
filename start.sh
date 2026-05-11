@@ -51,8 +51,8 @@ uv run python start_backend.py &
 BACKEND_PID=$!
 
 # ── 5. Frontend deps + start ─────────────────────────────────────────────────
-cd "$ROOT/Frontend"
-if [ ! -d "node_modules" ]; then
+cd "$ROOT/frontend"
+if [ ! -d "node_modules/.bin" ]; then
     echo "Installing frontend dependencies..."
     npm install
 fi

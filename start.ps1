@@ -47,13 +47,13 @@ Write-Host "Starting backend..."
 Start-Process powershell -ArgumentList "-NoExit", "-Command", "Set-Location '$root\Backend'; uv run python start_backend.py"
 
 # ── 5. Frontend deps + start ─────────────────────────────────────────────────
-Set-Location "$root\Frontend"
-if (-not (Test-Path "node_modules")) {
+Set-Location "$root\frontend"
+if (-not (Test-Path "node_modules\.bin")) {
     Write-Host "Installing frontend dependencies..."
     npm install
 }
 Write-Host "Starting frontend..."
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "Set-Location '$root\Frontend'; npm run dev"
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "Set-Location '$root\frontend'; npm run dev"
 
 Write-Host ""
 Write-Host "Both servers are starting."

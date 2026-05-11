@@ -8,7 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Skeleton } from "@/components/ui/skeleton"
 import { OnboardingModal, type OnboardingProfile } from "@/components/onboarding-modal"
 import { TopNav } from "@/components/top-nav"
-import { api, type SourceRecord } from "@/lib/api"
+import { api, type SourceRecord, PROCESSING_STATUSES, PROCESSING_STATUS_LABELS } from "@/lib/api"
 import { toast } from "sonner"
 
 interface RawSource {
@@ -20,6 +20,7 @@ interface RawSource {
   timestamp: string
   included: boolean
   tags: { name: string; color: string }[]
+  status: string
 }
 
 interface ChatEntry {
@@ -116,6 +117,7 @@ const mapBackendSource = (source: SourceRecord): RawSource => ({
   timestamp: new Date(source.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
   included: true,
   tags: [],
+  status: source.status,
 })
 
 const getTagColor = (tagName: string) => {
@@ -153,6 +155,75 @@ export default function HomePage() {
   const audioChunksRef = useRef<Blob[]>([])
   const recordingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const [recordingSeconds, setRecordingSeconds] = useState(0)
+  const [processingSources, setProcessingSources] = useState<Set<number>>(new Set())
+  const rawSourcesRef = useRef<RawSource[]>([])
+  const maxSourceIdRef = useRef(0)
+
+  useEffect(() => {
+    rawSourcesRef.current = rawSources
+  }, [rawSources])
+
+  // Poll for new sources created by the inbox watcher (e.g. uploaded from phone)
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      try {
+        const newOnes = await api.getSources(maxSourceIdRef.current)
+        if (newOnes.length === 0) return
+        const mapped = newOnes.map(mapBackendSource)
+        const maxId = Math.max(...newOnes.map((s) => s.id ?? 0))
+        if (maxId > maxSourceIdRef.current) maxSourceIdRef.current = maxId
+        setRawSources((prev) => [...mapped, ...prev].sort((a, b) => a.id.localeCompare(b.id)))
+        const processingIds = mapped
+          .filter((s) => PROCESSING_STATUSES.has(s.status))
+          .map((s) => Number(s.id))
+          .filter((id) => Number.isInteger(id) && id > 0)
+        if (processingIds.length > 0) {
+          setProcessingSources((prev) => {
+            const next = new Set(prev)
+            processingIds.forEach((id) => next.add(id))
+            return next
+          })
+        }
+      } catch {
+        // ignore transient errors
+      }
+    }, 5000)
+    return () => clearInterval(interval)
+  }, [])
+
+  useEffect(() => {
+    if (processingSources.size === 0) return
+    const interval = setInterval(async () => {
+      const done: number[] = []
+      await Promise.all(
+        [...processingSources].map(async (sourceId) => {
+          try {
+            const updated = await api.getSourceById(sourceId)
+            setRawSources((prev) =>
+              prev.map((s) =>
+                s.id === String(sourceId)
+                  ? { ...s, status: updated.status, content: updated.text ?? s.content }
+                  : s
+              )
+            )
+            if (!PROCESSING_STATUSES.has(updated.status)) {
+              done.push(sourceId)
+            }
+          } catch {
+            // ignore transient errors
+          }
+        })
+      )
+      if (done.length > 0) {
+        setProcessingSources((prev) => {
+          const next = new Set(prev)
+          done.forEach((id) => next.delete(id))
+          return next
+        })
+      }
+    }, 2500)
+    return () => clearInterval(interval)
+  }, [processingSources])
 
   useEffect(() => {
     const loadSources = async () => {
@@ -183,6 +254,15 @@ export default function HomePage() {
         )
         const mapped = mappedWithTags.sort((a, b) => a.id.localeCompare(b.id))
         setRawSources(mapped)
+        maxSourceIdRef.current = Math.max(0, ...sources.map((s) => s.id ?? 0))
+
+        const inProgress = new Set(
+          mapped
+            .filter((s) => PROCESSING_STATUSES.has(s.status))
+            .map((s) => Number(s.id))
+            .filter((id) => Number.isInteger(id) && id > 0)
+        )
+        if (inProgress.size > 0) setProcessingSources(inProgress)
 
         const hasProfile = Boolean(window.localStorage.getItem(profileStorageKey))
         setIsOnboardingOpen(!hasProfile && mapped.length === 0)
@@ -423,9 +503,10 @@ export default function HomePage() {
     try {
       const created = await api.uploadTextSource(newSourceText, true)
       setRawSources((prev) => [mapBackendSource(created), ...prev])
+      setProcessingSources((prev) => new Set([...prev, created.id]))
       setNewSourceText("")
       setAddSourceMode(null)
-      toast("Text source uploaded and sent for processing.")
+      toast("Text source added — processing in background.")
     } catch (error) {
       toast.error(`Could not save source: ${error instanceof Error ? error.message : "Unknown error"}`)
     } finally {
@@ -446,8 +527,9 @@ export default function HomePage() {
     try {
       const created = await api.uploadFileSource(selectedFile, true)
       setRawSources((prev) => [mapBackendSource(created), ...prev])
+      setProcessingSources((prev) => new Set([...prev, created.id]))
       setAddSourceMode(null)
-      toast(`Uploaded ${selectedFile.name} and sent for processing.`)
+      toast(`${selectedFile.name} uploaded — processing in background.`)
     } catch (error) {
       toast.error(`Upload failed: ${error instanceof Error ? error.message : "Unknown error"}`)
     } finally {
@@ -548,9 +630,10 @@ export default function HomePage() {
         api.uploadFileSource(audioFile, true)
           .then((created) => {
             setRawSources((prev) => [mapBackendSource(created), ...prev])
+            setProcessingSources((prev) => new Set([...prev, created.id]))
             setAddSourceMode(null)
             setRecordingSeconds(0)
-            toast("Recording saved and sent for processing.")
+            toast("Recording saved — transcribing in background.")
           })
           .catch((error) => {
             toast.error(`Recording upload failed: ${error instanceof Error ? error.message : "Unknown error"}`)
@@ -893,61 +976,94 @@ export default function HomePage() {
                 </div>
               ))
             ) : (
-              rawSources.map((source) => (
-                <div
-                  key={source.id}
-                  className={`p-2.5 rounded-lg hover:bg-muted/50 transition-colors group ${source.included ? "" : "opacity-60"}`}
-                >
-                  <div className="flex items-start gap-2.5">
-                    <div className={`p-1.5 rounded-md ${source.type === "recording" ? "bg-emerald-100 dark:bg-emerald-900/30" :
-                      source.type === "file" ? "bg-blue-100 dark:bg-blue-900/30" :
-                        "bg-amber-100 dark:bg-amber-900/30"
+              rawSources.map((source) => {
+                const isInProgress = PROCESSING_STATUSES.has(source.status)
+                const isFailed = source.status === "failed"
+                return (
+                  <div
+                    key={source.id}
+                    className={`p-2.5 rounded-lg transition-all group ${
+                      isInProgress
+                        ? "border border-emerald-400/50 bg-emerald-50/40 dark:bg-emerald-900/10"
+                        : isFailed
+                          ? "border border-red-200 bg-red-50/30 dark:bg-red-900/10 opacity-70"
+                          : `hover:bg-muted/50 ${source.included ? "" : "opacity-60"}`
+                    }`}
+                  >
+                    <div className="flex items-start gap-2.5">
+                      <div className={`p-1.5 rounded-md shrink-0 ${
+                        isInProgress
+                          ? "bg-emerald-100 dark:bg-emerald-900/40 animate-pulse"
+                          : source.type === "recording"
+                            ? "bg-emerald-100 dark:bg-emerald-900/30"
+                            : source.type === "file"
+                              ? "bg-blue-100 dark:bg-blue-900/30"
+                              : "bg-amber-100 dark:bg-amber-900/30"
                       }`}>
-                      {source.type === "recording" ? (
-                        <Mic className="h-3 w-3 text-emerald-600" />
-                      ) : source.type === "file" ? (
-                        <FileIcon className="h-3 w-3 text-blue-600" />
-                      ) : (
-                        <Type className="h-3 w-3 text-amber-600" />
-                      )}
-                    </div>
-                    <Link
-                      href={`/sources/${source.id}`}
-                      className="flex-1 min-w-0 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40"
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium truncate">{source.name}</span>
+                        {source.type === "recording" ? (
+                          <Mic className={`h-3 w-3 ${isInProgress ? "text-emerald-500" : "text-emerald-600"}`} />
+                        ) : source.type === "file" ? (
+                          <FileIcon className="h-3 w-3 text-blue-600" />
+                        ) : (
+                          <Type className="h-3 w-3 text-amber-600" />
+                        )}
                       </div>
-                      {source.type === "recording" && (
-                        <div className="flex items-center gap-2 mt-0.5">
-                          <Play className="h-3 w-3 text-muted-foreground" />
-                          <span className="text-xs text-muted-foreground">{source.duration}</span>
+                      <Link
+                        href={`/sources/${source.id}`}
+                        className="flex-1 min-w-0 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium truncate">{source.name}</span>
                         </div>
-                      )}
-                      {source.type === "text" && source.content && (
-                        <p className="text-xs text-muted-foreground truncate mt-0.5">{source.content}</p>
-                      )}
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-[10px] text-muted-foreground">{source.timestamp}</span>
-                        {source.tags.map((tag) => (
-                          <span
-                            key={tag.name}
-                            className="text-[10px] px-1.5 py-0.5 rounded-full bg-muted"
-                          >
-                            {tag.name}
-                          </span>
-                        ))}
-                      </div>
-                    </Link>
-                    <Checkbox
-                      checked={source.included}
-                      onCheckedChange={(checked) => handleSetSourceIncluded(source.id, checked === true)}
-                      aria-label={`Include ${source.name}`}
-                      className="self-center"
-                    />
+                        {isInProgress ? (
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <span className="flex gap-0.5">
+                              <span className="inline-block w-1 h-1 rounded-full bg-emerald-500 animate-bounce [animation-delay:0ms]" />
+                              <span className="inline-block w-1 h-1 rounded-full bg-emerald-500 animate-bounce [animation-delay:150ms]" />
+                              <span className="inline-block w-1 h-1 rounded-full bg-emerald-500 animate-bounce [animation-delay:300ms]" />
+                            </span>
+                            <span className="text-xs text-emerald-600">
+                              {PROCESSING_STATUS_LABELS[source.status] ?? "Processing..."}
+                            </span>
+                          </div>
+                        ) : isFailed ? (
+                          <p className="text-xs text-red-500 mt-0.5">Processing failed</p>
+                        ) : (
+                          <>
+                            {source.type === "recording" && (
+                              <div className="flex items-center gap-2 mt-0.5">
+                                <Play className="h-3 w-3 text-muted-foreground" />
+                                <span className="text-xs text-muted-foreground">{source.duration}</span>
+                              </div>
+                            )}
+                            {source.type === "text" && source.content && (
+                              <p className="text-xs text-muted-foreground truncate mt-0.5">{source.content}</p>
+                            )}
+                          </>
+                        )}
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-[10px] text-muted-foreground">{source.timestamp}</span>
+                          {source.tags.map((tag) => (
+                            <span
+                              key={tag.name}
+                              className="text-[10px] px-1.5 py-0.5 rounded-full bg-muted"
+                            >
+                              {tag.name}
+                            </span>
+                          ))}
+                        </div>
+                      </Link>
+                      <Checkbox
+                        checked={source.included}
+                        onCheckedChange={(checked) => handleSetSourceIncluded(source.id, checked === true)}
+                        aria-label={`Include ${source.name}`}
+                        className="self-center"
+                        disabled={isInProgress}
+                      />
+                    </div>
                   </div>
-                </div>
-              ))
+                )
+              })
             )}
           </div>
           <div

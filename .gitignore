@@ -16,3 +16,4 @@ __pycache__/
 Backend/docs_qr.png
 /Research/RL_synthetic_data/synthetic_journals
 /.claude
+/Backend/database/inbox
