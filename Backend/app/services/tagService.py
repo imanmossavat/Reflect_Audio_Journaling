@@ -9,7 +9,7 @@ def suggest_tags_via_llm(source_text: str) -> list[dict]:
     return _parse_response(raw)
 
 
-# ── Prompt ───────────────────────────────────────────────────────────────────
+#Prompt
 
 _SYSTEM_PROMPT = """You are a neutral tagging assistant for a reflective source app.
 Your only job is to suggest short keyword tags that describe the key themes in the source.

@@ -4,9 +4,9 @@ This repository contains the appendix materials for **REFLECT**, an AI-powered j
 
 ---
 
-## How to view
+## How to view the inspiration
 
-The full appendix is published as an interactive Notion document and is best viewed there:
+The full insiration of reflect is published as an interactive Notion document and is best viewed there:
 
 **[Open in Notion](https://www.notion.so/Inspiration-REFLECT-34369d42631b806d91cee08ad62ea31c)**
 
@@ -22,6 +22,7 @@ If you can't access Notion or prefer an offline version, an exported PDF is incl
 
 The appendix covers:
 
+- **HCD Brief** — Design directions, project context, and student guide for the interaction design
 - **Research** — Survey results, key insights, and the current AI prompt
 - **Product Context** — System overview, backend capabilities, and design constraints
 - **Inspiration** — Reference apps with annotated likes/dislikes

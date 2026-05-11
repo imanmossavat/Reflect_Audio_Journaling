@@ -21,7 +21,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent / "database" / "uploads
 (BASE_DIR / "text").mkdir(parents=True, exist_ok=True)
 logger = logging_config.logger
 
-# ── Background processing ─────────────────────────────────────────────────────
+#Background processing
 
 def _set_status(source_id: int, status: str) -> None:
     """Tiny short-lived write so SQLite is never locked during long operations."""
@@ -36,7 +36,7 @@ def _process_source_sync(source_id: int) -> None:
     Each DB interaction uses its own short-lived session so SQLite is only
     locked for milliseconds, never for the duration of transcription / LLM calls.
     """
-    # ── Read initial source state ────────────────────────────────────────────
+    #Read initial source state
     with Session(engine) as session:
         source = sourceRepository.get_source_by_id(session, source_id)
         if not source:
@@ -47,7 +47,7 @@ def _process_source_sync(source_id: int) -> None:
         text = source.text
 
     try:
-        # ── Step 1: Transcribe (audio only, long-running, no session held) ──
+        #Transcribe
         if file_type == "audio" and not text:
             _set_status(source_id, "transcribing")
             if not file_path:
@@ -82,7 +82,7 @@ def _process_source_sync(source_id: int) -> None:
             _set_status(source_id, "failed")
             return
 
-        # ── Step 2: Chunk (may call Ollama, no session held) ────────────────
+        #Chunk
         _set_status(source_id, "chunking")
         text_to_chunk = strip_markdown.strip_markdown(text) if file_type == "markdown" else text
         chunks = chunk_text(text_to_chunk, source_id)
@@ -99,7 +99,7 @@ def _process_source_sync(source_id: int) -> None:
                 for c in db_chunks
             ]
 
-        # ── Step 3: Vector index (ChromaDB, no session held) ─────────────────
+        #Vector index (ChromaDB)
         _set_status(source_id, "indexing")
         index_chunks(chunk_dicts)
 
@@ -115,7 +115,7 @@ async def _process_source_background(source_id: int) -> None:
     await asyncio.to_thread(_process_source_sync, source_id)
 
 
-# ── Service functions ─────────────────────────────────────────────────────────
+#Functions
 
 def get_all_sources(session: Session):
     return sourceRepository.get_all_sources(session)

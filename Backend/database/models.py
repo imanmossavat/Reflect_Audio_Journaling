@@ -5,7 +5,7 @@ from sqlalchemy import JSON, Column
 from sqlmodel import Field, Relationship, SQLModel
 
 
-# ─── Many to Many table ───────────────────────────────────────────────────────────
+#Many-to-many tables
 
 class SourceTag(SQLModel, table=True):
     __tablename__ = "source_tag"
@@ -21,7 +21,7 @@ class QuestionTag(SQLModel, table=True):
     tag_id: int = Field(foreign_key="tag.id", primary_key=True)
 
 
-# ─── Tables ──────────────────────────────────────────────────────────────
+#Tables
 
 class TagCluster(SQLModel, table=True):
     __tablename__ = "tag_cluster"
