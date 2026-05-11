@@ -2,6 +2,7 @@ from logging.config import fileConfig
 
 from alembic import context
 from sqlmodel import SQLModel
+from sqlmodel.sql.sqltypes import AutoString
 
 from app.db import engine
 from database.models import *
@@ -21,10 +22,12 @@ if config.config_file_name is not None:
 # target_metadata = mymodel.Base.metadata
 target_metadata = SQLModel.metadata
 
-# other values from the config, defined by the needs of env.py,
-# can be acquired:
-# my_important_option = config.get_main_option("my_important_option")
-# ... etc.
+
+def render_item(type_, obj, autogen_context):
+    if type_ == "type" and isinstance(obj, AutoString):
+        autogen_context.imports.add("import sqlalchemy as sa")
+        return "sa.String()"
+    return False
 
 
 def run_migrations_offline() -> None:
@@ -45,7 +48,8 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
-        compare_type=True
+        compare_type=True,
+        render_item=render_item,
     )
 
     with context.begin_transaction():
@@ -65,7 +69,9 @@ def run_migrations_online() -> None:
         context.configure(
             connection=connection,
             target_metadata=target_metadata,
-            compare_type=True
+            compare_type=True,
+            render_as_batch=True,
+            render_item=render_item,
         )
 
         with context.begin_transaction():
