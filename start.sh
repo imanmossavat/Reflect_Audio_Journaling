@@ -28,7 +28,7 @@ if ! command -v node &>/dev/null; then
     export PATH="$HOME/.local/share/fnm:$PATH"
     eval "$(fnm env --use-on-cd 2>/dev/null || true)"
     fnm install --lts
-    fnm use --lts
+    fnm use lts-latest
 fi
 if ! command -v node &>/dev/null; then
     echo "Node.js install failed. Please install manually: https://nodejs.org"
