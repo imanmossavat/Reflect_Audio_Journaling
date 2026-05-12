@@ -1,3 +1,15 @@
+import os from 'os'
+
+function getLanIps() {
+  const ips = []
+  for (const ifaces of Object.values(os.networkInterfaces())) {
+    for (const iface of ifaces ?? []) {
+      if (iface.family === 'IPv4' && !iface.internal) ips.push(iface.address)
+    }
+  }
+  return ips
+}
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   typescript: {
@@ -6,7 +18,7 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  allowedDevOrigins: ['145.93.100.126'],
+  allowedDevOrigins: getLanIps(),
 }
 
 export default nextConfig

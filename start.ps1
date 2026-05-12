@@ -37,7 +37,8 @@ Write-Host "node: OK"
 
 # 3. mkcert + HTTPS certificates
 $certsDir = "$root\certs"
-$certFile = "$certsDir\localhost+1.pem"
+$certFile = "$certsDir\localhost.pem"
+$keyFile  = "$certsDir\localhost-key.pem"
 
 if (-not (Get-Command mkcert -ErrorAction SilentlyContinue)) {
     Write-Host "Installing mkcert..."
@@ -49,15 +50,43 @@ if (-not (Get-Command mkcert -ErrorAction SilentlyContinue)) {
     }
 }
 
-if ((Get-Command mkcert -ErrorAction SilentlyContinue) -and (-not (Test-Path $certFile))) {
-    Write-Host "Setting up local HTTPS certificates (a UAC prompt will appear to trust the CA)..."
-    Start-Process mkcert -ArgumentList "-install" -Verb RunAs -Wait
-    New-Item -ItemType Directory -Force -Path $certsDir | Out-Null
-    Push-Location $certsDir
-    & mkcert localhost 127.0.0.1
-    Pop-Location
-    Write-Host "Certificates ready."
-} else {
+if (Get-Command mkcert -ErrorAction SilentlyContinue) {
+    # Collect every IPv4 address bound to this machine, minus loopback and APIPA.
+    # Browsers reject the cert if the hostname/IP isn't in the SAN list, so the
+    # set has to track whichever network we're currently on.
+    $lanIps = @(Get-NetIPAddress -AddressFamily IPv4 -ErrorAction SilentlyContinue |
+        Where-Object { $_.IPAddress -notlike "127.*" -and $_.IPAddress -notlike "169.254.*" } |
+        Select-Object -ExpandProperty IPAddress)
+    $certNames = @("localhost", "127.0.0.1") + $lanIps
+
+    $needsRegen = $true
+    if (Test-Path $certFile) {
+        try {
+            $existing = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($certFile)
+            $sanExt = $existing.Extensions | Where-Object { $_.Oid.Value -eq "2.5.29.17" }
+            if ($sanExt) {
+                $sanText = $sanExt.Format($false)
+                $needsRegen = $false
+                foreach ($name in $certNames) {
+                    if ($sanText -notmatch [regex]::Escape($name)) { $needsRegen = $true; break }
+                }
+            }
+        } catch { $needsRegen = $true }
+    }
+
+    if ($needsRegen) {
+        $caInstalled = Get-ChildItem Cert:\CurrentUser\Root -ErrorAction SilentlyContinue |
+            Where-Object { $_.Subject -like "*mkcert*" }
+        if (-not $caInstalled) {
+            Write-Host "Installing mkcert local CA (UAC prompt will appear)..."
+            Start-Process mkcert -ArgumentList "-install" -Verb RunAs -Wait
+        }
+        New-Item -ItemType Directory -Force -Path $certsDir | Out-Null
+        Write-Host "Generating HTTPS cert for: $($certNames -join ', ')"
+        Push-Location $certsDir
+        & mkcert -cert-file localhost.pem -key-file localhost-key.pem @certNames
+        Pop-Location
+    }
     Write-Host "mkcert: OK"
 }
 

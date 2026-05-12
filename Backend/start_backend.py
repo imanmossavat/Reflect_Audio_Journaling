@@ -8,8 +8,8 @@ RESET = "\033[0m"
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 cert_dir = os.path.join(script_dir, "..", "certs")
-ssl_cert = os.path.join(cert_dir, "localhost+1.pem")
-ssl_key = os.path.join(cert_dir, "localhost+1-key.pem")
+ssl_cert = os.path.join(cert_dir, "localhost.pem")
+ssl_key = os.path.join(cert_dir, "localhost-key.pem")
 use_tls = os.path.exists(ssl_cert) and os.path.exists(ssl_key)
 scheme = "https" if use_tls else "http"
 

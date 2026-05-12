@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --webpack",
-    "dev:tls": "next dev --webpack --experimental-https --experimental-https-key ../certs/localhost+1-key.pem --experimental-https-cert ../certs/localhost+1.pem",
+    "dev:tls": "next dev --webpack --experimental-https --experimental-https-key ../certs/localhost-key.pem --experimental-https-cert ../certs/localhost.pem",
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint ."
