@@ -1,732 +1,103 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
-import { FileText, Mic, FileUp, Type, Sparkles, MessageCircle, Send, Play, Pause, X, File as FileIcon, Smartphone } from "lucide-react"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Skeleton } from "@/components/ui/skeleton"
-import { OnboardingModal, type OnboardingProfile } from "@/components/onboarding-modal"
+import { useEffect, useState } from "react"
+import { FileText, MessageSquare } from "lucide-react"
+import { OnboardingModal } from "@/components/onboarding-modal"
 import { TopNav } from "@/components/top-nav"
-import { api, type SourceRecord, PROCESSING_STATUSES, PROCESSING_STATUS_LABELS } from "@/lib/api"
+import { SourceListPanel } from "@/components/home/source-list-panel"
+import { ChatListPanel } from "@/components/home/chat-list-panel"
+import { ChatTopBar } from "@/components/home/chat-top-bar"
+import { ChatMessages } from "@/components/home/chat-messages"
+import { ChatInput } from "@/components/home/chat-input"
+import { RightSidebar } from "@/components/home/right-sidebar"
+import { api } from "@/lib/api"
+import { useSourceManagement } from "@/hooks/useSourceManagement"
+import { useChatManagement } from "@/hooks/useChatManagement"
+import { useSidebarResize } from "@/hooks/useSidebarResize"
+import type { LeftTab } from "@/components/home/types"
 import { toast } from "sonner"
 
-interface RawSource {
-  id: string
-  type: "recording" | "file" | "text"
-  name: string
-  content?: string
-  duration?: string
-  timestamp: string
-  included: boolean
-  tags: { name: string; color: string }[]
-  status: string
-}
-
-interface ChatEntry {
-  id: string
-  type: "reflection" | "scale" | "freeform"
-  question?: string
-  answer: string
-  scaleValue?: number
-  timestamp: string
-}
-
-type QuestionType = "clarifying" | "guided" | "quantitative"
-type AddSourceMode = null | "recording" | "file" | "text" | "phone"
-
-const quantitativeQuestions = [
-  { question: "How much is stress affecting your life right now?", lowLabel: "Not at all", highLabel: "Significantly" },
-  { question: "How energized do you feel today?", lowLabel: "Exhausted", highLabel: "Very energized" },
-  { question: "How confident are you feeling about your progress?", lowLabel: "Not confident", highLabel: "Very confident" },
-  { question: "How well did you sleep last night?", lowLabel: "Very poorly", highLabel: "Very well" },
-  { question: "How anxious are you feeling right now?", lowLabel: "Not at all", highLabel: "Extremely" },
-]
-
-const guidedQuestions = [
-  "What moment from today are you most grateful for?",
-  "What challenge did you face recently, and what did you learn from it?",
-  "How did you take care of yourself this week?",
-  "What's one thing you'd like to let go of?",
-  "What are you looking forward to?",
-]
-
-const clarifyingQuestions = [
-  "Can you tell me more about what led to that?",
-  "How did that make you feel in the moment?",
-  "What do you think triggered that response?",
-  "What would the ideal outcome look like for you?",
-  "Is there a pattern you've noticed here before?",
-]
-
-const profileStorageKey = "reflect_profile"
-const mobileOriginStorageKey = "reflect_mobile_origin"
-const leftSidebarWidthStorageKey = "reflect_left_sidebar_width"
-const rightSidebarWidthStorageKey = "reflect_right_sidebar_width"
-const allowedUploadExtensions = new Set([".wav", ".mp3", ".m4a", ".webm", ".ogg", ".txt", ".md"])
-const allowedUploadMimeTypes = new Set(["audio/mpeg", "audio/wav", "audio/webm", "audio/ogg", "text/plain", "text/markdown"])
-const allowedM4aMimeTypes = new Set(["audio/mp4", "audio/x-m4a"])
-
-const LEFT_SIDEBAR_DEFAULT_WIDTH = 384
-const LEFT_SIDEBAR_MIN_WIDTH = 300
-const LEFT_SIDEBAR_MAX_WIDTH = 560
-const RIGHT_SIDEBAR_DEFAULT_WIDTH = 256
-const RIGHT_SIDEBAR_MIN_WIDTH = 220
-const RIGHT_SIDEBAR_MAX_WIDTH = 420
-
-const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value))
-
-const tagPalette = ["#0ea5e9", "#22c55e", "#f59e0b", "#ef4444", "#8b5cf6", "#14b8a6", "#f97316"]
-
-const getFileExtension = (filename: string) => {
-  const dotIndex = filename.lastIndexOf(".")
-  return dotIndex === -1 ? "" : filename.slice(dotIndex).toLowerCase()
-}
-
-const validateUploadFile = (file: File) => {
-  const extension = getFileExtension(file.name)
-  if (!allowedUploadExtensions.has(extension)) {
-    return "Unsupported file type. Use .wav, .mp3, .m4a, .txt, or .md."
-  }
-
-  const mimeType = file.type.toLowerCase()
-  if (!mimeType) {
-    return null
-  }
-
-  const isM4aMime = extension === ".m4a" && allowedM4aMimeTypes.has(mimeType)
-  if (!allowedUploadMimeTypes.has(mimeType) && !isM4aMime) {
-    return "Unsupported file format. Please upload .wav, .mp3, .m4a, .txt, or .md files."
-  }
-
-  return null
-}
-
-const mapSourceType = (source: SourceRecord): RawSource["type"] => {
-  const fileType = (source.file_type ?? "").toLowerCase()
-  if (fileType.includes("audio")) return "recording"
-  if (fileType.includes("text") || !source.filename) return "text"
-  return "file"
-}
-
-const mapBackendSource = (source: SourceRecord): RawSource => ({
-  id: String(source.id),
-  type: mapSourceType(source),
-  name: source.filename || "Quick thought",
-  content: source.text ?? undefined,
-  timestamp: new Date(source.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-  included: true,
-  tags: [],
-  status: source.status,
-})
-
-const getTagColor = (tagName: string) => {
-  let hash = 0
-  for (let index = 0; index < tagName.length; index += 1) {
-    hash = (hash * 31 + tagName.charCodeAt(index)) >>> 0
-  }
-  return tagPalette[hash % tagPalette.length]
-}
+const leftTabStorageKey = "reflect_left_tab"
 
 export default function HomePage() {
-  const [rawSources, setRawSources] = useState<RawSource[]>([])
-  const [chatEntries, setChatEntries] = useState<ChatEntry[]>([])
-  const [currentQuestion, setCurrentQuestion] = useState<{ type: QuestionType; content: string; scaleData?: { lowLabel: string; highLabel: string } } | null>(null)
-  const [inputValue, setInputValue] = useState("")
-  const [addSourceMode, setAddSourceMode] = useState<AddSourceMode>(null)
-  const [newSourceText, setNewSourceText] = useState("")
-  const [isRecording, setIsRecording] = useState(false)
-  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false)
-  const [isLoadingSources, setIsLoadingSources] = useState(true)
-  const [isSavingSource, setIsSavingSource] = useState(false)
-  const [isDragOverUpload, setIsDragOverUpload] = useState(false)
+  const [leftTab, setLeftTab] = useState<LeftTab>("sources")
   const [isRunningSearch, setIsRunningSearch] = useState(false)
-  const [isGeneratingQuestion, setIsGeneratingQuestion] = useState(false)
-  const [rawUploadUrl, setRawUploadUrl] = useState("/upload/raw")
-  const [mobileOriginInput, setMobileOriginInput] = useState("")
-  const [leftSidebarWidth, setLeftSidebarWidth] = useState(LEFT_SIDEBAR_DEFAULT_WIDTH)
-  const [rightSidebarWidth, setRightSidebarWidth] = useState(RIGHT_SIDEBAR_DEFAULT_WIDTH)
-  const [isResizingSidebar, setIsResizingSidebar] = useState<"left" | "right" | null>(null)
-  const resizeStartRef = useRef<{ startX: number; startWidth: number } | null>(null)
-  const leftSidebarWidthRef = useRef(LEFT_SIDEBAR_DEFAULT_WIDTH)
-  const rightSidebarWidthRef = useRef(RIGHT_SIDEBAR_DEFAULT_WIDTH)
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
-  const audioChunksRef = useRef<Blob[]>([])
-  const recordingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  const [recordingSeconds, setRecordingSeconds] = useState(0)
-  const [processingSources, setProcessingSources] = useState<Set<number>>(new Set())
-  const rawSourcesRef = useRef<RawSource[]>([])
-  const maxSourceIdRef = useRef(0)
+  const [tagFilter, setTagFilter] = useState<string[]>([])
+
+  const sources = useSourceManagement()
+  const chats = useChatManagement({
+    rawSources: sources.rawSources,
+    setRawSources: sources.setRawSources,
+    setProcessingSources: sources.setProcessingSources,
+  })
+  const sidebar = useSidebarResize()
 
   useEffect(() => {
-    rawSourcesRef.current = rawSources
-  }, [rawSources])
-
-  // Poll for new sources created by the inbox watcher (e.g. uploaded from phone)
-  useEffect(() => {
-    const interval = setInterval(async () => {
-      try {
-        const newOnes = await api.getSources(maxSourceIdRef.current)
-        if (newOnes.length === 0) return
-        const mapped = newOnes.map(mapBackendSource)
-        const maxId = Math.max(...newOnes.map((s) => s.id ?? 0))
-        if (maxId > maxSourceIdRef.current) maxSourceIdRef.current = maxId
-        setRawSources((prev) => [...mapped, ...prev].sort((a, b) => a.id.localeCompare(b.id)))
-        const processingIds = mapped
-          .filter((s) => PROCESSING_STATUSES.has(s.status))
-          .map((s) => Number(s.id))
-          .filter((id) => Number.isInteger(id) && id > 0)
-        if (processingIds.length > 0) {
-          setProcessingSources((prev) => {
-            const next = new Set(prev)
-            processingIds.forEach((id) => next.add(id))
-            return next
-          })
-        }
-      } catch {
-        // ignore transient errors
-      }
-    }, 5000)
-    return () => clearInterval(interval)
-  }, [])
-
-  useEffect(() => {
-    if (processingSources.size === 0) return
-    const interval = setInterval(async () => {
-      const done: number[] = []
-      await Promise.all(
-        [...processingSources].map(async (sourceId) => {
-          try {
-            const updated = await api.getSourceById(sourceId)
-            setRawSources((prev) =>
-              prev.map((s) =>
-                s.id === String(sourceId)
-                  ? { ...s, status: updated.status, content: updated.text ?? s.content }
-                  : s
-              )
-            )
-            if (!PROCESSING_STATUSES.has(updated.status)) {
-              done.push(sourceId)
-            }
-          } catch {
-            // ignore transient errors
-          }
-        })
-      )
-      if (done.length > 0) {
-        setProcessingSources((prev) => {
-          const next = new Set(prev)
-          done.forEach((id) => next.delete(id))
-          return next
-        })
-      }
-    }, 2500)
-    return () => clearInterval(interval)
-  }, [processingSources])
-
-  useEffect(() => {
-    const loadSources = async () => {
-      setIsLoadingSources(true)
-      try {
-        const sources = await api.getSources()
-        const mappedSources = sources.map(mapBackendSource)
-        const mappedWithTags = await Promise.all(
-          mappedSources.map(async (source) => {
-            const numericSourceId = Number(source.id)
-            if (!Number.isInteger(numericSourceId) || numericSourceId <= 0) {
-              return source
-            }
-
-            try {
-              const loadedTags = await api.getSourceTags(numericSourceId)
-              return {
-                ...source,
-                tags: loadedTags.map((tag) => ({
-                  name: tag.name,
-                  color: getTagColor(tag.name),
-                })),
-              }
-            } catch {
-              return source
-            }
-          })
-        )
-        const mapped = mappedWithTags.sort((a, b) => a.id.localeCompare(b.id))
-        setRawSources(mapped)
-        maxSourceIdRef.current = Math.max(0, ...sources.map((s) => s.id ?? 0))
-
-        const inProgress = new Set(
-          mapped
-            .filter((s) => PROCESSING_STATUSES.has(s.status))
-            .map((s) => Number(s.id))
-            .filter((id) => Number.isInteger(id) && id > 0)
-        )
-        if (inProgress.size > 0) setProcessingSources(inProgress)
-
-        const hasProfile = Boolean(window.localStorage.getItem(profileStorageKey))
-        setIsOnboardingOpen(!hasProfile && mapped.length === 0)
-      } catch (error) {
-        toast.error(`Could not load sources: ${error instanceof Error ? error.message : "Unknown error"}`)
-      } finally {
-        setIsLoadingSources(false)
-      }
-    }
-
-    void loadSources()
-  }, [])
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const savedOrigin = window.localStorage.getItem(mobileOriginStorageKey)
-      if (savedOrigin) {
-        const normalized = savedOrigin.replace(/\/$/, "")
-        setMobileOriginInput(normalized)
-        setRawUploadUrl(`${normalized}/upload/raw`)
-      } else {
-        setRawUploadUrl(`${window.location.origin}/upload/raw`)
-      }
-    }
+    if (typeof window === "undefined") return
+    const saved = window.localStorage.getItem(leftTabStorageKey)
+    if (saved === "chats" || saved === "sources") setLeftTab(saved)
   }, [])
 
   useEffect(() => {
     if (typeof window === "undefined") return
-
-    const savedLeftWidth = Number(window.localStorage.getItem(leftSidebarWidthStorageKey))
-    const savedRightWidth = Number(window.localStorage.getItem(rightSidebarWidthStorageKey))
-
-    if (Number.isFinite(savedLeftWidth) && savedLeftWidth > 0) {
-      setLeftSidebarWidth(clamp(savedLeftWidth, LEFT_SIDEBAR_MIN_WIDTH, LEFT_SIDEBAR_MAX_WIDTH))
-    }
-
-    if (Number.isFinite(savedRightWidth) && savedRightWidth > 0) {
-      setRightSidebarWidth(clamp(savedRightWidth, RIGHT_SIDEBAR_MIN_WIDTH, RIGHT_SIDEBAR_MAX_WIDTH))
+    const params = new URLSearchParams(window.location.search)
+    const tags = params.getAll("tag").filter(Boolean)
+    if (tags.length > 0) {
+      setTagFilter(tags)
+      setLeftTab("sources")
     }
   }, [])
 
-  useEffect(() => {
-    if (!isResizingSidebar || !resizeStartRef.current) return
-
-    const handleMouseMove = (event: MouseEvent) => {
-      const resizeStart = resizeStartRef.current
-      if (!resizeStart) return
-
-      const deltaX = event.clientX - resizeStart.startX
-
-      if (isResizingSidebar === "left") {
-        const nextWidth = clamp(
-          resizeStart.startWidth + deltaX,
-          LEFT_SIDEBAR_MIN_WIDTH,
-          LEFT_SIDEBAR_MAX_WIDTH
-        )
-        leftSidebarWidthRef.current = nextWidth
-        setLeftSidebarWidth(nextWidth)
-        return
-      }
-
-      const nextWidth = clamp(
-        resizeStart.startWidth - deltaX,
-        RIGHT_SIDEBAR_MIN_WIDTH,
-        RIGHT_SIDEBAR_MAX_WIDTH
-      )
-      rightSidebarWidthRef.current = nextWidth
-      setRightSidebarWidth(nextWidth)
-    }
-
-    const handleMouseUp = () => {
-      setIsResizingSidebar(null)
-      resizeStartRef.current = null
-
-      if (typeof window !== "undefined") {
-        window.localStorage.setItem(leftSidebarWidthStorageKey, String(leftSidebarWidthRef.current))
-        window.localStorage.setItem(rightSidebarWidthStorageKey, String(rightSidebarWidthRef.current))
-      }
-    }
-
-    document.body.style.cursor = "col-resize"
-    document.body.style.userSelect = "none"
-    window.addEventListener("mousemove", handleMouseMove)
-    window.addEventListener("mouseup", handleMouseUp)
-
-    return () => {
-      document.body.style.cursor = ""
-      document.body.style.userSelect = ""
-      window.removeEventListener("mousemove", handleMouseMove)
-      window.removeEventListener("mouseup", handleMouseUp)
-    }
-  }, [isResizingSidebar])
-
-  useEffect(() => {
-    leftSidebarWidthRef.current = leftSidebarWidth
-  }, [leftSidebarWidth])
-
-  useEffect(() => {
-    rightSidebarWidthRef.current = rightSidebarWidth
-  }, [rightSidebarWidth])
-
-  const includedSources = useMemo(() => rawSources.filter((source) => source.included), [rawSources])
-  const hasIncludedSources = includedSources.length > 0
-  const latestIncludedSourceId = useMemo(() => {
-    const numericIds = includedSources
-      .map((source) => Number(source.id))
-      .filter((id) => Number.isInteger(id) && id > 0)
-
-    if (numericIds.length === 0) return null
-    return Math.max(...numericIds)
-  }, [includedSources])
-
-  const pickFallbackQuestion = (type: QuestionType) => {
-    if (type === "guided") {
-      return guidedQuestions[Math.floor(Math.random() * guidedQuestions.length)]
-    }
-    return clarifyingQuestions[Math.floor(Math.random() * clarifyingQuestions.length)]
-  }
-
-  const handleSelectQuestionType = async (type: QuestionType) => {
-    let question: string
-    let scaleData: { lowLabel: string; highLabel: string } | undefined
-
-    if (type === "quantitative") {
-      const random = quantitativeQuestions[Math.floor(Math.random() * quantitativeQuestions.length)]
-      question = random.question
-      scaleData = { lowLabel: random.lowLabel, highLabel: random.highLabel }
-    } else {
-      setIsGeneratingQuestion(true)
-      setCurrentQuestion({ type, content: "", scaleData: undefined })
-      try {
-        const mode = type === "guided" ? "deep_dive" : "clarifying"
-        question = await new Promise<string>((resolve, reject) => {
-          let generated = ""
-          api.streamGeneratedQuestion(
-            { mode },
-            {
-              onToken(token) {
-                generated += token
-                setCurrentQuestion({ type, content: generated, scaleData: undefined })
-              },
-              onDone() {
-                resolve(generated.trim())
-              },
-              onError(error) {
-                reject(error)
-              },
-            }
-          )
-        })
-
-        if (!question) {
-          question = pickFallbackQuestion(type)
-          toast("Question generator returned no content — using a local prompt.")
-        }
-      } catch (error) {
-        question = pickFallbackQuestion(type)
-        toast.error(`Question generation unavailable (${error instanceof Error ? error.message : "Unknown error"}). Using a local prompt.`)
-      } finally {
-        setIsGeneratingQuestion(false)
-      }
-    }
-
-    setCurrentQuestion({ type, content: question, scaleData })
-  }
-
-  const handleScaleSelect = (value: number) => {
-    const promptQuestion = currentQuestion?.content ?? "How are you feeling right now?"
-    const newEntry: ChatEntry = {
-      id: String(Date.now()),
-      type: "scale",
-      question: promptQuestion,
-      answer: `${value}/10`,
-      scaleValue: value,
-      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-    }
-    setChatEntries((prev) => [...prev, newEntry])
-    setCurrentQuestion(null)
-
-    if (latestIncludedSourceId === null) {
-      toast.error("Answer was not saved: include at least one source first.")
-      return
-    }
-
-    void api
-      .saveAnswer({
-        source_id: latestIncludedSourceId,
-        question_text: promptQuestion,
-        answer_text: `${value}/10`,
-      })
-      .catch((error) => {
-        toast.error(`Could not save answer: ${error instanceof Error ? error.message : "Unknown error"}`)
-      })
-  }
-
-  const handleSubmitText = (e: React.FormEvent) => {
-    e.preventDefault()
-    const trimmedAnswer = inputValue.trim()
-    if (!trimmedAnswer) return
-    const promptQuestion = currentQuestion?.content ?? "Reflection"
-
-    const newEntry: ChatEntry = {
-      id: String(Date.now()),
-      type: currentQuestion?.type === "guided" ? "reflection" : "freeform",
-      question: promptQuestion,
-      answer: trimmedAnswer,
-      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-    }
-    setChatEntries((prev) => [...prev, newEntry])
-    setInputValue("")
-    setCurrentQuestion(null)
-
-    if (latestIncludedSourceId === null) {
-      toast.error("Answer was not saved: include at least one source first.")
-      return
-    }
-
-    void api
-      .saveAnswer({
-        source_id: latestIncludedSourceId,
-        question_text: promptQuestion,
-        answer_text: trimmedAnswer,
-      })
-      .catch((error) => {
-        toast.error(`Could not save answer: ${error instanceof Error ? error.message : "Unknown error"}`)
-      })
-  }
-
-  const handleSetSourceIncluded = (sourceId: string, included: boolean) => {
-    setRawSources((prev) =>
-      prev.map((source) => (source.id === sourceId ? { ...source, included } : source))
+  const handleToggleTagFilter = (tag: string) => {
+    setTagFilter((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
     )
   }
 
-  const handleAddTextSource = async () => {
-    if (!newSourceText.trim()) return
-    setIsSavingSource(true)
-    try {
-      const created = await api.uploadTextSource(newSourceText, true)
-      setRawSources((prev) => [mapBackendSource(created), ...prev])
-      setProcessingSources((prev) => new Set([...prev, created.id]))
-      setNewSourceText("")
-      setAddSourceMode(null)
-      toast("Text source added — processing in background.")
-    } catch (error) {
-      toast.error(`Could not save source: ${error instanceof Error ? error.message : "Unknown error"}`)
-    } finally {
-      setIsSavingSource(false)
-    }
-  }
+  useEffect(() => {
+    if (typeof window !== "undefined") window.localStorage.setItem(leftTabStorageKey, leftTab)
+  }, [leftTab])
 
-  const handleAddFileSource = async (selectedFile: File | null) => {
-    if (!selectedFile || isSavingSource) return
+  const hasIncludedSources = sources.includedSources.length > 0
 
-    const validationError = validateUploadFile(selectedFile)
-    if (validationError) {
-      toast.error(validationError)
-      return
-    }
-
-    setIsSavingSource(true)
-    try {
-      const created = await api.uploadFileSource(selectedFile, true)
-      setRawSources((prev) => [mapBackendSource(created), ...prev])
-      setProcessingSources((prev) => new Set([...prev, created.id]))
-      setAddSourceMode(null)
-      toast(`${selectedFile.name} uploaded — processing in background.`)
-    } catch (error) {
-      toast.error(`Upload failed: ${error instanceof Error ? error.message : "Unknown error"}`)
-    } finally {
-      setIsSavingSource(false)
-      setIsDragOverUpload(false)
-      if (fileInputRef.current) {
-        fileInputRef.current.value = ""
-      }
-    }
-  }
-
-  const handleFileDrop = async (event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault()
-    event.stopPropagation()
-    setIsDragOverUpload(false)
-    await handleAddFileSource(event.dataTransfer.files?.[0] ?? null)
-  }
-
-  const handleFileDragEnter = (event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault()
-    event.stopPropagation()
-    if (!isSavingSource) {
-      setIsDragOverUpload(true)
-    }
-  }
-
-  const handleFileDragOver = (event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault()
-    event.stopPropagation()
-    if (!isSavingSource) {
-      setIsDragOverUpload(true)
-    }
-  }
-
-  const handleFileDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault()
-    event.stopPropagation()
-    const nextTarget = event.relatedTarget
-    if (!(nextTarget instanceof Node) || !event.currentTarget.contains(nextTarget)) {
-      setIsDragOverUpload(false)
-    }
-  }
-
-  const formatRecordingDuration = (seconds: number) => {
-    const m = Math.floor(seconds / 60).toString().padStart(2, "0")
-    const s = (seconds % 60).toString().padStart(2, "0")
-    return `${m}:${s}`
-  }
-
-  const handleToggleRecording = () => {
-    if (isRecording) {
-      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
-        mediaRecorderRef.current.stop()
-      }
-      if (recordingTimerRef.current) {
-        clearInterval(recordingTimerRef.current)
-        recordingTimerRef.current = null
-      }
-      setIsRecording(false)
-      return
-    }
-
-    if (!window.isSecureContext) {
-      toast.error("Microphone unavailable", { description: "Recording requires HTTPS or localhost. Open the app on localhost, or set up HTTPS." })
-      return
-    }
-
-    if (!navigator.mediaDevices?.getUserMedia) {
-      toast.error("Microphone recording is not supported in this browser.")
-      return
-    }
-
-    navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
-      const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
-        ? "audio/webm;codecs=opus"
-        : MediaRecorder.isTypeSupported("audio/webm")
-          ? "audio/webm"
-          : "audio/ogg"
-
-      const mediaRecorder = new MediaRecorder(stream, { mimeType })
-      mediaRecorderRef.current = mediaRecorder
-      audioChunksRef.current = []
-
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          audioChunksRef.current.push(event.data)
-        }
-      }
-
-      mediaRecorder.onstop = () => {
-        stream.getTracks().forEach((track) => track.stop())
-        const baseMime = mimeType.split(";")[0]
-        const extension = baseMime.includes("ogg") ? ".ogg" : ".webm"
-        const audioBlob = new Blob(audioChunksRef.current, { type: baseMime })
-        const audioFile = new File([audioBlob], `recording-${Date.now()}${extension}`, { type: baseMime })
-
-        setIsSavingSource(true)
-        api.uploadFileSource(audioFile, true)
-          .then((created) => {
-            setRawSources((prev) => [mapBackendSource(created), ...prev])
-            setProcessingSources((prev) => new Set([...prev, created.id]))
-            setAddSourceMode(null)
-            setRecordingSeconds(0)
-            toast("Recording saved — transcribing in background.")
-          })
-          .catch((error) => {
-            toast.error(`Recording upload failed: ${error instanceof Error ? error.message : "Unknown error"}`)
-          })
-          .finally(() => {
-            setIsSavingSource(false)
-          })
-      }
-
-      mediaRecorder.start()
-      setIsRecording(true)
-      setRecordingSeconds(0)
-      recordingTimerRef.current = setInterval(() => {
-        setRecordingSeconds((prev) => prev + 1)
-      }, 1000)
-    }).catch((error) => {
-      toast.error(`Microphone access denied: ${error instanceof Error ? error.message : "Unknown error"}`)
-    })
-  }
-
-  const handleApplyMobileOrigin = () => {
-    if (typeof window === "undefined") return
-
-    const trimmed = mobileOriginInput.trim()
-    if (!trimmed) {
-      window.localStorage.removeItem(mobileOriginStorageKey)
-      setRawUploadUrl(`${window.location.origin}/upload/raw`)
-      toast("Phone upload link reset to current origin.")
-      return
-    }
-
-    const withProtocol = /^https?:\/\//i.test(trimmed) ? trimmed : `http://${trimmed}`
-    const normalized = withProtocol.replace(/\/$/, "")
-    window.localStorage.setItem(mobileOriginStorageKey, normalized)
-    setRawUploadUrl(`${normalized}/upload/raw`)
-    toast("Phone upload link updated.")
+  const handleNewChat = () => {
+    chats.resetChatState()
+    setLeftTab("chats")
   }
 
   const exportToMarkdown = () => {
-    if (!hasIncludedSources) {
-      toast.error("Select at least one included source before exporting.")
-      return
-    }
-
-    let markdown = `# Reflection\n\n`
-    markdown += `## Sources\n\n`
-
-    includedSources.forEach((source) => {
-      if (source.type === "recording") {
-        markdown += `- Voice note (${source.duration}) - ${source.timestamp}\n`
-      } else if (source.type === "text") {
-        markdown += `- ${source.content} - ${source.timestamp}\n`
-      } else {
-        markdown += `- File: ${source.name} - ${source.timestamp}\n`
-      }
+    if (!hasIncludedSources) { toast.error("Select at least one included source before exporting."); return }
+    let markdown = `# Reflection\n\n## Sources\n\n`
+    sources.includedSources.forEach((source) => {
+      if (source.type === "recording") markdown += `- Voice note (${source.duration}) - ${source.timestamp}\n`
+      else if (source.type === "text") markdown += `- ${source.content} - ${source.timestamp}\n`
+      else markdown += `- File: ${source.name} - ${source.timestamp}\n`
     })
-
     markdown += `\n## Reflections\n\n`
-
-    chatEntries.forEach((entry) => {
-      if (entry.question) {
-        markdown += `**Q:** ${entry.question}\n\n`
-      }
-      markdown += `**A:** ${entry.answer}\n\n`
-      markdown += `*${entry.timestamp}*\n\n---\n\n`
+    let pendingQuestion: string | null = null
+    chats.activeChatMessages.forEach((message) => {
+      if (message.role === "question") { pendingQuestion = message.text; return }
+      if (pendingQuestion) { markdown += `**Q:** ${pendingQuestion}\n\n`; pendingQuestion = null }
+      const answer = message.scale_value !== null && message.scale_value !== undefined
+        ? `${message.scale_value}/${message.scale_max ?? 10}`
+        : message.text
+      markdown += `**A:** ${answer}\n\n---\n\n`
     })
-
+    if (pendingQuestion) markdown += `**Q:** ${pendingQuestion}\n\n---\n\n`
     const blob = new Blob([markdown], { type: "text/markdown" })
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
-    a.href = url
-    a.download = "reflection.md"
-    a.click()
+    a.href = url; a.download = "reflection.md"; a.click()
     URL.revokeObjectURL(url)
-    toast(`Exported ${includedSources.length} included source${includedSources.length === 1 ? "" : "s"}.`)
+    toast(`Exported ${sources.includedSources.length} included source${sources.includedSources.length === 1 ? "" : "s"}.`)
   }
 
   const handleAISearch = async () => {
-    if (!hasIncludedSources) {
-      toast.error("Select at least one included source before using AI Search.")
-      return
-    }
-
+    if (!hasIncludedSources) { toast.error("Select at least one included source before using AI Search."); return }
     setIsRunningSearch(true)
     try {
-      const context = includedSources
-        .map((source) => source.content)
-        .filter(Boolean)
-        .join("\n")
-        .slice(0, 2000)
-      const answer = await api.query(
-        `Summarize the key themes in these selected sources and keep it concise:\n${context || "No text available."}`
-      )
+      const context = sources.includedSources.map((s) => s.content).filter(Boolean).join("\n").slice(0, 2000)
+      const answer = await api.query(`Summarize the key themes in these selected sources and keep it concise:\n${context || "No text available."}`)
       toast("AI Search", { description: answer.answer, duration: 12000 })
     } catch (error) {
       toast.error(`AI Search failed: ${error instanceof Error ? error.message : "Unknown error"}`)
@@ -735,550 +106,143 @@ export default function HomePage() {
     }
   }
 
-  const handleOnboardingSkip = () => {
-    setIsOnboardingOpen(false)
-  }
-
-  const handleOnboardingSubmit = (nextProfile: OnboardingProfile) => {
-    window.localStorage.setItem(profileStorageKey, JSON.stringify(nextProfile))
-    setIsOnboardingOpen(false)
-    toast(`Welcome ${nextProfile.name} — your profile is saved.`)
-  }
-
-  const handleSidebarResizeStart = (side: "left" | "right", event: React.MouseEvent<HTMLDivElement>) => {
-    event.preventDefault()
-    setIsResizingSidebar(side)
-    resizeStartRef.current = {
-      startX: event.clientX,
-      startWidth: side === "left" ? leftSidebarWidth : rightSidebarWidth,
-    }
-  }
-
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="h-screen bg-background flex flex-col overflow-hidden">
       <OnboardingModal
-        open={isOnboardingOpen}
-        onSkip={handleOnboardingSkip}
-        onSubmit={handleOnboardingSubmit}
+        open={sources.isOnboardingOpen}
+        onSkip={sources.handleOnboardingSkip}
+        onSubmit={sources.handleOnboardingSubmit}
       />
       <TopNav activePath="/" />
 
-      <div className="flex-1 flex">
+      <div className="flex-1 flex min-h-0">
         <aside
-          className="border-r flex flex-col bg-muted/10 relative shrink-0"
-          style={{ width: leftSidebarWidth }}
+          className="border-r flex flex-col bg-muted/10 relative shrink-0 min-h-0"
+          style={{ width: sidebar.leftSidebarWidth }}
         >
-          <div className="p-4 border-b">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-medium">Sources</h2>
-              <span className="text-xs text-muted-foreground">{includedSources.length}/{rawSources.length}</span>
+          <div className="px-4 pt-3 border-b">
+            <div className="flex gap-1 mb-3">
+              <button
+                onClick={() => setLeftTab("sources")}
+                className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-md transition-colors ${
+                  leftTab === "sources" ? "bg-background border shadow-sm" : "text-muted-foreground hover:bg-muted/50"
+                }`}
+              >
+                <FileText className="h-3.5 w-3.5" />
+                Sources
+              </button>
+              <button
+                onClick={() => setLeftTab("chats")}
+                className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-md transition-colors ${
+                  leftTab === "chats" ? "bg-background border shadow-sm" : "text-muted-foreground hover:bg-muted/50"
+                }`}
+              >
+                <MessageSquare className="h-3.5 w-3.5" />
+                Chats
+              </button>
             </div>
-
-            {!addSourceMode ? (
-              <div className="grid grid-cols-4 gap-1.5">
-                <button
-                  onClick={() => setAddSourceMode("recording")}
-                  className="flex flex-col items-center gap-1 p-2 rounded-lg border border-dashed border-border hover:border-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors"
-                >
-                  <Mic className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-[10px] text-muted-foreground">Record</span>
-                </button>
-                <button
-                  onClick={() => {
-                    setIsDragOverUpload(false)
-                    setAddSourceMode("file")
-                  }}
-                  className="flex flex-col items-center gap-1 p-2 rounded-lg border border-dashed border-border hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
-                >
-                  <FileUp className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-[10px] text-muted-foreground">File</span>
-                </button>
-                <button
-                  onClick={() => setAddSourceMode("text")}
-                  className="flex flex-col items-center gap-1 p-2 rounded-lg border border-dashed border-border hover:border-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors"
-                >
-                  <Type className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-[10px] text-muted-foreground">Text</span>
-                </button>
-                <button
-                  onClick={() => setAddSourceMode("phone")}
-                  className="flex flex-col items-center gap-1 p-2 rounded-lg border border-dashed border-border hover:border-fuchsia-500 hover:bg-fuchsia-50 dark:hover:bg-fuchsia-900/20 transition-colors"
-                >
-                  <Smartphone className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-[10px] text-muted-foreground">Phone</span>
-                </button>
-              </div>
-            ) : addSourceMode === "recording" ? (
-              <div className="p-3 rounded-lg border bg-background space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium">Voice recording</span>
-                  <button
-                    onClick={() => {
-                      if (isRecording) {
-                        if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
-                          mediaRecorderRef.current.stop()
-                        }
-                        if (recordingTimerRef.current) {
-                          clearInterval(recordingTimerRef.current)
-                          recordingTimerRef.current = null
-                        }
-                        setIsRecording(false)
-                        setRecordingSeconds(0)
-                      }
-                      setAddSourceMode(null)
-                    }}
-                    className="p-1 rounded hover:bg-muted"
-                    disabled={isSavingSource}
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </div>
-                <div className="flex flex-col items-center gap-2">
-                  <button
-                    onClick={handleToggleRecording}
-                    disabled={isSavingSource}
-                    className={`p-3 rounded-full transition-colors disabled:opacity-50 ${isRecording
-                      ? "bg-red-500 text-white animate-pulse"
-                      : "bg-emerald-500 text-white hover:bg-emerald-600"
-                      }`}
-                  >
-                    {isRecording ? <Pause className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-                  </button>
-                  {isRecording && (
-                    <span className="text-xs tabular-nums text-muted-foreground">{formatRecordingDuration(recordingSeconds)}</span>
-                  )}
-                </div>
-                {isSavingSource && (
-                  <p className="text-xs text-center text-muted-foreground">Uploading recording...</p>
-                )}
-                {!isRecording && !isSavingSource && (
-                  <p className="text-xs text-center text-muted-foreground">Tap to start recording</p>
-                )}
-                {isRecording && (
-                  <p className="text-xs text-center text-muted-foreground">Recording... Tap to stop</p>
-                )}
-              </div>
-            ) : addSourceMode === "text" ? (
-              <div className="p-3 rounded-lg border bg-background space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium">Quick thought</span>
-                  <button onClick={() => setAddSourceMode(null)} className="p-1 rounded hover:bg-muted">
-                    <X className="h-3 w-3" />
-                  </button>
-                </div>
-                <textarea
-                  value={newSourceText}
-                  onChange={(e) => setNewSourceText(e.target.value)}
-                  placeholder="Write a thought..."
-                  className="w-full p-2 text-sm rounded border bg-background resize-none focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                  rows={3}
-                />
-                <Button
-                  onClick={handleAddTextSource}
-                  disabled={!newSourceText.trim() || isSavingSource}
-                  size="sm"
-                  className="w-full bg-emerald-600 hover:bg-emerald-700"
-                >
-                  {isSavingSource ? "Saving..." : "Add + Process"}
-                </Button>
-              </div>
-            ) : addSourceMode === "file" ? (
-              <div className="p-3 rounded-lg border bg-background space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium">Upload file</span>
-                  <button
-                    onClick={() => {
-                      setAddSourceMode(null)
-                      setIsDragOverUpload(false)
-                    }}
-                    className="p-1 rounded hover:bg-muted"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </div>
-                <div
-                  onDrop={(event) => {
-                    void handleFileDrop(event)
-                  }}
-                  onDragEnter={handleFileDragEnter}
-                  onDragOver={handleFileDragOver}
-                  onDragLeave={handleFileDragLeave}
-                  className={`border-2 border-dashed rounded-lg p-4 text-center space-y-3 transition-colors ${isDragOverUpload ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20" : "border-border"
-                    }`}
-                >
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    className="hidden"
-                    accept=".wav,.mp3,.m4a,.txt,.md"
-                    onChange={(event) => {
-                      void handleAddFileSource(event.target.files?.[0] ?? null)
-                    }}
-                  />
-                  <FileUp className="h-6 w-6 mx-auto text-muted-foreground" />
-                  <p className="text-xs text-muted-foreground">Drag and drop a file here</p>
-                  <p className="text-[10px] text-muted-foreground">or</p>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    disabled={isSavingSource}
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    {isSavingSource ? "Uploading..." : "Browse files"}
-                  </Button>
-                  <p className="text-[10px] text-muted-foreground">Allowed: .wav, .mp3, .m4a, .txt, .md</p>
-                </div>
-              </div>
-            ) : addSourceMode === "phone" ? (
-              <div className="p-3 rounded-lg border bg-background space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium">Send from phone</span>
-                  <button onClick={() => setAddSourceMode(null)} className="p-1 rounded hover:bg-muted">
-                    <X className="h-3 w-3" />
-                  </button>
-                </div>
-                <div className="rounded-lg border bg-muted/30 p-3 space-y-3">
-                  <div className="mx-auto w-40 h-40 p-2 rounded-md border bg-white">
-                    <img
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(rawUploadUrl)}`}
-                      alt="QR code to open raw upload on phone"
-                      className="w-full h-full"
-                    />
-                  </div>
-                  <p className="text-xs text-center text-muted-foreground">Scan to open unprocessed upload on your phone</p>
-                  {(rawUploadUrl.includes("localhost") || rawUploadUrl.includes("127.0.0.1")) && (
-                    <p className="text-[10px] text-amber-600 text-center">
-                      If your phone cannot open this link, replace localhost with your computer&apos;s LAN IP.
-                    </p>
-                  )}
-                </div>
-              </div>
-            ) : null}
           </div>
 
-          <div className="flex-1 overflow-y-auto p-2 space-y-1">
-            {isLoadingSources ? (
-              Array.from({ length: 3 }).map((_, index) => (
-                <div key={`source-skeleton-${index}`} className="p-2.5 rounded-lg bg-background/40">
-                  <div className="flex items-start gap-2.5">
-                    <Skeleton className="h-6 w-6 rounded-md shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <Skeleton className="h-4 w-24" />
-                      <Skeleton className="h-3 w-36 mt-0.5" />
-                      <div className="flex items-center gap-2 mt-1">
-                        <Skeleton className="h-2.5 w-16" />
-                        <Skeleton className="h-2.5 w-10 rounded-full" />
-                      </div>
-                    </div>
-                    <Skeleton className="h-4 w-4 rounded self-center shrink-0" />
-                  </div>
-                </div>
-              ))
-            ) : (
-              rawSources.map((source) => {
-                const isInProgress = PROCESSING_STATUSES.has(source.status)
-                const isFailed = source.status === "failed"
-                return (
-                  <div
-                    key={source.id}
-                    className={`p-2.5 rounded-lg transition-all group ${
-                      isInProgress
-                        ? "border border-emerald-400/50 bg-emerald-50/40 dark:bg-emerald-900/10"
-                        : isFailed
-                          ? "border border-red-200 bg-red-50/30 dark:bg-red-900/10 opacity-70"
-                          : `hover:bg-muted/50 ${source.included ? "" : "opacity-60"}`
-                    }`}
-                  >
-                    <div className="flex items-start gap-2.5">
-                      <div className={`p-1.5 rounded-md shrink-0 ${
-                        isInProgress
-                          ? "bg-emerald-100 dark:bg-emerald-900/40 animate-pulse"
-                          : source.type === "recording"
-                            ? "bg-emerald-100 dark:bg-emerald-900/30"
-                            : source.type === "file"
-                              ? "bg-blue-100 dark:bg-blue-900/30"
-                              : "bg-amber-100 dark:bg-amber-900/30"
-                      }`}>
-                        {source.type === "recording" ? (
-                          <Mic className={`h-3 w-3 ${isInProgress ? "text-emerald-500" : "text-emerald-600"}`} />
-                        ) : source.type === "file" ? (
-                          <FileIcon className="h-3 w-3 text-blue-600" />
-                        ) : (
-                          <Type className="h-3 w-3 text-amber-600" />
-                        )}
-                      </div>
-                      <Link
-                        href={`/sources/${source.id}`}
-                        className="flex-1 min-w-0 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40"
-                      >
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium truncate">{source.name}</span>
-                        </div>
-                        {isInProgress ? (
-                          <div className="flex items-center gap-1.5 mt-0.5">
-                            <span className="flex gap-0.5">
-                              <span className="inline-block w-1 h-1 rounded-full bg-emerald-500 animate-bounce [animation-delay:0ms]" />
-                              <span className="inline-block w-1 h-1 rounded-full bg-emerald-500 animate-bounce [animation-delay:150ms]" />
-                              <span className="inline-block w-1 h-1 rounded-full bg-emerald-500 animate-bounce [animation-delay:300ms]" />
-                            </span>
-                            <span className="text-xs text-emerald-600">
-                              {PROCESSING_STATUS_LABELS[source.status] ?? "Processing..."}
-                            </span>
-                          </div>
-                        ) : isFailed ? (
-                          <p className="text-xs text-red-500 mt-0.5">Processing failed</p>
-                        ) : (
-                          <>
-                            {source.type === "recording" && (
-                              <div className="flex items-center gap-2 mt-0.5">
-                                <Play className="h-3 w-3 text-muted-foreground" />
-                                <span className="text-xs text-muted-foreground">{source.duration}</span>
-                              </div>
-                            )}
-                            {source.type === "text" && source.content && (
-                              <p className="text-xs text-muted-foreground truncate mt-0.5">{source.content}</p>
-                            )}
-                          </>
-                        )}
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-[10px] text-muted-foreground">{source.timestamp}</span>
-                          {source.tags.map((tag) => (
-                            <span
-                              key={tag.name}
-                              className="text-[10px] px-1.5 py-0.5 rounded-full bg-muted"
-                            >
-                              {tag.name}
-                            </span>
-                          ))}
-                        </div>
-                      </Link>
-                      <Checkbox
-                        checked={source.included}
-                        onCheckedChange={(checked) => handleSetSourceIncluded(source.id, checked === true)}
-                        aria-label={`Include ${source.name}`}
-                        className="self-center"
-                        disabled={isInProgress}
-                      />
-                    </div>
-                  </div>
-                )
-              })
-            )}
-          </div>
+          {leftTab === "sources" ? (
+            <SourceListPanel
+              rawSources={sources.rawSources}
+              includedSources={sources.includedSources}
+              isLoadingSources={sources.isLoadingSources}
+              addSourceMode={sources.addSourceMode}
+              setAddSourceMode={sources.setAddSourceMode}
+              newSourceText={sources.newSourceText}
+              setNewSourceText={sources.setNewSourceText}
+              isSavingSource={sources.isSavingSource}
+              isDragOverUpload={sources.isDragOverUpload}
+              isRecording={sources.isRecording}
+              recordingSeconds={sources.recordingSeconds}
+              fileInputRef={sources.fileInputRef}
+              tagFilter={tagFilter}
+              onToggleTagFilter={handleToggleTagFilter}
+              onSetSourceIncluded={sources.handleSetSourceIncluded}
+              onAddTextSource={sources.handleAddTextSource}
+              onAddFileSource={sources.handleAddFileSource}
+              onFileDrop={sources.handleFileDrop}
+              onFileDragEnter={sources.handleFileDragEnter}
+              onFileDragOver={sources.handleFileDragOver}
+              onFileDragLeave={sources.handleFileDragLeave}
+              onToggleRecording={sources.handleToggleRecording}
+              onCloseRecordingPanel={sources.handleCloseRecordingPanel}
+              rawUploadUrl={sources.rawUploadUrl}
+            />
+          ) : (
+            <ChatListPanel
+              chats={chats.chats}
+              isLoadingChats={chats.isLoadingChats}
+              activeChatId={chats.activeChatId}
+              renamingChatId={chats.renamingChatId}
+              renameDraft={chats.renameDraft}
+              setRenameDraft={chats.setRenameDraft}
+              onNewChat={handleNewChat}
+              onSelectChat={chats.handleSelectChat}
+              onStartRenameChat={chats.handleStartRenameChat}
+              onCommitRename={chats.handleCommitRename}
+              onCancelRename={() => chats.setRenamingChatId(null)}
+              onDeleteChat={chats.handleDeleteChat}
+            />
+          )}
+
           <div
             role="separator"
             aria-orientation="vertical"
             aria-label="Resize left sidebar"
-            onMouseDown={(event) => handleSidebarResizeStart("left", event)}
+            onMouseDown={(e) => sidebar.handleSidebarResizeStart("left", e)}
             className="absolute top-0 right-0 h-full w-1 translate-x-1/2 cursor-col-resize bg-transparent hover:bg-emerald-500/30 transition-colors"
           />
         </aside>
 
-        <div className="flex-1 flex flex-col min-w-0">
-          <div className="flex-1 overflow-y-auto p-6">
-            <div className="max-w-2xl mx-auto space-y-4">
-              {chatEntries.map((entry) => (
-                <div key={entry.id} className="space-y-2">
-                  {entry.question && (
-                    <div className="flex justify-start">
-                      <div className="bg-muted rounded-2xl rounded-tl-sm px-4 py-3 max-w-[85%]">
-                        <span className="text-xs text-emerald-600 font-medium block mb-1">REFLECT</span>
-                        <p className="text-[15px]">{entry.question}</p>
-                      </div>
-                    </div>
-                  )}
-                  <div className="flex justify-end">
-                    <div className="bg-emerald-900 text-white rounded-2xl rounded-tr-sm px-4 py-3 max-w-[85%]">
-                      <p className="text-[15px]">{entry.answer}</p>
-                      <div className="flex items-center justify-end gap-2 mt-1.5">
-                        <span className="text-[10px] text-white/70">{entry.timestamp}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-
-              {isGeneratingQuestion && currentQuestion && currentQuestion.type !== "quantitative" && !currentQuestion.content.trim() && (
-                <div className="space-y-2">
-                  <div className="flex justify-start">
-                    <div className="w-full rounded-2xl rounded-tl-sm px-4 py-3 border border-emerald-200/80 bg-emerald-50/80 dark:border-emerald-900/60 dark:bg-emerald-900/20">
-                      <span className="text-xs text-emerald-600 font-medium block mb-2">REFLECT</span>
-                      <div className="space-y-2">
-                        <Skeleton className="h-4 w-full" />
-                        <Skeleton className="h-4 w-full" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {currentQuestion?.type === "quantitative" && currentQuestion.scaleData && (
-                <div className="space-y-2">
-                  <div className="flex justify-start">
-                    <div className="bg-muted rounded-2xl rounded-tl-sm px-4 py-3">
-                      <span className="text-xs text-emerald-600 font-medium block mb-1">REFLECT</span>
-                      <p className="text-[15px]">{currentQuestion.content}</p>
-                    </div>
-                  </div>
-                  <div className="bg-muted/50 rounded-xl p-5 space-y-3">
-                    <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>{currentQuestion.scaleData.lowLabel}</span>
-                      <span>{currentQuestion.scaleData.highLabel}</span>
-                    </div>
-                    <div className="flex justify-between gap-2">
-                      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((value) => (
-                        <button
-                          key={value}
-                          onClick={() => handleScaleSelect(value)}
-                          className="flex-1 aspect-square rounded-lg border-2 border-border hover:border-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors flex items-center justify-center font-medium"
-                        >
-                          {value}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {currentQuestion && currentQuestion.type !== "quantitative" && currentQuestion.content.trim().length > 0 && (
-                <div className="space-y-2">
-                  <div className="flex justify-start">
-                    <div className="bg-muted rounded-2xl rounded-tl-sm px-4 py-3">
-                      <span className="text-xs text-emerald-600 font-medium block mb-1">REFLECT</span>
-                      <p className="text-[15px]">{currentQuestion.content}</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="border-t bg-background p-4">
-            <div className="max-w-2xl mx-auto">
-              {currentQuestion && currentQuestion.type !== "quantitative" && currentQuestion.content.trim().length > 0 && !isGeneratingQuestion && (
-                <form onSubmit={handleSubmitText} className="flex gap-2 mb-4">
-                  <div className="flex-1 relative">
-                    <textarea
-                      value={inputValue}
-                      onChange={(e) => setInputValue(e.target.value)}
-                      placeholder="Write your response..."
-                      className="w-full min-h-15 p-3 pr-10 rounded-xl border bg-background resize-none focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
-                      rows={2}
-                    />
-                    <button type="button" className="absolute bottom-2 right-2 p-1.5 rounded-lg hover:bg-muted text-muted-foreground">
-                      <Mic className="h-4 w-4" />
-                    </button>
-                  </div>
-                  <Button type="submit" disabled={!inputValue.trim()} className="bg-emerald-600 hover:bg-emerald-700 text-white self-end">
-                    <Send className="h-4 w-4" />
-                  </Button>
-                </form>
-              )}
-
-              {!currentQuestion && (
-                <div className="space-y-3">
-                  <p className="text-sm text-muted-foreground text-center">What would you like to add?</p>
-                  <div className="grid grid-cols-3 gap-2">
-                    <button
-                      onClick={() => void handleSelectQuestionType("clarifying")}
-                      disabled={isGeneratingQuestion}
-                      className="p-3 rounded-xl border-2 border-border hover:border-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors text-left"
-                    >
-                      <MessageCircle className="h-4 w-4 text-amber-600 mb-2" />
-                      <div className="text-sm font-medium">Clarifying</div>
-                      <div className="text-xs text-muted-foreground">
-                        {isGeneratingQuestion ? "Generating..." : "Follow-up questions"}
-                      </div>
-                    </button>
-                    <button
-                      onClick={() => void handleSelectQuestionType("guided")}
-                      disabled={isGeneratingQuestion}
-                      className="p-3 rounded-xl border-2 border-border hover:border-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors text-left"
-                    >
-                      <Sparkles className="h-4 w-4 text-emerald-600 mb-2" />
-                      <div className="text-sm font-medium">Guided</div>
-                      <div className="text-xs text-muted-foreground">
-                        {isGeneratingQuestion ? "Generating..." : "Reflective prompts"}
-                      </div>
-                    </button>
-                    <button
-                      onClick={() => void handleSelectQuestionType("quantitative")}
-                      disabled={isGeneratingQuestion}
-                      className="p-3 rounded-xl border-2 border-border hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors text-left"
-                    >
-                      <span className="text-blue-600 font-bold text-xs block mb-2">1-10</span>
-                      <div className="text-sm font-medium">Quantitative</div>
-                      <div className="text-xs text-muted-foreground">Rate how you feel</div>
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
+        <div className="flex-1 flex flex-col min-w-0 min-h-0">
+          {chats.activeChatId !== null && chats.activeChat && (
+            <ChatTopBar
+              activeChat={chats.activeChat}
+              activeChatSourceId={chats.activeChatSourceId}
+              activeChatLinkedSourceStatus={chats.activeChatLinkedSourceStatus}
+              isLinkedSourceProcessing={chats.isLinkedSourceProcessing}
+              isPromotingChat={chats.isPromotingChat}
+              activeChatMessages={chats.activeChatMessages}
+              onPromoteChat={chats.handlePromoteChat}
+            />
+          )}
+          <ChatMessages
+            activeChatMessages={chats.activeChatMessages}
+            activeChatId={chats.activeChatId}
+            isLoadingActiveChat={chats.isLoadingActiveChat}
+            isGeneratingQuestion={chats.isGeneratingQuestion}
+            currentQuestion={chats.currentQuestion}
+            onScaleSelect={chats.handleScaleSelect}
+          />
+          <ChatInput
+            currentQuestion={chats.currentQuestion}
+            inputValue={chats.inputValue}
+            setInputValue={chats.setInputValue}
+            isGeneratingQuestion={chats.isGeneratingQuestion}
+            onSubmitText={chats.handleSubmitText}
+            onSelectQuestionType={chats.handleSelectQuestionType}
+          />
         </div>
 
         <aside
-          className="border-l flex flex-col bg-muted/10 relative shrink-0"
-          style={{ width: rightSidebarWidth }}
+          className="border-l flex flex-col bg-muted/10 relative shrink-0 min-h-0"
+          style={{ width: sidebar.rightSidebarWidth }}
         >
           <div
             role="separator"
             aria-orientation="vertical"
             aria-label="Resize right sidebar"
-            onMouseDown={(event) => handleSidebarResizeStart("right", event)}
+            onMouseDown={(e) => sidebar.handleSidebarResizeStart("right", e)}
             className="absolute top-0 left-0 h-full w-1 -translate-x-1/2 cursor-col-resize bg-transparent hover:bg-emerald-500/30 transition-colors"
           />
-          <div className="border-b px-4 py-3">
-            <h2 className="text-sm font-medium">Tools</h2>
-          </div>
-
-          <div className="p-4 space-y-4">
-            <div>
-              <h3 className="text-sm font-medium mb-3">Export</h3>
-              <button
-                onClick={exportToMarkdown}
-                disabled={!hasIncludedSources}
-                className="w-full flex items-center gap-3 p-3 rounded-lg border hover:bg-muted transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <FileText className="h-4 w-4 text-muted-foreground" />
-                <div>
-                  <div className="text-sm font-medium">Export to Markdown</div>
-                  <div className="text-xs text-muted-foreground">Download included sources</div>
-                </div>
-              </button>
-            </div>
-
-            <div>
-              <h3 className="text-sm font-medium mb-3">AI Search</h3>
-              <button
-                onClick={handleAISearch}
-                disabled={!hasIncludedSources || isRunningSearch}
-                className="w-full flex items-center gap-3 p-3 rounded-lg border hover:bg-muted transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <MessageCircle className="h-4 w-4 text-muted-foreground" />
-                <div>
-                  <div className="text-sm font-medium">{isRunningSearch ? "Searching..." : "Ask about your sources"}</div>
-                  <div className="text-xs text-muted-foreground">Search included sources only</div>
-                </div>
-              </button>
-            </div>
-
-            <div>
-              <h3 className="text-sm font-medium mb-3">Graph</h3>
-              <Link
-                href="/graph"
-                className="w-full flex items-center gap-3 p-3 rounded-lg border hover:bg-muted transition-colors text-left"
-              >
-                <Sparkles className="h-4 w-4 text-muted-foreground" />
-                <div>
-                  <div className="text-sm font-medium">Open Graph View</div>
-                  <div className="text-xs text-muted-foreground">Explore source tag relationships</div>
-                </div>
-              </Link>
-            </div>
-
-          </div>
+          <RightSidebar
+            hasIncludedSources={hasIncludedSources}
+            isRunningSearch={isRunningSearch}
+            onExportMarkdown={exportToMarkdown}
+            onAISearch={handleAISearch}
+          />
         </aside>
       </div>
     </div>

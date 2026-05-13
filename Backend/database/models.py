@@ -134,3 +134,33 @@ class ScaleResponse(SQLModel, table=True):
 
     # Relationships
     scale_question: Optional[ScaleQuestion] = Relationship(back_populates="responses")
+
+
+class Chat(SQLModel, table=True):
+    __tablename__ = "chat"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    title: str = Field(max_length=255, default="Untitled")
+    source_id: Optional[int] = Field(default=None, foreign_key="source.id")
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    edited_at: datetime = Field(default_factory=datetime.utcnow)
+
+    # Relationships
+    messages: List["ChatMessage"] = Relationship(back_populates="chat")
+
+
+class ChatMessage(SQLModel, table=True):
+    __tablename__ = "chat_message"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    chat_id: int = Field(foreign_key="chat.id")
+    role: str = Field(max_length=20)
+    text: str
+    scale_value: Optional[int] = Field(default=None)
+    scale_max: Optional[int] = Field(default=None)
+    scale_low_label: Optional[str] = Field(default=None, max_length=100)
+    scale_high_label: Optional[str] = Field(default=None, max_length=100)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+    # Relationships
+    chat: Optional[Chat] = Relationship(back_populates="messages")

@@ -71,6 +71,47 @@ export interface SaveAnswerRequest {
   answer_text: string
 }
 
+export type ChatMessageRole = "question" | "answer"
+
+export interface ChatMessageRecord {
+  id: number
+  chat_id: number
+  role: ChatMessageRole
+  text: string
+  scale_value: number | null
+  scale_max: number | null
+  scale_low_label: string | null
+  scale_high_label: string | null
+  created_at: string
+}
+
+export interface ChatSummary {
+  id: number
+  title: string
+  source_id: number | null
+  message_count: number
+  edited_at: string
+  created_at: string
+}
+
+export interface ChatDetail {
+  id: number
+  title: string
+  source_id: number | null
+  created_at: string
+  edited_at: string
+  messages: ChatMessageRecord[]
+}
+
+export interface AppendChatMessagePayload {
+  role: ChatMessageRole
+  text: string
+  scale_value?: number | null
+  scale_max?: number | null
+  scale_low_label?: string | null
+  scale_high_label?: string | null
+}
+
 type GenerateQuestionMode = "clarifying" | "deep_dive"
 
 export interface GenerateQuestionRequest {
@@ -363,6 +404,44 @@ export const api = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     })
+  },
+  listChats() {
+    return request<ChatSummary[]>("/chats")
+  },
+  createChat(title?: string) {
+    return request<ChatSummary>("/chats", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title: title ?? null }),
+    })
+  },
+  getChat(chatId: number) {
+    return request<ChatDetail>(`/chats/${chatId}`)
+  },
+  renameChat(chatId: number, title: string) {
+    return request<ChatSummary>(`/chats/${chatId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title }),
+    })
+  },
+  deleteChat(chatId: number) {
+    return request<{ ok: boolean }>(`/chats/${chatId}`, { method: "DELETE" })
+  },
+  appendChatMessage(chatId: number, payload: AppendChatMessagePayload) {
+    return request<ChatMessageRecord>(`/chats/${chatId}/messages`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    })
+  },
+  promoteChat(chatId: number) {
+    return request<{ chat: ChatSummary; source: SourceRecord }>(`/chats/${chatId}/promote`, {
+      method: "POST",
+    }, 600000)
+  },
+  reindexChat(chatId: number) {
+    return request<SourceRecord>(`/chats/${chatId}/reindex`, { method: "POST" }, 600000)
   },
   getOllamaHealth() {
     return request<unknown>("/ollama-health")

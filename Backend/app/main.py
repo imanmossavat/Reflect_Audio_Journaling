@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlmodel import SQLModel, Session, select, col
 
 from app.db import engine
-from app.routes import source, query, tags
+from app.routes import source, query, tags, chat
 from app import logging_config
 from app.services.file_watcher import start_watcher
 
@@ -51,3 +51,4 @@ app.add_middleware(
 app.include_router(source.router)
 app.include_router(query.router)
 app.include_router(tags.router)
+app.include_router(chat.router)

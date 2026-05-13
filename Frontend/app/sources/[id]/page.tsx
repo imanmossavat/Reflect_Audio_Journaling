@@ -1,17 +1,18 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState, type FormEvent } from "react"
+import React, { useEffect, useMemo, useRef, useState, type FormEvent } from "react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
-import { ArrowLeft, CalendarClock, CircleDot, FileAudio2, FileText, X } from "lucide-react"
+import { ArrowLeft, CalendarClock, CircleDot, FileAudio2, FileText, MessageSquare, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { TopNav } from "@/components/top-nav"
 import { toast } from "sonner"
-import { api, type SourceRecord, type SourceTag, type TranscriptSegment, PROCESSING_STATUSES, PROCESSING_STATUS_LABELS } from "@/lib/api"
+import { api, type ChatMessageRecord, type SourceRecord, type SourceTag, type TranscriptSegment, PROCESSING_STATUSES, PROCESSING_STATUS_LABELS } from "@/lib/api"
 
 const getSourceKind = (source: SourceRecord) => {
     const fileType = (source.file_type ?? "").toLowerCase()
+    if (fileType === "chat") return "Chat"
     if (fileType.includes("audio")) return "Audio"
     if (fileType.includes("text") || !source.filename) return "Text"
     return "File"
@@ -37,6 +38,7 @@ export default function SourceDetailPage() {
     const [isAddingTag, setIsAddingTag] = useState(false)
     const [tagIdsBeingRemoved, setTagIdsBeingRemoved] = useState<number[]>([])
     const [processNotice, setProcessNotice] = useState<string | null>(null)
+    const [chatMessages, setChatMessages] = useState<ChatMessageRecord[] | null>(null)
     const [currentTime, setCurrentTime] = useState(0)
     const audioRef = useRef<HTMLAudioElement>(null)
     const activeSegmentRef = useRef<HTMLSpanElement>(null)
@@ -64,6 +66,7 @@ export default function SourceDetailPage() {
             setSourceTags([])
             setNewTagName("")
             setTagIdsBeingRemoved([])
+            setChatMessages(null)
 
             try {
                 const loadedSource = await api.getSourceById(sourceId)
@@ -73,6 +76,15 @@ export default function SourceDetailPage() {
                 const [fullText, loadedTags] = await Promise.all([textPromise, api.getSourceTags(sourceId)])
                 setSourceText(fullText ?? "")
                 setSourceTags(loadedTags)
+
+                if (loadedSource.file_type === "chat") {
+                    const chats = await api.listChats()
+                    const linked = chats.find(c => c.source_id === sourceId)
+                    if (linked) {
+                        const detail = await api.getChat(linked.id)
+                        setChatMessages(detail.messages)
+                    }
+                }
             } catch (loadError) {
                 setError(loadError instanceof Error ? loadError.message : "Unknown error")
             } finally {
@@ -116,7 +128,6 @@ export default function SourceDetailPage() {
         if (!normalizedName) return
 
         if (sourceTags.some((tag) => tag.name.toLowerCase() === normalizedName)) {
-            toast("Tag already exists", { description: `${normalizedName} is already attached to this source.` })
             return
         }
 
@@ -130,7 +141,6 @@ export default function SourceDetailPage() {
                 return [...currentTags, addedTag]
             })
             setNewTagName("")
-            toast("Tag added", { description: `${addedTag.name} was added.` })
         } catch (addTagError) {
             toast.error("Could not add tag", { description: addTagError instanceof Error ? addTagError.message : "Unknown error" })
         } finally {
@@ -146,7 +156,6 @@ export default function SourceDetailPage() {
         try {
             await api.removeTagFromSource(sourceId, tag.id)
             setSourceTags((currentTags) => currentTags.filter((currentTag) => currentTag.id !== tag.id))
-            toast("Tag removed", { description: `${tag.name} was removed.` })
         } catch (removeTagError) {
             toast.error("Could not remove tag", { description: removeTagError instanceof Error ? removeTagError.message : "Unknown error" })
         } finally {
@@ -171,6 +180,7 @@ export default function SourceDetailPage() {
 
     const segments: TranscriptSegment[] | null = source?.transcript_segments ?? null
     const isAudio = source?.file_type?.toLowerCase().includes("audio") ?? false
+    const isChat = source?.file_type?.toLowerCase() === "chat"
 
     const activeSegmentIndex = useMemo(() => {
         if (!segments) return -1
@@ -242,7 +252,7 @@ export default function SourceDetailPage() {
                             <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_280px]">
                                 <div className="rounded-xl border bg-background p-4 sm:p-5">
                                     <div className="flex flex-wrap items-center justify-between gap-3">
-                                        <h2 className="text-base font-semibold">Complete transcript</h2>
+                                        <h2 className="text-base font-semibold">{isChat ? "Conversation" : "Complete transcript"}</h2>
                                         {isSourceInProgress ? (
                                             <span className="text-xs text-emerald-600 animate-pulse">
                                                 {PROCESSING_STATUS_LABELS[source.status] ?? "Processing..."}
@@ -279,7 +289,54 @@ export default function SourceDetailPage() {
                                         </div>
                                     )}
 
-                                    {segments && segments.length > 0 ? (
+                                    {isChat && chatMessages ? (
+                                        <div className="mt-4 space-y-4">
+                                            {(() => {
+                                                const items: React.ReactNode[] = []
+                                                let pendingQuestion: ChatMessageRecord | null = null
+                                                for (const message of chatMessages) {
+                                                    if (message.role === "question") {
+                                                        pendingQuestion = message
+                                                        continue
+                                                    }
+                                                    const answerText =
+                                                        message.scale_value !== null && message.scale_value !== undefined
+                                                            ? `${message.scale_value}/${message.scale_max ?? 10}`
+                                                            : message.text
+                                                    items.push(
+                                                        <div key={message.id} className="space-y-2">
+                                                            {pendingQuestion && (
+                                                                <div className="flex justify-start">
+                                                                    <div className="bg-muted rounded-2xl rounded-tl-sm px-4 py-3 max-w-[85%]">
+                                                                        <span className="text-xs text-emerald-600 font-medium block mb-1">REFLECT</span>
+                                                                        <p className="text-[15px]">{pendingQuestion.text}</p>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                            <div className="flex justify-end">
+                                                                <div className="bg-emerald-900 text-white rounded-2xl rounded-tr-sm px-4 py-3 max-w-[85%]">
+                                                                    <p className="text-[15px] whitespace-pre-wrap">{answerText}</p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    )
+                                                    pendingQuestion = null
+                                                }
+                                                if (pendingQuestion !== null) {
+                                                    const q = pendingQuestion as ChatMessageRecord
+                                                    items.push(
+                                                        <div key={`pending-${q.id}`} className="flex justify-start">
+                                                            <div className="bg-muted rounded-2xl rounded-tl-sm px-4 py-3 max-w-[85%]">
+                                                                <span className="text-xs text-emerald-600 font-medium block mb-1">REFLECT</span>
+                                                                <p className="text-[15px]">{q.text}</p>
+                                                            </div>
+                                                        </div>
+                                                    )
+                                                }
+                                                return items
+                                            })()}
+                                        </div>
+                                    ) : segments && segments.length > 0 ? (
                                         <div className="mt-4 space-y-0.5 text-sm leading-7 text-foreground">
                                             {segments.map((seg, i) => (
                                                 <span
@@ -325,6 +382,8 @@ export default function SourceDetailPage() {
                                                 <div className="mt-1 flex items-center gap-2 text-sm font-medium">
                                                     {sourceKind === "Audio" ? (
                                                         <FileAudio2 className="h-4 w-4 text-muted-foreground" />
+                                                    ) : sourceKind === "Chat" ? (
+                                                        <MessageSquare className="h-4 w-4 text-muted-foreground" />
                                                     ) : (
                                                         <FileText className="h-4 w-4 text-muted-foreground" />
                                                     )}
@@ -351,7 +410,6 @@ export default function SourceDetailPage() {
                                                 onChange={(event) => setNewTagName(event.target.value)}
                                                 placeholder="Type a tag and press Enter"
                                                 autoComplete="off"
-                                                disabled={isAddingTag}
                                             />
                                         </form>
                                         <p className="mt-2 text-xs text-muted-foreground">
@@ -370,7 +428,13 @@ export default function SourceDetailPage() {
                                                             key={tag.id}
                                                             className="inline-flex items-center gap-1 rounded-full border bg-muted/20 px-2.5 py-1 text-xs font-medium"
                                                         >
-                                                            {tag.name}
+                                                            <Link
+                                                                href={`/?tag=${encodeURIComponent(tag.name)}`}
+                                                                className="hover:text-emerald-600 transition-colors"
+                                                                title={`Filter sources by "${tag.name}"`}
+                                                            >
+                                                                {tag.name}
+                                                            </Link>
                                                             <button
                                                                 type="button"
                                                                 className="inline-flex h-4 w-4 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50"
