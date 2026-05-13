@@ -38,7 +38,8 @@ echo "node: OK"
 
 # 3. mkcert + HTTPS certificates
 CERTS_DIR="$ROOT/certs"
-CERT_FILE="$CERTS_DIR/localhost+1.pem"
+CERT_FILE="$CERTS_DIR/localhost.pem"
+KEY_FILE="$CERTS_DIR/localhost-key.pem"
 
 if ! command -v mkcert &>/dev/null; then
     echo "Installing mkcert..."
@@ -54,15 +55,48 @@ if ! command -v mkcert &>/dev/null; then
     fi
 fi
 
-if command -v mkcert &>/dev/null && [ ! -f "$CERT_FILE" ]; then
-    echo "Setting up local HTTPS certificates (may prompt for sudo to trust the CA)..."
-    mkcert -install
-    mkdir -p "$CERTS_DIR"
-    cd "$CERTS_DIR"
-    mkcert localhost 127.0.0.1
-    cd "$ROOT"
-    echo "Certificates ready."
-else
+if command -v mkcert &>/dev/null; then
+    # Collect every IPv4 address bound to this machine, minus loopback and APIPA.
+    # Browsers reject the cert if the hostname/IP isn't in the SAN list, so the
+    # set has to track whichever network we're currently on.
+    if command -v ip &>/dev/null; then
+        LAN_IPS=$(ip -4 -o addr show scope global 2>/dev/null | awk '{print $4}' | cut -d/ -f1)
+    else
+        LAN_IPS=$(ifconfig 2>/dev/null | awk '/inet / {print $2}' | grep -Ev '^(127\.|169\.254\.)')
+    fi
+    CERT_NAMES=("localhost" "127.0.0.1")
+    for ip in $LAN_IPS; do
+        CERT_NAMES+=("$ip")
+    done
+
+    NEEDS_REGEN=true
+    if [ -f "$CERT_FILE" ] && command -v openssl &>/dev/null; then
+        SAN_TEXT=$(openssl x509 -in "$CERT_FILE" -noout -ext subjectAltName 2>/dev/null || true)
+        if [ -n "$SAN_TEXT" ]; then
+            NEEDS_REGEN=false
+            for name in "${CERT_NAMES[@]}"; do
+                if ! echo "$SAN_TEXT" | grep -qF "$name"; then
+                    NEEDS_REGEN=true
+                    break
+                fi
+            done
+        fi
+    elif [ -f "$CERT_FILE" ]; then
+        # Without openssl we can't inspect SANs; trust the existing cert.
+        NEEDS_REGEN=false
+    fi
+
+    if $NEEDS_REGEN; then
+        if ! mkcert -CAROOT &>/dev/null || [ ! -f "$(mkcert -CAROOT)/rootCA.pem" ]; then
+            echo "Installing mkcert local CA (may prompt for sudo)..."
+            mkcert -install
+        fi
+        mkdir -p "$CERTS_DIR"
+        echo "Generating HTTPS cert for: ${CERT_NAMES[*]}"
+        cd "$CERTS_DIR"
+        mkcert -cert-file localhost.pem -key-file localhost-key.pem "${CERT_NAMES[@]}"
+        cd "$ROOT"
+    fi
     echo "mkcert: OK"
 fi
 
