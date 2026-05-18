@@ -35,7 +35,7 @@ export function ChatTopBar({
             href={`/sources/${activeChatSourceId}`}
             className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 hover:underline"
           >
-            indexed source
+            saved as source
           </Link>
         )}
       </div>
@@ -59,7 +59,7 @@ export function ChatTopBar({
         ) : (
           <>
             <RotateCw className="h-3.5 w-3.5 mr-1" />
-            {isPromotingChat ? "Re-indexing..." : "Re-index"}
+            {isPromotingChat ? "Updating source..." : "Update source"}
           </>
         )}
       </Button>

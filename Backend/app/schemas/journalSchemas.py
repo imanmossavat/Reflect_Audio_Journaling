@@ -45,7 +45,9 @@ class SaveAnswerRequest(BaseModel):
 
 
 class SourcePatchRequest(BaseModel):
-    text: str
+    text: str | None = None
+    filename: str | None = None
+    created_at: str | None = None  # ISO 8601 datetime string
 
 @dataclass  
 class SimpleRecording:

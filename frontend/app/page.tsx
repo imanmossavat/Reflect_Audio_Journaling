@@ -169,6 +169,8 @@ export default function HomePage() {
               onToggleRecording={sources.handleToggleRecording}
               onCloseRecordingPanel={sources.handleCloseRecordingPanel}
               rawUploadUrl={sources.rawUploadUrl}
+              onDeleteSource={sources.handleDeleteSource}
+              onRenameSource={sources.handleRenameSource}
             />
           ) : (
             <ChatListPanel

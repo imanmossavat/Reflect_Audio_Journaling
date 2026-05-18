@@ -356,12 +356,15 @@ export const api = {
       throw error
     })
   },
-  patchSourceText(sourceId: number, text: string) {
+  patchSource(sourceId: number, fields: { text?: string; filename?: string; created_at?: string }) {
     return request<SourceRecord>(`/source/${sourceId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text }),
+      body: JSON.stringify(fields),
     })
+  },
+  deleteSource(sourceId: number) {
+    return request<{ ok: boolean }>(`/source/${sourceId}`, { method: "DELETE" })
   },
   processSource(sourceId: number) {
     return request<SourceRecord>(`/source/process/${sourceId}`, { method: "POST" }, 600000)

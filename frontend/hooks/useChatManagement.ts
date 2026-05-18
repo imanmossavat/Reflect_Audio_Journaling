@@ -264,7 +264,7 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
         const updated = await api.reindexChat(activeChatId)
         setRawSources((prev) => prev.map((s) => (Number(s.id) === updated.id ? { ...s, status: updated.status } : s)))
         setProcessingSources((prev) => new Set([...prev, updated.id]))
-        toast("Re-indexing chat content...")
+        toast("Updating chat content...")
       }
     } catch (error) {
       toast.error(`Operation failed: ${error instanceof Error ? error.message : "Unknown error"}`)

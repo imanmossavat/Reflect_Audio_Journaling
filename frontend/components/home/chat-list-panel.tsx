@@ -1,7 +1,8 @@
 "use client"
 
-import { Plus, MessageSquare, Trash2 } from "lucide-react"
+import { EllipsisVerticalIcon, Pencil, Plus, MessageSquare, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Skeleton } from "@/components/ui/skeleton"
 import type { ChatSummary } from "@/lib/api"
 
@@ -99,18 +100,38 @@ export function ChatListPanel({
                       </span>
                       {chat.source_id !== null && (
                         <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
-                          indexed
+                          saved as source
                         </span>
                       )}
                     </div>
                   </div>
-                  <button
-                    onClick={(e) => void onDeleteChat(chat, e)}
-                    className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-muted text-muted-foreground hover:text-destructive transition-opacity"
-                    aria-label={`Delete chat ${chat.title}`}
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button
+                        className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-muted text-muted-foreground transition-opacity"
+                        aria-label="Chat options"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <EllipsisVerticalIcon className="h-3.5 w-3.5" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-36">
+                      <DropdownMenuItem
+                        onSelect={(e) => onStartRenameChat(chat, e as unknown as React.MouseEvent)}
+                        className="gap-2"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                        Rename
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onSelect={(e) => void onDeleteChat(chat, e as unknown as React.MouseEvent)}
+                        className="gap-2 text-destructive focus:text-destructive"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
             )

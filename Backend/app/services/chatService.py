@@ -137,7 +137,7 @@ def promote_chat(session: Session, chat_id: int):
     if not chat:
         raise HTTPException(status_code=404, detail="Chat not found.")
     if chat.source_id is not None:
-        raise HTTPException(status_code=400, detail="Chat is already promoted. Use re-index instead.")
+        raise HTTPException(status_code=400, detail="Chat is already saved as a source. Use update source instead.")
 
     markdown = serialize_chat_to_markdown(session, chat_id)
     if not markdown.strip():

@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Any, Optional
 from sqlmodel import Session, select
-from database.models import Chunk, Source
+from database.models import Chat, Chunk, Source, SourceTag
 
 def get_all_sources(session: Session):
     return session.exec(select(Source)).all()
@@ -106,6 +106,49 @@ def update_source_text(session: Session, source: Source, text: str) -> Source:
     session.refresh(source)
 
     return source
+
+
+def update_source_fields(
+    session: Session,
+    source: Source,
+    *,
+    text: Optional[str] = None,
+    filename: Optional[str] = None,
+    created_at_str: Optional[str] = None,
+    status: Optional[str] = None,
+) -> Source:
+    if text is not None:
+        source.text = text
+    if filename is not None:
+        source.filename = filename
+    if created_at_str is not None:
+        source.created_at = datetime.fromisoformat(created_at_str)
+    if status is not None:
+        source.status = status
+    source.edited_at = datetime.now()
+    session.add(source)
+    session.commit()
+    session.refresh(source)
+    return source
+
+
+def delete_source(session: Session, source_id: int) -> bool:
+    source = session.exec(select(Source).where(Source.id == source_id)).first()
+    if not source:
+        return False
+    chunks = session.exec(select(Chunk).where(Chunk.source_id == source_id)).all()
+    for chunk in chunks:
+        session.delete(chunk)
+    source_tags = session.exec(select(SourceTag).where(SourceTag.source_id == source_id)).all()
+    for st in source_tags:
+        session.delete(st)
+    linked_chats = session.exec(select(Chat).where(Chat.source_id == source_id)).all()
+    for chat in linked_chats:
+        chat.source_id = None
+        session.add(chat)
+    session.delete(source)
+    session.commit()
+    return True
 
 
 def update_source_transcript(session: Session, source: Source, text: str, segments: list) -> Source:

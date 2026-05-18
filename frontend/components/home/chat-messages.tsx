@@ -2,6 +2,7 @@
 
 import { Skeleton } from "@/components/ui/skeleton"
 import type { ChatMessageRecord } from "@/lib/api"
+import { formatListTimestamp } from "@/lib/utils"
 import type { CurrentQuestion } from "./types"
 
 interface ChatMessagesProps {
@@ -39,10 +40,7 @@ export function ChatMessages({
                 message.scale_value !== null && message.scale_value !== undefined
                   ? `${message.scale_value}/${message.scale_max ?? 10}`
                   : message.text
-              const timestamp = new Date(message.created_at).toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              })
+              const timestamp = formatListTimestamp(message.created_at)
               items.push(
                 <div key={message.id} className="space-y-2">
                   {pendingQuestion && (

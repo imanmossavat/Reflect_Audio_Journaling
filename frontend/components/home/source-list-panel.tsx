@@ -1,10 +1,11 @@
 "use client"
 
-import { useMemo, useState } from "react"
-import { Check, ChevronDown, Mic, FileUp, Type, Play, Pause, Smartphone, X, File as FileIcon } from "lucide-react"
+import { useMemo, useRef, useState } from "react"
+import {EllipsisVerticalIcon ,Check, ChevronDown, Mic, FileUp, MoreHorizontal, Pencil, Trash2, Type, Play, Pause, Smartphone, X, File as FileIcon } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { PROCESSING_STATUSES, PROCESSING_STATUS_LABELS } from "@/lib/api"
@@ -41,6 +42,8 @@ interface SourceListPanelProps {
   onToggleRecording: () => void
   onCloseRecordingPanel: () => void
   rawUploadUrl: string
+  onDeleteSource: (id: string) => Promise<void>
+  onRenameSource: (id: string, name: string) => Promise<void>
 }
 
 export function SourceListPanel({
@@ -68,7 +71,19 @@ export function SourceListPanel({
   onToggleRecording,
   onCloseRecordingPanel,
   rawUploadUrl,
+  onDeleteSource,
+  onRenameSource,
 }: SourceListPanelProps) {
+  const [renamingSourceId, setRenamingSourceId] = useState<string | null>(null)
+  const [renameDraft, setRenameDraft] = useState("")
+  const renameInputRef = useRef<HTMLInputElement>(null)
+
+  const commitRename = async (sourceId: string) => {
+    const trimmed = renameDraft.trim()
+    if (trimmed) await onRenameSource(sourceId, trimmed)
+    setRenamingSourceId(null)
+  }
+
   const allTags = useMemo(() => {
     const tagSet = new Set<string>()
     rawSources.forEach((s) => s.tags.forEach((t) => tagSet.add(t.name)))
@@ -350,58 +365,104 @@ export function SourceListPanel({
                       <Type className="h-3 w-3 text-amber-600" />
                     )}
                   </div>
-                  <Link
-                    href={`/sources/${source.id}`}
-                    className="flex-1 min-w-0 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium truncate">{source.name}</span>
-                    </div>
-                    {isInProgress ? (
-                      <div className="flex items-center gap-1.5 mt-0.5">
-                        <span className="flex gap-0.5">
-                          <span className="inline-block w-1 h-1 rounded-full bg-emerald-500 animate-bounce [animation-delay:0ms]" />
-                          <span className="inline-block w-1 h-1 rounded-full bg-emerald-500 animate-bounce [animation-delay:150ms]" />
-                          <span className="inline-block w-1 h-1 rounded-full bg-emerald-500 animate-bounce [animation-delay:300ms]" />
-                        </span>
-                        <span className="text-xs text-emerald-600">
-                          {PROCESSING_STATUS_LABELS[source.status] ?? "Processing..."}
-                        </span>
-                      </div>
-                    ) : isFailed ? (
-                      <p className="text-xs text-red-500 mt-0.5">Processing failed</p>
+                  <div className="flex-1 min-w-0">
+                    {renamingSourceId === source.id ? (
+                      <input
+                        ref={renameInputRef}
+                        autoFocus
+                        value={renameDraft}
+                        onChange={(e) => setRenameDraft(e.target.value)}
+                        onBlur={() => void commitRename(source.id)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") void commitRename(source.id)
+                          else if (e.key === "Escape") setRenamingSourceId(null)
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-full text-sm font-medium bg-background border rounded px-1.5 py-0.5 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                      />
                     ) : (
-                      <>
-                        {source.type === "recording" && (
-                          <div className="flex items-center gap-2 mt-0.5">
-                            <Play className="h-3 w-3 text-muted-foreground" />
-                            <span className="text-xs text-muted-foreground">{source.duration}</span>
+                      <Link
+                        href={`/sources/${source.id}`}
+                        className="block rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium truncate">{source.name}</span>
+                        </div>
+                        {isInProgress ? (
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <span className="flex gap-0.5">
+                              <span className="inline-block w-1 h-1 rounded-full bg-emerald-500 animate-bounce [animation-delay:0ms]" />
+                              <span className="inline-block w-1 h-1 rounded-full bg-emerald-500 animate-bounce [animation-delay:150ms]" />
+                              <span className="inline-block w-1 h-1 rounded-full bg-emerald-500 animate-bounce [animation-delay:300ms]" />
+                            </span>
+                            <span className="text-xs text-emerald-600">
+                              {PROCESSING_STATUS_LABELS[source.status] ?? "Processing..."}
+                            </span>
                           </div>
+                        ) : isFailed ? (
+                          <p className="text-xs text-red-500 mt-0.5">Processing failed</p>
+                        ) : (
+                          <>
+                            {source.type === "recording" && (
+                              <div className="flex items-center gap-2 mt-0.5">
+                                <Play className="h-3 w-3 text-muted-foreground" />
+                                <span className="text-xs text-muted-foreground">{source.duration}</span>
+                              </div>
+                            )}
+                            {source.type === "text" && source.content && (
+                              <p className="text-xs text-muted-foreground truncate mt-0.5">{source.content}</p>
+                            )}
+                          </>
                         )}
-                        {source.type === "text" && source.content && (
-                          <p className="text-xs text-muted-foreground truncate mt-0.5">{source.content}</p>
-                        )}
-                      </>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-[10px] text-muted-foreground">{source.timestamp}</span>
+                          {source.tags.map((tag) => (
+                            <span key={tag.name} className="text-[10px] px-1.5 py-0.5 rounded-full bg-muted">
+                              {tag.name}
+                            </span>
+                          ))}
+                        </div>
+                      </Link>
                     )}
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-[10px] text-muted-foreground">{source.timestamp}</span>
-                      {source.tags.map((tag) => (
-                        <span
-                          key={tag.name}
-                          className="text-[10px] px-1.5 py-0.5 rounded-full bg-muted"
+                  </div>
+                  <div className="flex items-center gap-1 self-center shrink-0">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-muted text-muted-foreground transition-opacity"
+                          aria-label="Source options"
+                          onClick={(e) => e.stopPropagation()}
                         >
-                          {tag.name}
-                        </span>
-                      ))}
-                    </div>
-                  </Link>
-                  <Checkbox
-                    checked={source.included}
-                    onCheckedChange={(checked) => onSetSourceIncluded(source.id, checked === true)}
-                    aria-label={`Include ${source.name}`}
-                    className="self-center"
-                    disabled={isInProgress}
-                  />
+                          <EllipsisVerticalIcon className="h-3.5 w-3.5" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-36">
+                        <DropdownMenuItem
+                          onSelect={() => {
+                            setRenameDraft(source.name)
+                            setRenamingSourceId(source.id)
+                          }}
+                          className="gap-2"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                          Rename
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onSelect={() => void onDeleteSource(source.id)}
+                          className="gap-2 text-destructive focus:text-destructive"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    <Checkbox
+                      checked={source.included}
+                      onCheckedChange={(checked) => onSetSourceIncluded(source.id, checked === true)}
+                      aria-label={`Include ${source.name}`}
+                      disabled={isInProgress}
+                    />
+                  </div>
                 </div>
               </div>
             )

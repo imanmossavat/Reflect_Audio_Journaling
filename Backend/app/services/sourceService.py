@@ -241,15 +241,29 @@ async def transcribe_source(session: Session, source_id: int):
     return sourceRepository.update_source_transcript(session, source, transcript_text, segments)
 
 
-async def update_source_text(session: Session, source_id: int, source_text: str):
+async def update_source(
+    session: Session,
+    source_id: int,
+    *,
+    text: str | None = None,
+    filename: str | None = None,
+    created_at_str: str | None = None,
+):
     source = sourceRepository.get_source_by_id(session, source_id)
     if not source:
         raise HTTPException(status_code=404, detail="Source not found.")
+    new_status = "not processed" if (text is not None and source.status == "processed") else None
+    return sourceRepository.update_source_fields(
+        session, source, text=text, filename=filename, created_at_str=created_at_str, status=new_status
+    )
 
-    if source.status == "processed":
-        raise HTTPException(status_code=400, detail="Cannot edit a processed source.")
 
-    return sourceRepository.update_source_text(session, source, source_text)
+async def delete_source(session: Session, source_id: int):
+    source = sourceRepository.get_source_by_id(session, source_id)
+    if not source:
+        raise HTTPException(status_code=404, detail="Source not found.")
+    sourceRepository.delete_source(session, source_id)
+    return {"ok": True}
 
 
 async def process_source(session: Session, source_id: int):
