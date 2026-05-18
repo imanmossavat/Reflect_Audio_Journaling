@@ -40,3 +40,9 @@ On first run the script will install dependencies — this takes a few minutes. 
 ## Restarting
 
 Run the same command again. Dependency installs are skipped if already present.
+
+---
+
+## Legacy version
+
+An older prototype with a different folder structure (`basic-functionality/` and `RAG-solution/`) is preserved in the [`legacy`](../../tree/legacy) branch.
