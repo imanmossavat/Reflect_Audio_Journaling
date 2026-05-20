@@ -120,27 +120,29 @@ export default function HomePage() {
           className="border-r flex flex-col bg-muted/10 relative shrink-0 min-h-0"
           style={{ width: sidebar.leftSidebarWidth }}
         >
-          <div className="px-4 pt-3 border-b">
-            <div className="flex gap-1 mb-3">
-              <button
-                onClick={() => setLeftTab("sources")}
-                className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-md transition-colors ${
-                  leftTab === "sources" ? "bg-background border shadow-sm" : "text-muted-foreground hover:bg-muted/50"
-                }`}
-              >
-                <FileText className="h-3.5 w-3.5" />
-                Sources
-              </button>
-              <button
-                onClick={() => setLeftTab("chats")}
-                className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-md transition-colors ${
-                  leftTab === "chats" ? "bg-background border shadow-sm" : "text-muted-foreground hover:bg-muted/50"
-                }`}
-              >
-                <MessageSquare className="h-3.5 w-3.5" />
-                Chats
-              </button>
-            </div>
+          <div className="border-b flex h-12 shrink-0">
+            <button
+              onClick={() => setLeftTab("sources")}
+              className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-medium transition-colors ${
+                leftTab === "sources"
+                  ? "bg-background border-b-2 border-emerald-500"
+                  : "text-muted-foreground hover:bg-muted/50"
+              }`}
+            >
+              <FileText className="h-3.5 w-3.5" />
+              Sources
+            </button>
+            <button
+              onClick={() => setLeftTab("chats")}
+              className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-medium transition-colors ${
+                leftTab === "chats"
+                  ? "bg-background border-b-2 border-emerald-500"
+                  : "text-muted-foreground hover:bg-muted/50"
+              }`}
+            >
+              <MessageSquare className="h-3.5 w-3.5" />
+              Chats
+            </button>
           </div>
 
           {leftTab === "sources" ? (
@@ -203,28 +205,31 @@ export default function HomePage() {
             <ChatTopBar
               activeChat={chats.activeChat}
               activeChatSourceId={chats.activeChatSourceId}
-              activeChatLinkedSourceStatus={chats.activeChatLinkedSourceStatus}
-              isLinkedSourceProcessing={chats.isLinkedSourceProcessing}
-              isPromotingChat={chats.isPromotingChat}
-              activeChatMessages={chats.activeChatMessages}
-              onPromoteChat={chats.handlePromoteChat}
+              isRenamingTitle={chats.renamingChatId === chats.activeChat.id}
+              titleDraft={chats.renameDraft}
+              setTitleDraft={chats.setRenameDraft}
+              onStartRenameTitle={chats.handleStartRenameActiveChat}
+              onCommitRenameTitle={() => void chats.handleCommitRename(chats.activeChat!.id)}
+              onCancelRenameTitle={() => chats.setRenamingChatId(null)}
             />
           )}
           <ChatMessages
             activeChatMessages={chats.activeChatMessages}
-            activeChatId={chats.activeChatId}
             isLoadingActiveChat={chats.isLoadingActiveChat}
-            isGeneratingQuestion={chats.isGeneratingQuestion}
-            currentQuestion={chats.currentQuestion}
-            onScaleSelect={chats.handleScaleSelect}
+            isAssistantThinking={chats.isAssistantThinking}
           />
           <ChatInput
-            currentQuestion={chats.currentQuestion}
             inputValue={chats.inputValue}
             setInputValue={chats.setInputValue}
-            isGeneratingQuestion={chats.isGeneratingQuestion}
             onSubmitText={chats.handleSubmitText}
-            onSelectQuestionType={chats.handleSelectQuestionType}
+            isAssistantThinking={chats.isAssistantThinking}
+            activeChatId={chats.activeChatId}
+            activeChatSourceId={chats.activeChatSourceId}
+            activeChatLinkedSourceStatus={chats.activeChatLinkedSourceStatus}
+            isLinkedSourceProcessing={chats.isLinkedSourceProcessing}
+            isPromotingChat={chats.isPromotingChat}
+            activeChatMessages={chats.activeChatMessages}
+            onPromoteChat={chats.handlePromoteChat}
           />
         </div>
 

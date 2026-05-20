@@ -10,12 +10,5 @@ export interface RawSource {
   status: string
 }
 
-export interface CurrentQuestion {
-  type: QuestionType
-  content: string
-  scaleData?: { lowLabel: string; highLabel: string }
-}
-
-export type QuestionType = "clarifying" | "guided" | "quantitative"
 export type AddSourceMode = null | "recording" | "file" | "text" | "phone"
 export type LeftTab = "sources" | "chats"

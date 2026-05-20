@@ -13,10 +13,10 @@ export function formatListTimestamp(input: string | Date): string {
     date.getMonth() === now.getMonth() &&
     date.getDate() === now.getDate()
   if (isSameDay) {
-    return date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })
+    return date.toLocaleTimeString("en-gb", { hour: "2-digit", minute: "2-digit" })
   }
   const isSameYear = date.getFullYear() === now.getFullYear()
-  return date.toLocaleDateString("en-US", {
+  return date.toLocaleDateString("en-gb", {
     month: "short",
     day: "numeric",
     ...(isSameYear ? {} : { year: "numeric" }),

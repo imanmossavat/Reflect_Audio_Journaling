@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Skeleton } from "@/components/ui/skeleton"
 import type { ChatSummary } from "@/lib/api"
+import { formatListTimestamp } from "@/lib/utils"
 
 interface ChatListPanelProps {
   chats: ChatSummary[]
@@ -96,7 +97,7 @@ export function ChatListPanel({
                     )}
                     <div className="flex items-center gap-1.5 mt-0.5">
                       <span className="text-[10px] text-muted-foreground">
-                        {chat.message_count} message{chat.message_count === 1 ? "" : "s"}
+                        {chat.edited_at ? formatListTimestamp(chat.edited_at) : ""}
                       </span>
                       {chat.source_id !== null && (
                         <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">

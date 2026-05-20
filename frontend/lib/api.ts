@@ -374,7 +374,7 @@ export const api = {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ question, top_k }),
-    })
+    }, 120000)
   },
   extractTags(sourceId: number) {
     return request<{ tags: Array<{ name: string; summary: string; quotes: string[] }>; source_text: string }>(

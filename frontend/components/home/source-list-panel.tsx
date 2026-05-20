@@ -1,13 +1,12 @@
 "use client"
 
-import { useMemo, useRef, useState } from "react"
-import {EllipsisVerticalIcon ,Check, ChevronDown, Mic, FileUp, MoreHorizontal, Pencil, Trash2, Type, Play, Pause, Smartphone, X, File as FileIcon } from "lucide-react"
+import { useEffect, useMemo, useRef, useState } from "react"
+import {EllipsisVerticalIcon, Mic, FileUp, Pencil, Trash2, Type, Play, Pause, Search, Smartphone, X, File as FileIcon } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { PROCESSING_STATUSES, PROCESSING_STATUS_LABELS } from "@/lib/api"
 import type { RawSource, AddSourceMode } from "./types"
 
@@ -90,21 +89,65 @@ export function SourceListPanel({
     return Array.from(tagSet).sort()
   }, [rawSources])
 
-  const [isFilterOpen, setIsFilterOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [isSearchFocused, setIsSearchFocused] = useState(false)
+  const searchInputRef = useRef<HTMLInputElement>(null)
+  const [tagAutocompleteIndex, setTagAutocompleteIndex] = useState(0)
+
+  const tagSearchMatch = useMemo(() => {
+    const m = searchQuery.match(/^\s*tag:\s*(?:"([^"]*)"?|(\S*))\s*$/i)
+    if (!m) return null
+    return (m[1] ?? m[2] ?? "").toLowerCase()
+  }, [searchQuery])
+
+  const tagSuggestions = useMemo(() => {
+    if (tagSearchMatch === null) return []
+    return allTags.filter(
+      (t) => !tagFilter.includes(t) && t.toLowerCase().includes(tagSearchMatch)
+    )
+  }, [allTags, tagFilter, tagSearchMatch])
+
+  useEffect(() => {
+    setTagAutocompleteIndex(0)
+  }, [searchQuery])
+
+  const titleSearchTerm = tagSearchMatch === null ? searchQuery.trim().toLowerCase() : ""
 
   const filteredSources = useMemo(() => {
-    if (tagFilter.length === 0) return rawSources
-    return rawSources.filter((source) =>
-      tagFilter.every((tag) => source.tags.some((t) => t.name === tag))
-    )
-  }, [rawSources, tagFilter])
+    return rawSources.filter((source) => {
+      if (tagFilter.length > 0 && !tagFilter.every((tag) => source.tags.some((t) => t.name === tag))) {
+        return false
+      }
+      if (titleSearchTerm && !source.name.toLowerCase().includes(titleSearchTerm)) {
+        return false
+      }
+      return true
+    })
+  }, [rawSources, tagFilter, titleSearchTerm])
+
+  const selectableSources = useMemo(
+    () => filteredSources.filter((s) => !PROCESSING_STATUSES.has(s.status) && s.status !== "failed"),
+    [filteredSources],
+  )
+  const allSelected = selectableSources.length > 0 && selectableSources.every((s) => s.included)
+  const handleToggleSelectAll = () => {
+    const target = !allSelected
+    selectableSources.forEach((s) => {
+      if (s.included !== target) onSetSourceIncluded(s.id, target)
+    })
+  }
+
+  const acceptTagSuggestion = (tag: string) => {
+    onToggleTagFilter(tag)
+    setSearchQuery("")
+    searchInputRef.current?.blur()
+  }
 
   return (
     <>
       <div className="p-4 border-b">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-medium">Sources</h2>
-          <span className="text-xs text-muted-foreground">{includedSources.length}/{rawSources.length}</span>
+          <h2 className="text-sm font-medium">Add Sources</h2>
         </div>
 
         {!addSourceMode ? (
@@ -269,50 +312,115 @@ export function SourceListPanel({
         ) : null}
       </div>
 
-      {allTags.length > 0 && (
-        <div className="px-3 py-2 border-b flex flex-wrap items-center gap-1 min-h-[36px]">
-          <Popover open={isFilterOpen} onOpenChange={setIsFilterOpen}>
-            <PopoverTrigger asChild>
+      <div className="px-3 py-2 border-b space-y-1.5">
+        <div className="relative">
+          <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground pointer-events-none" />
+          <input
+            ref={searchInputRef}
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onFocus={() => setIsSearchFocused(true)}
+            onBlur={() => setIsSearchFocused(false)}
+            onKeyDown={(e) => {
+              if (tagSearchMatch !== null && tagSuggestions.length > 0) {
+                if (e.key === "ArrowDown") {
+                  e.preventDefault()
+                  setTagAutocompleteIndex((i) => (i + 1) % tagSuggestions.length)
+                } else if (e.key === "ArrowUp") {
+                  e.preventDefault()
+                  setTagAutocompleteIndex((i) => (i - 1 + tagSuggestions.length) % tagSuggestions.length)
+                } else if (e.key === "Enter" || e.key === "Tab") {
+                  e.preventDefault()
+                  acceptTagSuggestion(tagSuggestions[tagAutocompleteIndex])
+                } else if (e.key === "Escape") {
+                  setSearchQuery("")
+                }
+              } else if (e.key === "Escape") {
+                setSearchQuery("")
+              }
+            }}
+            placeholder="Search title..."
+            className="w-full pl-7 pr-7 py-1 text-xs rounded border bg-background focus:outline-none focus:ring-1 focus:ring-emerald-500"
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery("")}
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 p-0.5 rounded hover:bg-muted text-muted-foreground"
+              aria-label="Clear search"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          )}
+          {tagSearchMatch !== null && tagSuggestions.length > 0 ? (
+            <div className="absolute z-20 left-0 right-0 top-full mt-1 rounded-md border bg-popover shadow-md p-1 max-h-48 overflow-y-auto">
+              {tagSuggestions.map((tag, idx) => (
+                <button
+                  key={tag}
+                  type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault()
+                    acceptTagSuggestion(tag)
+                  }}
+                  onMouseEnter={() => setTagAutocompleteIndex(idx)}
+                  className={`w-full flex items-center gap-2 px-2 py-1 text-xs rounded text-left ${
+                    idx === tagAutocompleteIndex ? "bg-muted" : "hover:bg-muted"
+                  }`}
+                >
+                  <span className="text-[10px] text-muted-foreground">tag:</span>
+                  <span className="truncate">{tag}</span>
+                </button>
+              ))}
+            </div>
+          ) : isSearchFocused && searchQuery.length === 0 && allTags.length > 0 ? (
+            <div className="absolute z-20 left-0 right-0 top-full mt-1 rounded-md border bg-popover shadow-md p-1">
               <button
                 type="button"
-                className="inline-flex items-center gap-0.5 text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground hover:bg-muted/60 transition-colors"
+                onMouseDown={(e) => {
+                  e.preventDefault()
+                  setSearchQuery("tag:")
+                  searchInputRef.current?.focus()
+                }}
+                className="w-full flex items-center gap-2 px-2 py-1 text-xs rounded text-left hover:bg-muted"
               >
-                {tagFilter.length === 0 ? "Filter by tag" : "Add tag"}
-                <ChevronDown className="h-2.5 w-2.5 ml-0.5" />
+                <span className="text-[10px] text-muted-foreground">tag:</span>
+                <span className="text-muted-foreground">filter by tag</span>
               </button>
-            </PopoverTrigger>
-            <PopoverContent align="start" className="w-44 p-1">
-              {allTags.map((tag) => {
-                const isActive = tagFilter.includes(tag)
-                return (
-                  <button
-                    key={tag}
-                    type="button"
-                    onClick={() => onToggleTagFilter(tag)}
-                    className="w-full flex items-center gap-2 px-2 py-1.5 text-xs rounded hover:bg-muted transition-colors text-left"
-                  >
-                    <Check className={`h-3 w-3 shrink-0 ${isActive ? "text-emerald-600" : "invisible"}`} />
-                    {tag}
-                  </button>
-                )
-              })}
-            </PopoverContent>
-          </Popover>
-          {tagFilter.map((tag) => (
-            <button
-              key={tag}
-              type="button"
-              onClick={() => onToggleTagFilter(tag)}
-              className="inline-flex items-center gap-0.5 text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-300 dark:bg-emerald-900/40 dark:text-emerald-300 dark:border-emerald-700 transition-colors hover:bg-emerald-200"
-            >
-              {tag}
-              <X className="h-2.5 w-2.5 ml-0.5" />
-            </button>
-          ))}
+            </div>
+          ) : null}
         </div>
-      )}
+        {tagFilter.length > 0 && (
+          <div className="flex flex-wrap items-center gap-1">
+            {tagFilter.map((tag) => (
+              <button
+                key={tag}
+                type="button"
+                onClick={() => onToggleTagFilter(tag)}
+                className="inline-flex items-center gap-0.5 text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-300 dark:bg-emerald-900/40 dark:text-emerald-300 dark:border-emerald-700 transition-colors hover:bg-emerald-200"
+              >
+                {tag}
+                <X className="h-2.5 w-2.5 ml-0.5" />
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
 
       <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar p-2 space-y-1">
+        <div className="flex items-center justify-between px-2.5 pb-1">
+          <span className="text-xs text-muted-foreground">{includedSources.length}/{rawSources.length}</span>
+          {selectableSources.length > 0 && (
+            <label className="flex items-center gap-1.5 text-[12px] text-muted-foreground cursor-pointer select-none">
+              <span>{allSelected ? "Deselect all" : "Select all"}</span>
+              <Checkbox
+                checked={allSelected}
+                onCheckedChange={handleToggleSelectAll}
+                aria-label={allSelected ? "Deselect all sources" : "Select all sources"}
+              />
+            </label>
+          )}
+        </div>
         {isLoadingSources ? (
           Array.from({ length: 3 }).map((_, index) => (
             <div key={`source-skeleton-${index}`} className="p-2.5 rounded-lg bg-background/40">
@@ -330,8 +438,8 @@ export function SourceListPanel({
               </div>
             </div>
           ))
-        ) : filteredSources.length === 0 && tagFilter.length > 0 ? (
-          <p className="text-xs text-muted-foreground px-2 py-4 text-center">No sources match the selected tags.</p>
+        ) : filteredSources.length === 0 && (tagFilter.length > 0 || titleSearchTerm) ? (
+          <p className="text-xs text-muted-foreground px-2 py-4 text-center">No sources match the current filter.</p>
         ) : (
           filteredSources.map((source) => {
             const isInProgress = PROCESSING_STATUSES.has(source.status)
