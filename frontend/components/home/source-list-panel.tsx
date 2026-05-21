@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Skeleton } from "@/components/ui/skeleton"
-import { PROCESSING_STATUSES, PROCESSING_STATUS_LABELS } from "@/lib/api"
+import { PROCESSING_STATUSES, PROCESSING_STATUS_LABELS, OLLAMA_FAILURE_STATUSES } from "@/lib/api"
 import type { RawSource, AddSourceMode } from "./types"
 
 const formatRecordingDuration = (seconds: number) => {
@@ -126,7 +126,7 @@ export function SourceListPanel({
   }, [rawSources, tagFilter, titleSearchTerm])
 
   const selectableSources = useMemo(
-    () => filteredSources.filter((s) => !PROCESSING_STATUSES.has(s.status) && s.status !== "failed"),
+    () => filteredSources.filter((s) => !PROCESSING_STATUSES.has(s.status) && s.status !== "failed" && !OLLAMA_FAILURE_STATUSES.has(s.status)),
     [filteredSources],
   )
   const allSelected = selectableSources.length > 0 && selectableSources.every((s) => s.included)
@@ -444,13 +444,15 @@ export function SourceListPanel({
           filteredSources.map((source) => {
             const isInProgress = PROCESSING_STATUSES.has(source.status)
             const isFailed = source.status === "failed"
+            const isOllamaFailure = OLLAMA_FAILURE_STATUSES.has(source.status)
+            const isAnyFailure = isFailed || isOllamaFailure
             return (
               <div
                 key={source.id}
                 className={`p-2.5 rounded-lg transition-all group ${
                   isInProgress
                     ? "border border-emerald-400/50 bg-emerald-50/40 dark:bg-emerald-900/10"
-                    : isFailed
+                    : isAnyFailure
                       ? "border border-red-200 bg-red-50/30 dark:bg-red-900/10 opacity-70"
                       : `hover:bg-muted/50 ${source.included ? "" : "opacity-60"}`
                 }`}
@@ -506,6 +508,19 @@ export function SourceListPanel({
                             <span className="text-xs text-emerald-600">
                               {PROCESSING_STATUS_LABELS[source.status] ?? "Processing..."}
                             </span>
+                          </div>
+                        ) : isOllamaFailure ? (
+                          <div className="mt-0.5">
+                            <p className="text-xs text-orange-500 font-medium">
+                              {source.status === "failed_ollama_not_installed"
+                                ? "Ollama not installed"
+                                : "Ollama not running"}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {source.status === "failed_ollama_not_installed"
+                                ? "Install Ollama to enable indexing"
+                                : "Start Ollama, then reprocess"}
+                            </p>
                           </div>
                         ) : isFailed ? (
                           <p className="text-xs text-red-500 mt-0.5">Processing failed</p>

@@ -32,7 +32,8 @@ if not use_tls:
 print(f"{BOLD}{'='*50}{RESET}\n")
 
 qrcode.make(url).save("docs_qr.png")
-os.system(("open" if sys.platform == "darwin" else "start") + " docs_qr.png")
+opener = "open" if sys.platform == "darwin" else "xdg-open"
+os.system(f"{opener} docs_qr.png 2>/dev/null &")
 
 cmd = [
     sys.executable, "-m", "uvicorn",

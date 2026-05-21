@@ -1,7 +1,9 @@
 import asyncio
 import os
+import shutil
 import uuid
 
+import httpx
 from pathlib import Path
 from app.schemas.journalSchemas import SimpleRecording
 from fastapi import HTTPException, UploadFile
@@ -22,6 +24,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent / "database" / "uploads
 logger = logging_config.logger
 
 #Background processing
+
+def _check_ollama() -> str:
+    """Returns 'ok', 'not_running', or 'not_installed'."""
+    try:
+        with httpx.Client(timeout=3.0) as client:
+            client.get("http://localhost:11434")
+        return "ok"
+    except httpx.ConnectError:
+        return "not_running" if shutil.which("ollama") else "not_installed"
+    except Exception:
+        return "not_running"
+
 
 def _set_status(source_id: int, status: str) -> None:
     """Tiny short-lived write so SQLite is never locked during long operations."""
@@ -100,6 +114,11 @@ def _process_source_sync(source_id: int) -> None:
             ]
 
         #Vector index (ChromaDB)
+        ollama_state = _check_ollama()
+        if ollama_state != "ok":
+            logger.error(f"Ollama {ollama_state} — cannot index source {source_id}")
+            _set_status(source_id, f"failed_ollama_{ollama_state}")
+            return
         _set_status(source_id, "indexing")
         index_chunks(chunk_dicts)
 

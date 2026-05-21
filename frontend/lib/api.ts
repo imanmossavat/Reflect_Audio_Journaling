@@ -6,9 +6,16 @@ export type SourceStatus =
   | "chunking"
   | "indexing"
   | "failed"
+  | "failed_ollama_not_running"
+  | "failed_ollama_not_installed"
   | string
 
 export const PROCESSING_STATUSES = new Set<SourceStatus>(["queued", "transcribing", "chunking", "indexing"])
+
+export const OLLAMA_FAILURE_STATUSES = new Set<SourceStatus>([
+  "failed_ollama_not_running",
+  "failed_ollama_not_installed",
+])
 
 export const PROCESSING_STATUS_LABELS: Record<string, string> = {
   queued: "Queued...",
@@ -16,6 +23,8 @@ export const PROCESSING_STATUS_LABELS: Record<string, string> = {
   chunking: "Splitting into chunks...",
   indexing: "Building search index...",
   failed: "Processing failed",
+  failed_ollama_not_running: "Ollama not running",
+  failed_ollama_not_installed: "Ollama not installed",
 }
 
 export interface TranscriptSegment {
