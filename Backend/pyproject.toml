@@ -4,9 +4,11 @@ version = "0.1.0"
 requires-python = "==3.11.*"
 dependencies = [
     # Core ML / audio
+    # NOTE: torch / torchaudio are provided via the "cpu" or "cuda" extras
+    # below so we can swap PyTorch wheels based on whether an NVIDIA GPU is
+    # present. start.ps1 picks the extra automatically; if you run uv by
+    # hand, pass one of:  uv sync --extra cpu   |   uv sync --extra cuda
     "numpy==1.26.4",
-    "torch==2.5.1",
-    "torchaudio==2.5.1",
     "scikit-learn==1.7.2",
     "librosa==0.11.0",
     "transformers==4.47.1",
@@ -46,6 +48,17 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+# CPU-only PyTorch (default fallback when no NVIDIA GPU is detected).
+cpu = [
+    "torch==2.5.1",
+    "torchaudio==2.5.1",
+]
+# CUDA 12.4 PyTorch wheels (works with any NVIDIA driver >= 525,
+# which includes everything from RTX 20-series onwards).
+cuda = [
+    "torch==2.5.1",
+    "torchaudio==2.5.1",
+]
 dev = [
     "pytest==8.3.4",
     "pytest-mock==3.15.1",
@@ -54,24 +67,35 @@ dev = [
 
 [tool.uv]
 package = false
+# cpu and cuda extras pin the same versions to different indexes, so
+# they conflict by design — uv needs to know not to resolve both at once.
+conflicts = [
+  [{ extra = "cpu" }, { extra = "cuda" }],
+]
 
 [build-system]
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
-# On Linux use the lightweight CPU-only index; on Windows fall back to PyPI
-# (the PyTorch CPU index has no win_amd64 wheels for the +cpu variant).
-# If you have a CUDA GPU, replace the url below with the matching cu* index,
-# e.g. https://download.pytorch.org/whl/cu124
+# Route torch/torchaudio to the right wheel index based on which extra
+# is active. On Linux the cpu extra uses the dedicated CPU index;
+# on Windows it falls back to PyPI (the +cpu variant has no win wheels).
 [tool.uv.sources]
 torch = [
-  { index = "pytorch", marker = "sys_platform == 'linux'" },
+  { index = "pytorch-cpu", extra = "cpu", marker = "sys_platform == 'linux'" },
+  { index = "pytorch-cuda", extra = "cuda" },
 ]
 torchaudio = [
-  { index = "pytorch", marker = "sys_platform == 'linux'" },
+  { index = "pytorch-cpu", extra = "cpu", marker = "sys_platform == 'linux'" },
+  { index = "pytorch-cuda", extra = "cuda" },
 ]
 
 [[tool.uv.index]]
-name = "pytorch"
+name = "pytorch-cpu"
 url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[[tool.uv.index]]
+name = "pytorch-cuda"
+url = "https://download.pytorch.org/whl/cu124"
 explicit = true

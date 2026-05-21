@@ -111,7 +111,10 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
       const answer = result.answer?.trim() || "(empty response)"
       await persistMessage(chatId, { role: "question", text: answer })
     } catch (error) {
-      toast.error(`Assistant failed: ${error instanceof Error ? error.message : "Unknown error"}`)
+      const raw = error instanceof Error ? error.message : "Unknown error"
+      // request() prefixes errors with "API NNN:" — strip it so the backend's friendly detail stands alone.
+      const friendly = raw.replace(/^API\s+\d+:\s*/, "")
+      toast.error(friendly)
     } finally {
       setIsAssistantThinking(false)
     }

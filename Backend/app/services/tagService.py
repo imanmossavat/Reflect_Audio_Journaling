@@ -37,12 +37,13 @@ def _build_prompt(source_text: str) -> str:
 
 
 def _call_llm(user_prompt: str) -> str:
-    
+    from app.services.settings_service import get_setting
+    host = get_setting("ollama_host").rstrip("/")
 
     response = httpx.post(
-        "http://localhost:11434/api/chat",
+        f"{host}/api/chat",
         json={
-            "model": "llama3",           # replace with whichever model you benchmark
+            "model": get_setting("chat_model"),
             "stream": False,
             "messages": [
                 {"role": "system", "content": _SYSTEM_PROMPT},

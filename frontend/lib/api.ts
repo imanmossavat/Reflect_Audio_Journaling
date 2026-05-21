@@ -8,6 +8,7 @@ export type SourceStatus =
   | "failed"
   | "failed_ollama_not_running"
   | "failed_ollama_not_installed"
+  | "failed_ollama_model_missing"
   | string
 
 export const PROCESSING_STATUSES = new Set<SourceStatus>(["queued", "transcribing", "chunking", "indexing"])
@@ -15,6 +16,7 @@ export const PROCESSING_STATUSES = new Set<SourceStatus>(["queued", "transcribin
 export const OLLAMA_FAILURE_STATUSES = new Set<SourceStatus>([
   "failed_ollama_not_running",
   "failed_ollama_not_installed",
+  "failed_ollama_model_missing",
 ])
 
 export const PROCESSING_STATUS_LABELS: Record<string, string> = {
@@ -25,7 +27,10 @@ export const PROCESSING_STATUS_LABELS: Record<string, string> = {
   failed: "Processing failed",
   failed_ollama_not_running: "Ollama not running",
   failed_ollama_not_installed: "Ollama not installed",
+  failed_ollama_model_missing: "Embedding model not installed",
 }
+
+export const EMBED_MODEL_NAME = "nomic-embed-text"
 
 export interface TranscriptSegment {
   text: string
@@ -129,6 +134,48 @@ export interface GenerateQuestionRequest {
   focus_tag?: string
   focus_tag_summary?: string
   history?: Array<Record<string, unknown>>
+}
+
+export type AppDevice = "cpu" | "cuda" | "mps" | "rocm"
+export type AppLanguage = "en" | "nl"
+export type AppWhisperModel = "tiny" | "base" | "small" | "medium" | "large-v3"
+export type AppTheme = "light" | "dark" | "system"
+
+export interface AppSettings {
+  chat_model: string
+  embed_model: string
+  ollama_host: string
+  device: AppDevice
+  whisper_model: AppWhisperModel
+  language: AppLanguage
+  db_path: string
+  theme: AppTheme
+}
+
+export interface DeviceOption {
+  id: AppDevice
+  label: string
+  available: boolean
+  detail: string | null
+  supported_for_transcription: boolean
+}
+
+export interface OllamaModelEntry {
+  name: string
+  size?: number
+}
+
+export interface OllamaModelListing {
+  available: boolean
+  host: string
+  models: OllamaModelEntry[]
+  error?: string
+}
+
+export interface SpacyModelEntry {
+  language: AppLanguage
+  model: string
+  installed: boolean
 }
 
 function getBackendBaseUrl() {
@@ -457,6 +504,25 @@ export const api = {
   },
   getOllamaHealth() {
     return request<unknown>("/ollama-health")
+  },
+  getSettings() {
+    return request<AppSettings>("/settings")
+  },
+  updateSettings(patch: Partial<AppSettings>) {
+    return request<AppSettings>("/settings", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(patch),
+    })
+  },
+  listDevices() {
+    return request<DeviceOption[]>("/settings/devices")
+  },
+  listOllamaModels() {
+    return request<OllamaModelListing>("/settings/ollama-models")
+  },
+  listSpacyModels() {
+    return request<SpacyModelEntry[]>("/settings/spacy-models")
   },
   streamGeneratedQuestion(
     payload: GenerateQuestionRequest,

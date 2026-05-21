@@ -2,7 +2,13 @@ import datetime
 from pydantic import BaseModel
 import json
 
-from app.services.rag import query_sources
+from app.services.rag import (
+    check_model_installed,
+    check_ollama_state,
+    classify_ollama_error,
+    query_sources,
+)
+from app.services.settings_service import get_setting
 
 import httpx
 import ollama
@@ -28,8 +34,17 @@ router = APIRouter()
 
 logger = logging_config.logger
 
-OLLAMA_URL = "http://localhost:11434/api/generate"
-MODEL = "gemma4:e4b"
+
+def _ollama_host() -> str:
+    return get_setting("ollama_host").rstrip("/")
+
+
+def _chat_model() -> str:
+    return get_setting("chat_model")
+
+
+def _embed_model() -> str:
+    return get_setting("embed_model")
 
 
 class QueryRequest(BaseModel):
@@ -42,7 +57,48 @@ async def query(request: QueryRequest):
     if not request.question.strip():
         raise HTTPException(status_code=400, detail="Question cannot be empty.")
 
-    result = query_sources(request.question, top_k=request.top_k)
+    ollama_state = check_ollama_state()
+    if ollama_state == "not_installed":
+        raise HTTPException(
+            status_code=503,
+            detail="Ollama isn't installed on your machine. Install it from https://ollama.com, then try again.",
+        )
+    if ollama_state == "not_running":
+        raise HTTPException(
+            status_code=503,
+            detail="Ollama isn't running on your machine. Start it and send the message again.",
+        )
+
+    embed_model = _embed_model()
+    chat_model = _chat_model()
+    missing = [m for m in (embed_model, chat_model) if not check_model_installed(m)]
+    if missing:
+        commands = " && ".join(f"ollama pull {m}" for m in missing)
+        label = "model isn't" if len(missing) == 1 else "models aren't"
+        raise HTTPException(
+            status_code=503,
+            detail=f"The required {label} installed yet. Run `{commands}` in your terminal, then try again.",
+        )
+
+    try:
+        result = query_sources(request.question, top_k=request.top_k)
+    except Exception as exc:
+        kind = classify_ollama_error(exc)
+        if kind == "not_running":
+            raise HTTPException(
+                status_code=503,
+                detail="Ollama stopped while answering. Start it and send the message again.",
+            ) from exc
+        if kind == "model_missing":
+            raise HTTPException(
+                status_code=503,
+                detail=f"A required Ollama model is missing. Run `ollama pull {_embed_model()}` and `ollama pull {_chat_model()}`, then try again.",
+            ) from exc
+        logger.exception(f"Query failed: {exc}")
+        raise HTTPException(
+            status_code=500,
+            detail="Something went wrong while answering. Check the backend logs.",
+        ) from exc
     return QueryResponse(question=request.question, answer=result["answer"], sources=result["sources"])
 
 @router.post("/extract-tags", tags=["Query"])
@@ -62,9 +118,9 @@ async def extract_tags(source_id: int) -> ExtractedTagsResponse:
             timeout=httpx.Timeout(connect=10.0, read=300.0, write=10.0, pool=10.0)
         ) as client:
             response = await client.post(
-                OLLAMA_URL,
+                f"{_ollama_host()}/api/generate",
                 json={
-                    "model": MODEL,
+                    "model": _chat_model(),
                     "prompt": prompt,
                     "stream": False,
                     "options": {"num_predict": 1024},
@@ -139,7 +195,7 @@ async def generate_question(req: GenerateRequest):
 
     async def stream_ollama():
         try:
-            stream = ollama.chat(model=MODEL, messages=messages, stream=True, think=False)
+            stream = ollama.chat(model=_chat_model(), messages=messages, stream=True, think=False)
             for chunk in stream:
                 token = chunk.get("message", {}).get("content", "")
                 if token:
@@ -181,7 +237,7 @@ async def save_answer(req: SaveAnswerRequest):
 async def health():
     try:
         async with httpx.AsyncClient(timeout=5.0) as client:
-            r = await client.get("http://localhost:11434")
+            r = await client.get(_ollama_host())
             return Response(
                 content=r.content,
                 status_code=r.status_code,

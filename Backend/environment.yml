@@ -1,12 +1,25 @@
 name: REFLECT
+# NOTE: the supported install path is `uv sync` via start.ps1, which picks
+# CPU vs CUDA PyTorch wheels automatically. This conda file is kept as a
+# fallback for non-uv setups.
+#
+# For NVIDIA GPUs, switch the pytorch line to the CUDA build, e.g.:
+#     - pytorch=2.5.1=*cuda*
+#   and add the channel:
+#     - nvidia
+#   plus:
+#     - pytorch-cuda=12.4
 channels:
   - pytorch
+  - nvidia
   - conda-forge
   - defaults
 
 dependencies:
   - python=3.11
   - numpy=1.26.4
+  # CPU build by default; replace with the cuda variant above if you have
+  # an NVIDIA GPU.
   - pytorch=2.5.1
   - torchaudio=2.5.1
   - scikit-learn=1.7.2

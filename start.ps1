@@ -94,8 +94,19 @@ $useTls = Test-Path $certFile
 
 # 4. Backend deps + DB migration
 Set-Location "$root\Backend"
-Write-Host "Syncing Python dependencies..."
-uv sync
+
+# Pick PyTorch wheels based on whether an NVIDIA GPU is reachable.
+# nvidia-smi ships with the NVIDIA driver, so its presence is a reliable
+# proxy for "this machine has a working CUDA driver".
+$torchExtra = "cpu"
+if (Get-Command nvidia-smi -ErrorAction SilentlyContinue) {
+    try {
+        & nvidia-smi *> $null
+        if ($LASTEXITCODE -eq 0) { $torchExtra = "cuda" }
+    } catch { }
+}
+Write-Host "Syncing Python dependencies (torch=$torchExtra)..."
+uv sync --extra $torchExtra
 Write-Host "Running database migrations..."
 uv run alembic upgrade head
 

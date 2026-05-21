@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Skeleton } from "@/components/ui/skeleton"
-import { PROCESSING_STATUSES, PROCESSING_STATUS_LABELS, OLLAMA_FAILURE_STATUSES } from "@/lib/api"
+import { PROCESSING_STATUSES, PROCESSING_STATUS_LABELS, OLLAMA_FAILURE_STATUSES, EMBED_MODEL_NAME } from "@/lib/api"
 import type { RawSource, AddSourceMode } from "./types"
 
 const formatRecordingDuration = (seconds: number) => {
@@ -514,16 +514,23 @@ export function SourceListPanel({
                             <p className="text-xs text-orange-500 font-medium">
                               {source.status === "failed_ollama_not_installed"
                                 ? "Ollama not installed"
-                                : "Ollama not running"}
+                                : source.status === "failed_ollama_model_missing"
+                                  ? "Embedding model not installed"
+                                  : "Ollama not running"}
                             </p>
                             <p className="text-xs text-muted-foreground">
                               {source.status === "failed_ollama_not_installed"
                                 ? "Install Ollama to enable indexing"
-                                : "Start Ollama, then reprocess"}
+                                : source.status === "failed_ollama_model_missing"
+                                  ? <>Run <code className="px-1 py-0.5 rounded bg-muted text-[10px]">ollama pull {EMBED_MODEL_NAME}</code> in a terminal, then reprocess</>
+                                  : "Start Ollama, then reprocess"}
                             </p>
                           </div>
                         ) : isFailed ? (
-                          <p className="text-xs text-red-500 mt-0.5">Processing failed</p>
+                          <div className="mt-0.5">
+                            <p className="text-xs text-red-500 font-medium">Processing failed</p>
+                            <p className="text-xs text-muted-foreground">Open the source to retry, or check the backend logs.</p>
+                          </div>
                         ) : (
                           <>
                             {source.type === "recording" && (

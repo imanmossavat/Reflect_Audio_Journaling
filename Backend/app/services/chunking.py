@@ -5,7 +5,27 @@ import spacy
 
 from typing import List
 
-nlp = spacy.load("en_core_web_sm")
+from app.services.settings_service import get_setting
+
+_SPACY_MODELS = {"en": "en_core_web_sm", "nl": "nl_core_news_sm"}
+_nlp_cache: dict[str, "spacy.language.Language"] = {}
+
+
+def _get_nlp():
+    language = get_setting("language") or "en"
+    model_name = _SPACY_MODELS.get(language, _SPACY_MODELS["en"])
+    cached = _nlp_cache.get(model_name)
+    if cached is not None:
+        return cached
+    try:
+        nlp = spacy.load(model_name)
+    except OSError:
+        # Fall back to English if the requested model isn't installed.
+        nlp = spacy.load(_SPACY_MODELS["en"])
+        model_name = _SPACY_MODELS["en"]
+    _nlp_cache[model_name] = nlp
+    return nlp
+
 
 def llm_split_source(text: str) -> List[str]:
     prompt = f"""Your task is to split a source into individual entries or segments.
@@ -22,7 +42,7 @@ Source:
 {text}
 """
     response = ollama.chat(
-        model="gemma4:e4b",
+        model=get_setting("chat_model"),
         messages=[{"role": "user", "content": prompt}],
         format="json",
     )
@@ -65,7 +85,7 @@ def split_on_days(text: str):
 
 
 def sentence_chunk(text: str):
-    doc = nlp(text)
+    doc = _get_nlp()(text)
     sentences = [s.text.strip() for s in doc.sents if s.text.strip()]
 
     chunks = []

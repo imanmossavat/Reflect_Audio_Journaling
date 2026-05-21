@@ -13,7 +13,7 @@ import strip_markdown
 from app.db import engine
 from app.repositories import sourceRepository
 from app.services.chunking import chunk_text
-from app.services.rag import index_chunks
+from app.services.rag import EMBED_MODEL, check_model_installed, classify_ollama_error, index_chunks
 from app.services.transcription import TranscriptionManager
 from app import logging_config
 
@@ -27,9 +27,10 @@ logger = logging_config.logger
 
 def _check_ollama() -> str:
     """Returns 'ok', 'not_running', or 'not_installed'."""
+    from app.services.settings_service import get_setting
     try:
         with httpx.Client(timeout=3.0) as client:
-            client.get("http://localhost:11434")
+            client.get(get_setting("ollama_host").rstrip("/"))
         return "ok"
     except httpx.ConnectError:
         return "not_running" if shutil.which("ollama") else "not_installed"
@@ -119,8 +120,24 @@ def _process_source_sync(source_id: int) -> None:
             logger.error(f"Ollama {ollama_state} — cannot index source {source_id}")
             _set_status(source_id, f"failed_ollama_{ollama_state}")
             return
+        if not check_model_installed(EMBED_MODEL):
+            logger.error(f"Embedding model {EMBED_MODEL} not installed — cannot index source {source_id}")
+            _set_status(source_id, "failed_ollama_model_missing")
+            return
         _set_status(source_id, "indexing")
-        index_chunks(chunk_dicts)
+        try:
+            index_chunks(chunk_dicts)
+        except Exception as index_exc:
+            kind = classify_ollama_error(index_exc)
+            if kind == "model_missing":
+                logger.error(f"Embedding model missing while indexing source {source_id}: {index_exc}")
+                _set_status(source_id, "failed_ollama_model_missing")
+                return
+            if kind == "not_running":
+                logger.error(f"Ollama stopped while indexing source {source_id}: {index_exc}")
+                _set_status(source_id, "failed_ollama_not_running")
+                return
+            raise
 
         _set_status(source_id, "processed")
         logger.info(f"Background processing complete for source {source_id}")
