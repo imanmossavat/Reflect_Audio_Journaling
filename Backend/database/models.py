@@ -160,6 +160,8 @@ class ChatMessage(SQLModel, table=True):
     scale_max: Optional[int] = Field(default=None)
     scale_low_label: Optional[str] = Field(default=None, max_length=100)
     scale_high_label: Optional[str] = Field(default=None, max_length=100)
+    model: Optional[str] = Field(default=None, max_length=255)
+    thinking: Optional[str] = Field(default=None)
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     # Relationships

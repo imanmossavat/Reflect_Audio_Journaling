@@ -102,13 +102,23 @@ async def transcribe_source(
     return await sourceService.transcribe_source(session, source_id)
 
 
-@router.patch("/source/{source_id}", tags=["Source"], description="Update a source transcript/text before processing.")
+@router.patch("/source/{source_id}", tags=["Source"], description="Update source fields (text, filename, created_at).")
 async def patch_source(
     source_id: int,
     payload: SourcePatchRequest,
     session: Session = Depends(get_session),
 ):
-    return await sourceService.update_source_text(session, source_id, payload.text)
+    return await sourceService.update_source(
+        session, source_id, text=payload.text, filename=payload.filename, created_at_str=payload.created_at
+    )
+
+
+@router.delete("/source/{source_id}", tags=["Source"], description="Delete a source and its associated data.")
+async def delete_source(
+    source_id: int,
+    session: Session = Depends(get_session),
+):
+    return await sourceService.delete_source(session, source_id)
 
 
 @router.post("/source/process/{source_id}", tags=["Source"], description="Queue a raw source for processing. Returns immediately; processing runs in the background.")

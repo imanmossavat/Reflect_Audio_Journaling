@@ -1,41 +1,27 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { api, type ChatSummary, type ChatMessageRecord, PROCESSING_STATUSES } from "@/lib/api"
-import type { RawSource, CurrentQuestion, QuestionType } from "@/components/home/types"
+import { api, type ChatSummary, type ChatMessageRecord, type ChatStreamStageName, PROCESSING_STATUSES } from "@/lib/api"
+import type { RawSource } from "@/components/home/types"
 import { mapBackendSource } from "@/hooks/useSourceManagement"
 import { toast } from "sonner"
-
-const MAX_HISTORY_MESSAGES = 20
-
-const quantitativeQuestions = [
-  { question: "How much is stress affecting your life right now?", lowLabel: "Not at all", highLabel: "Significantly" },
-  { question: "How energized do you feel today?", lowLabel: "Exhausted", highLabel: "Very energized" },
-  { question: "How confident are you feeling about your progress?", lowLabel: "Not confident", highLabel: "Very confident" },
-  { question: "How well did you sleep last night?", lowLabel: "Very poorly", highLabel: "Very well" },
-  { question: "How anxious are you feeling right now?", lowLabel: "Not at all", highLabel: "Extremely" },
-]
-
-const guidedQuestions = [
-  "What moment from today are you most grateful for?",
-  "What challenge did you face recently, and what did you learn from it?",
-  "How did you take care of yourself this week?",
-  "What's one thing you'd like to let go of?",
-  "What are you looking forward to?",
-]
-
-const clarifyingQuestions = [
-  "Can you tell me more about what led to that?",
-  "How did that make you feel in the moment?",
-  "What do you think triggered that response?",
-  "What would the ideal outcome look like for you?",
-  "Is there a pattern you've noticed here before?",
-]
 
 interface UseChatManagementOptions {
   rawSources: RawSource[]
   setRawSources: React.Dispatch<React.SetStateAction<RawSource[]>>
   setProcessingSources: React.Dispatch<React.SetStateAction<Set<number>>>
+}
+
+export type StreamingStage = {
+  name: ChatStreamStageName
+  count?: number
+  done: boolean
+}
+
+export type StreamingAssistant = {
+  stages: StreamingStage[]
+  thinking: string
+  answer: string
 }
 
 export function useChatManagement({ rawSources, setRawSources, setProcessingSources }: UseChatManagementOptions) {
@@ -47,9 +33,9 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
   const [renamingChatId, setRenamingChatId] = useState<number | null>(null)
   const [renameDraft, setRenameDraft] = useState("")
   const [isPromotingChat, setIsPromotingChat] = useState(false)
-  const [currentQuestion, setCurrentQuestion] = useState<CurrentQuestion | null>(null)
   const [inputValue, setInputValue] = useState("")
-  const [isGeneratingQuestion, setIsGeneratingQuestion] = useState(false)
+  const [streamingAssistant, setStreamingAssistant] = useState<StreamingAssistant | null>(null)
+  const isAssistantThinking = streamingAssistant !== null
 
   useEffect(() => {
     const loadChats = async () => {
@@ -119,99 +105,65 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
     }
   }
 
-  const buildHistoryForGeneration = (): Array<Record<string, unknown>> =>
-    activeChatMessages.slice(-MAX_HISTORY_MESSAGES).map((m) => ({
-      role: m.role === "question" ? "assistant" : "user",
-      content: m.text,
-    }))
-
-  const pickFallbackQuestion = (type: QuestionType) =>
-    type === "guided"
-      ? guidedQuestions[Math.floor(Math.random() * guidedQuestions.length)]
-      : clarifyingQuestions[Math.floor(Math.random() * clarifyingQuestions.length)]
-
-  const handleSelectQuestionType = async (type: QuestionType) => {
-    let question: string
-    let scaleData: { lowLabel: string; highLabel: string } | undefined
-
-    if (type === "quantitative") {
-      const random = quantitativeQuestions[Math.floor(Math.random() * quantitativeQuestions.length)]
-      question = random.question
-      scaleData = { lowLabel: random.lowLabel, highLabel: random.highLabel }
-    } else {
-      setIsGeneratingQuestion(true)
-      setCurrentQuestion({ type, content: "", scaleData: undefined })
-      try {
-        const mode = type === "guided" ? "deep_dive" : "clarifying"
-        const history = buildHistoryForGeneration()
-        question = await new Promise<string>((resolve, reject) => {
-          let generated = ""
-          api.streamGeneratedQuestion(
-            { mode, history: history.length > 0 ? history : undefined },
-            {
-              onToken(token) {
-                generated += token
-                setCurrentQuestion({ type, content: generated, scaleData: undefined })
-              },
-              onDone() { resolve(generated.trim()) },
-              onError(error) { reject(error) },
-            }
-          )
-        })
-        if (!question) {
-          question = pickFallbackQuestion(type)
-          toast("Question generator returned no content — using a local prompt.")
-        }
-      } catch (error) {
-        question = pickFallbackQuestion(type)
-        toast.error(`Question generation unavailable (${error instanceof Error ? error.message : "Unknown error"}). Using a local prompt.`)
-      } finally {
-        setIsGeneratingQuestion(false)
-      }
-    }
-
-    setCurrentQuestion({ type, content: question, scaleData })
-    if (activeChatId !== null && type !== "quantitative")
-      void persistMessage(activeChatId, { role: "question", text: question })
-  }
-
-  const handleScaleSelect = async (value: number) => {
-    const promptQuestion = currentQuestion?.content ?? "How are you feeling right now?"
-    const scaleData = currentQuestion?.scaleData
-    setCurrentQuestion(null)
-    try {
-      const chatId = await ensureActiveChat()
-      await persistMessage(chatId, { role: "question", text: promptQuestion })
-      await persistMessage(chatId, {
-        role: "answer", text: `${value}/10`, scale_value: value, scale_max: 10,
-        scale_low_label: scaleData?.lowLabel ?? null, scale_high_label: scaleData?.highLabel ?? null,
-      })
-    } catch (error) {
-      toast.error(`Could not save answer: ${error instanceof Error ? error.message : "Unknown error"}`)
-    }
-  }
-
   const handleSubmitText = async (e: React.FormEvent) => {
     e.preventDefault()
-    const trimmedAnswer = inputValue.trim()
-    if (!trimmedAnswer) return
-    const promptQuestion = currentQuestion?.content ?? "Reflection"
-    const chatExistedBeforeSubmit = activeChatId !== null
+    const trimmed = inputValue.trim()
+    if (!trimmed || isAssistantThinking) return
     setInputValue("")
-    setCurrentQuestion(null)
+    let chatId: number
     try {
-      const chatId = await ensureActiveChat()
-      if (!chatExistedBeforeSubmit)
-        await persistMessage(chatId, { role: "question", text: promptQuestion })
-      await persistMessage(chatId, { role: "answer", text: trimmedAnswer })
+      chatId = await ensureActiveChat()
+      await persistMessage(chatId, { role: "answer", text: trimmed })
     } catch (error) {
-      toast.error(`Could not save answer: ${error instanceof Error ? error.message : "Unknown error"}`)
+      toast.error(`Could not save message: ${error instanceof Error ? error.message : "Unknown error"}`)
+      return
     }
+    setStreamingAssistant({ stages: [], thinking: "", answer: "" })
+    await new Promise<void>((resolve) => {
+      api.streamQuery(
+        { chatId, question: trimmed },
+        {
+          onStage: ({ name, count }) => {
+            setStreamingAssistant((prev) => {
+              if (!prev) return prev
+              const stages = prev.stages.map((s) => ({ ...s, done: true }))
+              stages.push({ name, count, done: false })
+              return { ...prev, stages }
+            })
+          },
+          onThinking: (delta) => {
+            setStreamingAssistant((prev) => (prev ? { ...prev, thinking: prev.thinking + delta } : prev))
+          },
+          onToken: (delta) => {
+            setStreamingAssistant((prev) => (prev ? { ...prev, answer: prev.answer + delta } : prev))
+          },
+          onDone: async ({ message_id }) => {
+            try {
+              const detail = await api.getChat(chatId)
+              const created = detail.messages.find((m) => m.id === message_id)
+              if (created) setActiveChatMessages((prev) => [...prev, created])
+              else setActiveChatMessages(detail.messages)
+              void refreshChats()
+            } catch (error) {
+              console.warn("Failed to refetch chat after stream", error)
+            } finally {
+              setStreamingAssistant(null)
+              resolve()
+            }
+          },
+          onError: (error) => {
+            const friendly = error.message.replace(/^API\s+\d+:\s*/, "")
+            toast.error(friendly)
+            setStreamingAssistant(null)
+            resolve()
+          },
+        }
+      )
+    })
   }
 
   const handleSelectChat = (chatId: number) => {
     setActiveChatId(chatId)
-    setCurrentQuestion(null)
     setInputValue("")
   }
 
@@ -219,6 +171,12 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
     event.stopPropagation()
     setRenamingChatId(chat.id)
     setRenameDraft(chat.title)
+  }
+
+  const handleStartRenameActiveChat = () => {
+    if (!activeChat) return
+    setRenamingChatId(activeChat.id)
+    setRenameDraft(activeChat.title)
   }
 
   const handleCommitRename = async (chatId: number) => {
@@ -264,7 +222,7 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
         const updated = await api.reindexChat(activeChatId)
         setRawSources((prev) => prev.map((s) => (Number(s.id) === updated.id ? { ...s, status: updated.status } : s)))
         setProcessingSources((prev) => new Set([...prev, updated.id]))
-        toast("Re-indexing chat content...")
+        toast("Updating chat content...")
       }
     } catch (error) {
       toast.error(`Operation failed: ${error instanceof Error ? error.message : "Unknown error"}`)
@@ -276,17 +234,16 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
   const resetChatState = () => {
     setActiveChatId(null)
     setActiveChatMessages([])
-    setCurrentQuestion(null)
     setInputValue("")
   }
 
   return {
     chats, activeChatId, activeChatMessages, isLoadingChats, isLoadingActiveChat,
     renamingChatId, renameDraft, setRenameDraft, setRenamingChatId,
-    isPromotingChat, currentQuestion, inputValue, setInputValue, isGeneratingQuestion,
+    isPromotingChat, inputValue, setInputValue, isAssistantThinking, streamingAssistant,
     activeChat, activeChatSourceId, activeChatLinkedSourceStatus, isLinkedSourceProcessing,
-    handleSelectChat, handleStartRenameChat, handleCommitRename, handleDeleteChat,
-    handlePromoteChat, handleSelectQuestionType, handleScaleSelect, handleSubmitText,
+    handleSelectChat, handleStartRenameChat, handleStartRenameActiveChat, handleCommitRename, handleDeleteChat,
+    handlePromoteChat, handleSubmitText,
     resetChatState,
   }
 }

@@ -10,7 +10,7 @@ import { ChatTopBar } from "@/components/home/chat-top-bar"
 import { ChatMessages } from "@/components/home/chat-messages"
 import { ChatInput } from "@/components/home/chat-input"
 import { RightSidebar } from "@/components/home/right-sidebar"
-import { api } from "@/lib/api"
+import { api, type AppSettings, type OllamaModelEntry } from "@/lib/api"
 import { useSourceManagement } from "@/hooks/useSourceManagement"
 import { useChatManagement } from "@/hooks/useChatManagement"
 import { useSidebarResize } from "@/hooks/useSidebarResize"
@@ -23,6 +23,10 @@ export default function HomePage() {
   const [leftTab, setLeftTab] = useState<LeftTab>("sources")
   const [isRunningSearch, setIsRunningSearch] = useState(false)
   const [tagFilter, setTagFilter] = useState<string[]>([])
+  const [appSettings, setAppSettings] = useState<AppSettings | null>(null)
+  const [installedModels, setInstalledModels] = useState<OllamaModelEntry[]>([])
+  const [isOllamaReachable, setIsOllamaReachable] = useState(true)
+  const [isSavingChatModel, setIsSavingChatModel] = useState(false)
 
   const sources = useSourceManagement()
   const chats = useChatManagement({
@@ -57,6 +61,30 @@ export default function HomePage() {
   useEffect(() => {
     if (typeof window !== "undefined") window.localStorage.setItem(leftTabStorageKey, leftTab)
   }, [leftTab])
+
+  useEffect(() => {
+    void api.getSettings().then(setAppSettings).catch(() => {})
+    void api
+      .listOllamaModels()
+      .then((listing) => {
+        setIsOllamaReachable(listing.available)
+        setInstalledModels(listing.models)
+      })
+      .catch(() => setIsOllamaReachable(false))
+  }, [])
+
+  const handleChangeChatModel = async (model: string) => {
+    if (!appSettings || appSettings.chat_model === model) return
+    setIsSavingChatModel(true)
+    try {
+      const updated = await api.updateSettings({ chat_model: model })
+      setAppSettings(updated)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to update chat model")
+    } finally {
+      setIsSavingChatModel(false)
+    }
+  }
 
   const hasIncludedSources = sources.includedSources.length > 0
 
@@ -120,27 +148,29 @@ export default function HomePage() {
           className="border-r flex flex-col bg-muted/10 relative shrink-0 min-h-0"
           style={{ width: sidebar.leftSidebarWidth }}
         >
-          <div className="px-4 pt-3 border-b">
-            <div className="flex gap-1 mb-3">
-              <button
-                onClick={() => setLeftTab("sources")}
-                className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-md transition-colors ${
-                  leftTab === "sources" ? "bg-background border shadow-sm" : "text-muted-foreground hover:bg-muted/50"
-                }`}
-              >
-                <FileText className="h-3.5 w-3.5" />
-                Sources
-              </button>
-              <button
-                onClick={() => setLeftTab("chats")}
-                className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-md transition-colors ${
-                  leftTab === "chats" ? "bg-background border shadow-sm" : "text-muted-foreground hover:bg-muted/50"
-                }`}
-              >
-                <MessageSquare className="h-3.5 w-3.5" />
-                Chats
-              </button>
-            </div>
+          <div className="border-b flex h-12 shrink-0">
+            <button
+              onClick={() => setLeftTab("sources")}
+              className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-medium transition-colors ${
+                leftTab === "sources"
+                  ? "bg-background border-b-2 border-emerald-500"
+                  : "text-muted-foreground hover:bg-muted/50"
+              }`}
+            >
+              <FileText className="h-3.5 w-3.5" />
+              Sources
+            </button>
+            <button
+              onClick={() => setLeftTab("chats")}
+              className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-medium transition-colors ${
+                leftTab === "chats"
+                  ? "bg-background border-b-2 border-emerald-500"
+                  : "text-muted-foreground hover:bg-muted/50"
+              }`}
+            >
+              <MessageSquare className="h-3.5 w-3.5" />
+              Chats
+            </button>
           </div>
 
           {leftTab === "sources" ? (
@@ -169,6 +199,9 @@ export default function HomePage() {
               onToggleRecording={sources.handleToggleRecording}
               onCloseRecordingPanel={sources.handleCloseRecordingPanel}
               rawUploadUrl={sources.rawUploadUrl}
+              onDeleteSource={sources.handleDeleteSource}
+              onRenameSource={sources.handleRenameSource}
+              onRetryProcessing={sources.handleRetryProcessing}
             />
           ) : (
             <ChatListPanel
@@ -201,28 +234,37 @@ export default function HomePage() {
             <ChatTopBar
               activeChat={chats.activeChat}
               activeChatSourceId={chats.activeChatSourceId}
-              activeChatLinkedSourceStatus={chats.activeChatLinkedSourceStatus}
-              isLinkedSourceProcessing={chats.isLinkedSourceProcessing}
-              isPromotingChat={chats.isPromotingChat}
-              activeChatMessages={chats.activeChatMessages}
-              onPromoteChat={chats.handlePromoteChat}
+              isRenamingTitle={chats.renamingChatId === chats.activeChat.id}
+              titleDraft={chats.renameDraft}
+              setTitleDraft={chats.setRenameDraft}
+              onStartRenameTitle={chats.handleStartRenameActiveChat}
+              onCommitRenameTitle={() => void chats.handleCommitRename(chats.activeChat!.id)}
+              onCancelRenameTitle={() => chats.setRenamingChatId(null)}
             />
           )}
           <ChatMessages
             activeChatMessages={chats.activeChatMessages}
-            activeChatId={chats.activeChatId}
             isLoadingActiveChat={chats.isLoadingActiveChat}
-            isGeneratingQuestion={chats.isGeneratingQuestion}
-            currentQuestion={chats.currentQuestion}
-            onScaleSelect={chats.handleScaleSelect}
+            streamingAssistant={chats.streamingAssistant}
           />
           <ChatInput
-            currentQuestion={chats.currentQuestion}
             inputValue={chats.inputValue}
             setInputValue={chats.setInputValue}
-            isGeneratingQuestion={chats.isGeneratingQuestion}
             onSubmitText={chats.handleSubmitText}
-            onSelectQuestionType={chats.handleSelectQuestionType}
+            isAssistantThinking={chats.isAssistantThinking}
+            activeChatId={chats.activeChatId}
+            activeChatSourceId={chats.activeChatSourceId}
+            activeChatLinkedSourceStatus={chats.activeChatLinkedSourceStatus}
+            isLinkedSourceProcessing={chats.isLinkedSourceProcessing}
+            isPromotingChat={chats.isPromotingChat}
+            activeChatMessages={chats.activeChatMessages}
+            onPromoteChat={chats.handlePromoteChat}
+            includedSourcesCount={sources.includedSources.length}
+            chatModel={appSettings?.chat_model ?? null}
+            installedModels={installedModels}
+            isOllamaReachable={isOllamaReachable}
+            isSavingChatModel={isSavingChatModel}
+            onChangeChatModel={handleChangeChatModel}
           />
         </div>
 

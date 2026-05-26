@@ -1,7 +1,9 @@
 import asyncio
 import os
+import shutil
 import uuid
 
+import httpx
 from pathlib import Path
 from app.schemas.journalSchemas import SimpleRecording
 from fastapi import HTTPException, UploadFile
@@ -11,7 +13,7 @@ import strip_markdown
 from app.db import engine
 from app.repositories import sourceRepository
 from app.services.chunking import chunk_text
-from app.services.rag import index_chunks
+from app.services.rag import check_model_installed, classify_ollama_error, index_chunks
 from app.services.transcription import TranscriptionManager
 from app import logging_config
 
@@ -22,6 +24,19 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent / "database" / "uploads
 logger = logging_config.logger
 
 #Background processing
+
+def _check_ollama() -> str:
+    """Returns 'ok', 'not_running', or 'not_installed'."""
+    from app.services.settings_service import get_setting
+    try:
+        with httpx.Client(timeout=3.0) as client:
+            client.get(get_setting("ollama_host").rstrip("/"))
+        return "ok"
+    except httpx.ConnectError:
+        return "not_running" if shutil.which("ollama") else "not_installed"
+    except Exception:
+        return "not_running"
+
 
 def _set_status(source_id: int, status: str) -> None:
     """Tiny short-lived write so SQLite is never locked during long operations."""
@@ -91,6 +106,12 @@ def _process_source_sync(source_id: int) -> None:
             _set_status(source_id, "failed")
             return
 
+        # On retry, prior chunks may exist from a failed run — delete them so we
+        # don't duplicate rows when we re-create below.
+        from app.repositories.chatRepository import delete_chunks_for_source
+        with Session(engine) as session:
+            delete_chunks_for_source(session, source_id)
+
         # Short-lived write to persist chunks
         with Session(engine) as session:
             db_chunks = sourceRepository.create_chunks(session, source_id, chunks)
@@ -100,8 +121,31 @@ def _process_source_sync(source_id: int) -> None:
             ]
 
         #Vector index (ChromaDB)
+        ollama_state = _check_ollama()
+        if ollama_state != "ok":
+            logger.error(f"Ollama {ollama_state} — cannot index source {source_id}")
+            _set_status(source_id, f"failed_ollama_{ollama_state}")
+            return
+        from app.services.settings_service import get_setting
+        embed_model = get_setting("embed_model")
+        if not check_model_installed(embed_model):
+            logger.error(f"Embedding model {embed_model} not installed — cannot index source {source_id}")
+            _set_status(source_id, "failed_ollama_model_missing")
+            return
         _set_status(source_id, "indexing")
-        index_chunks(chunk_dicts)
+        try:
+            index_chunks(chunk_dicts)
+        except Exception as index_exc:
+            kind = classify_ollama_error(index_exc)
+            if kind == "model_missing":
+                logger.error(f"Embedding model missing while indexing source {source_id}: {index_exc}")
+                _set_status(source_id, "failed_ollama_model_missing")
+                return
+            if kind == "not_running":
+                logger.error(f"Ollama stopped while indexing source {source_id}: {index_exc}")
+                _set_status(source_id, "failed_ollama_not_running")
+                return
+            raise
 
         _set_status(source_id, "processed")
         logger.info(f"Background processing complete for source {source_id}")
@@ -241,15 +285,29 @@ async def transcribe_source(session: Session, source_id: int):
     return sourceRepository.update_source_transcript(session, source, transcript_text, segments)
 
 
-async def update_source_text(session: Session, source_id: int, source_text: str):
+async def update_source(
+    session: Session,
+    source_id: int,
+    *,
+    text: str | None = None,
+    filename: str | None = None,
+    created_at_str: str | None = None,
+):
     source = sourceRepository.get_source_by_id(session, source_id)
     if not source:
         raise HTTPException(status_code=404, detail="Source not found.")
+    new_status = "not processed" if (text is not None and source.status == "processed") else None
+    return sourceRepository.update_source_fields(
+        session, source, text=text, filename=filename, created_at_str=created_at_str, status=new_status
+    )
 
-    if source.status == "processed":
-        raise HTTPException(status_code=400, detail="Cannot edit a processed source.")
 
-    return sourceRepository.update_source_text(session, source, source_text)
+async def delete_source(session: Session, source_id: int):
+    source = sourceRepository.get_source_by_id(session, source_id)
+    if not source:
+        raise HTTPException(status_code=404, detail="Source not found.")
+    sourceRepository.delete_source(session, source_id)
+    return {"ok": True}
 
 
 async def process_source(session: Session, source_id: int):

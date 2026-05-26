@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { Settings, Download, Shield, Bell, ChevronRight } from "lucide-react"
+import { Shield, ChevronRight } from "lucide-react"
 import { ActivityCalendar } from "@/components/activity-calendar"
 import { TopNav } from "@/components/top-nav"
 import { api, type SourceRecord } from "@/lib/api"
@@ -9,7 +9,7 @@ import { api, type SourceRecord } from "@/lib/api"
 const profileStorageKey = "reflect_profile"
 
 export default function AccountPage() {
-  const [activeTab, setActiveTab] = useState<"overview" | "settings" | "privacy">("overview")
+  const [activeTab, setActiveTab] = useState<"overview" | "privacy">("overview")
   const [sources, setSources] = useState<SourceRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -93,16 +93,6 @@ export default function AccountPage() {
             Overview
           </button>
           <button
-            onClick={() => setActiveTab("settings")}
-            className={`px-4 py-2.5 text-sm font-medium transition-colors ${
-              activeTab === "settings"
-                ? "border-b-2 border-emerald-500 text-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            Settings
-          </button>
-          <button
             onClick={() => setActiveTab("privacy")}
             className={`px-4 py-2.5 text-sm font-medium transition-colors ${
               activeTab === "privacy"
@@ -161,49 +151,6 @@ export default function AccountPage() {
           </div>
         )}
 
-        {activeTab === "settings" && (
-          <div className="space-y-4">
-            <button className="w-full flex items-center justify-between p-4 rounded-xl border bg-card hover:bg-muted/50 transition-colors">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
-                  <Bell className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <div className="text-left">
-                  <div className="font-medium">Notifications</div>
-                  <div className="text-sm text-muted-foreground">Daily reminders and insights</div>
-                </div>
-              </div>
-              <ChevronRight className="h-5 w-5 text-muted-foreground" />
-            </button>
-
-            <button className="w-full flex items-center justify-between p-4 rounded-xl border bg-card hover:bg-muted/50 transition-colors">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
-                  <Download className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <div className="text-left">
-                  <div className="font-medium">Export data</div>
-                  <div className="text-sm text-muted-foreground">Download all your reflections</div>
-                </div>
-              </div>
-              <ChevronRight className="h-5 w-5 text-muted-foreground" />
-            </button>
-
-            <button className="w-full flex items-center justify-between p-4 rounded-xl border bg-card hover:bg-muted/50 transition-colors">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
-                  <Settings className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <div className="text-left">
-                  <div className="font-medium">Preferences</div>
-                  <div className="text-sm text-muted-foreground">Theme, language, and more</div>
-                </div>
-              </div>
-              <ChevronRight className="h-5 w-5 text-muted-foreground" />
-            </button>
-          </div>
-        )}
-
         {activeTab === "privacy" && (
           <div className="space-y-6">
             <div className="p-6 rounded-xl border bg-card">
@@ -218,23 +165,9 @@ export default function AccountPage() {
               </div>
             </div>
 
-            <div className="space-y-3">
-              <button className="w-full flex items-center justify-between p-4 rounded-xl border bg-card hover:bg-muted/50 transition-colors">
-                <div className="text-left">
-                  <div className="font-medium">Download my data</div>
-                  <div className="text-sm text-muted-foreground">Get a copy of everything</div>
-                </div>
-                <ChevronRight className="h-5 w-5 text-muted-foreground" />
-              </button>
-              
-              <button className="w-full flex items-center justify-between p-4 rounded-xl border border-red-200 dark:border-red-900 bg-card hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors">
-                <div className="text-left">
-                  <div className="font-medium text-red-600">Delete all data</div>
-                  <div className="text-sm text-muted-foreground">Permanently remove everything</div>
-                </div>
-                <ChevronRight className="h-5 w-5 text-red-400" />
-              </button>
-            </div>
+            <p className="text-sm text-muted-foreground">
+              Export and delete options live in <a href="/settings" className="underline">Settings → Data</a>.
+            </p>
           </div>
         )}
       </div>

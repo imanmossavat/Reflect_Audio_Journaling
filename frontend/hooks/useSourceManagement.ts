@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react"
 import { api, type SourceRecord, PROCESSING_STATUSES } from "@/lib/api"
+import { formatListTimestamp } from "@/lib/utils"
 import type { RawSource, AddSourceMode } from "@/components/home/types"
 import type { OnboardingProfile } from "@/components/onboarding-modal"
 import { toast } from "sonner"
@@ -51,7 +52,7 @@ export const mapBackendSource = (source: SourceRecord): RawSource => ({
   type: mapSourceType(source),
   name: source.filename || "Quick thought",
   content: source.text ?? undefined,
-  timestamp: new Date(source.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+  timestamp: formatListTimestamp(source.created_at),
   included: true,
   tags: [],
   status: source.status,
@@ -84,10 +85,19 @@ export function useSourceManagement() {
       try {
         const newOnes = await api.getSources(maxSourceIdRef.current)
         if (newOnes.length === 0) return
-        const mapped = newOnes.map(mapBackendSource)
         const maxId = Math.max(...newOnes.map((s) => s.id ?? 0))
         if (maxId > maxSourceIdRef.current) maxSourceIdRef.current = maxId
-        setRawSources((prev) => [...mapped, ...prev].sort((a, b) => a.id.localeCompare(b.id)))
+        const existingIds = new Set(rawSourcesRef.current.map((s) => s.id))
+        const mapped = newOnes
+          .map(mapBackendSource)
+          .filter((s) => !existingIds.has(s.id))
+        if (mapped.length === 0) return
+        setRawSources((prev) => {
+          const prevIds = new Set(prev.map((s) => s.id))
+          const additions = mapped.filter((s) => !prevIds.has(s.id))
+          if (additions.length === 0) return prev
+          return [...additions, ...prev].sort((a, b) => a.id.localeCompare(b.id))
+        })
         const processingIds = mapped
           .filter((s) => PROCESSING_STATUSES.has(s.status))
           .map((s) => Number(s.id))
@@ -198,7 +208,8 @@ export function useSourceManagement() {
     setIsSavingSource(true)
     try {
       const created = await api.uploadTextSource(newSourceText, true)
-      setRawSources((prev) => [mapBackendSource(created), ...prev])
+      if (created.id > maxSourceIdRef.current) maxSourceIdRef.current = created.id
+      setRawSources((prev) => (prev.some((s) => s.id === String(created.id)) ? prev : [mapBackendSource(created), ...prev]))
       setProcessingSources((prev) => new Set([...prev, created.id]))
       setNewSourceText("")
       setAddSourceMode(null)
@@ -217,7 +228,8 @@ export function useSourceManagement() {
     setIsSavingSource(true)
     try {
       const created = await api.uploadFileSource(selectedFile, true)
-      setRawSources((prev) => [mapBackendSource(created), ...prev])
+      if (created.id > maxSourceIdRef.current) maxSourceIdRef.current = created.id
+      setRawSources((prev) => (prev.some((s) => s.id === String(created.id)) ? prev : [mapBackendSource(created), ...prev]))
       setProcessingSources((prev) => new Set([...prev, created.id]))
       setAddSourceMode(null)
       toast(`${selectedFile.name} uploaded — processing in background.`)
@@ -302,7 +314,8 @@ export function useSourceManagement() {
         setIsSavingSource(true)
         api.uploadFileSource(audioFile, true)
           .then((created) => {
-            setRawSources((prev) => [mapBackendSource(created), ...prev])
+            if (created.id > maxSourceIdRef.current) maxSourceIdRef.current = created.id
+            setRawSources((prev) => (prev.some((s) => s.id === String(created.id)) ? prev : [mapBackendSource(created), ...prev]))
             setProcessingSources((prev) => new Set([...prev, created.id]))
             setAddSourceMode(null)
             setRecordingSeconds(0)
@@ -337,6 +350,42 @@ export function useSourceManagement() {
     setAddSourceMode(null)
   }
 
+  const handleDeleteSource = async (sourceId: string) => {
+    const numericId = Number(sourceId)
+    try {
+      await api.deleteSource(numericId)
+      setRawSources((prev) => prev.filter((s) => s.id !== sourceId))
+      toast("Source deleted.")
+    } catch (error) {
+      toast.error(`Could not delete source: ${error instanceof Error ? error.message : "Unknown error"}`)
+    }
+  }
+
+  const handleRetryProcessing = async (sourceId: string) => {
+    const numericId = Number(sourceId)
+    if (!Number.isInteger(numericId) || numericId <= 0) return
+    try {
+      const updated = await api.processSource(numericId)
+      setRawSources((prev) =>
+        prev.map((s) => (s.id === sourceId ? { ...s, status: updated.status } : s))
+      )
+      setProcessingSources((prev) => new Set([...prev, numericId]))
+      toast("Reprocessing — running in the background.")
+    } catch (error) {
+      toast.error(`Could not retry: ${error instanceof Error ? error.message : "Unknown error"}`)
+    }
+  }
+
+  const handleRenameSource = async (sourceId: string, newName: string) => {
+    const numericId = Number(sourceId)
+    try {
+      await api.patchSource(numericId, { filename: newName })
+      setRawSources((prev) => prev.map((s) => (s.id === sourceId ? { ...s, name: newName } : s)))
+    } catch (error) {
+      toast.error(`Could not rename source: ${error instanceof Error ? error.message : "Unknown error"}`)
+    }
+  }
+
   const handleOnboardingSkip = () => { setIsOnboardingOpen(false) }
 
   const handleOnboardingSubmit = (nextProfile: OnboardingProfile) => {
@@ -355,5 +404,6 @@ export function useSourceManagement() {
     handleFileDrop, handleFileDragEnter, handleFileDragOver, handleFileDragLeave,
     handleToggleRecording, handleCloseRecordingPanel,
     handleOnboardingSkip, handleOnboardingSubmit,
+    handleDeleteSource, handleRenameSource, handleRetryProcessing,
   }
 }

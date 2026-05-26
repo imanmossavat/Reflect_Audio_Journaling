@@ -18,7 +18,7 @@ export function RightSidebar({
 }: RightSidebarProps) {
   return (
     <>
-      <div className="border-b px-4 py-3">
+      <div className="border-b px-4 h-12 flex items-center shrink-0">
         <h2 className="text-sm font-medium">Tools</h2>
       </div>
 
