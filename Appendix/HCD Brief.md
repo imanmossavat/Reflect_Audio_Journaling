@@ -26,15 +26,15 @@
 
 [Dual-process theory and cognitive friction](#_Toc229403110)
 
-[Sources](#_Toc229403111)
+> [Sources](#_Toc229403111)
 
 [Cognitive Load Theory and external support](#_Toc229403112)
 
-[Sources](#_Toc229403113)
+> [Sources](#_Toc229403113)
 
-[Implications for design](#_Toc229403114)
+> [Implications for design](#_Toc229403114)
 
-[Critical reflection questions](#_Toc229403115)
+> [Critical reflection questions](#_Toc229403115)
 
 # REFLECT Project - Student Guide
 
