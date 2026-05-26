@@ -13,7 +13,7 @@ import strip_markdown
 from app.db import engine
 from app.repositories import sourceRepository
 from app.services.chunking import chunk_text
-from app.services.rag import EMBED_MODEL, check_model_installed, classify_ollama_error, index_chunks
+from app.services.rag import check_model_installed, classify_ollama_error, index_chunks
 from app.services.transcription import TranscriptionManager
 from app import logging_config
 
@@ -126,8 +126,10 @@ def _process_source_sync(source_id: int) -> None:
             logger.error(f"Ollama {ollama_state} — cannot index source {source_id}")
             _set_status(source_id, f"failed_ollama_{ollama_state}")
             return
-        if not check_model_installed(EMBED_MODEL):
-            logger.error(f"Embedding model {EMBED_MODEL} not installed — cannot index source {source_id}")
+        from app.services.settings_service import get_setting
+        embed_model = get_setting("embed_model")
+        if not check_model_installed(embed_model):
+            logger.error(f"Embedding model {embed_model} not installed — cannot index source {source_id}")
             _set_status(source_id, "failed_ollama_model_missing")
             return
         _set_status(source_id, "indexing")

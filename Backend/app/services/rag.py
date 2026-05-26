@@ -26,8 +26,9 @@ def _llm_model() -> str:
     return get_setting("chat_model")
 
 
-# Module-level `from app.services.rag import EMBED_MODEL, LLM_MODEL, OLLAMA_BASE_URL`
-# still works — these names resolve lazily through module __getattr__.
+# WARNING: `from app.services.rag import EMBED_MODEL` binds the value at import time
+# and won't reflect later settings changes. Use `rag.EMBED_MODEL` (module attribute access)
+# or call get_setting() directly where a fresh value is needed.
 def __getattr__(name: str) -> Any:
     if name == "OLLAMA_BASE_URL":
         return _ollama_base_url()

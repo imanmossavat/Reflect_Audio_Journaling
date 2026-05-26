@@ -29,7 +29,7 @@ def create_source(
     file_type: Optional[str] = None,
     transcript_segments: Optional[list] = None,
 ) -> Source:
-    now = datetime.now()
+    now = datetime.utcnow()
     new_source = Source(
         text=text,
         filename=filename,
@@ -90,7 +90,7 @@ def create_chunks(session: Session, source_id: int, chunks: list[dict[str, Any]]
 
 def update_source_status(session: Session, source: Source, status: str) -> Source:
     source.status = status
-    source.edited_at = datetime.now()
+    source.edited_at = datetime.utcnow()
     session.add(source)
     session.commit()
     session.refresh(source)
@@ -99,7 +99,7 @@ def update_source_status(session: Session, source: Source, status: str) -> Sourc
 
 def update_source_text(session: Session, source: Source, text: str) -> Source:
     source.text = text
-    source.edited_at = datetime.now()
+    source.edited_at = datetime.utcnow()
 
     session.add(source)
     session.commit()
@@ -122,10 +122,10 @@ def update_source_fields(
     if filename is not None:
         source.filename = filename
     if created_at_str is not None:
-        source.created_at = datetime.fromisoformat(created_at_str)
+        source.created_at = datetime.fromisoformat(created_at_str.replace("Z", "+00:00")).replace(tzinfo=None)
     if status is not None:
         source.status = status
-    source.edited_at = datetime.now()
+    source.edited_at = datetime.utcnow()
     session.add(source)
     session.commit()
     session.refresh(source)
@@ -154,7 +154,7 @@ def delete_source(session: Session, source_id: int) -> bool:
 def update_source_transcript(session: Session, source: Source, text: str, segments: list) -> Source:
     source.text = text
     source.transcript_segments = segments
-    source.edited_at = datetime.now()
+    source.edited_at = datetime.utcnow()
 
     session.add(source)
     session.commit()
