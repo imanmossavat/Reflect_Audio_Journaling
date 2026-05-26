@@ -6,13 +6,13 @@
 
 [Design directions](#_Toc229403100)
 
-> [A. Memory & Capture](#_Toc229403101)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [A. Memory & Capture](#_Toc229403101)
 
-> [B. Structure & Visualization](#_Toc229403102)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [B. Structure & Visualization](#_Toc229403102)
 
-> [C. Reasoning & Interpretation](#_Toc229403103)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [C. Reasoning & Interpretation](#_Toc229403103)
 
-> [D. Entities & Relationships](#_Toc229403104)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [D. Entities & Relationships](#_Toc229403104)
 
 [AI as support](#_Toc229403105)
 
@@ -26,15 +26,15 @@
 
 [Dual-process theory and cognitive friction](#_Toc229403110)
 
-> [Sources](#_Toc229403111)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [Sources](#_Toc229403111)
 
 [Cognitive Load Theory and external support](#_Toc229403112)
 
-> [Sources](#_Toc229403113)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [Sources](#_Toc229403113)
 
-> [Implications for design](#_Toc229403114)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [Implications for design](#_Toc229403114)
 
-> [Critical reflection questions](#_Toc229403115)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [Critical reflection questions](#_Toc229403115)
 
 # REFLECT Project - Student Guide
 
