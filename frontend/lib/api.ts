@@ -25,12 +25,51 @@ export const PROCESSING_STATUS_LABELS: Record<string, string> = {
   chunking: "Splitting into chunks...",
   indexing: "Building search index...",
   failed: "Processing failed",
-  failed_ollama_not_running: "Ollama not running",
-  failed_ollama_not_installed: "Ollama not installed",
-  failed_ollama_model_missing: "Embedding model not installed",
+  failed_ollama_not_running: "Failed — Ollama is not running",
+  failed_ollama_not_installed: "Failed — Ollama is not installed",
+  failed_ollama_model_missing: "Failed — embedding model missing",
 }
 
 export const EMBED_MODEL_NAME = "nomic-embed-text"
+
+export interface FailureExplanation {
+  title: string
+  description: string
+  command?: string
+}
+
+export function explainFailure(status: SourceStatus): FailureExplanation | null {
+  switch (status) {
+    case "failed_ollama_not_installed":
+      return {
+        title: "Ollama isn't installed",
+        description:
+          "Reflect uses Ollama to generate the embeddings that power semantic search. Install it from ollama.com, then click Retry.",
+      }
+    case "failed_ollama_not_running":
+      return {
+        title: "Ollama isn't running",
+        description:
+          "Reflect could reach the embedding step but Ollama wasn't responding. Start the Ollama app (or run `ollama serve`), then click Retry.",
+        command: "ollama serve",
+      }
+    case "failed_ollama_model_missing":
+      return {
+        title: `The embedding model "${EMBED_MODEL_NAME}" isn't installed`,
+        description:
+          "Reflect needs this model to index your sources. Pull it once in a terminal, then click Retry.",
+        command: `ollama pull ${EMBED_MODEL_NAME}`,
+      }
+    case "failed":
+      return {
+        title: "Processing failed",
+        description:
+          "Something went wrong while indexing this source. Check the backend logs for details, then click Retry.",
+      }
+    default:
+      return null
+  }
+}
 
 export interface TranscriptSegment {
   text: string
@@ -77,6 +116,7 @@ export interface QueryResponse {
   question: string
   answer: string
   sources: QuerySource[]
+  model_used: string | null
 }
 
 export interface SaveAnswerRequest {
@@ -96,7 +136,20 @@ export interface ChatMessageRecord {
   scale_max: number | null
   scale_low_label: string | null
   scale_high_label: string | null
+  model: string | null
+  thinking: string | null
   created_at: string
+}
+
+export type ChatStreamStageName = "searching" | "retrieved" | "thinking" | "writing"
+
+export interface ChatStreamHandlers {
+  onStage: (stage: { name: ChatStreamStageName; count?: number }) => void
+  onThinking: (delta: string) => void
+  onToken: (delta: string) => void
+  onSources?: (sources: QuerySource[]) => void
+  onDone: (info: { model: string | null; message_id: number }) => void
+  onError: (error: Error) => void
 }
 
 export interface ChatSummary {
@@ -124,6 +177,7 @@ export interface AppendChatMessagePayload {
   scale_max?: number | null
   scale_low_label?: string | null
   scale_high_label?: string | null
+  model?: string | null
 }
 
 type GenerateQuestionMode = "clarifying" | "deep_dive"
@@ -523,6 +577,94 @@ export const api = {
   },
   listSpacyModels() {
     return request<SpacyModelEntry[]>("/settings/spacy-models")
+  },
+  streamQuery(
+    payload: { chatId: number; question: string; top_k?: number },
+    handlers: ChatStreamHandlers
+  ) {
+    const controller = new AbortController()
+    const run = async () => {
+      try {
+        const response = await fetch(`${getBackendBaseUrl()}/query-stream`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            chat_id: payload.chatId,
+            question: payload.question,
+            top_k: payload.top_k ?? 5,
+          }),
+          signal: controller.signal,
+          credentials: "include",
+        })
+
+        if (!response.ok || !response.body) {
+          throw new Error(`Unable to stream answer (${response.status})`)
+        }
+
+        const decoder = new TextDecoder()
+        const reader = response.body.getReader()
+        let buffer = ""
+
+        const dispatch = (raw: string) => {
+          const trimmed = raw.trim()
+          if (!trimmed) return
+          let parsed: Record<string, unknown>
+          try {
+            parsed = JSON.parse(trimmed) as Record<string, unknown>
+          } catch {
+            return
+          }
+          const eventType = parsed.type as string | undefined
+          switch (eventType) {
+            case "stage":
+              handlers.onStage({
+                name: parsed.name as ChatStreamStageName,
+                count: typeof parsed.count === "number" ? parsed.count : undefined,
+              })
+              break
+            case "thinking":
+              if (typeof parsed.delta === "string") handlers.onThinking(parsed.delta)
+              break
+            case "token":
+              if (typeof parsed.delta === "string") handlers.onToken(parsed.delta)
+              break
+            case "sources":
+              handlers.onSources?.(parsed.sources as QuerySource[])
+              break
+            case "done":
+              handlers.onDone({
+                model: (parsed.model as string | null) ?? null,
+                message_id: parsed.message_id as number,
+              })
+              break
+            case "error":
+              handlers.onError(new Error((parsed.detail as string) || "Stream error"))
+              break
+          }
+        }
+
+        const drainEvents = (chunk: string) => {
+          for (const line of chunk.split(/\r?\n/)) {
+            if (line.startsWith("data:")) dispatch(line.slice(5).trim())
+          }
+        }
+
+        while (true) {
+          const { value, done } = await reader.read()
+          if (done) break
+          buffer += decoder.decode(value, { stream: true })
+          const events = buffer.split(/\r?\n\r?\n/)
+          buffer = events.pop() ?? ""
+          for (const evt of events) drainEvents(evt)
+        }
+        if (buffer.trim()) drainEvents(buffer)
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") return
+        handlers.onError(error instanceof Error ? error : new Error("Unknown stream error"))
+      }
+    }
+    void run()
+    return () => controller.abort()
   },
   streamGeneratedQuestion(
     payload: GenerateQuestionRequest,

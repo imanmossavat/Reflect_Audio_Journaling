@@ -106,6 +106,12 @@ def _process_source_sync(source_id: int) -> None:
             _set_status(source_id, "failed")
             return
 
+        # On retry, prior chunks may exist from a failed run — delete them so we
+        # don't duplicate rows when we re-create below.
+        from app.repositories.chatRepository import delete_chunks_for_source
+        with Session(engine) as session:
+            delete_chunks_for_source(session, source_id)
+
         # Short-lived write to persist chunks
         with Session(engine) as session:
             db_chunks = sourceRepository.create_chunks(session, source_id, chunks)

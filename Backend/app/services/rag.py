@@ -63,6 +63,30 @@ def check_model_installed(model: str) -> bool:
         return True  # Best-effort: don't block on the precheck if /api/tags is unreachable.
 
 
+_thinking_capability_cache: dict[tuple[str, str], bool] = {}
+
+
+def model_supports_thinking(model: str) -> bool:
+    """Returns True if Ollama reports the model has the 'thinking' capability.
+
+    Cached per (host, model) for the lifetime of the process — a model's capabilities
+    don't change without a re-pull, and the user can restart the backend to refresh.
+    """
+    host = _ollama_base_url()
+    key = (host, model)
+    if key in _thinking_capability_cache:
+        return _thinking_capability_cache[key]
+    try:
+        with httpx.Client(timeout=5.0) as client:
+            r = client.post(f"{host}/api/show", json={"model": model})
+            r.raise_for_status()
+            supports = "thinking" in (r.json().get("capabilities") or [])
+    except Exception:
+        supports = False
+    _thinking_capability_cache[key] = supports
+    return supports
+
+
 def classify_ollama_error(exc: Exception) -> str:
     """Returns 'not_running', 'model_missing', or 'unknown' based on the exception."""
     msg = str(exc).lower()
@@ -147,6 +171,37 @@ def index_chunks(chunks: list[dict]):
     ]
 
     VectorStoreIndex(nodes, storage_context=storage_context)
+
+def retrieve_nodes(question: str, top_k: int = 5) -> list[Any]:
+    """Returns the top_k retrieved nodes for `question` without running the LLM step."""
+    configure_llamaindex()
+    index = _get_index()
+    retriever = index.as_retriever(similarity_top_k=top_k)
+    return retriever.retrieve(question)
+
+
+def serialize_retrieved_nodes(nodes: list[Any]) -> list[dict[str, Any]]:
+    """Serialize retriever results into the same shape `query_sources` returns under `sources`."""
+    sources = []
+    for source in nodes or []:
+        node = source.node
+        metadata = node.metadata or {}
+        sources.append(
+            {
+                "source_id": metadata.get("source_id"),
+                "chunk_id": metadata.get("chunk_id"),
+                "score": source.score,
+                "node_id": node.node_id,
+                "text": node.get_content(),
+            }
+        )
+    return sources
+
+
+def build_context_str(nodes: list[Any]) -> str:
+    """Join retrieved node texts into the `{context_str}` block for TEXT_QA_TEMPLATE."""
+    return "\n\n".join((source.node.get_content() or "").strip() for source in nodes or [])
+
 
 def query_sources(question: str, top_k: int = 5) -> dict[str, Any]:
     configure_llamaindex()

@@ -1,9 +1,9 @@
 {
-  "chat_model": "gpt-oss:20b",
+  "chat_model": "gemma4:e4b",
   "embed_model": "nomic-embed-text",
   "ollama_host": "http://localhost:11434",
-  "device": "cpu",
-  "whisper_model": "base",
+  "device": "cuda",
+  "whisper_model": "small",
   "language": "en",
   "db_path": "C:/Users/Mathijs/Documents/code/Reflect_Audio_Journaling/Backend/database/database.db",
   "theme": "light"

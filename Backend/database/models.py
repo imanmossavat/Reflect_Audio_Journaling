@@ -44,8 +44,8 @@ class Source(SQLModel, table=True):
     text: Optional[str] = Field(default=None)
     transcript_segments: Optional[list] = Field(default=None, sa_column=Column(JSON))
     status: str = Field(max_length=255, default="not processed")
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    edited_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=datetime.now)
+    edited_at: datetime = Field(default_factory=datetime.now)
 
     # Relationships
     chunks: List["Chunk"] = Relationship(back_populates="source")
@@ -61,7 +61,7 @@ class Chunk(SQLModel, table=True):
     source_id: int = Field(foreign_key="source.id")
     chunk_text: str
     chunk_index: int
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=datetime.now)
 
     # Relationships
     source: Optional[Source] = Relationship(back_populates="chunks")
@@ -73,7 +73,7 @@ class Tag(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str = Field(max_length=255)
     tag_cluster_id: int = Field(foreign_key="tag_cluster.id")
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=datetime.now)
 
     # Relationships
     sources: List[Source] = Relationship(back_populates="tags", link_model=SourceTag)
@@ -89,7 +89,7 @@ class Question(SQLModel, table=True):
     question_text: str
     trigger_type: Optional[str] = Field(default=None, max_length=100)
     trigger_context: Optional[dict] = Field(default=None, sa_column=Column(JSON))
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=datetime.now)
 
     # Relationships
     source: Optional[Source] = Relationship(back_populates="questions")
@@ -103,7 +103,7 @@ class Answer(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     question_id: int = Field(foreign_key="question.id")
     answer_text: str
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=datetime.now)
 
     # Relationships
     question: Optional[Question] = Relationship(back_populates="answers")
@@ -130,7 +130,7 @@ class ScaleResponse(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     scale_question_id: int = Field(foreign_key="scale_question.id")
     answer: int
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=datetime.now)
 
     # Relationships
     scale_question: Optional[ScaleQuestion] = Relationship(back_populates="responses")
@@ -142,8 +142,8 @@ class Chat(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     title: str = Field(max_length=255, default="Untitled")
     source_id: Optional[int] = Field(default=None, foreign_key="source.id")
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    edited_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=datetime.now)
+    edited_at: datetime = Field(default_factory=datetime.now)
 
     # Relationships
     messages: List["ChatMessage"] = Relationship(back_populates="chat")
@@ -160,7 +160,9 @@ class ChatMessage(SQLModel, table=True):
     scale_max: Optional[int] = Field(default=None)
     scale_low_label: Optional[str] = Field(default=None, max_length=100)
     scale_high_label: Optional[str] = Field(default=None, max_length=100)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    model: Optional[str] = Field(default=None, max_length=255)
+    thinking: Optional[str] = Field(default=None)
+    created_at: datetime = Field(default_factory=datetime.now)
 
     # Relationships
     chat: Optional[Chat] = Relationship(back_populates="messages")

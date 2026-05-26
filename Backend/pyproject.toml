@@ -8,11 +8,11 @@ dependencies = [
     # below so we can swap PyTorch wheels based on whether an NVIDIA GPU is
     # present. start.ps1 picks the extra automatically; if you run uv by
     # hand, pass one of:  uv sync --extra cpu   |   uv sync --extra cuda
-    "numpy==1.26.4",
+    "numpy>=2.1.0",
     "scikit-learn==1.7.2",
     "librosa==0.11.0",
-    "transformers==4.47.1",
-    "whisperx==3.3.1",
+    "transformers>=4.48.0",
+    "whisperx==3.8.5",
     "sentence-transformers==5.1.2",
     # NLP
     "spacy==3.8.4",
@@ -50,14 +50,16 @@ dependencies = [
 [project.optional-dependencies]
 # CPU-only PyTorch (default fallback when no NVIDIA GPU is detected).
 cpu = [
-    "torch==2.5.1",
-    "torchaudio==2.5.1",
+    "torch==2.8.*",
+    "torchaudio==2.8.*",
 ]
-# CUDA 12.4 PyTorch wheels (works with any NVIDIA driver >= 525,
+# CUDA 12.8 PyTorch wheels (works with any NVIDIA driver >= 525,
 # which includes everything from RTX 20-series onwards).
+# Torch 2.8 ships cuDNN 9, which matches what ctranslate2 >= 4.5 (pulled
+# transitively by whisperx 3.8.x) expects — no extra cuDNN install needed.
 cuda = [
-    "torch==2.5.1",
-    "torchaudio==2.5.1",
+    "torch==2.8.*",
+    "torchaudio==2.8.*",
 ]
 dev = [
     "pytest==8.3.4",
@@ -97,5 +99,5 @@ explicit = true
 
 [[tool.uv.index]]
 name = "pytorch-cuda"
-url = "https://download.pytorch.org/whl/cu124"
+url = "https://download.pytorch.org/whl/cu128"
 explicit = true

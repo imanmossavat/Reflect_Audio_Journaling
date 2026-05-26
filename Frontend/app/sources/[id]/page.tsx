@@ -5,11 +5,11 @@ import Link from "next/link"
 import { useParams } from "next/navigation"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
-import { ArrowLeft, CalendarClock, CircleDot, FileAudio2, FileText, MessageSquare, Pencil, X } from "lucide-react"
+import { AlertTriangle, ArrowLeft, CalendarClock, CircleDot, FileAudio2, FileText, MessageSquare, Pencil, RefreshCw, X } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { TopNav } from "@/components/top-nav"
 import { toast } from "sonner"
-import { api, type ChatMessageRecord, type SourceRecord, type SourceTag, type TranscriptSegment, PROCESSING_STATUSES, PROCESSING_STATUS_LABELS } from "@/lib/api"
+import { api, type ChatMessageRecord, type SourceRecord, type SourceTag, type TranscriptSegment, PROCESSING_STATUSES, PROCESSING_STATUS_LABELS, OLLAMA_FAILURE_STATUSES, explainFailure } from "@/lib/api"
 
 const getSourceKind = (source: SourceRecord) => {
     const fileType = (source.file_type ?? "").toLowerCase()
@@ -57,6 +57,7 @@ export default function SourceDetailPage() {
     const [titleValue, setTitleValue] = useState("")
     const [editingDate, setEditingDate] = useState(false)
     const [editingTranscript, setEditingTranscript] = useState(false)
+    const [isRetrying, setIsRetrying] = useState(false)
 
     const audioRef = useRef<HTMLAudioElement>(null)
     const activeSegmentRef = useRef<HTMLSpanElement>(null)
@@ -293,7 +294,22 @@ export default function SourceDetailPage() {
         activeSegmentRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" })
     }, [activeSegmentIndex])
 
+    const handleRetry = async () => {
+        if (!source || isRetrying) return
+        setIsRetrying(true)
+        try {
+            const updated = await api.processSource(source.id)
+            setSource(updated)
+        } catch (err) {
+            toast.error(`Could not retry: ${err instanceof Error ? err.message : "Unknown error"}`)
+        } finally {
+            setIsRetrying(false)
+        }
+    }
+
     const isSourceInProgress = source ? PROCESSING_STATUSES.has(source.status) : false
+    const failureInfo = source ? explainFailure(source.status) : null
+    const isOllamaFailure = source ? OLLAMA_FAILURE_STATUSES.has(source.status) : false
     const normalizedNewTag = newTagName.trim().toLowerCase()
     const isDuplicateNewTag = normalizedNewTag.length > 0 && sourceTags.some((tag) => tag.name.toLowerCase() === normalizedNewTag)
     const sourceKind = source ? getSourceKind(source) : "File"
@@ -351,7 +367,11 @@ export default function SourceDetailPage() {
                                 <div className={`mt-3 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${
                                     isSourceInProgress
                                         ? "border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300"
-                                        : getStatusClassName(source.status)
+                                        : failureInfo
+                                            ? (isOllamaFailure
+                                                ? "border-orange-300 bg-orange-50 text-orange-700 dark:border-orange-800 dark:bg-orange-900/30 dark:text-orange-300"
+                                                : "border-red-300 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-900/30 dark:text-red-300")
+                                            : getStatusClassName(source.status)
                                 }`}>
                                     {isSourceInProgress ? (
                                         <>
@@ -362,6 +382,11 @@ export default function SourceDetailPage() {
                                             </span>
                                             {PROCESSING_STATUS_LABELS[source.status] ?? "Processing..."}
                                         </>
+                                    ) : failureInfo ? (
+                                        <>
+                                            <AlertTriangle className="h-3 w-3" />
+                                            {PROCESSING_STATUS_LABELS[source.status] ?? "Processing failed"}
+                                        </>
                                     ) : (
                                         <>
                                             <CircleDot className="h-3 w-3" />
@@ -370,6 +395,46 @@ export default function SourceDetailPage() {
                                     )}
                                 </div>
                             </div>
+
+                            {failureInfo && (
+                                <div className={`rounded-xl border p-4 ${
+                                    isOllamaFailure
+                                        ? "border-orange-200 bg-orange-50/40 dark:border-orange-900/50 dark:bg-orange-900/10"
+                                        : "border-red-200 bg-red-50/40 dark:border-red-900/50 dark:bg-red-900/10"
+                                }`}>
+                                    <div className="flex items-start gap-3">
+                                        <AlertTriangle className={`h-5 w-5 mt-0.5 shrink-0 ${isOllamaFailure ? "text-orange-600 dark:text-orange-400" : "text-red-600 dark:text-red-400"}`} />
+                                        <div className="flex-1 min-w-0">
+                                            <p className={`text-sm font-semibold ${isOllamaFailure ? "text-orange-800 dark:text-orange-200" : "text-red-800 dark:text-red-200"}`}>
+                                                {failureInfo.title}
+                                            </p>
+                                            <p className="mt-1 text-sm text-muted-foreground">
+                                                {failureInfo.description}
+                                            </p>
+                                            {failureInfo.command && (
+                                                <pre className="mt-2 inline-block max-w-full overflow-x-auto rounded-md bg-muted px-3 py-1.5 text-xs font-mono">
+                                                    {failureInfo.command}
+                                                </pre>
+                                            )}
+                                            <div className="mt-3">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => void handleRetry()}
+                                                    disabled={isRetrying}
+                                                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors disabled:opacity-50 ${
+                                                        isOllamaFailure
+                                                            ? "bg-orange-600 hover:bg-orange-700 text-white"
+                                                            : "bg-red-600 hover:bg-red-700 text-white"
+                                                    }`}
+                                                >
+                                                    <RefreshCw className={`h-3.5 w-3.5 ${isRetrying ? "animate-spin" : ""}`} />
+                                                    {isRetrying ? "Retrying..." : "Retry"}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
 
                             <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_280px]">
                                 <div className="rounded-xl border bg-background p-4 sm:p-5">

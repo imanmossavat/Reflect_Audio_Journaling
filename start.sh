@@ -213,8 +213,16 @@ fi
 
 # 4. Backend deps + DB migration
 cd "$ROOT/Backend"
-echo "Syncing Python dependencies..."
-uv sync
+
+# Pick PyTorch wheels based on whether an NVIDIA GPU is reachable.
+# nvidia-smi ships with the NVIDIA driver, so its presence (and a clean
+# exit) is a reliable proxy for "this machine has a working CUDA driver".
+TORCH_EXTRA="cpu"
+if command -v nvidia-smi &>/dev/null && nvidia-smi &>/dev/null; then
+    TORCH_EXTRA="cuda"
+fi
+echo "Syncing Python dependencies (torch=$TORCH_EXTRA)..."
+uv sync --extra "$TORCH_EXTRA"
 echo "Running database migrations..."
 uv run alembic upgrade head
 

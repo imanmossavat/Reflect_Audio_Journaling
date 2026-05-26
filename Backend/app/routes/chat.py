@@ -25,6 +25,7 @@ class AppendMessageRequest(BaseModel):
     scale_max: Optional[int] = None
     scale_low_label: Optional[str] = None
     scale_high_label: Optional[str] = None
+    model: Optional[str] = None
 
 
 @router.get("/chats", tags=["Chat"])
@@ -75,6 +76,7 @@ async def append_message(
         scale_max=payload.scale_max,
         scale_low_label=payload.scale_low_label,
         scale_high_label=payload.scale_high_label,
+        model=payload.model,
     )
 
 

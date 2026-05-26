@@ -8,7 +8,7 @@ from database.models import Chat, ChatMessage
 
 
 def create_chat(session: Session, *, title: str = "Untitled") -> Chat:
-    now = datetime.utcnow()
+    now = datetime.now()
     chat = Chat(title=title, created_at=now, edited_at=now)
     session.add(chat)
     session.commit()
@@ -54,7 +54,7 @@ def get_messages(session: Session, chat_id: int) -> list[ChatMessage]:
 
 def update_chat_title(session: Session, chat: Chat, title: str) -> Chat:
     chat.title = title
-    chat.edited_at = datetime.utcnow()
+    chat.edited_at = datetime.now()
     session.add(chat)
     session.commit()
     session.refresh(chat)
@@ -63,7 +63,7 @@ def update_chat_title(session: Session, chat: Chat, title: str) -> Chat:
 
 def set_chat_source_id(session: Session, chat: Chat, source_id: Optional[int]) -> Chat:
     chat.source_id = source_id
-    chat.edited_at = datetime.utcnow()
+    chat.edited_at = datetime.now()
     session.add(chat)
     session.commit()
     session.refresh(chat)
@@ -71,7 +71,7 @@ def set_chat_source_id(session: Session, chat: Chat, source_id: Optional[int]) -
 
 
 def touch_chat(session: Session, chat: Chat) -> Chat:
-    chat.edited_at = datetime.utcnow()
+    chat.edited_at = datetime.now()
     session.add(chat)
     session.commit()
     session.refresh(chat)
@@ -98,6 +98,8 @@ def append_message(
     scale_max: Optional[int] = None,
     scale_low_label: Optional[str] = None,
     scale_high_label: Optional[str] = None,
+    model: Optional[str] = None,
+    thinking: Optional[str] = None,
 ) -> ChatMessage:
     message = ChatMessage(
         chat_id=chat_id,
@@ -107,7 +109,9 @@ def append_message(
         scale_max=scale_max,
         scale_low_label=scale_low_label,
         scale_high_label=scale_high_label,
-        created_at=datetime.utcnow(),
+        model=model,
+        thinking=thinking,
+        created_at=datetime.now(),
     )
     session.add(message)
     session.commit()

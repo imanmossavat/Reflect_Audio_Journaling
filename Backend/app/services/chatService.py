@@ -71,6 +71,8 @@ def append_message(
     scale_max: Optional[int] = None,
     scale_low_label: Optional[str] = None,
     scale_high_label: Optional[str] = None,
+    model: Optional[str] = None,
+    thinking: Optional[str] = None,
 ) -> dict:
     if role not in ("question", "answer"):
         raise HTTPException(status_code=400, detail="role must be 'question' or 'answer'.")
@@ -90,6 +92,8 @@ def append_message(
         scale_max=scale_max,
         scale_low_label=scale_low_label,
         scale_high_label=scale_high_label,
+        model=model,
+        thinking=thinking,
     )
     # Snapshot the fresh row before subsequent commits expire its attributes.
     snapshot = message.model_dump()

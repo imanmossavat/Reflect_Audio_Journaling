@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState } from "react"
-import {EllipsisVerticalIcon, Mic, FileUp, Pencil, Trash2, Type, Play, Pause, Search, Smartphone, X, File as FileIcon } from "lucide-react"
+import {EllipsisVerticalIcon, Mic, FileUp, Pencil, Trash2, Type, Play, Pause, Filter, Smartphone, X, File as FileIcon, RefreshCw } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -43,6 +43,7 @@ interface SourceListPanelProps {
   rawUploadUrl: string
   onDeleteSource: (id: string) => Promise<void>
   onRenameSource: (id: string, name: string) => Promise<void>
+  onRetryProcessing: (id: string) => Promise<void>
 }
 
 export function SourceListPanel({
@@ -72,7 +73,19 @@ export function SourceListPanel({
   rawUploadUrl,
   onDeleteSource,
   onRenameSource,
+  onRetryProcessing,
 }: SourceListPanelProps) {
+  const [retryingId, setRetryingId] = useState<string | null>(null)
+
+  const handleRetryClick = async (sourceId: string) => {
+    if (retryingId) return
+    setRetryingId(sourceId)
+    try {
+      await onRetryProcessing(sourceId)
+    } finally {
+      setRetryingId(null)
+    }
+  }
   const [renamingSourceId, setRenamingSourceId] = useState<string | null>(null)
   const [renameDraft, setRenameDraft] = useState("")
   const renameInputRef = useRef<HTMLInputElement>(null)
@@ -314,7 +327,7 @@ export function SourceListPanel({
 
       <div className="px-3 py-2 border-b space-y-1.5">
         <div className="relative">
-          <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground pointer-events-none" />
+          <Filter className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground pointer-events-none" />
           <input
             ref={searchInputRef}
             type="text"
@@ -340,7 +353,7 @@ export function SourceListPanel({
                 setSearchQuery("")
               }
             }}
-            placeholder="Search title..."
+            placeholder="Filter by title or tag:..."
             className="w-full pl-7 pr-7 py-1 text-xs rounded border bg-background focus:outline-none focus:ring-1 focus:ring-emerald-500"
           />
           {searchQuery && (
@@ -491,68 +504,89 @@ export function SourceListPanel({
                         className="w-full text-sm font-medium bg-background border rounded px-1.5 py-0.5 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                       />
                     ) : (
-                      <Link
-                        href={`/sources/${source.id}`}
-                        className="block rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40"
-                      >
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium truncate">{source.name}</span>
-                        </div>
-                        {isInProgress ? (
-                          <div className="flex items-center gap-1.5 mt-0.5">
-                            <span className="flex gap-0.5">
-                              <span className="inline-block w-1 h-1 rounded-full bg-emerald-500 animate-bounce [animation-delay:0ms]" />
-                              <span className="inline-block w-1 h-1 rounded-full bg-emerald-500 animate-bounce [animation-delay:150ms]" />
-                              <span className="inline-block w-1 h-1 rounded-full bg-emerald-500 animate-bounce [animation-delay:300ms]" />
-                            </span>
-                            <span className="text-xs text-emerald-600">
-                              {PROCESSING_STATUS_LABELS[source.status] ?? "Processing..."}
-                            </span>
+                      <>
+                        <Link
+                          href={`/sources/${source.id}`}
+                          className="block rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40"
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium truncate">{source.name}</span>
                           </div>
-                        ) : isOllamaFailure ? (
+                          {isInProgress ? (
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                              <span className="flex gap-0.5">
+                                <span className="inline-block w-1 h-1 rounded-full bg-emerald-500 animate-bounce [animation-delay:0ms]" />
+                                <span className="inline-block w-1 h-1 rounded-full bg-emerald-500 animate-bounce [animation-delay:150ms]" />
+                                <span className="inline-block w-1 h-1 rounded-full bg-emerald-500 animate-bounce [animation-delay:300ms]" />
+                              </span>
+                              <span className="text-xs text-emerald-600">
+                                {PROCESSING_STATUS_LABELS[source.status] ?? "Processing..."}
+                              </span>
+                            </div>
+                          ) : isAnyFailure ? null : (
+                            <>
+                              {source.type === "recording" && (
+                                <div className="flex items-center gap-2 mt-0.5">
+                                  <Play className="h-3 w-3 text-muted-foreground" />
+                                  <span className="text-xs text-muted-foreground">{source.duration}</span>
+                                </div>
+                              )}
+                              {source.type === "text" && source.content && (
+                                <p className="text-xs text-muted-foreground truncate mt-0.5">{source.content}</p>
+                              )}
+                            </>
+                          )}
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-[10px] text-muted-foreground">{source.timestamp}</span>
+                            {source.tags.map((tag) => (
+                              <span key={tag.name} className="text-[10px] px-1.5 py-0.5 rounded-full bg-muted">
+                                {tag.name}
+                              </span>
+                            ))}
+                          </div>
+                        </Link>
+                        {isOllamaFailure ? (
                           <div className="mt-0.5">
                             <p className="text-xs text-orange-500 font-medium">
                               {source.status === "failed_ollama_not_installed"
                                 ? "Ollama not installed"
                                 : source.status === "failed_ollama_model_missing"
-                                  ? "Embedding model not installed"
+                                  ? "Embedding model missing"
                                   : "Ollama not running"}
                             </p>
                             <p className="text-xs text-muted-foreground">
                               {source.status === "failed_ollama_not_installed"
-                                ? "Install Ollama to enable indexing"
+                                ? "Install Ollama, then click Retry."
                                 : source.status === "failed_ollama_model_missing"
-                                  ? <>Run <code className="px-1 py-0.5 rounded bg-muted text-[10px]">ollama pull {EMBED_MODEL_NAME}</code> in a terminal, then reprocess</>
-                                  : "Start Ollama, then reprocess"}
+                                  ? <>Run <code className="px-1 py-0.5 rounded bg-muted text-[10px]">ollama pull {EMBED_MODEL_NAME}</code>, then click Retry.</>
+                                  : "Start Ollama, then click Retry."}
                             </p>
+                            <button
+                              type="button"
+                              onClick={() => void handleRetryClick(source.id)}
+                              disabled={retryingId === source.id}
+                              className="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded border border-orange-300 text-[11px] font-medium text-orange-700 hover:bg-orange-100 dark:text-orange-300 dark:hover:bg-orange-900/30 disabled:opacity-50"
+                            >
+                              <RefreshCw className={`h-3 w-3 ${retryingId === source.id ? "animate-spin" : ""}`} />
+                              {retryingId === source.id ? "Retrying..." : "Retry"}
+                            </button>
                           </div>
                         ) : isFailed ? (
                           <div className="mt-0.5">
                             <p className="text-xs text-red-500 font-medium">Processing failed</p>
-                            <p className="text-xs text-muted-foreground">Open the source to retry, or check the backend logs.</p>
+                            <p className="text-xs text-muted-foreground">Check the backend logs, then click Retry.</p>
+                            <button
+                              type="button"
+                              onClick={() => void handleRetryClick(source.id)}
+                              disabled={retryingId === source.id}
+                              className="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded border border-red-300 text-[11px] font-medium text-red-700 hover:bg-red-100 dark:text-red-300 dark:hover:bg-red-900/30 disabled:opacity-50"
+                            >
+                              <RefreshCw className={`h-3 w-3 ${retryingId === source.id ? "animate-spin" : ""}`} />
+                              {retryingId === source.id ? "Retrying..." : "Retry"}
+                            </button>
                           </div>
-                        ) : (
-                          <>
-                            {source.type === "recording" && (
-                              <div className="flex items-center gap-2 mt-0.5">
-                                <Play className="h-3 w-3 text-muted-foreground" />
-                                <span className="text-xs text-muted-foreground">{source.duration}</span>
-                              </div>
-                            )}
-                            {source.type === "text" && source.content && (
-                              <p className="text-xs text-muted-foreground truncate mt-0.5">{source.content}</p>
-                            )}
-                          </>
-                        )}
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-[10px] text-muted-foreground">{source.timestamp}</span>
-                          {source.tags.map((tag) => (
-                            <span key={tag.name} className="text-[10px] px-1.5 py-0.5 rounded-full bg-muted">
-                              {tag.name}
-                            </span>
-                          ))}
-                        </div>
-                      </Link>
+                        ) : null}
+                      </>
                     )}
                   </div>
                   <div className="flex items-center gap-1 self-center shrink-0">

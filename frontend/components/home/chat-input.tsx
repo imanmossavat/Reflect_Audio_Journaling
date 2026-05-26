@@ -1,14 +1,26 @@
 "use client"
 
+import { useEffect, useRef } from "react"
 import { Send, Upload, RotateCw } from "lucide-react"
 import { PROCESSING_STATUS_LABELS } from "@/lib/api"
-import type { ChatMessageRecord } from "@/lib/api"
+import type { ChatMessageRecord, OllamaModelEntry } from "@/lib/api"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 const EXAMPLE_PROMPTS = [
   "What topics show up across more than one of my entries?",
   "Ask me a question about something I described but didn't explain.",
   "Show me which entries mention deadlines.",
 ]
+
+const MAX_TEXTAREA_ROWS = 10
+const LINE_HEIGHT_PX = 20
+const TEXTAREA_VERTICAL_PADDING_PX = 20
 
 interface ChatInputProps {
   inputValue: string
@@ -23,6 +35,13 @@ interface ChatInputProps {
   isPromotingChat: boolean
   activeChatMessages: ChatMessageRecord[]
   onPromoteChat: () => Promise<void>
+  // toolbar
+  includedSourcesCount: number
+  chatModel: string | null
+  installedModels: OllamaModelEntry[]
+  isOllamaReachable: boolean
+  isSavingChatModel: boolean
+  onChangeChatModel: (model: string) => Promise<void> | void
 }
 
 export function ChatInput({
@@ -37,7 +56,14 @@ export function ChatInput({
   isPromotingChat,
   activeChatMessages,
   onPromoteChat,
+  includedSourcesCount,
+  chatModel,
+  installedModels,
+  isOllamaReachable,
+  isSavingChatModel,
+  onChangeChatModel,
 }: ChatInputProps) {
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
   const showPrompts = inputValue.trim().length === 0
   const promoteDisabled = isPromotingChat || isLinkedSourceProcessing || activeChatMessages.length === 0
   const promoteLabel = (() => {
@@ -47,6 +73,16 @@ export function ChatInput({
   })()
   const PromoteIcon = activeChatSourceId === null ? Upload : RotateCw
   const promoteIconSpin = activeChatSourceId !== null && isLinkedSourceProcessing
+  const maxHeightPx = LINE_HEIGHT_PX * MAX_TEXTAREA_ROWS + TEXTAREA_VERTICAL_PADDING_PX
+  const modelInList = chatModel ? installedModels.some((m) => m.name === chatModel) : false
+
+  useEffect(() => {
+    const el = textareaRef.current
+    if (!el) return
+    el.style.height = "auto"
+    const next = Math.min(el.scrollHeight, maxHeightPx)
+    el.style.height = `${next}px`
+  }, [inputValue, maxHeightPx])
 
   return (
     <div className="bg-background p-4">
@@ -80,8 +116,12 @@ export function ChatInput({
             )}
           </div>
         )}
-        <form onSubmit={onSubmitText} className="relative">
+        <form
+          onSubmit={onSubmitText}
+          className="rounded-xl border bg-background focus-within:ring-2 focus-within:ring-emerald-500/20 focus-within:border-emerald-500 overflow-hidden"
+        >
           <textarea
+            ref={textareaRef}
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={(e) => {
@@ -92,16 +132,59 @@ export function ChatInput({
             }}
             placeholder="Write a message..."
             rows={1}
-            className="w-full py-2.5 pl-3 pr-11 rounded-xl border bg-background resize-none focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 leading-5 block"
+            style={{ maxHeight: `${maxHeightPx}px`, lineHeight: `${LINE_HEIGHT_PX}px` }}
+            className="w-full px-3 py-2.5 bg-background resize-none focus:outline-none block overflow-y-auto"
           />
-          <button
-            type="submit"
-            disabled={!inputValue.trim() || isAssistantThinking}
-            aria-label="Send message"
-            className="absolute top-1/2 -translate-y-1/2 right-1.5 p-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 disabled:bg-muted disabled:text-muted-foreground text-white transition-colors"
-          >
-            <Send className="h-3.5 w-3.5" />
-          </button>
+          <div className="flex items-center gap-2 px-2 pb-2 pt-1">
+            <div className="ml-auto flex items-center gap-2">
+              {isOllamaReachable && installedModels.length > 0 ? (
+                <Select
+                  value={chatModel ?? undefined}
+                  onValueChange={(v) => void onChangeChatModel(v)}
+                  disabled={isSavingChatModel}
+                >
+                  <SelectTrigger
+                    size="sm"
+                    className="h-7 text-[11px] border-0 bg-transparent hover:bg-muted px-2 gap-1 shadow-none w-auto min-w-0"
+                  >
+                    <SelectValue placeholder="model" />
+                  </SelectTrigger>
+                  <SelectContent align="end">
+                    {installedModels.map((m) => (
+                      <SelectItem key={m.name} value={m.name} className="text-xs">
+                        {m.name}
+                      </SelectItem>
+                    ))}
+                    {chatModel && !modelInList && (
+                      <SelectItem value={chatModel} className="text-xs">
+                        {chatModel} (not installed)
+                      </SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              ) : (
+                chatModel && (
+                  <span className="text-[11px] text-muted-foreground font-mono">{chatModel}</span>
+                )
+              )}
+
+              <span
+                className="text-[11px] text-muted-foreground"
+                title={`${includedSourcesCount} included source${includedSourcesCount === 1 ? "" : "s"}`}
+              >
+                {includedSourcesCount} source{includedSourcesCount === 1 ? "" : "s"}
+              </span>
+
+              <button
+                type="submit"
+                disabled={!inputValue.trim() || isAssistantThinking}
+                aria-label="Send message"
+                className="p-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 disabled:bg-muted disabled:text-muted-foreground text-white transition-colors"
+              >
+                <Send className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          </div>
         </form>
       </div>
     </div>

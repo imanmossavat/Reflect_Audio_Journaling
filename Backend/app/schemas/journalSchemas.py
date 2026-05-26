@@ -88,3 +88,4 @@ class QueryResponse(BaseModel):
     question: str
     answer: str
     sources: list[QuerySource]
+    model_used: str | None = None

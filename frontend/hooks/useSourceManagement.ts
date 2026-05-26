@@ -361,6 +361,21 @@ export function useSourceManagement() {
     }
   }
 
+  const handleRetryProcessing = async (sourceId: string) => {
+    const numericId = Number(sourceId)
+    if (!Number.isInteger(numericId) || numericId <= 0) return
+    try {
+      const updated = await api.processSource(numericId)
+      setRawSources((prev) =>
+        prev.map((s) => (s.id === sourceId ? { ...s, status: updated.status } : s))
+      )
+      setProcessingSources((prev) => new Set([...prev, numericId]))
+      toast("Reprocessing — running in the background.")
+    } catch (error) {
+      toast.error(`Could not retry: ${error instanceof Error ? error.message : "Unknown error"}`)
+    }
+  }
+
   const handleRenameSource = async (sourceId: string, newName: string) => {
     const numericId = Number(sourceId)
     try {
@@ -389,6 +404,6 @@ export function useSourceManagement() {
     handleFileDrop, handleFileDragEnter, handleFileDragOver, handleFileDragLeave,
     handleToggleRecording, handleCloseRecordingPanel,
     handleOnboardingSkip, handleOnboardingSubmit,
-    handleDeleteSource, handleRenameSource,
+    handleDeleteSource, handleRenameSource, handleRetryProcessing,
   }
 }

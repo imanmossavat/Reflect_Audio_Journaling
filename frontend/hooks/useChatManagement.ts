@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { api, type ChatSummary, type ChatMessageRecord, PROCESSING_STATUSES } from "@/lib/api"
+import { api, type ChatSummary, type ChatMessageRecord, type ChatStreamStageName, PROCESSING_STATUSES } from "@/lib/api"
 import type { RawSource } from "@/components/home/types"
 import { mapBackendSource } from "@/hooks/useSourceManagement"
 import { toast } from "sonner"
@@ -10,6 +10,18 @@ interface UseChatManagementOptions {
   rawSources: RawSource[]
   setRawSources: React.Dispatch<React.SetStateAction<RawSource[]>>
   setProcessingSources: React.Dispatch<React.SetStateAction<Set<number>>>
+}
+
+export type StreamingStage = {
+  name: ChatStreamStageName
+  count?: number
+  done: boolean
+}
+
+export type StreamingAssistant = {
+  stages: StreamingStage[]
+  thinking: string
+  answer: string
 }
 
 export function useChatManagement({ rawSources, setRawSources, setProcessingSources }: UseChatManagementOptions) {
@@ -22,7 +34,8 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
   const [renameDraft, setRenameDraft] = useState("")
   const [isPromotingChat, setIsPromotingChat] = useState(false)
   const [inputValue, setInputValue] = useState("")
-  const [isAssistantThinking, setIsAssistantThinking] = useState(false)
+  const [streamingAssistant, setStreamingAssistant] = useState<StreamingAssistant | null>(null)
+  const isAssistantThinking = streamingAssistant !== null
 
   useEffect(() => {
     const loadChats = async () => {
@@ -105,19 +118,48 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
       toast.error(`Could not save message: ${error instanceof Error ? error.message : "Unknown error"}`)
       return
     }
-    setIsAssistantThinking(true)
-    try {
-      const result = await api.query(trimmed)
-      const answer = result.answer?.trim() || "(empty response)"
-      await persistMessage(chatId, { role: "question", text: answer })
-    } catch (error) {
-      const raw = error instanceof Error ? error.message : "Unknown error"
-      // request() prefixes errors with "API NNN:" — strip it so the backend's friendly detail stands alone.
-      const friendly = raw.replace(/^API\s+\d+:\s*/, "")
-      toast.error(friendly)
-    } finally {
-      setIsAssistantThinking(false)
-    }
+    setStreamingAssistant({ stages: [], thinking: "", answer: "" })
+    await new Promise<void>((resolve) => {
+      api.streamQuery(
+        { chatId, question: trimmed },
+        {
+          onStage: ({ name, count }) => {
+            setStreamingAssistant((prev) => {
+              if (!prev) return prev
+              const stages = prev.stages.map((s) => ({ ...s, done: true }))
+              stages.push({ name, count, done: false })
+              return { ...prev, stages }
+            })
+          },
+          onThinking: (delta) => {
+            setStreamingAssistant((prev) => (prev ? { ...prev, thinking: prev.thinking + delta } : prev))
+          },
+          onToken: (delta) => {
+            setStreamingAssistant((prev) => (prev ? { ...prev, answer: prev.answer + delta } : prev))
+          },
+          onDone: async ({ message_id }) => {
+            try {
+              const detail = await api.getChat(chatId)
+              const created = detail.messages.find((m) => m.id === message_id)
+              if (created) setActiveChatMessages((prev) => [...prev, created])
+              else setActiveChatMessages(detail.messages)
+              void refreshChats()
+            } catch (error) {
+              console.warn("Failed to refetch chat after stream", error)
+            } finally {
+              setStreamingAssistant(null)
+              resolve()
+            }
+          },
+          onError: (error) => {
+            const friendly = error.message.replace(/^API\s+\d+:\s*/, "")
+            toast.error(friendly)
+            setStreamingAssistant(null)
+            resolve()
+          },
+        }
+      )
+    })
   }
 
   const handleSelectChat = (chatId: number) => {
@@ -198,7 +240,7 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
   return {
     chats, activeChatId, activeChatMessages, isLoadingChats, isLoadingActiveChat,
     renamingChatId, renameDraft, setRenameDraft, setRenamingChatId,
-    isPromotingChat, inputValue, setInputValue, isAssistantThinking,
+    isPromotingChat, inputValue, setInputValue, isAssistantThinking, streamingAssistant,
     activeChat, activeChatSourceId, activeChatLinkedSourceStatus, isLinkedSourceProcessing,
     handleSelectChat, handleStartRenameChat, handleStartRenameActiveChat, handleCommitRename, handleDeleteChat,
     handlePromoteChat, handleSubmitText,

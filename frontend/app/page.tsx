@@ -10,7 +10,7 @@ import { ChatTopBar } from "@/components/home/chat-top-bar"
 import { ChatMessages } from "@/components/home/chat-messages"
 import { ChatInput } from "@/components/home/chat-input"
 import { RightSidebar } from "@/components/home/right-sidebar"
-import { api } from "@/lib/api"
+import { api, type AppSettings, type OllamaModelEntry } from "@/lib/api"
 import { useSourceManagement } from "@/hooks/useSourceManagement"
 import { useChatManagement } from "@/hooks/useChatManagement"
 import { useSidebarResize } from "@/hooks/useSidebarResize"
@@ -23,6 +23,10 @@ export default function HomePage() {
   const [leftTab, setLeftTab] = useState<LeftTab>("sources")
   const [isRunningSearch, setIsRunningSearch] = useState(false)
   const [tagFilter, setTagFilter] = useState<string[]>([])
+  const [appSettings, setAppSettings] = useState<AppSettings | null>(null)
+  const [installedModels, setInstalledModels] = useState<OllamaModelEntry[]>([])
+  const [isOllamaReachable, setIsOllamaReachable] = useState(true)
+  const [isSavingChatModel, setIsSavingChatModel] = useState(false)
 
   const sources = useSourceManagement()
   const chats = useChatManagement({
@@ -57,6 +61,30 @@ export default function HomePage() {
   useEffect(() => {
     if (typeof window !== "undefined") window.localStorage.setItem(leftTabStorageKey, leftTab)
   }, [leftTab])
+
+  useEffect(() => {
+    void api.getSettings().then(setAppSettings).catch(() => {})
+    void api
+      .listOllamaModels()
+      .then((listing) => {
+        setIsOllamaReachable(listing.available)
+        setInstalledModels(listing.models)
+      })
+      .catch(() => setIsOllamaReachable(false))
+  }, [])
+
+  const handleChangeChatModel = async (model: string) => {
+    if (!appSettings || appSettings.chat_model === model) return
+    setIsSavingChatModel(true)
+    try {
+      const updated = await api.updateSettings({ chat_model: model })
+      setAppSettings(updated)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to update chat model")
+    } finally {
+      setIsSavingChatModel(false)
+    }
+  }
 
   const hasIncludedSources = sources.includedSources.length > 0
 
@@ -173,6 +201,7 @@ export default function HomePage() {
               rawUploadUrl={sources.rawUploadUrl}
               onDeleteSource={sources.handleDeleteSource}
               onRenameSource={sources.handleRenameSource}
+              onRetryProcessing={sources.handleRetryProcessing}
             />
           ) : (
             <ChatListPanel
@@ -216,7 +245,7 @@ export default function HomePage() {
           <ChatMessages
             activeChatMessages={chats.activeChatMessages}
             isLoadingActiveChat={chats.isLoadingActiveChat}
-            isAssistantThinking={chats.isAssistantThinking}
+            streamingAssistant={chats.streamingAssistant}
           />
           <ChatInput
             inputValue={chats.inputValue}
@@ -230,6 +259,12 @@ export default function HomePage() {
             isPromotingChat={chats.isPromotingChat}
             activeChatMessages={chats.activeChatMessages}
             onPromoteChat={chats.handlePromoteChat}
+            includedSourcesCount={sources.includedSources.length}
+            chatModel={appSettings?.chat_model ?? null}
+            installedModels={installedModels}
+            isOllamaReachable={isOllamaReachable}
+            isSavingChatModel={isSavingChatModel}
+            onChangeChatModel={handleChangeChatModel}
           />
         </div>
 

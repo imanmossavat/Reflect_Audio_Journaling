@@ -108,11 +108,11 @@ if (Get-Command nvidia-smi -ErrorAction SilentlyContinue) {
 Write-Host "Syncing Python dependencies (torch=$torchExtra)..."
 uv sync --extra $torchExtra
 Write-Host "Running database migrations..."
-uv run alembic upgrade head
+uv run --extra $torchExtra alembic upgrade head
 
 # 5. Start backend in a new window 
 Write-Host "Starting backend..."
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "Set-Location '$root\Backend'; uv run python start_backend.py"
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "Set-Location '$root\Backend'; uv run --extra $torchExtra python start_backend.py"
 
 # 6. Frontend deps + start 
 Set-Location "$root\frontend"
