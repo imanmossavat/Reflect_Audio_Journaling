@@ -1,0 +1,205 @@
+{
+  "_note": "20 questions from the synthetic RAG dataset pipeline doc + 5 deliberately-unanswerable. gold_supporting_notes lists the note_ids that contain the answer in notes.json. For unanswerable questions, gold_supporting_notes is empty and expected_answer is 'I don't know based on the notes.'",
+  "questions": [
+    {
+      "id": "Q1",
+      "question": "Why did Maya delete her message drafts to Lina on May 19?",
+      "expected_answer": "She deleted the first draft because it sounded too defensive and the second because it sounded weirdly formal. The message was left unsent.",
+      "answerability": "answerable",
+      "gold_supporting_notes": ["N-7815"],
+      "reasoning_type": "single_hop"
+    },
+    {
+      "id": "Q2",
+      "question": "What recurring issue is affecting Maya's ability to maintain her physiotherapy routine?",
+      "expected_answer": "She got distracted by her phone after about 2 minutes of exercises, and she notices she keeps restarting the routine like it's new every time.",
+      "answerability": "answerable",
+      "gold_supporting_notes": ["N-7814"],
+      "reasoning_type": "single_hop"
+    },
+    {
+      "id": "Q3",
+      "question": "How is Maya's handling of apartment finances related to her use of spreadsheets?",
+      "expected_answer": "She opens the mortgage spreadsheet without changing anything, just adjusts the same cell ranges and re-reads old notes. She thinks she uses it more like a thinking space than an actual decision tool.",
+      "answerability": "answerable",
+      "gold_supporting_notes": ["N-7818"],
+      "reasoning_type": "single_hop"
+    },
+    {
+      "id": "Q4",
+      "question": "What evidence suggests confusion or fragmentation in Maya's home maintenance documentation?",
+      "expected_answer": "Maya isn't sure what was sent to Karel (maybe just photos without numbers), Tom thinks he handled it but Maya can't find anything concrete, and the shared Drive has three folders called 'final_final'.",
+      "answerability": "answerable",
+      "gold_supporting_notes": ["N-7812"],
+      "reasoning_type": "single_hop"
+    },
+    {
+      "id": "Q5",
+      "question": "How does Maya's communication with her father reflect uncertainty about commitments?",
+      "expected_answer": "She told her father she'd visit next weekend but suspects she made the same promise last call. Her father didn't react and changed the subject to weather in Breda.",
+      "answerability": "answerable",
+      "gold_supporting_notes": ["N-7819"],
+      "reasoning_type": "single_hop"
+    },
+    {
+      "id": "Q6",
+      "question": "What conflicting behaviors does Maya show regarding financial communication with Eva and Tom?",
+      "expected_answer": "Maya agreed to help Eva with a bill, split the amount mentally but didn't write it down, and didn't tell Tom about it (he was working in the other room) because she didn't want to explain it badly again.",
+      "answerability": "answerable",
+      "gold_supporting_notes": ["N-7816"],
+      "reasoning_type": "single_hop"
+    },
+    {
+      "id": "Q7",
+      "question": "What triggers Maya's repeated uncertainty about dentist-related tasks?",
+      "expected_answer": "She can't tell if Nora's latest reminder is about the cavity follow-up or the night guard, suspects Nora sent something earlier she can't find, and her inbox has too many unread labels so she left it for later.",
+      "answerability": "answerable",
+      "gold_supporting_notes": ["N-7817"],
+      "reasoning_type": "single_hop"
+    },
+    {
+      "id": "Q8",
+      "question": "How do Maya's interactions with Lina evolve across multiple notes?",
+      "expected_answer": "On May 12 Lina pings about the promotion Notion doc and Maya opens it for 5 minutes but is confused about what she's already done. On May 19 Maya drafts a reply to Lina twice, deletes both, and leaves it unsent.",
+      "answerability": "answerable",
+      "gold_supporting_notes": ["N-7811", "N-7815"],
+      "reasoning_type": "multi_hop"
+    },
+    {
+      "id": "Q9",
+      "question": "What is the relationship between Maya's work avoidance and her home organization issues?",
+      "expected_answer": "Both show similar patterns of fragmented documentation and incomplete action: confusion about Notion pages for the promotion doc, and three folders called 'final_final' in the shared Drive with unclear records of what was sent to Karel.",
+      "answerability": "answerable",
+      "gold_supporting_notes": ["N-7811", "N-7812"],
+      "reasoning_type": "multi_hop"
+    },
+    {
+      "id": "Q10",
+      "question": "Did Maya successfully complete her physiotherapy routine on May 17?",
+      "expected_answer": "No. She did maybe 2 minutes of physio before getting distracted by her phone. The note suggests Bram would call that 'not counting'.",
+      "answerability": "answerable",
+      "gold_supporting_notes": ["N-7814"],
+      "reasoning_type": "single_hop"
+    },
+    {
+      "id": "Q11",
+      "question": "What did Maya decide about her visit to her father after the May 15 call?",
+      "expected_answer": "She said she'd come next weekend but suspects she made the same promise last call. No concrete plan or decision is recorded.",
+      "answerability": "answerable",
+      "gold_supporting_notes": ["N-7819"],
+      "reasoning_type": "single_hop"
+    },
+    {
+      "id": "Q12",
+      "question": "How does Maya's use of the mortgage spreadsheet differ from its intended purpose?",
+      "expected_answer": "She uses it as a thinking space rather than a decision tool — opening it without changing anything, adjusting the same cell ranges, and re-reading old notes.",
+      "answerability": "answerable",
+      "gold_supporting_notes": ["N-7818"],
+      "reasoning_type": "single_hop"
+    },
+    {
+      "id": "Q13",
+      "question": "Why did Maya think she might have already sent humidity data to Karel?",
+      "expected_answer": "She thinks they already sent something but suspects it may have been just photos without numbers. Tom says he handled it but Maya can't find a record.",
+      "answerability": "answerable",
+      "gold_supporting_notes": ["N-7812"],
+      "reasoning_type": "single_hop"
+    },
+    {
+      "id": "Q14",
+      "question": "What is the relationship between Maya's email avoidance and her work communication style?",
+      "expected_answer": "On May 19 she drafted and deleted two replies to Lina because of tone (too defensive, then weirdly formal) and left the message unsent. The notes describe drafts being deleted and a message left unsent, not a broader trend.",
+      "answerability": "answerable",
+      "gold_supporting_notes": ["N-7815"],
+      "reasoning_type": "single_hop"
+    },
+    {
+      "id": "Q15",
+      "question": "Does Maya explicitly confirm that her father corrected her about the repeated visit promise?",
+      "expected_answer": "No. Her father didn't react and changed the subject to weather in Breda. Maya remains uncertain whether he is letting it slide or forgetting.",
+      "answerability": "answerable",
+      "gold_supporting_notes": ["N-7819"],
+      "reasoning_type": "single_hop"
+    },
+    {
+      "id": "Q16",
+      "question": "What caused Maya to stop her physiotherapy exercises on May 17?",
+      "expected_answer": "Phone distraction. She got distracted by her phone after about 2 minutes.",
+      "answerability": "answerable",
+      "gold_supporting_notes": ["N-7814"],
+      "reasoning_type": "single_hop"
+    },
+    {
+      "id": "Q17",
+      "question": "How does Maya reconcile her financial decisions between Eva and her household transparency with Tom?",
+      "expected_answer": "She doesn't reconcile them — she defers. She agreed to help Eva, split the amount mentally, didn't write it down, and didn't tell Tom yet because she doesn't want to explain it badly again.",
+      "answerability": "answerable",
+      "gold_supporting_notes": ["N-7816"],
+      "reasoning_type": "single_hop"
+    },
+    {
+      "id": "Q18",
+      "question": "What is unclear about Maya's dental care situation in the notes?",
+      "expected_answer": "Whether Nora's reminder is about the cavity follow-up or the night guard, and whether Nora already sent information Maya missed. Her inbox has too many unread labels.",
+      "answerability": "answerable",
+      "gold_supporting_notes": ["N-7817"],
+      "reasoning_type": "single_hop"
+    },
+    {
+      "id": "Q19",
+      "question": "Does Maya ever explicitly state that she has completed the mortgage spreadsheet analysis?",
+      "expected_answer": "No. She describes opening it without making changes, adjusting cells without deciding, and re-reading old notes. No completion is recorded.",
+      "answerability": "answerable",
+      "gold_supporting_notes": ["N-7818"],
+      "reasoning_type": "single_hop"
+    },
+    {
+      "id": "Q20",
+      "question": "What is the relationship between Lina's repeated requests and Maya's response behavior?",
+      "expected_answer": "Lina pinged about the promotion doc on May 12 and Maya opened it for only 5 minutes. On May 19 Maya tried to reply, deleted two drafts, and left the message unsent.",
+      "answerability": "answerable",
+      "gold_supporting_notes": ["N-7811", "N-7815"],
+      "reasoning_type": "multi_hop"
+    },
+    {
+      "id": "Q21",
+      "question": "What is Maya's mother's name?",
+      "expected_answer": "I don't know based on the notes.",
+      "answerability": "unanswerable",
+      "gold_supporting_notes": [],
+      "reasoning_type": "unanswerable"
+    },
+    {
+      "id": "Q22",
+      "question": "How much did Tom pay for the dehumidifier?",
+      "expected_answer": "I don't know based on the notes.",
+      "answerability": "unanswerable",
+      "gold_supporting_notes": [],
+      "reasoning_type": "unanswerable"
+    },
+    {
+      "id": "Q23",
+      "question": "What did Maya have for dinner on May 18?",
+      "expected_answer": "I don't know based on the notes.",
+      "answerability": "unanswerable",
+      "gold_supporting_notes": [],
+      "reasoning_type": "unanswerable"
+    },
+    {
+      "id": "Q24",
+      "question": "How many siblings does Tom have?",
+      "expected_answer": "I don't know based on the notes.",
+      "answerability": "unanswerable",
+      "gold_supporting_notes": [],
+      "reasoning_type": "unanswerable"
+    },
+    {
+      "id": "Q25",
+      "question": "What date is Maya's next dentist appointment with Nora?",
+      "expected_answer": "I don't know based on the notes.",
+      "answerability": "unanswerable",
+      "gold_supporting_notes": [],
+      "reasoning_type": "unanswerable"
+    }
+  ]
+}

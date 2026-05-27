@@ -1,0 +1,4 @@
+_model,hit@5,recall@5,mrr,faithfulness,answer_relevancy,context_precision,context_recall,answer_correctness,_overall
+gpt-oss:20b,PASS (0.92),PASS (0.70),PASS (0.85),FAIL (1.79),FAIL (2.46),FAIL (2.25),FAIL (2.08),FAIL (1.71),FAIL
+mistral,PASS (0.92),PASS (0.70),PASS (0.85),FAIL (1.96),FAIL (2.38),FAIL (2.35),FAIL (1.92),FAIL (1.42),FAIL
+llama3,PASS (0.92),PASS (0.70),PASS (0.85),FAIL (1.67),FAIL (2.17),FAIL (2.42),FAIL (1.71),FAIL (1.29),FAIL
