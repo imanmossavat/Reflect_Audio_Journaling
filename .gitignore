@@ -23,4 +23,13 @@ Backend/docs_qr.png
 
 # User-specific settings (generated on first run from defaults)
 /Backend/data/settings.json
+<<<<<<< Updated upstream
 .DS_Store
+=======
+
+# user_eval — private journals + generated vector DB
+/Research/RAG/user_eval/journals/*
+!/Research/RAG/user_eval/journals/.gitkeep
+/Research/RAG/user_eval/chroma
+/Research/RAG/user_eval/sources_index.json
+>>>>>>> Stashed changes

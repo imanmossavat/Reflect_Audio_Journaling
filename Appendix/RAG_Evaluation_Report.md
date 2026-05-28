@@ -1,14 +1,14 @@
 # RAG Evaluation Report — Maya Synthetic Corpus
 
-**Date:** 2026-05-28
 **Scope:** Diagnosis of the RAG pipeline against a controlled synthetic journal (Maya world state).
+
 **Evaluation directory:** [Research/RAG/maya_eval/](../Research/RAG/maya_eval/)
 
 ---
 
 ## 1. Purpose
 
-The goal of this evaluation is to answer, per failing question, *"this went wrong, and in this specific sense"* — so I can prioritize fixes against the actual failure modes the production RAG exhibits.
+The goal of this evaluation is to answer, per failing question, *"this went wrong, and in this specific sense"*, so I can prioritize fixes against the actual failure modes the production RAG exhibits.
 
 The eval runs the **real** production RAG (real chat model, real embed model, real `rag.query_sources` path) against an **isolated** Chroma collection, so production embeddings are never touched.
 
@@ -195,7 +195,45 @@ The eval cannot touch production embeddings. [_bootstrap.py](../Research/RAG/may
 
 ---
 
-## 8. Next Steps
+## 8. Bring-Your-Own-Journals Sandbox (user_eval)
+
+**Evaluation directory:** [Research/RAG/user_eval/](../Research/RAG/user_eval/)
+
+Sibling sandbox to `maya_eval`, added so the RAG can also be spot-checked against real journals (my own) instead of only the synthetic Maya corpus. The synthetic corpus is good for regression tracking because the gold notes are fixed, but its phrasing is artificial. Running the same pipeline over journals I wrote myself is a low-friction qualitative check on whether the failure modes from sections 3 to 5 (especially GENERATION_OVERREACH and INCORRECT_REFUSAL) also appear on real personal data, and it gives a way to validate the section 6 fixes against journals that were not in the synthetic training distribution.
+
+### 8.1 Scope
+
+* Same isolation pattern as maya_eval (its own Chroma path, its own collection `user_eval_chunks`), so user data never lands in production embeddings and never collides with the Maya eval.
+* Supports a mix of audio (`.wav`, `.mp3`, `.m4a`, `.webm`, `.ogg`) and text (`.txt`, `.md`). Audio is transcribed via the same WhisperX pipeline the production app uses.
+* Light flow only: ingest plus an interactive ask loop. No gold answers, no LLM-as-judge, no failure mode taxonomy. Manual inspection is sufficient because I already know what the correct answer should be.
+
+### 8.2 Files
+
+| File | Purpose |
+|---|---|
+| [_bootstrap.py](../Research/RAG/user_eval/_bootstrap.py) | Isolates Chroma to `user_eval/chroma/` and collection `user_eval_chunks` before any RAG import. |
+| [ingest.py](../Research/RAG/user_eval/ingest.py) | Walks `journals/`, transcribes audio, reads text/markdown, chunks via the production chunker, indexes into the isolated collection. Wipes and rebuilds on each run for reproducibility. |
+| [ask.py](../Research/RAG/user_eval/ask.py) | Interactive REPL. Type a question, see the generated answer plus the filename, score, and chunk excerpt for each retrieved source. |
+| `journals/` | Drop journal files here. Gitignored so private journals never get committed. |
+
+### 8.3 Reproducing
+
+From [Research/RAG/user_eval/](../Research/RAG/user_eval/) with Ollama running:
+
+```powershell
+# 1. Drop your journal files into journals/
+# 2. Chunk and index into the isolated collection.
+python ingest.py
+
+# 3. Ask questions. Type :q to exit. Optional --top-k flag.
+python ask.py
+```
+
+Re-run `ingest.py` whenever the `journals/` folder changes; it resets the collection so there are no stale or duplicate chunks.
+
+---
+
+## 9. Next Steps
 
 1. Implement P0 prompt changes against the same eval set and re-run — expected effect: large drop in GENERATION_OVERREACH share.
 2. Implement P1 refusal logic — expected effect: INCORRECT_REFUSAL → 0, FAILED_REFUSAL stable or down.
