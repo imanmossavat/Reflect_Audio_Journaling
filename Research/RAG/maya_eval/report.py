@@ -41,7 +41,7 @@ def main() -> int:
     print("Per-question failure modes")
     print("=" * 72)
     for r in rows:
-        rationale = (r.get("rationale") or "")[:100]
+        rationale = (r.get("rationale") or "")
         print(f"{r['id']:>4s}  {r['failure_mode']:<25s}  {rationale}")
     print()
 

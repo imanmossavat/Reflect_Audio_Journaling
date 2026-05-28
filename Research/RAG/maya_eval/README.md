@@ -1,8 +1,8 @@
 # Maya synthetic RAG eval
 
-Failure-mode diagnosis of the production RAG against a controlled synthetic corpus where gold supporting notes are known per question.
+Testing/benchmarking of the RAG against a journal where supporting notes and entities are known per question.
 
-The goal isn't a single score — it's to answer **"these questions go wrong, and in this sense"** for each failing item:
+The goal isn't a single score, it's to answer **"these questions go wrong, and in this sense"** for each failing item:
 - retrieval miss vs. partial retrieval
 - generation overreach (adds psychology not in notes)
 - hallucination (invents facts)
@@ -11,7 +11,7 @@ The goal isn't a single score — it's to answer **"these questions go wrong, an
 
 ## Isolation
 
-The eval uses its own Chroma DB at `chroma/` and its own collection `maya_eval_chunks`. `_bootstrap.py` monkey-patches `app.services.chroma` before any rag code runs, so production embeddings at `Backend/database/chroma/` are never touched.
+The eval uses its own Chroma DB at `chroma/` and its own collection `maya_eval_chunks`. `_bootstrap.py` uses `app.services.chroma` before any rag code runs, so production embeddings at `Backend/database/chroma/` are never touched.
 
 The eval still uses real settings (chat_model, embed_model, ollama_host from `Backend/data/settings.json`) — point is to test the *real* RAG, just with isolated storage.
 
