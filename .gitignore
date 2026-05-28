@@ -23,3 +23,4 @@ Backend/docs_qr.png
 
 # User-specific settings (generated on first run from defaults)
 /Backend/data/settings.json
+.DS_Store
