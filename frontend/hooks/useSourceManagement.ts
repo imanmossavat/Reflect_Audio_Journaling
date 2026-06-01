@@ -233,6 +233,30 @@ export function useSourceManagement() {
     }
   }
 
+  const handleSaveNote = async (content: string, title?: string) => {
+    if (!content.trim() || isSavingSource) return
+    setIsSavingSource(true)
+    try {
+      const created = await api.uploadTextSource(content, true)
+      const trimmedTitle = title?.trim()
+      if (trimmedTitle) {
+        try {
+          await api.patchSource(created.id, { filename: trimmedTitle })
+          created.filename = trimmedTitle
+        } catch { /* keep default title if rename fails */ }
+      }
+      if (created.id > maxSourceIdRef.current) maxSourceIdRef.current = created.id
+      setRawSources((prev) => (prev.some((s) => s.id === String(created.id)) ? prev : [mapBackendSource(created), ...prev].sort(compareSourcesNewestFirst)))
+      setProcessingSources((prev) => new Set([...prev, created.id]))
+      toast("Note saved — processing in background.")
+    } catch (error) {
+      toast.error(`Could not save note: ${error instanceof Error ? error.message : "Unknown error"}`)
+      throw error
+    } finally {
+      setIsSavingSource(false)
+    }
+  }
+
   const handleAddFileSource = async (selectedFile: File | null) => {
     if (!selectedFile || isSavingSource) return
     const validationError = validateUploadFile(selectedFile)
@@ -412,7 +436,7 @@ export function useSourceManagement() {
     isOnboardingOpen, fileInputRef,
     setNewSourceText, setAddSourceMode: handleSetAddSourceMode,
     setRawSources, setProcessingSources,
-    handleSetSourceIncluded, handleAddTextSource, handleAddFileSource,
+    handleSetSourceIncluded, handleAddTextSource, handleSaveNote, handleAddFileSource,
     handleFileDrop, handleFileDragEnter, handleFileDragOver, handleFileDragLeave,
     handleToggleRecording, handleCloseRecordingPanel,
     handleOnboardingSkip, handleOnboardingSubmit,

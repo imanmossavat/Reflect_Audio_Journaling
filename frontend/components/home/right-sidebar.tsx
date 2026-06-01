@@ -1,7 +1,6 @@
 "use client"
 
 import { FileText, MessageCircle, PanelRightClose, Sparkles } from "lucide-react"
-import Link from "next/link"
 
 interface RightSidebarProps {
   hasIncludedSources: boolean
@@ -9,6 +8,7 @@ interface RightSidebarProps {
   onExportMarkdown: () => void
   onAISearch: () => Promise<void>
   onCollapse: () => void
+  onOpenGraph: () => void
 }
 
 export function RightSidebar({
@@ -17,6 +17,7 @@ export function RightSidebar({
   onExportMarkdown,
   onAISearch,
   onCollapse,
+  onOpenGraph,
 }: RightSidebarProps) {
   return (
     <>
@@ -65,8 +66,8 @@ export function RightSidebar({
 
         <div>
           <h3 className="text-sm font-medium mb-3">Graph</h3>
-          <Link
-            href="/graph"
+          <button
+            onClick={onOpenGraph}
             className="w-full flex items-center gap-3 p-3 rounded-lg border hover:bg-muted transition-colors text-left"
           >
             <Sparkles className="h-4 w-4 text-muted-foreground" />
@@ -74,7 +75,7 @@ export function RightSidebar({
               <div className="text-sm font-medium">Open Graph View</div>
               <div className="text-xs text-muted-foreground">Explore source tag relationships</div>
             </div>
-          </Link>
+          </button>
         </div>
       </div>
     </>

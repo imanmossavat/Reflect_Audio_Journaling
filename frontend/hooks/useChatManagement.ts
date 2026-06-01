@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { api, type ChatSummary, type ChatMessageRecord, type ChatStreamStageName, PROCESSING_STATUSES } from "@/lib/api"
 import type { RawSource } from "@/components/home/types"
 import { mapBackendSource } from "@/hooks/useSourceManagement"
@@ -24,6 +24,16 @@ export type StreamingAssistant = {
   answer: string
 }
 
+const ACTIVE_CHAT_STORAGE_KEY = "reflect.activeChatId"
+
+function readStoredActiveChatId(): number | null {
+  if (typeof window === "undefined") return null
+  const raw = window.localStorage.getItem(ACTIVE_CHAT_STORAGE_KEY)
+  if (raw === null) return null
+  const parsed = Number(raw)
+  return Number.isFinite(parsed) ? parsed : null
+}
+
 export function useChatManagement({ rawSources, setRawSources, setProcessingSources }: UseChatManagementOptions) {
   const [chats, setChats] = useState<ChatSummary[]>([])
   const [activeChatId, setActiveChatId] = useState<number | null>(null)
@@ -36,6 +46,9 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
   const [inputValue, setInputValue] = useState("")
   const [streamingAssistant, setStreamingAssistant] = useState<StreamingAssistant | null>(null)
   const isAssistantThinking = streamingAssistant !== null
+  // Don't persist activeChatId until we've restored it from storage on mount,
+  // otherwise the initial null would wipe the stored value before we read it.
+  const hasRestoredActiveChat = useRef(false)
 
   useEffect(() => {
     const loadChats = async () => {
@@ -43,14 +56,27 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
       try {
         const list = await api.listChats()
         setChats(list)
+        // Restore the last active chat after mount (not during render, to avoid an
+        // SSR/client hydration mismatch). Only restore it if it still exists.
+        setActiveChatId((prev) => {
+          const candidate = prev ?? readStoredActiveChatId()
+          return candidate !== null && list.some((c) => c.id === candidate) ? candidate : prev
+        })
       } catch (error) {
         toast.error(`Could not load chats: ${error instanceof Error ? error.message : "Unknown error"}`)
       } finally {
+        hasRestoredActiveChat.current = true
         setIsLoadingChats(false)
       }
     }
     void loadChats()
   }, [])
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !hasRestoredActiveChat.current) return
+    if (activeChatId === null) window.localStorage.removeItem(ACTIVE_CHAT_STORAGE_KEY)
+    else window.localStorage.setItem(ACTIVE_CHAT_STORAGE_KEY, String(activeChatId))
+  }, [activeChatId])
 
   useEffect(() => {
     if (activeChatId === null) { setActiveChatMessages([]); return }
