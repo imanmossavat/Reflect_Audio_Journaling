@@ -19,12 +19,14 @@ DEFAULTS: dict[str, Any] = {
     "language": "en",
     "db_path": str((_BACKEND_DIR / "database" / "database.db").as_posix()),
     "theme": "system",
+    "date_format": "dmy",
 }
 
 ALLOWED_DEVICES = {"cpu", "cuda", "mps", "rocm"}
 ALLOWED_WHISPER_MODELS = {"tiny", "base", "small", "medium", "large-v3"}
 ALLOWED_LANGUAGES = {"en", "nl"}
 ALLOWED_THEMES = {"light", "dark", "system"}
+ALLOWED_DATE_FORMATS = {"dmy", "mdy"}
 
 _lock = threading.Lock()
 _version = 0
@@ -79,6 +81,9 @@ def _validate(patch: dict[str, Any]) -> dict[str, Any]:
         elif key == "theme":
             if value not in ALLOWED_THEMES:
                 raise ValueError(f"theme must be one of {sorted(ALLOWED_THEMES)}")
+        elif key == "date_format":
+            if value not in ALLOWED_DATE_FORMATS:
+                raise ValueError(f"date_format must be one of {sorted(ALLOWED_DATE_FORMATS)}")
         elif key in ("chat_model", "embed_model", "ollama_host", "db_path"):
             if not isinstance(value, str) or not value.strip():
                 raise ValueError(f"{key} must be a non-empty string")

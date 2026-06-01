@@ -1,6 +1,6 @@
 "use client"
 
-import { FileText, MessageCircle, Sparkles } from "lucide-react"
+import { FileText, MessageCircle, PanelRightClose, Sparkles } from "lucide-react"
 import Link from "next/link"
 
 interface RightSidebarProps {
@@ -8,6 +8,7 @@ interface RightSidebarProps {
   isRunningSearch: boolean
   onExportMarkdown: () => void
   onAISearch: () => Promise<void>
+  onCollapse: () => void
 }
 
 export function RightSidebar({
@@ -15,11 +16,20 @@ export function RightSidebar({
   isRunningSearch,
   onExportMarkdown,
   onAISearch,
+  onCollapse,
 }: RightSidebarProps) {
   return (
     <>
-      <div className="border-b px-4 h-12 flex items-center shrink-0">
+      <div className="border-b px-4 h-12 flex items-center justify-between shrink-0">
         <h2 className="text-sm font-medium">Tools</h2>
+        <button
+          onClick={onCollapse}
+          aria-label="Hide panel"
+          title="Hide panel"
+          className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors"
+        >
+          <PanelRightClose className="h-3.5 w-3.5" />
+        </button>
       </div>
 
       <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar p-4 space-y-4">

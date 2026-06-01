@@ -47,11 +47,23 @@ const mapSourceType = (source: SourceRecord): RawSource["type"] => {
   return "file"
 }
 
+// Title shown in the sources tab. Text notes have no filename; everything
+// else shows its raw filename as-is.
+const displaySourceName = (source: SourceRecord): string => {
+  if (!source.filename) return "Quick thought"
+  return source.filename
+}
+
+// Newest first; numeric id breaks ties for sources sharing a timestamp.
+export const compareSourcesNewestFirst = (a: RawSource, b: RawSource): number =>
+  b.createdAt.localeCompare(a.createdAt) || Number(b.id) - Number(a.id)
+
 export const mapBackendSource = (source: SourceRecord): RawSource => ({
   id: String(source.id),
   type: mapSourceType(source),
-  name: source.filename || "Quick thought",
+  name: displaySourceName(source),
   content: source.text ?? undefined,
+  createdAt: source.created_at,
   timestamp: formatListTimestamp(source.created_at),
   included: true,
   tags: [],
@@ -96,7 +108,7 @@ export function useSourceManagement() {
           const prevIds = new Set(prev.map((s) => s.id))
           const additions = mapped.filter((s) => !prevIds.has(s.id))
           if (additions.length === 0) return prev
-          return [...additions, ...prev].sort((a, b) => a.id.localeCompare(b.id))
+          return [...additions, ...prev].sort(compareSourcesNewestFirst)
         })
         const processingIds = mapped
           .filter((s) => PROCESSING_STATUSES.has(s.status))
@@ -160,7 +172,7 @@ export function useSourceManagement() {
             } catch { return source }
           })
         )
-        const mapped = mappedWithTags.sort((a, b) => a.id.localeCompare(b.id))
+        const mapped = mappedWithTags.sort(compareSourcesNewestFirst)
         setRawSources(mapped)
         maxSourceIdRef.current = Math.max(0, ...sources.map((s) => s.id ?? 0))
         const inProgress = new Set(
@@ -209,7 +221,7 @@ export function useSourceManagement() {
     try {
       const created = await api.uploadTextSource(newSourceText, true)
       if (created.id > maxSourceIdRef.current) maxSourceIdRef.current = created.id
-      setRawSources((prev) => (prev.some((s) => s.id === String(created.id)) ? prev : [mapBackendSource(created), ...prev]))
+      setRawSources((prev) => (prev.some((s) => s.id === String(created.id)) ? prev : [mapBackendSource(created), ...prev].sort(compareSourcesNewestFirst)))
       setProcessingSources((prev) => new Set([...prev, created.id]))
       setNewSourceText("")
       setAddSourceMode(null)
@@ -229,7 +241,7 @@ export function useSourceManagement() {
     try {
       const created = await api.uploadFileSource(selectedFile, true)
       if (created.id > maxSourceIdRef.current) maxSourceIdRef.current = created.id
-      setRawSources((prev) => (prev.some((s) => s.id === String(created.id)) ? prev : [mapBackendSource(created), ...prev]))
+      setRawSources((prev) => (prev.some((s) => s.id === String(created.id)) ? prev : [mapBackendSource(created), ...prev].sort(compareSourcesNewestFirst)))
       setProcessingSources((prev) => new Set([...prev, created.id]))
       setAddSourceMode(null)
       toast(`${selectedFile.name} uploaded — processing in background.`)
@@ -315,7 +327,7 @@ export function useSourceManagement() {
         api.uploadFileSource(audioFile, true)
           .then((created) => {
             if (created.id > maxSourceIdRef.current) maxSourceIdRef.current = created.id
-            setRawSources((prev) => (prev.some((s) => s.id === String(created.id)) ? prev : [mapBackendSource(created), ...prev]))
+            setRawSources((prev) => (prev.some((s) => s.id === String(created.id)) ? prev : [mapBackendSource(created), ...prev].sort(compareSourcesNewestFirst)))
             setProcessingSources((prev) => new Set([...prev, created.id]))
             setAddSourceMode(null)
             setRecordingSeconds(0)

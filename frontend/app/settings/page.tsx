@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select"
 import {
   api,
+  type AppDateFormat,
   type AppDevice,
   type AppLanguage,
   type AppSettings,
@@ -46,6 +47,11 @@ const THEMES: { value: AppTheme; label: string }[] = [
   { value: "system", label: "System" },
   { value: "light", label: "Light" },
   { value: "dark", label: "Dark" },
+]
+
+const DATE_FORMATS: { value: AppDateFormat; label: string }[] = [
+  { value: "dmy", label: "Day / Month / Year (e.g. 15-03-2024)" },
+  { value: "mdy", label: "Month / Day / Year (e.g. 03-15-2024)" },
 ]
 
 function FieldLoader({ label }: { label: string }) {
@@ -376,6 +382,34 @@ export default function SettingsPage() {
               </div>
               <p className="text-xs text-muted-foreground">
                 Changing this requires a backend restart and won't migrate existing data.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Date format</Label>
+              {!settings ? (
+                <FieldLoader label="Loading…" />
+              ) : (
+                <Select
+                  value={settings.date_format}
+                  onValueChange={(v) => persist("date_format", v as AppDateFormat)}
+                  disabled={savingKey === "date_format"}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {DATE_FORMATS.map((f) => (
+                      <SelectItem key={f.value} value={f.value}>
+                        {f.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              <p className="text-xs text-muted-foreground">
+                How dates are read from uploaded filenames. Year-first names
+                (e.g. 2024-03-15) are detected automatically.
               </p>
             </div>
 

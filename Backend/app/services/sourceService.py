@@ -15,6 +15,8 @@ from app.repositories import sourceRepository
 from app.services.chunking import chunk_text
 from app.services.rag import check_model_installed, classify_ollama_error, index_chunks
 from app.services.transcription import TranscriptionManager
+from app.services.settings_service import get_setting
+from app.utils.filename_dates import parse_datetime_from_filename
 from app import logging_config
 
 
@@ -209,6 +211,7 @@ async def save_raw_source_file(session: Session, file: UploadFile):
         file_path=str(filepath),
         file_type=file_type,
         status="not processed",
+        created_at=parse_datetime_from_filename(file.filename, get_setting("date_format")),
     )
 
     return source
@@ -249,6 +252,7 @@ async def save_processed_source_file(session: Session, file: UploadFile):
         file_type=file_type,
         text=text,
         status="queued",
+        created_at=parse_datetime_from_filename(file.filename, get_setting("date_format")),
     )
 
 

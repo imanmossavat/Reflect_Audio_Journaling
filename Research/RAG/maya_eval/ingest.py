@@ -1,12 +1,9 @@
-"""Chunk and index the Maya notes into the isolated Chroma collection.
+"""Chunk and index the Maya notes into Chroma
 
-Reuses Backend chunking + rag.index_chunks. Wipes the eval collection
-before indexing so runs are reproducible.
+Reuses Backend chunking + rag.index_chunks
 
 Writes notes_index.json — a numeric source_id -> note_id map used by
 run_eval.py to translate retrieved source_ids back to note_ids.
-
-Run: python ingest.py
 """
 import _bootstrap
 

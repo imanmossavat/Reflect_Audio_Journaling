@@ -194,6 +194,7 @@ export type AppDevice = "cpu" | "cuda" | "mps" | "rocm"
 export type AppLanguage = "en" | "nl"
 export type AppWhisperModel = "tiny" | "base" | "small" | "medium" | "large-v3"
 export type AppTheme = "light" | "dark" | "system"
+export type AppDateFormat = "dmy" | "mdy"
 
 export interface AppSettings {
   chat_model: string
@@ -204,6 +205,7 @@ export interface AppSettings {
   language: AppLanguage
   db_path: string
   theme: AppTheme
+  date_format: AppDateFormat
 }
 
 export interface DeviceOption {
