@@ -82,6 +82,7 @@ export interface SourceRecord {
   filename: string | null
   file_type: string | null
   text: string | null
+  text_html: string | null
   transcript_segments: TranscriptSegment[] | null
   status: SourceStatus
   created_at: string
@@ -408,17 +409,18 @@ export const api = {
       body,
     })
   },
-  uploadProcessedTextSource(sourceText: string) {
+  uploadProcessedTextSource(sourceText: string, sourceHtml?: string) {
     const body = new FormData()
     body.append("source_text", sourceText)
+    if (sourceHtml != null) body.append("source_html", sourceHtml)
     return request<SourceRecord>("/source/uploadText/processed", {
       method: "POST",
       body,
     })
   },
-  uploadTextSource(sourceText: string, processed = false) {
+  uploadTextSource(sourceText: string, processed = false, sourceHtml?: string) {
     if (processed) {
-      return this.uploadProcessedTextSource(sourceText)
+      return this.uploadProcessedTextSource(sourceText, sourceHtml)
     }
     return this.uploadRawTextSource(sourceText)
   },
@@ -468,7 +470,7 @@ export const api = {
       throw error
     })
   },
-  patchSource(sourceId: number, fields: { text?: string; filename?: string; created_at?: string }) {
+  patchSource(sourceId: number, fields: { text?: string; text_html?: string; filename?: string; created_at?: string }) {
     return request<SourceRecord>(`/source/${sourceId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },

@@ -35,6 +35,8 @@ export default function SourceDetailPage() {
     const params = useParams<{ id: string }>()
     const [source, setSource] = useState<SourceRecord | null>(null)
     const [sourceText, setSourceText] = useState("")
+    // Rich HTML for the editor; falls back to plain text for legacy/audio sources.
+    const [sourceHtml, setSourceHtml] = useState("")
     const [sourceTags, setSourceTags] = useState<SourceTag[]>([])
     const [newTagName, setNewTagName] = useState("")
     const [isLoading, setIsLoading] = useState(true)
@@ -84,6 +86,7 @@ export default function SourceDetailPage() {
                 const textPromise = loadedSource.text ? Promise.resolve(loadedSource.text) : api.getSourceText(sourceId)
                 const [fullText, loadedTags] = await Promise.all([textPromise, api.getSourceTags(sourceId)])
                 setSourceText(fullText ?? "")
+                setSourceHtml(loadedSource.text_html ?? "")
                 setSourceTags(loadedTags)
 
                 if (loadedSource.file_type === "chat") {
@@ -117,14 +120,16 @@ export default function SourceDetailPage() {
             },
         },
         onUpdate: ({ editor }) => {
-            const text = editor.getText()
-            setSourceText(text)
+            const html = editor.isEmpty ? "" : editor.getHTML()
+            setSourceHtml(html)
+            setSourceText(editor.getText())
             if (transcriptSaveTimerRef.current) clearTimeout(transcriptSaveTimerRef.current)
             const id = source?.id
             if (!id) return
             transcriptSaveTimerRef.current = setTimeout(async () => {
                 try {
-                    const updated = await api.patchSource(id, { text: text })
+                    // Save HTML; the backend derives the plain text used for RAG.
+                    const updated = await api.patchSource(id, { text_html: html })
                     setSource(updated)
                     if (updated.status === "not processed") {
                         const queued = await api.processSource(id)
@@ -137,14 +142,17 @@ export default function SourceDetailPage() {
         },
     })
 
-    // Sync external sourceText changes (initial load, background poll) into the editor,
+    // Sync external content changes (initial load, background poll) into the editor,
     // but only when the user isn't actively typing — otherwise we'd clobber their input.
+    // Prefer rich HTML; fall back to plain text for legacy/audio sources.
     useEffect(() => {
         if (!transcriptEditor) return
         if (transcriptEditor.isFocused) return
-        if (transcriptEditor.getText() === sourceText) return
-        transcriptEditor.commands.setContent(sourceText || "", { emitUpdate: false })
-    }, [transcriptEditor, sourceText])
+        const desired = sourceHtml || sourceText || ""
+        const current = sourceHtml ? transcriptEditor.getHTML() : transcriptEditor.getText()
+        if (current === desired) return
+        transcriptEditor.commands.setContent(desired, { emitUpdate: false })
+    }, [transcriptEditor, sourceHtml, sourceText])
 
     // Poll while source is being processed in background
     useEffect(() => {
@@ -154,8 +162,9 @@ export default function SourceDetailPage() {
             try {
                 const updated = await api.getSourceById(source.id)
                 setSource(updated)
-                if (updated.text && updated.text !== sourceText && !transcriptEditor?.isFocused) {
-                    setSourceText(updated.text)
+                if (!transcriptEditor?.isFocused) {
+                    if (updated.text && updated.text !== sourceText) setSourceText(updated.text)
+                    if ((updated.text_html ?? "") !== sourceHtml) setSourceHtml(updated.text_html ?? "")
                 }
                 if (!PROCESSING_STATUSES.has(updated.status)) {
                     clearInterval(interval)

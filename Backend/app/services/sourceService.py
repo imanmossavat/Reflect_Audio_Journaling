@@ -17,6 +17,7 @@ from app.services.rag import check_model_installed, classify_ollama_error, index
 from app.services.transcription import TranscriptionManager
 from app.services.settings_service import get_setting
 from app.utils.filename_dates import parse_datetime_from_filename
+from app.utils.html_text import html_to_text
 from app import logging_config
 
 
@@ -256,8 +257,16 @@ async def save_processed_source_file(session: Session, file: UploadFile):
     )
 
 
-async def save_processed_source_text(session: Session, source_text: str):
-    """Save raw text and return immediately. Processing runs as a background task."""
+async def save_processed_source_text(session: Session, source_text: str, source_html: str | None = None):
+    """Save a source and return immediately. Processing runs as a background task.
+
+    When `source_html` is supplied (rich notes from the editor) we keep it for
+    display and derive the canonical plain `text` from it, so RAG never sees markup.
+    """
+    if source_html:
+        return sourceRepository.create_source(
+            session=session, text=html_to_text(source_html), text_html=source_html, status="queued"
+        )
     return sourceRepository.create_source(session=session, text=source_text, status="queued")
 
 async def save_raw_source_text(session: Session, source_text: str):
@@ -294,15 +303,21 @@ async def update_source(
     source_id: int,
     *,
     text: str | None = None,
+    text_html: str | None = None,
     filename: str | None = None,
     created_at_str: str | None = None,
 ):
     source = sourceRepository.get_source_by_id(session, source_id)
     if not source:
         raise HTTPException(status_code=404, detail="Source not found.")
-    new_status = "not processed" if (text is not None and source.status == "processed") else None
+    # Rich edits arrive as HTML; derive the canonical plain text from it.
+    if text_html is not None:
+        text = html_to_text(text_html)
+    content_changed = text is not None or text_html is not None
+    new_status = "not processed" if (content_changed and source.status == "processed") else None
     return sourceRepository.update_source_fields(
-        session, source, text=text, filename=filename, created_at_str=created_at_str, status=new_status
+        session, source, text=text, text_html=text_html,
+        filename=filename, created_at_str=created_at_str, status=new_status
     )
 
 

@@ -42,6 +42,9 @@ class Source(SQLModel, table=True):
     file_type: Optional[str] = Field(default=None, max_length=255)
     file_path: Optional[str] = Field(default=None)
     text: Optional[str] = Field(default=None)
+    # Rich HTML for display only. The plain-text `text` above stays the canonical
+    # value used for chunking, embeddings, tags and chat context.
+    text_html: Optional[str] = Field(default=None)
     transcript_segments: Optional[list] = Field(default=None, sa_column=Column(JSON))
     status: str = Field(max_length=255, default="not processed")
     created_at: datetime = Field(default_factory=datetime.utcnow)

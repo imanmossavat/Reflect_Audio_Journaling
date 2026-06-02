@@ -78,10 +78,11 @@ async def upload_raw_source(
 @router.post("/source/uploadText/processed", tags=["Source"], description="Upload a source as text. Returns immediately; chunking and indexing run in the background.")
 async def upload_text_source(
     background_tasks: BackgroundTasks,
-    source_text: str = Form(...),
+    source_text: str = Form(""),
+    source_html: str | None = Form(None),
     session: Session = Depends(get_session),
 ):
-    source = await sourceService.save_processed_source_text(session, source_text)
+    source = await sourceService.save_processed_source_text(session, source_text, source_html)
     background_tasks.add_task(sourceService._process_source_background, source.id)
     return source
 
@@ -109,7 +110,8 @@ async def patch_source(
     session: Session = Depends(get_session),
 ):
     return await sourceService.update_source(
-        session, source_id, text=payload.text, filename=payload.filename, created_at_str=payload.created_at
+        session, source_id, text=payload.text, text_html=payload.text_html,
+        filename=payload.filename, created_at_str=payload.created_at
     )
 
 

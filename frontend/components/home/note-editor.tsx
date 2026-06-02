@@ -31,7 +31,8 @@ export function NoteEditor({ onClose, onSave, isSaving }: NoteEditorProps) {
       },
     },
     onUpdate: ({ editor }) => {
-      setContent(editor.getText())
+      // Store rich HTML — the backend strips it to plain text for RAG.
+      setContent(editor.isEmpty ? "" : editor.getHTML())
     },
   })
 
