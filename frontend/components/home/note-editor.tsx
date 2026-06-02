@@ -31,7 +31,7 @@ export function NoteEditor({ onClose, onSave, isSaving }: NoteEditorProps) {
       },
     },
     onUpdate: ({ editor }) => {
-      setContent(editor.getHTML())
+      setContent(editor.getText())
     },
   })
 

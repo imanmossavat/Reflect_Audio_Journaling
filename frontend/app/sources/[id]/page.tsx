@@ -117,14 +117,14 @@ export default function SourceDetailPage() {
             },
         },
         onUpdate: ({ editor }) => {
-            const html = editor.getHTML()
-            setSourceText(html)
+            const text = editor.getText()
+            setSourceText(text)
             if (transcriptSaveTimerRef.current) clearTimeout(transcriptSaveTimerRef.current)
             const id = source?.id
             if (!id) return
             transcriptSaveTimerRef.current = setTimeout(async () => {
                 try {
-                    const updated = await api.patchSource(id, { text: html })
+                    const updated = await api.patchSource(id, { text: text })
                     setSource(updated)
                     if (updated.status === "not processed") {
                         const queued = await api.processSource(id)
@@ -142,7 +142,7 @@ export default function SourceDetailPage() {
     useEffect(() => {
         if (!transcriptEditor) return
         if (transcriptEditor.isFocused) return
-        if (transcriptEditor.getHTML() === sourceText) return
+        if (transcriptEditor.getText() === sourceText) return
         transcriptEditor.commands.setContent(sourceText || "", { emitUpdate: false })
     }, [transcriptEditor, sourceText])
 

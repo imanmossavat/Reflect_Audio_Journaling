@@ -116,7 +116,7 @@ if ((Test-Path $torchcodecDir) -and -not (Test-Path $ffmpegSentinel)) {
     Write-Host "Installing FFmpeg 7 shared DLLs for torchcodec..."
     try {
         $headers = @{ "User-Agent" = "REFLECT-setup" }
-        $release = Invoke-RestMethod "https://api.github.com/repos/BtbN/FFmpeg-Builds/releases/tags/latest" -Headers $headers
+        $release = Invoke-RestMethod "https://api.github.com/repos/BtbN/FFmpeg-Builds/releases/latest" -Headers $headers
         $asset = $release.assets |
             Where-Object { $_.name -match "^ffmpeg-n7\..*-win64-gpl-shared-.*\.zip$" } |
             Select-Object -First 1
