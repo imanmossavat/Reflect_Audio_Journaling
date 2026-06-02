@@ -30,6 +30,7 @@ def create_source(
     *,
     status: str,
     text: Optional[str] = None,
+    text_html: Optional[str] = None,
     filename: Optional[str] = None,
     file_path: Optional[str] = None,
     file_type: Optional[str] = None,
@@ -39,6 +40,7 @@ def create_source(
     now = datetime.utcnow()
     new_source = Source(
         text=text,
+        text_html=text_html,
         filename=filename,
         file_path=file_path,
         file_type=file_type,
@@ -120,12 +122,15 @@ def update_source_fields(
     source: Source,
     *,
     text: Optional[str] = None,
+    text_html: Optional[str] = None,
     filename: Optional[str] = None,
     created_at_str: Optional[str] = None,
     status: Optional[str] = None,
 ) -> Source:
     if text is not None:
         source.text = text
+    if text_html is not None:
+        source.text_html = text_html
     if filename is not None:
         source.filename = filename
     if created_at_str is not None:

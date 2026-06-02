@@ -237,7 +237,9 @@ export function useSourceManagement() {
     if (!content.trim() || isSavingSource) return
     setIsSavingSource(true)
     try {
-      const created = await api.uploadTextSource(content, true)
+      // `content` is rich HTML from the note editor; send it as source_html so the
+      // backend keeps it for display and derives the plain text used for RAG.
+      const created = await api.uploadTextSource(content, true, content)
       const trimmedTitle = title?.trim()
       if (trimmedTitle) {
         try {
