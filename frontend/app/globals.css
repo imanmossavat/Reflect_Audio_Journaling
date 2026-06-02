@@ -40,38 +40,38 @@
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.145 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.145 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.985 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.396 0.141 25.723);
-  --destructive-foreground: oklch(0.637 0.237 25.331);
-  --border: oklch(0.269 0 0);
-  --input: oklch(0.269 0 0);
-  --ring: oklch(0.439 0 0);
+  --background: oklch(0.185 0.008 260);
+  --foreground: oklch(0.97 0.004 260);
+  --card: oklch(0.235 0.01 260);
+  --card-foreground: oklch(0.97 0.004 260);
+  --popover: oklch(0.235 0.01 260);
+  --popover-foreground: oklch(0.97 0.004 260);
+  --primary: oklch(0.97 0.004 260);
+  --primary-foreground: oklch(0.235 0.01 260);
+  --secondary: oklch(0.285 0.012 260);
+  --secondary-foreground: oklch(0.97 0.004 260);
+  --muted: oklch(0.285 0.012 260);
+  --muted-foreground: oklch(0.74 0.015 260);
+  --accent: oklch(0.34 0.016 260);
+  --accent-foreground: oklch(0.97 0.004 260);
+  --destructive: oklch(0.45 0.16 25.723);
+  --destructive-foreground: oklch(0.97 0.02 25.331);
+  --border: oklch(0.32 0.012 260);
+  --input: oklch(0.32 0.012 260);
+  --ring: oklch(0.55 0.02 260);
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar: oklch(0.21 0.009 260);
+  --sidebar-foreground: oklch(0.97 0.004 260);
   --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(0.269 0 0);
-  --sidebar-ring: oklch(0.439 0 0);
+  --sidebar-primary-foreground: oklch(0.97 0.004 260);
+  --sidebar-accent: oklch(0.285 0.012 260);
+  --sidebar-accent-foreground: oklch(0.97 0.004 260);
+  --sidebar-border: oklch(0.32 0.012 260);
+  --sidebar-ring: oklch(0.55 0.02 260);
 }
 
 @theme inline {
@@ -135,3 +135,52 @@
     display: none;
   }
 }
+
+.tiptap p.is-editor-empty:first-child::before,
+.tiptap p.is-empty:first-child::before,
+.tiptap.is-editor-empty p:first-child::before {
+  color: #9ca3af;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+.dark .tiptap p.is-editor-empty:first-child::before,
+.dark .tiptap p.is-empty:first-child::before,
+.dark .tiptap.is-editor-empty p:first-child::before {
+  color: #6b7280;
+}
+.tiptap h1 { font-size: 1.5rem; font-weight: 600; margin: 1.5rem 0 0.75rem; }
+.tiptap h1:first-child { margin-top: 0; }
+.tiptap h2 { font-size: 1.25rem; font-weight: 600; margin: 1.25rem 0 0.625rem; }
+.tiptap h3 { font-size: 1.125rem; font-weight: 600; margin: 1rem 0 0.5rem; }
+.tiptap p { margin: 0.625rem 0; line-height: 1.75rem; }
+.tiptap ul { list-style: disc; margin: 0.625rem 0; padding-left: 1.5rem; }
+.tiptap ol { list-style: decimal; margin: 0.625rem 0; padding-left: 1.5rem; }
+.tiptap li { line-height: 1.75rem; }
+.tiptap li > p { margin: 0; }
+.tiptap blockquote {
+  margin: 0.75rem 0;
+  border-left: 2px solid color-mix(in oklab, var(--color-emerald-500, #10b981) 60%, transparent);
+  padding-left: 1rem;
+  font-style: italic;
+  color: var(--muted-foreground);
+}
+.tiptap code {
+  border-radius: 0.25rem;
+  background: var(--muted);
+  padding: 0.125rem 0.375rem;
+  font-size: 0.85em;
+  font-family: var(--font-mono);
+}
+.tiptap pre {
+  margin: 0.75rem 0;
+  overflow-x: auto;
+  border-radius: 0.5rem;
+  background: var(--muted);
+  padding: 0.75rem;
+  font-size: 0.875rem;
+}
+.tiptap pre code { background: transparent; padding: 0; }
+.tiptap hr { margin: 1.25rem 0; border: 0; border-top: 1px solid var(--border); }
+.tiptap a { color: #059669; text-decoration: underline; text-underline-offset: 2px; }

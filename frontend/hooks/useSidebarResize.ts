@@ -10,12 +10,16 @@ const RIGHT_SIDEBAR_MIN_WIDTH = 220
 const RIGHT_SIDEBAR_MAX_WIDTH = 420
 const leftSidebarWidthStorageKey = "reflect_left_sidebar_width"
 const rightSidebarWidthStorageKey = "reflect_right_sidebar_width"
+const leftSidebarCollapsedStorageKey = "reflect_left_sidebar_collapsed"
+const rightSidebarCollapsedStorageKey = "reflect_right_sidebar_collapsed"
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value))
 
 export function useSidebarResize() {
   const [leftSidebarWidth, setLeftSidebarWidth] = useState(LEFT_SIDEBAR_DEFAULT_WIDTH)
   const [rightSidebarWidth, setRightSidebarWidth] = useState(RIGHT_SIDEBAR_DEFAULT_WIDTH)
+  const [isLeftCollapsed, setIsLeftCollapsed] = useState(false)
+  const [isRightCollapsed, setIsRightCollapsed] = useState(false)
   const [isResizingSidebar, setIsResizingSidebar] = useState<"left" | "right" | null>(null)
   const resizeStartRef = useRef<{ startX: number; startWidth: number } | null>(null)
   const leftSidebarWidthRef = useRef(LEFT_SIDEBAR_DEFAULT_WIDTH)
@@ -29,6 +33,8 @@ export function useSidebarResize() {
       setLeftSidebarWidth(clamp(savedLeft, LEFT_SIDEBAR_MIN_WIDTH, LEFT_SIDEBAR_MAX_WIDTH))
     if (Number.isFinite(savedRight) && savedRight > 0)
       setRightSidebarWidth(clamp(savedRight, RIGHT_SIDEBAR_MIN_WIDTH, RIGHT_SIDEBAR_MAX_WIDTH))
+    setIsLeftCollapsed(window.localStorage.getItem(leftSidebarCollapsedStorageKey) === "true")
+    setIsRightCollapsed(window.localStorage.getItem(rightSidebarCollapsedStorageKey) === "true")
   }, [])
 
   useEffect(() => {
@@ -83,5 +89,31 @@ export function useSidebarResize() {
     }
   }
 
-  return { leftSidebarWidth, rightSidebarWidth, handleSidebarResizeStart }
+  const toggleLeftCollapsed = () => {
+    setIsLeftCollapsed((prev) => {
+      const next = !prev
+      if (typeof window !== "undefined")
+        window.localStorage.setItem(leftSidebarCollapsedStorageKey, String(next))
+      return next
+    })
+  }
+
+  const toggleRightCollapsed = () => {
+    setIsRightCollapsed((prev) => {
+      const next = !prev
+      if (typeof window !== "undefined")
+        window.localStorage.setItem(rightSidebarCollapsedStorageKey, String(next))
+      return next
+    })
+  }
+
+  return {
+    leftSidebarWidth,
+    rightSidebarWidth,
+    isLeftCollapsed,
+    isRightCollapsed,
+    toggleLeftCollapsed,
+    toggleRightCollapsed,
+    handleSidebarResizeStart,
+  }
 }

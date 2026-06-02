@@ -1,0 +1,297 @@
+[
+  {
+    "note_id": "N-7820",
+    "timestamp": "2026-05-12T07:35:00",
+    "text": "Tuesday. Again. The pool bag is still by the door, hasn't even been opened since last week. Just sitting there, collecting dust next to the shoes. Guess I'm going to just skip it again. Maybe I'll just cancel it in the group chat. It's fine. It's just a swim, really. Nothing major. Just another missed thing on the list.",
+    "entities": [],
+    "tags": [
+      "swim",
+      "missed routine"
+    ],
+    "story_arc_id": "ARC_HEALTH"
+  },
+  {
+    "note_id": "N-7811",
+    "timestamp": "2026-05-12T22:14:00",
+    "text": "Lina pinged again about the promotion evidence doc. God, that Notion thing. I opened it for maybe five minutes, but it was just a mess. I spent all that time trying to figure out which section I was supposed to be editing versus the one I totally abandoned in 2024. It’s impossible to tell. Ended up just closing the laptop without writing a single thing new. I need to just... stare at it later. Maybe tomorrow.",
+    "entities": [
+      "Lina Mourad"
+    ],
+    "tags": [
+      "promotion",
+      "Notion",
+      "avoidance"
+    ],
+    "story_arc_id": "ARC_PROMOTION"
+  },
+  {
+    "note_id": "N-7812",
+    "timestamp": "2026-05-13T09:22:00",
+    "text": "Karel emailing about the humidity readings *again*. Seriously? I'm pretty sure we already sent this, but was it just photos? Tom said he handled it, but I can’t find any record of it anywhere. This is just going to be a nightmare. And the shared Google Drive—three folders called ‘final\\_final.’ What does that even mean? It’s useless. I need to track down the actual data, not just this organizational disaster.",
+    "entities": [
+      "Karel",
+      "Tom Janssen"
+    ],
+    "tags": [
+      "mold",
+      "landlord",
+      "documentation"
+    ],
+    "story_arc_id": "ARC_APARTMENT"
+  },
+  {
+    "note_id": "N-7821",
+    "timestamp": "2026-05-13T20:11:00",
+    "text": "Third tracker this year. Seriously. I need to stop doing this. Restarted the sleep thing again. Forgot the wristband, obviously. So useless. At least there are two melatonin tabs left in the drawer, I guess. Maybe that will count for something. I should just stick to counting sheep or something less complicated.",
+    "entities": [],
+    "tags": [
+      "sleep",
+      "tracking"
+    ],
+    "story_arc_id": "ARC_HEALTH"
+  },
+  {
+    "note_id": "N-7822",
+    "timestamp": "2026-05-14T12:48:00",
+    "text": "Eva’s voice message. It was so long. Seriously, I probably listened to the first half twice while the coffee was brewing. It’s about a wedding shoot, but the whole thing is maybe, like, a maybe. I just need to remember that. Don't overthink the commitment level, or the actual existence of the shoot. Just filed it away for later.",
+    "entities": [
+      "Eva de Vries"
+    ],
+    "tags": [
+      "voice message",
+      "Eva"
+    ],
+    "story_arc_id": "ARC_FAMILY"
+  },
+  {
+    "note_id": "N-7813",
+    "timestamp": "2026-05-14T20:05:00",
+    "text": "Late call with Yuki about the print shop again. It's just floating around, isn't it? Ideas. I feel like I've been doing nothing productive lately, which is ironic because I spent the last hour watching two videos on artist morning routines. Apparently, I should be doing something with my hands, but I haven't actually drawn anything in weeks. Maybe I need to schedule a \"creative block\" time. Or maybe just accept that the concept will live in the ether for now.",
+    "entities": [
+      "Yuki"
+    ],
+    "tags": [
+      "illustration",
+      "Discord",
+      "late night"
+    ],
+    "story_arc_id": "ARC_CREATIVE"
+  },
+  {
+    "note_id": "N-7819",
+    "timestamp": "2026-05-15T19:55:00",
+    "text": "Dad call today. So I mentioned coming next weekend. Again. I swear I said this last time too. Hans didn't really acknowledge it, just sort of moved on immediately to the weather in Breda. It was weird. Was he ignoring it, or does he just genuinely not remember? I don't know. Just feel like I'm doing the 'we need to meet' thing, and he's just letting it slide. Maybe I should just leave it.",
+    "entities": [
+      "Hans de Vries"
+    ],
+    "tags": [
+      "family",
+      "phone call",
+      "Breda",
+      "visit"
+    ],
+    "story_arc_id": "ARC_FAMILY"
+  },
+  {
+    "note_id": "N-7823",
+    "timestamp": "2026-05-16T15:20:00",
+    "text": "The iPad screen really needed cleaning. It was sticky, honestly. Should probably buy a proper microfibre cloth, not just the old t-shirt corner. Didn't even get into Procreate. Just wiped the dust off it instead. Weirdly satisfying, though. Like a small, low-stakes task accomplished. Might have been better to just leave it, I guess. Anyway. Need coffee.",
+    "entities": [],
+    "tags": [
+      "illustration",
+      "iPad",
+      "avoidance"
+    ],
+    "story_arc_id": "ARC_CREATIVE"
+  },
+  {
+    "note_id": "N-7814",
+    "timestamp": "2026-05-17T08:41:00",
+    "text": "Just got through maybe two minutes of the physio stuff. It was a total failure. Got so distracted by my phone, I lost the thread completely. Bram would probably just call that 'not counting,' which feels about right. I keep noticing how I restart the whole thing like it's a brand new routine every single time. Like I've forgotten how to do it, even though I know the movements. Just a cycle of starting, stopping, and then starting again. Need to break the habit of starting over.",
+    "entities": [
+      "Bram"
+    ],
+    "tags": [
+      "physio",
+      "distraction",
+      "habits"
+    ],
+    "story_arc_id": "ARC_HEALTH"
+  },
+  {
+    "note_id": "N-7824",
+    "timestamp": "2026-05-17T13:30:00",
+    "text": "Miso was refusing the dry food again. Like always. Honestly, I don't get it. But then I switched out the bowls and he ate from the new one instantly. Weird. At least that worked. The shared calendar is barely holding together this month, just the vet appointment for shots. That's it. I need to remember to look at the rest of the month soon. Maybe buy some more food.",
+    "entities": [],
+    "tags": [
+      "Miso",
+      "cat",
+      "vet"
+    ],
+    "story_arc_id": "ARC_FAMILY"
+  },
+  {
+    "note_id": "N-7832",
+    "timestamp": "2026-05-18T07:50:00",
+    "text": "Daan sent that meme this morning. The one about owing money. I think it was definitely about the Portugal deposit, but he didn't actually mention the Airbnb or anything specific, just the general concept of owing. I just laughed at it and left it there. Should have replied. Probably just left it hanging. Seems like a lot of unspoken context just floating around right now. Need coffee.",
+    "entities": [
+      "Daan Peters"
+    ],
+    "tags": [
+      "Daan",
+      "money",
+      "Portugal"
+    ],
+    "story_arc_id": "ARC_FAMILY"
+  },
+  {
+    "note_id": "N-7825",
+    "timestamp": "2026-05-18T22:02:00",
+    "text": "Mira's post about burnout. Saw it late, probably around 10ish. It made me stop scrolling for a minute, which is weirdly noticeable. Spent maybe five minutes just staring at it, thinking about the whole 'recovery' thing and how much effort it implies. I didn't bookmark it. Just scrolled past. Maybe I need to actually do that, or maybe I just don't want to commit to thinking about it right now. Just left it there.",
+    "entities": [
+      "Mira"
+    ],
+    "tags": [
+      "burnout",
+      "Mira"
+    ],
+    "story_arc_id": "ARC_PROMOTION"
+  },
+  {
+    "note_id": "N-7815",
+    "timestamp": "2026-05-19T23:48:00",
+    "text": "Lina. Still haven't replied. Spent way too long on this. Wrote the first draft, sounded aggressively defensive, so I deleted it. Then I tried to make it sound chill, but it came out weirdly formal, like an HR memo. Ugh. So it just sits here unsent. Gotta wait until morning. Maybe when the brain fog lifts a bit. Or maybe I just need coffee first. Definitely need to remember that.",
+    "entities": [
+      "Lina Mourad"
+    ],
+    "tags": [
+      "communication",
+      "tone",
+      "avoidance",
+      "drafts"
+    ],
+    "story_arc_id": "ARC_PROMOTION"
+  },
+  {
+    "note_id": "N-7826",
+    "timestamp": "2026-05-20T09:14:00",
+    "text": "The dehumidifier is running again, I think it’s about six hours a day now. Hopefully that’s enough. The corner in the bedroom still smells a little weird, even though the rain passed ages ago. It’s just a faint, damp smell, but it’s definitely there. Maybe I need to move the laundry basket. Or maybe it’s just the building.",
+    "entities": [
+      "Tom Janssen"
+    ],
+    "tags": [
+      "mold",
+      "dehumidifier"
+    ],
+    "story_arc_id": "ARC_APARTMENT"
+  },
+  {
+    "note_id": "N-7816",
+    "timestamp": "2026-05-20T18:30:00",
+    "text": "Another bill. Already. Why does this happen? Split it mentally, I think, but I didn't even jot down what the actual amount was. Just agreed to cover part of it for Eva. Tom was in the other room the whole time, which is fine, but I still feel that little lump of dread about bringing up the whole 'Tom' thing. Maybe I should just leave it. Easier that way. Just another expense, then.",
+    "entities": [
+      "Eva de Vries",
+      "Tom Janssen"
+    ],
+    "tags": [
+      "money",
+      "Eva",
+      "hidden",
+      "household"
+    ],
+    "story_arc_id": "ARC_FAMILY"
+  },
+  {
+    "note_id": "N-7817",
+    "timestamp": "2026-05-21T11:02:00",
+    "text": "Nora's reminder again. Which one is this for? The cavity follow-up or the night guard? I swear she sent something else too, but I can't find it anywhere. The inbox is just a mess of unread labels right now. Too much stuff. I'll have to leave it until later. Maybe tomorrow when I've cleared out enough of the digital clutter.",
+    "entities": [
+      "Nora"
+    ],
+    "tags": [
+      "dentist",
+      "inbox",
+      "admin"
+    ],
+    "story_arc_id": "ARC_HEALTH"
+  },
+  {
+    "note_id": "N-7827",
+    "timestamp": "2026-05-21T19:48:00",
+    "text": "Sophie’s voice. Copenhagen.\nIt’s been a minute since I’ve seen her, hasn't it? Since the move.\nI left her a message, I think, but this one… nine minutes.\nIt’s sitting here, unlistened. Just sitting.\nI keep meaning to listen to it. Maybe later. When I’m not so stressed about the Figma board.\nI should probably call her, but I should listen first.\nJust a note to self: listen to the message. Stop thinking about the message.\nJust listen.",
+    "entities": [
+      "Sophie"
+    ],
+    "tags": [
+      "Sophie",
+      "voice message",
+      "Copenhagen"
+    ],
+    "story_arc_id": "ARC_CREATIVE"
+  },
+  {
+    "note_id": "N-7828",
+    "timestamp": "2026-05-22T08:55:00",
+    "text": "The Slack thing. Ruben’s handle. It just says ‘Inactive User’ now. Seems so final for a Slack handle. I kept hovering over it this morning. Just hovering. Like I’m expecting it to change back, or maybe just checking if it’s really just that. It’s weird how much time goes into looking at an empty status. I should probably just ignore it. Maybe later.",
+    "entities": [
+      "Ruben"
+    ],
+    "tags": [
+      "work",
+      "Ruben"
+    ],
+    "story_arc_id": "ARC_PROMOTION"
+  },
+  {
+    "note_id": "N-7818",
+    "timestamp": "2026-05-22T21:17:00",
+    "text": "Mortgage sheet again tonight. Spent ages just adjusting the cell ranges and re-reading old notes. Nothing changed, obviously. It feels less like a financial tool and more like a really expensive, overly complicated thinking space. I think that’s the whole issue—I treat it like a dumping ground for ideas instead of a literal decision model. Just floating concepts in cells. Maybe I should just delete the last quarter’s worth of annotations. Or maybe I shouldn't. Just needs some structure.",
+    "entities": [],
+    "tags": [
+      "mortgage",
+      "spreadsheet",
+      "rumination"
+    ],
+    "story_arc_id": "ARC_APARTMENT"
+  },
+  {
+    "note_id": "N-7829",
+    "timestamp": "2026-05-23T11:40:00",
+    "text": "Needed Anika’s drill again for the shelf anchor. Spent a solid hour trying to redo it, which was pointless. The shelf is still uneven, obviously. It’s just… fundamentally uneven. I guess I should just leave it. Maybe next time I just use the little wedges instead of trying to anchor it properly. Ugh. Hope I didn't scuff anything when I borrowed it.",
+    "entities": [
+      "Anika"
+    ],
+    "tags": [
+      "kitchen shelves",
+      "Anika",
+      "drill"
+    ],
+    "story_arc_id": "ARC_APARTMENT"
+  },
+  {
+    "note_id": "N-7830",
+    "timestamp": "2026-05-24T13:18:00",
+    "text": "Tax reimbursement draft. Why is this so hard? Just moved it into the reminder app now. Seriously, this is the third place it's lived this week. Tom asked again about it this afternoon, so I told him I was on it. I *am* on it. It just keeps migrating. I swear I'm going to spend more time managing the draft than actually writing the content. Need to just get this done.",
+    "entities": [
+      "Tom Janssen"
+    ],
+    "tags": [
+      "tax",
+      "draft",
+      "admin"
+    ],
+    "story_arc_id": "ARC_HEALTH"
+  },
+  {
+    "note_id": "N-7831",
+    "timestamp": "2026-05-25T22:30:00",
+    "text": "The ADHD form is open again. Why is it always open in a tab? This has happened twice this month now, I think. I just left it there, staring at the blank fields, maybe for five minutes. Didn't actually fill anything in. Just opened it, closed it, opened it again. It's just another thing to look at, I guess. Another thing that requires effort I don't seem to have at 10:30 pm.",
+    "entities": [],
+    "tags": [
+      "ADHD",
+      "intake",
+      "avoidance"
+    ],
+    "story_arc_id": "ARC_HEALTH"
+  }
+]

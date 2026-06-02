@@ -1,0 +1,14 @@
+id,type,query,relevant_entries,retrieved_order,hit@1,recall@1,hit@3,recall@3,hit@5,recall@5,mrr
+Q01,thematic,What recurring patterns appear in how I handle work stress?,"E01,E02,E04,E06,E10","E10,E06,E08,E13,E02",1.0,0.2,1.0,0.4,1.0,0.6,1.0
+Q02,thematic,What does my relationship with productivity look like?,"E05,E06,E10,E14","E10,E13,E08,E12,E15",1.0,0.25,1.0,0.25,1.0,0.25,1.0
+Q03,thematic,How do I talk about my relationships with other people?,"E03,E07,E08,E09,E12","E13,E12,E15,E09,E02",0.0,0.0,1.0,0.2,1.0,0.4,0.5
+Q04,thematic,What themes come up when I am having a low energy day?,"E04,E06","E04,E06,E10,E07,E08",1.0,0.5,1.0,1.0,1.0,1.0,1.0
+Q05,thematic,What am I avoiding or procrastinating on?,"E02,E10,E14","E10,E02,E14,E06,E12",1.0,0.3333333333333333,1.0,1.0,1.0,1.0,1.0
+Q06,thematic,Where do I sound conflicted between values and actions?,"E10,E11,E12,E14","E10,E09,E12,E15,E13",1.0,0.25,1.0,0.5,1.0,0.5,1.0
+Q07,thematic,What tradeoffs keep appearing in my decisions?,"E10,E11,E14","E02,E14,E09,E15,E12",0.0,0.0,1.0,0.3333333333333333,1.0,0.3333333333333333,0.5
+Q08,needle,What did I do on Monday March 3rd?,E05,"E07,E08,E02,E06,E12",0.0,0.0,0.0,0.0,0.0,0.0,0.0
+Q09,needle,Who got a grant and how did I react?,E03,"E03,E15,E12,E11,E13",1.0,1.0,1.0,1.0,1.0,1.0,1.0
+Q10,needle,What was my disagreement with Jeroen about?,E09,"E09,E15,E12,E13,E14",1.0,1.0,1.0,1.0,1.0,1.0,1.0
+Q11,needle,What did the assessor say about my work?,E14,"E14,E01,E13,E03,E05",1.0,1.0,1.0,1.0,1.0,1.0,1.0
+Q12,needle,"When did things end with Noor, and what do I think about it now?",E12,"E12,E09,E10,E15,E13",1.0,1.0,1.0,1.0,1.0,1.0,1.0
+Q13,needle,Why do I think I started caring about REFLECT?,E15,"E15,E12,E13,E02,E10",1.0,1.0,1.0,1.0,1.0,1.0,1.0

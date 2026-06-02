@@ -1,0 +1,104 @@
+{
+  "user_profile": {
+    "full_name": "Maya de Vries",
+    "birth_year": 1991,
+    "current_city": "Eindhoven",
+    "occupation": "senior UX researcher at a healthcare software company",
+    "living_situation": "rents a small two-bedroom apartment with her partner Tom near Strijp-S",
+    "pets": [
+      {"name": "Miso", "type": "cat", "adopted": "2021-11"}
+    ],
+    "personality_notes": [
+      "good at helping other people organize things while avoiding her own paperwork",
+      "oscillates between hyper-structured planning and weeks of avoidance",
+      "socially warm in small groups but increasingly reluctant to answer messages",
+      "keeps detailed notes in Notion but rarely revisits them",
+      "often frames purchases as 'investments' even when stressed about money"
+    ],
+    "recurring_routines": [
+      "tries to go swimming Tuesday mornings before work but averages twice a month",
+      "video calls her father on Sundays unless she is traveling or emotionally drained",
+      "orders groceries online late Sunday evening and forgets at least one item nearly every week",
+      "keeps restarting a sleep tracking habit with different apps",
+      "rotates between making elaborate meal plans and surviving on toast and yogurt"
+    ]
+  },
+  "entities": [
+    {"name": "Tom Janssen", "relationship": "partner", "notes": ["software engineer working mostly remote", "handles most landlord communication because Maya procrastinates", "wants to buy an apartment within 2 years", "occasionally frustrated by Maya's unfinished projects but avoids direct confrontation", "close friends with Daan from university"]},
+    {"name": "Eva de Vries", "relationship": "younger sister", "notes": ["lives in Utrecht", "frequently borrows money and repays late", "works intermittently as a freelance photographer", "Maya feels protective but resentful", "had a falling out with their father in 2023"]},
+    {"name": "Hans de Vries", "relationship": "father", "notes": ["retired electrician living in Breda", "recovering from knee surgery since late 2024", "keeps offering to help fix things in Maya's apartment despite mobility issues", "does not fully understand Maya's work but asks about it anyway", "sometimes forgets details from previous conversations"]},
+    {"name": "Lina Mourad", "relationship": "coworker and close friend", "notes": ["product manager on Maya's team", "encouraged Maya to apply for promotion in 2024", "frequently travels for work", "shared budgeting spreadsheet with Maya during a financially anxious period", "Tom thinks Lina overworks herself"]},
+    {"name": "Daan Peters", "relationship": "friend", "notes": ["runs a small cycling repair shop", "helped Maya buy a secondhand bike in 2022", "still waiting for Maya to repay part of a group Airbnb deposit from a Portugal trip", "occasionally cat-sits Miso"]},
+    {"name": "Jules", "relationship": "former therapist", "notes": ["therapy ended in early 2024 due to insurance coverage confusion", "Maya intended to resume sessions with a different provider but never completed intake forms", "frequently referenced in old journal notes"]},
+    {"name": "Anika", "relationship": "neighbor", "notes": ["lives downstairs", "often receives packages for Maya and Tom", "mild tension over noise from Tom's late-night gaming sessions", "lent Maya a drill in February 2025 and never explicitly asked for it back"]},
+    {"name": "Ruben", "relationship": "team lead", "notes": ["praised Maya's facilitation skills but criticized missed follow-ups", "changed companies in March 2026", "his departure disrupted several long-term projects", "Maya had considered asking him for a recommendation letter"]},
+    {"name": "Sophie", "relationship": "university friend", "notes": ["moved to Copenhagen in 2023", "sends intermittent voice messages instead of texting", "Maya repeatedly postpones visiting her", "once co-hosted a failed podcast idea with Maya during lockdown"]},
+    {"name": "Bram", "relationship": "physiotherapist", "notes": ["treated Maya's recurring shoulder and neck pain", "recommended strength exercises Maya rarely maintains longer than 3 weeks", "clinic changed scheduling software in 2025 causing repeated booking confusion"]},
+    {"name": "Mira", "relationship": "former colleague", "notes": ["left the company after burnout in mid-2024", "Maya quietly worries about following a similar path", "still occasionally sends memes to the old team Slack channel"]},
+    {"name": "Nora", "relationship": "dentist", "notes": ["reminded Maya multiple times to wear her night guard", "Maya lost one night guard during a trip to Berlin", "follow-up cavity treatment delayed twice due to rescheduling"]},
+    {"name": "Karel", "relationship": "landlord", "notes": ["slow to respond about mold near bedroom window", "raised rent in January 2026", "still has not reimbursed the plumbing expense Tom paid upfront"]},
+    {"name": "Yuki", "relationship": "online friend from gaming Discord", "notes": ["lives in Osaka", "mostly chats with Maya late at night during stress periods", "encouraged her to start digital illustration again", "Tom has never met Yuki but knows about them"]}
+  ],
+  "story_arcs": [
+    {"id": "ARC_PROMOTION", "title": "Promotion drift", "timeline": "2023-2026", "events": [
+      {"date": "2023-09", "description": "Maya informally discussed a lead researcher role with Ruben but said she wanted to 'wait until life feels less chaotic'."},
+      {"date": "2024-04", "description": "Lina encouraged Maya to document achievements because she tends to minimize her own work."},
+      {"date": "2024-11", "description": "Maya started a promotion evidence document in Notion and abandoned it after three entries."},
+      {"date": "2025-07", "description": "Received strong performance feedback but criticism about delayed stakeholder emails."},
+      {"date": "2026-03", "description": "Ruben left unexpectedly. Maya felt both relieved and destabilized."},
+      {"date": "2026-05", "description": "Still telling people she plans to apply for advancement later in the year."}
+    ]},
+    {"id": "ARC_APARTMENT", "title": "Apartment uncertainty", "timeline": "2024-2026", "events": [
+      {"date": "2024-06", "description": "Tom began talking seriously about buying an apartment."},
+      {"date": "2024-09", "description": "Maya created a spreadsheet comparing mortgage scenarios but stopped updating it after interest rates shifted."},
+      {"date": "2025-01", "description": "Landlord increased rent unexpectedly."},
+      {"date": "2025-02", "description": "Mold near bedroom window worsened during winter."},
+      {"date": "2025-08", "description": "Viewed two apartments in Eindhoven but backed out after calculating renovation costs."},
+      {"date": "2026-04", "description": "Tom reopened discussions after another plumbing issue."}
+    ]},
+    {"id": "ARC_HEALTH", "title": "Health management cycles", "timeline": "2022-2026", "events": [
+      {"date": "2022-10", "description": "First physiotherapy referral for shoulder pain linked to desk work."},
+      {"date": "2023-02", "description": "Began tracking headaches and caffeine intake inconsistently."},
+      {"date": "2024-01", "description": "Started swimming regularly for about six weeks."},
+      {"date": "2024-05", "description": "Stopped physiotherapy exercises during a busy product launch."},
+      {"date": "2025-03", "description": "Jaw pain worsened after losing night guard on Berlin trip."},
+      {"date": "2025-10", "description": "Promised Tom she would finally schedule ADHD assessment paperwork but delayed due to anxiety."},
+      {"date": "2026-02", "description": "Restarted symptom tracking in a different app after seeing Mira post about burnout recovery."}
+    ]},
+    {"id": "ARC_FAMILY", "title": "Family obligation imbalance", "timeline": "2023-2026", "events": [
+      {"date": "2023-07", "description": "Eva borrowed money for camera repairs and repaid only half for several months."},
+      {"date": "2024-02", "description": "Hans had an argument with Eva about finances and stopped speaking to her briefly."},
+      {"date": "2024-12", "description": "Hans underwent knee surgery. Maya visited Breda more often afterward."},
+      {"date": "2025-01", "description": "Maya quietly covered a utility bill for Eva without telling Tom immediately."},
+      {"date": "2025-11", "description": "Christmas planning became tense because Eva did not want to stay overnight at Hans's house."}
+    ]},
+    {"id": "ARC_CREATIVE", "title": "Creative hobbies that never stabilize", "timeline": "2020-2026", "events": [
+      {"date": "2020-11", "description": "Started a podcast with Sophie during lockdown; ended after five episodes."},
+      {"date": "2022-04", "description": "Bought an iPad for illustration practice justified as both hobby and work tool."},
+      {"date": "2023-08", "description": "Joined an online illustration challenge and stopped after day 9."},
+      {"date": "2024-07", "description": "Told Yuki she wanted to open a small online print shop."},
+      {"date": "2025-06", "description": "Spent several weekends redesigning a portfolio website instead of applying for jobs."},
+      {"date": "2026-01", "description": "Has not drawn much in months but still watches productivity videos about art routines."}
+    ]}
+  ],
+  "projects": [
+    {"name": "Tax reimbursement dispute", "status": "stalled", "started": "2025-03", "details": ["Maya believes she is owed reimbursement for remote work expenses", "missing one receipt from a monitor purchase", "keeps moving the email draft into different reminder systems", "Tom offered to help but Maya said she would handle it herself"]},
+    {"name": "Bedroom mold documentation", "status": "ongoing", "started": "2025-02", "details": ["photos stored in a shared Google Drive folder", "Karel requested humidity measurements Maya forgot to record consistently", "Tom bought a dehumidifier during a sale", "Maya worries complaining too aggressively could affect lease renewal"]},
+    {"name": "Portugal trip photo album", "status": "abandoned", "started": "2024-05", "details": ["shared with Daan and Lina", "Maya imported all photos into Lightroom but never curated them", "still occasionally mentioned jokingly in group chat"]},
+    {"name": "ADHD assessment intake", "status": "avoided", "started": "2025-09", "details": ["downloaded forms twice", "one clinic waitlist expired after no response", "Maya alternates between feeling certain and dismissing the idea entirely", "Lina thinks diagnosis could help with work stress"]},
+    {"name": "Kitchen shelf installation", "status": "half-finished", "started": "2026-01", "details": ["using borrowed drill from Anika", "one shelf mounted unevenly", "Tom wanted to hire someone but Maya insisted it was easy", "paint patch samples still visible near the wall anchors"]},
+    {"name": "Sleep improvement experiment", "status": "recurring", "started": "2023-01", "details": ["cycles through melatonin, magnesium, herbal tea, and strict bedtime rules", "often breaks routines during stressful work periods", "late-night Discord chats with Yuki correlate with worse sleep", "owns three different alarm clocks"]}
+  ],
+  "latent_facts": [
+    {"fact": "Maya often claims money is too tight for travel while continuing several overlapping subscriptions she barely uses.", "relevance": ["finances", "avoidance", "self-image"]},
+    {"fact": "Tom increasingly worries that Maya's stress manifests as procrastination rather than visible emotional breakdowns.", "relevance": ["relationship", "mental health", "household logistics"]},
+    {"fact": "Maya associates unanswered emails with shame and tends to avoid inboxes after missing one important reply.", "relevance": ["work", "admin", "friendships"]},
+    {"fact": "The same black notebook contains work interview notes, grocery lists, therapy reflections, and measurements for the kitchen shelves.", "relevance": ["memory ambiguity", "organization habits"]},
+    {"fact": "She repeatedly tells herself she performs better under pressure even though her best work periods historically followed stable routines.", "relevance": ["behavioral inconsistency", "work habits"]},
+    {"fact": "Maya quietly avoids visiting Breda for too long because being around her father's aging makes her anxious.", "relevance": ["family", "avoidance"]},
+    {"fact": "Miso's veterinary reminders are often the only appointments Maya schedules immediately.", "relevance": ["pets", "executive function"]},
+    {"fact": "The unfinished podcast still exists online and occasionally resurfaces when old acquaintances mention it.", "relevance": ["digital footprint", "friendships"]},
+    {"fact": "Maya once considered leaving healthcare tech entirely for illustration work but never told coworkers.", "relevance": ["career", "identity"]},
+    {"fact": "Several people in Maya's life independently think she is close to burnout, but she interprets concern as exaggeration.", "relevance": ["health", "relationships", "work"]}
+  ]
+}

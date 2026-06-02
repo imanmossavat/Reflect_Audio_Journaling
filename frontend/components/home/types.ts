@@ -4,6 +4,7 @@ export interface RawSource {
   name: string
   content?: string
   duration?: string
+  createdAt: string
   timestamp: string
   included: boolean
   tags: { name: string; color: string }[]

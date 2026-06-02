@@ -1,7 +1,20 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { FileText, MessageSquare } from "lucide-react"
+import {
+  FileText,
+  MessageSquare,
+  PanelLeftClose,
+  PanelLeftOpen,
+  PanelRightClose,
+  PanelRightOpen,
+  Plus,
+  Mic,
+  Type,
+  File as FileIcon,
+  MessageCircle,
+  Sparkles,
+} from "lucide-react"
 import { OnboardingModal } from "@/components/onboarding-modal"
 import { TopNav } from "@/components/top-nav"
 import { SourceListPanel } from "@/components/home/source-list-panel"
@@ -10,6 +23,10 @@ import { ChatTopBar } from "@/components/home/chat-top-bar"
 import { ChatMessages } from "@/components/home/chat-messages"
 import { ChatInput } from "@/components/home/chat-input"
 import { RightSidebar } from "@/components/home/right-sidebar"
+import { NewSourceMenu } from "@/components/home/new-source-menu"
+import { NoteEditor } from "@/components/home/note-editor"
+import { GraphStage } from "@/components/home/graph-stage"
+import { StageHeader } from "@/components/home/stage-header"
 import { api, type AppSettings, type OllamaModelEntry } from "@/lib/api"
 import { useSourceManagement } from "@/hooks/useSourceManagement"
 import { useChatManagement } from "@/hooks/useChatManagement"
@@ -19,8 +36,11 @@ import { toast } from "sonner"
 
 const leftTabStorageKey = "reflect_left_tab"
 
+type Stage = "chat" | "note" | "graph"
+
 export default function HomePage() {
   const [leftTab, setLeftTab] = useState<LeftTab>("sources")
+  const [stage, setStage] = useState<Stage>("chat")
   const [isRunningSearch, setIsRunningSearch] = useState(false)
   const [tagFilter, setTagFilter] = useState<string[]>([])
   const [appSettings, setAppSettings] = useState<AppSettings | null>(null)
@@ -61,6 +81,17 @@ export default function HomePage() {
   useEffect(() => {
     if (typeof window !== "undefined") window.localStorage.setItem(leftTabStorageKey, leftTab)
   }, [leftTab])
+
+  // Esc returns from the graph stage back to the base chat layer. The note
+  // stage is intentionally excluded so in-progress writing is never discarded.
+  useEffect(() => {
+    if (stage !== "graph") return
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setStage("chat")
+    }
+    window.addEventListener("keydown", onKeyDown)
+    return () => window.removeEventListener("keydown", onKeyDown)
+  }, [stage])
 
   useEffect(() => {
     void api.getSettings().then(setAppSettings).catch(() => {})
@@ -144,6 +175,66 @@ export default function HomePage() {
       <TopNav activePath="/" />
 
       <div className="flex-1 flex min-h-0">
+        {sidebar.isLeftCollapsed ? (
+          <div className="border-r flex flex-col items-center bg-muted/10 shrink-0 min-h-0 w-12 py-2">
+            <button
+              onClick={sidebar.toggleLeftCollapsed}
+              aria-label="Show sources and chats panel"
+              title="Show panel"
+              className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors"
+            >
+              <PanelLeftOpen className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => {
+                sources.setAddSourceMode(null)
+                setLeftTab("sources")
+                sidebar.toggleLeftCollapsed()
+              }}
+              aria-label="Add a source"
+              title="Add a source"
+              className="mt-1 flex h-8 w-8 items-center justify-center rounded-md border border-dashed text-muted-foreground hover:border-emerald-500 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors"
+            >
+              <Plus className="h-4 w-4" />
+            </button>
+            <span
+              className="mt-2 text-[10px] font-medium tabular-nums text-muted-foreground"
+              title={`${sources.includedSources.length} of ${sources.rawSources.length} sources included`}
+            >
+              {sources.includedSources.length}/{sources.rawSources.length}
+            </span>
+            <div className="mt-2 flex-1 min-h-0 w-full overflow-y-auto no-scrollbar flex flex-col items-center gap-1.5">
+              {sources.rawSources.map((source) => (
+                <button
+                  key={source.id}
+                  onClick={() => {
+                    setLeftTab("sources")
+                    sidebar.toggleLeftCollapsed()
+                  }}
+                  title={source.name}
+                  aria-label={source.name}
+                  className={`flex h-7 w-7 items-center justify-center rounded-md transition-opacity hover:opacity-100 ${
+                    source.included ? "opacity-100" : "opacity-50"
+                  } ${
+                    source.type === "recording"
+                      ? "bg-emerald-100 dark:bg-emerald-900/30"
+                      : source.type === "file"
+                        ? "bg-blue-100 dark:bg-blue-900/30"
+                        : "bg-amber-100 dark:bg-amber-900/30"
+                  }`}
+                >
+                  {source.type === "recording" ? (
+                    <Mic className="h-3 w-3 text-emerald-600" />
+                  ) : source.type === "file" ? (
+                    <FileIcon className="h-3 w-3 text-blue-600" />
+                  ) : (
+                    <Type className="h-3 w-3 text-amber-600" />
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : (
         <aside
           className="border-r flex flex-col bg-muted/10 relative shrink-0 min-h-0"
           style={{ width: sidebar.leftSidebarWidth }}
@@ -171,38 +262,51 @@ export default function HomePage() {
               <MessageSquare className="h-3.5 w-3.5" />
               Chats
             </button>
+            <button
+              onClick={sidebar.toggleLeftCollapsed}
+              aria-label="Hide panel"
+              title="Hide panel"
+              className="flex w-10 items-center justify-center border-l text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors shrink-0"
+            >
+              <PanelLeftClose className="h-3.5 w-3.5" />
+            </button>
           </div>
 
           {leftTab === "sources" ? (
-            <SourceListPanel
-              rawSources={sources.rawSources}
-              includedSources={sources.includedSources}
-              isLoadingSources={sources.isLoadingSources}
-              addSourceMode={sources.addSourceMode}
-              setAddSourceMode={sources.setAddSourceMode}
-              newSourceText={sources.newSourceText}
-              setNewSourceText={sources.setNewSourceText}
-              isSavingSource={sources.isSavingSource}
-              isDragOverUpload={sources.isDragOverUpload}
-              isRecording={sources.isRecording}
-              recordingSeconds={sources.recordingSeconds}
-              fileInputRef={sources.fileInputRef}
-              tagFilter={tagFilter}
-              onToggleTagFilter={handleToggleTagFilter}
-              onSetSourceIncluded={sources.handleSetSourceIncluded}
-              onAddTextSource={sources.handleAddTextSource}
-              onAddFileSource={sources.handleAddFileSource}
-              onFileDrop={sources.handleFileDrop}
-              onFileDragEnter={sources.handleFileDragEnter}
-              onFileDragOver={sources.handleFileDragOver}
-              onFileDragLeave={sources.handleFileDragLeave}
-              onToggleRecording={sources.handleToggleRecording}
-              onCloseRecordingPanel={sources.handleCloseRecordingPanel}
-              rawUploadUrl={sources.rawUploadUrl}
-              onDeleteSource={sources.handleDeleteSource}
-              onRenameSource={sources.handleRenameSource}
-              onRetryProcessing={sources.handleRetryProcessing}
-            />
+            <>
+              <div className="p-3 border-b flex items-center justify-between">
+                <h2 className="text-sm font-medium">Library</h2>
+                <NewSourceMenu
+                  addSourceMode={sources.addSourceMode}
+                  setAddSourceMode={sources.setAddSourceMode}
+                  onNewNote={() => setStage("note")}
+                  isSavingSource={sources.isSavingSource}
+                  isDragOverUpload={sources.isDragOverUpload}
+                  isRecording={sources.isRecording}
+                  recordingSeconds={sources.recordingSeconds}
+                  fileInputRef={sources.fileInputRef}
+                  onAddFileSource={sources.handleAddFileSource}
+                  onFileDrop={sources.handleFileDrop}
+                  onFileDragEnter={sources.handleFileDragEnter}
+                  onFileDragOver={sources.handleFileDragOver}
+                  onFileDragLeave={sources.handleFileDragLeave}
+                  onToggleRecording={sources.handleToggleRecording}
+                  onCloseRecordingPanel={sources.handleCloseRecordingPanel}
+                  rawUploadUrl={sources.rawUploadUrl}
+                />
+              </div>
+              <SourceListPanel
+                rawSources={sources.rawSources}
+                includedSources={sources.includedSources}
+                isLoadingSources={sources.isLoadingSources}
+                tagFilter={tagFilter}
+                onToggleTagFilter={handleToggleTagFilter}
+                onSetSourceIncluded={sources.handleSetSourceIncluded}
+                onDeleteSource={sources.handleDeleteSource}
+                onRenameSource={sources.handleRenameSource}
+                onRetryProcessing={sources.handleRetryProcessing}
+              />
+            </>
           ) : (
             <ChatListPanel
               chats={chats.chats}
@@ -228,8 +332,9 @@ export default function HomePage() {
             className="absolute top-0 right-0 h-full w-1 translate-x-1/2 cursor-col-resize bg-transparent hover:bg-emerald-500/30 transition-colors"
           />
         </aside>
+        )}
 
-        <div className="flex-1 flex flex-col min-w-0 min-h-0">
+        <div className="flex-1 flex flex-col min-w-0 min-h-0 relative">
           {chats.activeChatId !== null && chats.activeChat && (
             <ChatTopBar
               activeChat={chats.activeChat}
@@ -266,8 +371,68 @@ export default function HomePage() {
             isSavingChatModel={isSavingChatModel}
             onChangeChatModel={handleChangeChatModel}
           />
+
+          {stage !== "chat" && (
+            <div className="absolute inset-0 z-10 bg-background flex flex-col">
+              {stage === "note" ? (
+                <NoteEditor
+                  onClose={() => setStage("chat")}
+                  onSave={sources.handleSaveNote}
+                  isSaving={sources.isSavingSource}
+                />
+              ) : (
+                <>
+                  <StageHeader
+                    title="Graph"
+                    icon={<Sparkles className="h-3.5 w-3.5 text-emerald-600" />}
+                    onClose={() => setStage("chat")}
+                  />
+                  <GraphStage mode="fullscreen" />
+                </>
+              )}
+            </div>
+          )}
         </div>
 
+        {sidebar.isRightCollapsed ? (
+          <div className="border-l flex flex-col items-center bg-muted/10 shrink-0 min-h-0 w-12 py-2 gap-1.5">
+            <button
+              onClick={sidebar.toggleRightCollapsed}
+              aria-label="Show tools panel"
+              title="Show panel"
+              className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors"
+            >
+              <PanelRightOpen className="h-4 w-4" />
+            </button>
+            <div className="my-1 h-px w-6 bg-border" />
+            <button
+              onClick={exportToMarkdown}
+              disabled={!hasIncludedSources}
+              aria-label="Export to Markdown"
+              title="Export to Markdown"
+              className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <FileText className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => void handleAISearch()}
+              disabled={!hasIncludedSources || isRunningSearch}
+              aria-label="Ask about your sources"
+              title="Ask about your sources"
+              className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <MessageCircle className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => setStage("graph")}
+              aria-label="Open Graph View"
+              title="Open Graph View"
+              className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            >
+              <Sparkles className="h-4 w-4" />
+            </button>
+          </div>
+        ) : (
         <aside
           className="border-l flex flex-col bg-muted/10 relative shrink-0 min-h-0"
           style={{ width: sidebar.rightSidebarWidth }}
@@ -284,8 +449,11 @@ export default function HomePage() {
             isRunningSearch={isRunningSearch}
             onExportMarkdown={exportToMarkdown}
             onAISearch={handleAISearch}
+            onCollapse={sidebar.toggleRightCollapsed}
+            onOpenGraph={() => setStage("graph")}
           />
         </aside>
+        )}
       </div>
     </div>
   )

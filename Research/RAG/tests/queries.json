@@ -1,0 +1,96 @@
+{
+  "_note": "Labels for the RAG diagnostic notebook. relevant_entries are the E* documents the retriever SHOULD return for a query. expected_answer is a 1-3 sentence reference used by the judge to score Context Recall and Answer Correctness. Edit freely — these are starting proposals.",
+  "queries": [
+    {
+      "id": "Q01",
+      "type": "thematic",
+      "query": "What recurring patterns appear in how I handle work stress?",
+      "relevant_entries": ["E01", "E02", "E04", "E06", "E10"],
+      "expected_answer": "Work stress shows as Sunday-night insomnia and catastrophizing about upcoming demos (E02), feeling work is pointless after disappointing reactions from colleagues (E01), and difficulty stopping at a reasonable hour even when the day's work is done (E10). On harder days the user also reports 'grey' or scattered states (E04, E06) where they go through the motions without engagement."
+    },
+    {
+      "id": "Q02",
+      "type": "thematic",
+      "query": "What does my relationship with productivity look like?",
+      "relevant_entries": ["E05", "E06", "E10", "E14"],
+      "expected_answer": "The user equates productivity with effort and finds it hard to stop working even when they've done enough (E10). They optimise before interrogating whether they should be doing the thing at all (E14). Good days are explicitly noted as worth recording (E05), but scattered days where nothing clicks bring self-criticism (E06)."
+    },
+    {
+      "id": "Q03",
+      "type": "thematic",
+      "query": "How do I talk about my relationships with other people?",
+      "relevant_entries": ["E03", "E07", "E08", "E09", "E12"],
+      "expected_answer": "The user celebrates others' wins genuinely, e.g. screaming in the kitchen when Lena got her grant (E03). They value unstructured time with friends like Daan and Sofie (E07) and use calls with family as grounding (E08, E09). On the breakup with Noor (E12), they reflect they weren't fully present and confused being busy with being engaged."
+    },
+    {
+      "id": "Q04",
+      "type": "thematic",
+      "query": "What themes come up when I am having a low energy day?",
+      "relevant_entries": ["E04", "E06"],
+      "expected_answer": "Low energy shows as 'grey' or 'flat' rather than sad (E04) — going through the motions, making coffee they don't drink, watching things to avoid focus. The user catches themselves catastrophizing about whether it's the start of a longer slide (E04) and struggles with being too hard on themselves about scattered days (E06)."
+    },
+    {
+      "id": "Q05",
+      "type": "thematic",
+      "query": "What am I avoiding or procrastinating on?",
+      "relevant_entries": ["E02", "E10", "E14"],
+      "expected_answer": "The user mentions avoiding talking to someone about their anxiety despite repeatedly saying they should (E02), avoiding thinking about the assessor's feedback about depth of critical reflection (E14), and not knowing what 'done for the day' actually feels like (E10)."
+    },
+    {
+      "id": "Q06",
+      "type": "thematic",
+      "query": "Where do I sound conflicted between values and actions?",
+      "relevant_entries": ["E10", "E11", "E12", "E14"],
+      "expected_answer": "The user doesn't want to replicate their dad's pattern of evening work but has no alternative model (E10). They're drawn to ML/infrastructure work but their degree is in HCI/design (E11). They want to be present but mistake being busy with being engaged (E12). They want to interrogate their work but immediately optimise instead (E14)."
+    },
+    {
+      "id": "Q07",
+      "type": "thematic",
+      "query": "What tradeoffs keep appearing in my decisions?",
+      "relevant_entries": ["E10", "E11", "E14"],
+      "expected_answer": "Design/HCI work versus ML infrastructure as a post-graduation direction (E11). Stopping work versus the inherited virtue of working evenings (E10). Optimising and building versus questioning whether the thing should be built at all (E14)."
+    },
+    {
+      "id": "Q08",
+      "type": "needle",
+      "query": "What did I do on Monday March 3rd?",
+      "relevant_entries": ["E05"],
+      "expected_answer": "Gym at 7:30 (legs day), arrived at work at 9:15, finished the chunking pipeline refactor and fixed a regex edge case for multi-day entries, had a long afternoon call with Rik about frontend integration gaps, cooked dal in the evening, in bed by 11."
+    },
+    {
+      "id": "Q09",
+      "type": "needle",
+      "query": "Who got a grant and how did I react?",
+      "relevant_entries": ["E03"],
+      "expected_answer": "Lena got the grant. The user screamed in their kitchen out of pride. It also made them think about their own side-project idea around local-first apps for personal data."
+    },
+    {
+      "id": "Q10",
+      "type": "needle",
+      "query": "What was my disagreement with Jeroen about?",
+      "relevant_entries": ["E09"],
+      "expected_answer": "They disagreed sharply in a sync about the direction of the question generation prompt. Jeroen wants to keep it open-ended; the user thinks it needs more structure to be useful. Neither backed down, which was unusual for them."
+    },
+    {
+      "id": "Q11",
+      "type": "needle",
+      "query": "What did the assessor say about my work?",
+      "relevant_entries": ["E14"],
+      "expected_answer": "The feedback was mostly positive but included one line saying the work lacked 'depth of critical reflection'. The user has been avoiding thinking about it."
+    },
+    {
+      "id": "Q12",
+      "type": "needle",
+      "query": "When did things end with Noor, and what do I think about it now?",
+      "relevant_entries": ["E12"],
+      "expected_answer": "Things ended about six months ago. The user reflects that they weren't actually present for a lot of the relationship — physically there but with their head on the project or whatever was stressing them. They want to practice being somewhere fully and they realise they mistake being busy for being engaged."
+    },
+    {
+      "id": "Q13",
+      "type": "needle",
+      "query": "Why do I think I started caring about REFLECT?",
+      "relevant_entries": ["E15"],
+      "expected_answer": "It started as a school project, but the user started actually using it themselves, even informally. The shift came from building it for themselves rather than for a hypothetical user. They want to hold onto that motivation."
+    }
+  ]
+}

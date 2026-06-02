@@ -4,10 +4,16 @@ from sqlmodel import Session, select
 from database.models import Chat, Chunk, Source, SourceTag
 
 def get_all_sources(session: Session):
-    return session.exec(select(Source)).all()
+    return session.exec(
+        select(Source).order_by(Source.created_at.desc(), Source.id.desc())
+    ).all()
 
 def get_sources_since(session: Session, since_id: int):
-    return session.exec(select(Source).where(Source.id > since_id)).all()
+    return session.exec(
+        select(Source)
+        .where(Source.id > since_id)
+        .order_by(Source.created_at.desc(), Source.id.desc())
+    ).all()
 
 def get_source_by_id(session: Session, source_id: int) -> Source:
     return session.exec(select(Source).where(Source.id == source_id)).first()
@@ -28,6 +34,7 @@ def create_source(
     file_path: Optional[str] = None,
     file_type: Optional[str] = None,
     transcript_segments: Optional[list] = None,
+    created_at: Optional[datetime] = None,
 ) -> Source:
     now = datetime.utcnow()
     new_source = Source(
@@ -37,7 +44,7 @@ def create_source(
         file_type=file_type,
         transcript_segments=transcript_segments,
         status=status,
-        created_at=now,
+        created_at=created_at or now,
         edited_at=now,
     )
     session.add(new_source)

@@ -1,0 +1,4 @@
+model,samples,hit@5,recall@5,mrr,faithfulness,answer_relevancy,context_precision,context_recall,answer_correctness,judge_valid_rate
+gpt-oss:20b,13,0.923,0.699,0.846,1.792,2.458,2.25,2.083,1.708,0.731
+mistral,13,0.923,0.699,0.846,1.962,2.385,2.346,1.923,1.423,0.885
+llama3,13,0.923,0.699,0.846,1.667,2.167,2.417,1.708,1.292,0.769

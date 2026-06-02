@@ -3,8 +3,9 @@
 import React, { useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
-import ReactMarkdown from "react-markdown"
-import remarkGfm from "remark-gfm"
+import { EditorContent, useEditor } from "@tiptap/react"
+import StarterKit from "@tiptap/starter-kit"
+import { Placeholder } from "@tiptap/extensions"
 import { AlertTriangle, ArrowLeft, CalendarClock, CircleDot, FileAudio2, FileText, MessageSquare, Pencil, RefreshCw, X } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { TopNav } from "@/components/top-nav"
@@ -30,18 +31,6 @@ const getStatusClassName = (status: string) => {
 // Backend serializes naive UTC datetimes without a timezone marker; force UTC interpretation.
 const parseBackendDate = (s: string) => new Date(/[zZ]|[+-]\d{2}:?\d{2}$/.test(s) ? s : `${s}Z`)
 
-const markdownClasses = [
-    "mt-4 cursor-text min-h-[60px] text-sm leading-7 text-foreground",
-    "[&_h1]:text-2xl [&_h1]:font-bold [&_h1]:mb-2",
-    "[&_h2]:text-xl [&_h2]:font-semibold [&_h2]:mb-1",
-    "[&_p]:mb-3 [&_strong]:font-bold [&_em]:italic",
-    "[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-3",
-    "[&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-3",
-    "[&_code]:font-mono [&_code]:bg-muted [&_code]:px-1 [&_code]:rounded",
-    "[&_blockquote]:border-l-4 [&_blockquote]:pl-4 [&_blockquote]:text-muted-foreground",
-    "[&_a]:text-emerald-600 [&_a]:underline",
-].join(" ")
-
 export default function SourceDetailPage() {
     const params = useParams<{ id: string }>()
     const [source, setSource] = useState<SourceRecord | null>(null)
@@ -56,15 +45,12 @@ export default function SourceDetailPage() {
     const [currentTime, setCurrentTime] = useState(0)
     const [titleValue, setTitleValue] = useState("")
     const [editingDate, setEditingDate] = useState(false)
-    const [editingTranscript, setEditingTranscript] = useState(false)
     const [isRetrying, setIsRetrying] = useState(false)
 
     const audioRef = useRef<HTMLAudioElement>(null)
     const activeSegmentRef = useRef<HTMLSpanElement>(null)
     const titleSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
     const transcriptSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-    const isEditingTranscriptRef = useRef(false)
-    const textareaRef = useRef<HTMLTextAreaElement>(null)
 
     const sourceId = useMemo(() => {
         const parsed = Number(params.id)
@@ -118,6 +104,48 @@ export default function SourceDetailPage() {
         void loadSource()
     }, [sourceId])
 
+    const transcriptEditor = useEditor({
+        extensions: [
+            StarterKit,
+            Placeholder.configure({ placeholder: "Click to start writing..." }),
+        ],
+        content: "",
+        immediatelyRender: false,
+        editorProps: {
+            attributes: {
+                class: "tiptap min-h-[60px] w-full bg-transparent text-sm leading-7 text-foreground focus:outline-none",
+            },
+        },
+        onUpdate: ({ editor }) => {
+            const text = editor.getText()
+            setSourceText(text)
+            if (transcriptSaveTimerRef.current) clearTimeout(transcriptSaveTimerRef.current)
+            const id = source?.id
+            if (!id) return
+            transcriptSaveTimerRef.current = setTimeout(async () => {
+                try {
+                    const updated = await api.patchSource(id, { text: text })
+                    setSource(updated)
+                    if (updated.status === "not processed") {
+                        const queued = await api.processSource(id)
+                        setSource(queued)
+                    }
+                } catch (err) {
+                    toast.error(`Could not save transcript: ${err instanceof Error ? err.message : "Unknown error"}`)
+                }
+            }, 800)
+        },
+    })
+
+    // Sync external sourceText changes (initial load, background poll) into the editor,
+    // but only when the user isn't actively typing — otherwise we'd clobber their input.
+    useEffect(() => {
+        if (!transcriptEditor) return
+        if (transcriptEditor.isFocused) return
+        if (transcriptEditor.getText() === sourceText) return
+        transcriptEditor.commands.setContent(sourceText || "", { emitUpdate: false })
+    }, [transcriptEditor, sourceText])
+
     // Poll while source is being processed in background
     useEffect(() => {
         if (!source || !PROCESSING_STATUSES.has(source.status)) return
@@ -126,7 +154,7 @@ export default function SourceDetailPage() {
             try {
                 const updated = await api.getSourceById(source.id)
                 setSource(updated)
-                if (updated.text && updated.text !== sourceText && !isEditingTranscriptRef.current) {
+                if (updated.text && updated.text !== sourceText && !transcriptEditor?.isFocused) {
                     setSourceText(updated.text)
                 }
                 if (!PROCESSING_STATUSES.has(updated.status)) {
@@ -139,15 +167,6 @@ export default function SourceDetailPage() {
 
         return () => clearInterval(interval)
     }, [source?.status, source?.id])
-
-    // Auto-resize textarea when editing opens
-    useEffect(() => {
-        if (editingTranscript && textareaRef.current) {
-            const el = textareaRef.current
-            el.style.height = "auto"
-            el.style.height = `${el.scrollHeight}px`
-        }
-    }, [editingTranscript])
 
     const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const val = e.target.value
@@ -165,55 +184,6 @@ export default function SourceDetailPage() {
                 toast.error(`Could not save title: ${err instanceof Error ? err.message : "Unknown error"}`)
             }
         }, 700)
-    }
-
-    const handleTranscriptChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-        const val = e.target.value
-        setSourceText(val)
-        e.target.style.height = "auto"
-        e.target.style.height = `${e.target.scrollHeight}px`
-        if (transcriptSaveTimerRef.current) clearTimeout(transcriptSaveTimerRef.current)
-        const id = source?.id
-        if (!id) return
-        transcriptSaveTimerRef.current = setTimeout(async () => {
-            try {
-                const updated = await api.patchSource(id, { text: val })
-                setSource(updated)
-                if (updated.status === "not processed") {
-                    const queued = await api.processSource(id)
-                    setSource(queued)
-                }
-            } catch (err) {
-                toast.error(`Could not save transcript: ${err instanceof Error ? err.message : "Unknown error"}`)
-            }
-        }, 800)
-    }
-
-    const handleTranscriptBlur = async (e: React.FocusEvent<HTMLTextAreaElement>) => {
-        const currentText = e.target.value
-        isEditingTranscriptRef.current = false
-        if (transcriptSaveTimerRef.current) {
-            clearTimeout(transcriptSaveTimerRef.current)
-            transcriptSaveTimerRef.current = null
-        }
-        setEditingTranscript(false)
-        setSourceText(currentText)
-        if (!source) return
-        try {
-            const updated = await api.patchSource(source.id, { text: currentText })
-            setSource(updated)
-            if (updated.status === "not processed") {
-                const queued = await api.processSource(source.id)
-                setSource(queued)
-            }
-        } catch (err) {
-            toast.error(`Could not save transcript: ${err instanceof Error ? err.message : "Unknown error"}`)
-        }
-    }
-
-    const startEditingTranscript = () => {
-        isEditingTranscriptRef.current = true
-        setEditingTranscript(true)
     }
 
     const handleAddTag = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -314,26 +284,10 @@ export default function SourceDetailPage() {
     const isDuplicateNewTag = normalizedNewTag.length > 0 && sourceTags.some((tag) => tag.name.toLowerCase() === normalizedNewTag)
     const sourceKind = source ? getSourceKind(source) : "File"
 
-    const transcriptEditSection = editingTranscript ? (
-        <textarea
-            ref={textareaRef}
-            autoFocus
-            value={sourceText}
-            onChange={handleTranscriptChange}
-            onBlur={(e) => void handleTranscriptBlur(e)}
-            className="mt-4 w-full min-h-[60px] overflow-hidden resize-none text-sm leading-7 text-foreground bg-transparent border-none focus:outline-none p-0 m-0 font-sans"
-        />
-    ) : sourceText.trim() ? (
-        <div onClick={startEditingTranscript} className={markdownClasses}>
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{sourceText}</ReactMarkdown>
+    const transcriptEditSection = (
+        <div className="mt-4">
+            <EditorContent editor={transcriptEditor} />
         </div>
-    ) : (
-        <p
-            onClick={startEditingTranscript}
-            className="mt-4 text-sm text-muted-foreground italic cursor-text min-h-[60px] leading-7"
-        >
-            Click to start writing...
-        </p>
     )
 
     return (
