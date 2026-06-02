@@ -93,10 +93,6 @@ if ! command -v mkcert &>/dev/null; then
 fi
 
 if command -v mkcert &>/dev/null; then
-    # Detect the outbound-facing LAN IP the same way start_backend.py does:
-    # open a UDP "connection" and read the local socket address. Works inside
-    # sandboxed shells (e.g. Flatpak'd VS Code terminals) where `ip`,
-    # `ifconfig`, and `hostname -I` are not on PATH.
     detect_primary_ip() {
         local py=""
         if command -v python3 &>/dev/null; then py="python3"
@@ -215,14 +211,32 @@ fi
 cd "$ROOT/Backend"
 
 # Pick PyTorch wheels based on whether an NVIDIA GPU is reachable.
-# nvidia-smi ships with the NVIDIA driver, so its presence (and a clean
-# exit) is a reliable proxy for "this machine has a working CUDA driver".
 TORCH_EXTRA="cpu"
 if command -v nvidia-smi &>/dev/null && nvidia-smi &>/dev/null; then
     TORCH_EXTRA="cuda"
 fi
 echo "Syncing Python dependencies (torch=$TORCH_EXTRA)..."
 uv sync --extra "$TORCH_EXTRA"
+
+# torchcodec dlopens FFmpeg's shared libs (libavcodec.so / .dylib). On Unix the
+# dynamic linker finds them as long as a system FFmpeg ≥ 4 is installed, so the
+# right shape here is just a system package install (mirroring nss-tools/mkcert).
+if ! command -v ffmpeg &>/dev/null; then
+    echo "Installing ffmpeg (required by torchcodec)..."
+    if command -v brew &>/dev/null; then
+        brew install ffmpeg || true
+    elif command -v apt-get &>/dev/null; then
+        sudo apt-get install -y ffmpeg 2>/dev/null || true
+    elif command -v dnf &>/dev/null; then
+        sudo dnf install -y ffmpeg 2>/dev/null || true
+    else
+        echo "Warning: no supported package manager found. Install ffmpeg manually."
+    fi
+fi
+if command -v ffmpeg &>/dev/null; then
+    echo "ffmpeg: OK"
+fi
+
 echo "Running database migrations..."
 uv run alembic upgrade head
 
@@ -233,10 +247,10 @@ BACKEND_PID=$!
 
 # 6. Frontend deps + start
 cd "$ROOT/frontend"
-if [ ! -d "node_modules/.bin" ]; then
-    echo "Installing frontend dependencies..."
-    npm install
-fi
+# Always run npm install — it's a fast no-op when the lockfile already matches,
+# and it ensures newly added deps are picked up on re-runs.
+echo "Installing frontend dependencies..."
+npm install
 echo "Starting frontend..."
 if [ "$USE_TLS" = true ]; then
     npm run dev:tls &

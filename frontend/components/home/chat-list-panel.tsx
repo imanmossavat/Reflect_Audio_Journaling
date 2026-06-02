@@ -1,7 +1,6 @@
 "use client"
 
 import { EllipsisVerticalIcon, Pencil, Plus, MessageSquare, Trash2 } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Skeleton } from "@/components/ui/skeleton"
 import type { ChatSummary } from "@/lib/api"
@@ -38,15 +37,15 @@ export function ChatListPanel({
 }: ChatListPanelProps) {
   return (
     <>
-      <div className="p-4 border-b">
-        <Button
+      <div className="p-3 border-b flex items-center justify-between">
+        <h2 className="text-sm font-medium">Chats</h2>
+        <button
           onClick={onNewChat}
-          size="sm"
-          className="w-full bg-emerald-600 hover:bg-emerald-700"
+          className="flex items-center gap-1.5 rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700 transition-colors"
         >
-          <Plus className="h-4 w-4 mr-1" />
-          New chat
-        </Button>
+          <Plus className="h-3.5 w-3.5" />
+          New
+        </button>
       </div>
       <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar p-2 space-y-1">
         {isLoadingChats ? (

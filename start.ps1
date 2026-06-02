@@ -96,8 +96,6 @@ $useTls = Test-Path $certFile
 Set-Location "$root\Backend"
 
 # Pick PyTorch wheels based on whether an NVIDIA GPU is reachable.
-# nvidia-smi ships with the NVIDIA driver, so its presence is a reliable
-# proxy for "this machine has a working CUDA driver".
 $torchExtra = "cpu"
 if (Get-Command nvidia-smi -ErrorAction SilentlyContinue) {
     try {
@@ -107,6 +105,43 @@ if (Get-Command nvidia-smi -ErrorAction SilentlyContinue) {
 }
 Write-Host "Syncing Python dependencies (torch=$torchExtra)..."
 uv sync --extra $torchExtra
+
+# torchcodec on Windows dlopens FFmpeg shared libs (avcodec-61.dll, etc.). The pip
+# wheel does not bundle them and winget's ffmpeg is static-only, so without this
+# whisperx falls back to a slower path and prints a long UserWarning every run.
+# Drop the DLLs next to libtorchcodec_core7.dll -- the loader checks that dir first.
+$torchcodecDir = "$root\Backend\.venv\Lib\site-packages\torchcodec"
+$ffmpegSentinel = "$torchcodecDir\avcodec-61.dll"
+if ((Test-Path $torchcodecDir) -and -not (Test-Path $ffmpegSentinel)) {
+    Write-Host "Installing FFmpeg 7 shared DLLs for torchcodec..."
+    try {
+        $headers = @{ "User-Agent" = "REFLECT-setup" }
+        $release = Invoke-RestMethod "https://api.github.com/repos/BtbN/FFmpeg-Builds/releases/tags/latest" -Headers $headers
+        $asset = $release.assets |
+            Where-Object { $_.name -match "^ffmpeg-n7\..*-win64-gpl-shared-.*\.zip$" } |
+            Select-Object -First 1
+        if ($null -eq $asset) {
+            Write-Warning "No FFmpeg 7 shared build found in BtbN latest release -- skipping."
+        } else {
+            $tmp = Join-Path $env:TEMP "reflect-ffmpeg-$([guid]::NewGuid())"
+            New-Item -ItemType Directory -Force -Path $tmp | Out-Null
+            $zipPath = Join-Path $tmp $asset.name
+            Invoke-WebRequest -Uri $asset.browser_download_url -OutFile $zipPath -UseBasicParsing
+            Expand-Archive -Path $zipPath -DestinationPath $tmp -Force
+            $extracted = Get-ChildItem -Path $tmp -Directory -Filter "ffmpeg-n7*" | Select-Object -First 1
+            if ($extracted) {
+                Get-ChildItem -Path (Join-Path $extracted.FullName "bin") -Filter "*.dll" |
+                    Copy-Item -Destination $torchcodecDir -Force
+                Write-Host "ffmpeg DLLs: OK"
+            }
+            Remove-Item -Recurse -Force $tmp -ErrorAction SilentlyContinue
+        }
+    } catch {
+        Write-Warning "FFmpeg DLL install failed: $_"
+        Write-Warning "torchcodec will warn at startup but whisperx still works via fallback."
+    }
+}
+
 Write-Host "Running database migrations..."
 uv run --extra $torchExtra alembic upgrade head
 
@@ -114,12 +149,12 @@ uv run --extra $torchExtra alembic upgrade head
 Write-Host "Starting backend..."
 Start-Process powershell -ArgumentList "-NoExit", "-Command", "Set-Location '$root\Backend'; uv run --extra $torchExtra python start_backend.py"
 
-# 6. Frontend deps + start 
+# 6. Frontend deps + start
 Set-Location "$root\frontend"
-if (-not (Test-Path "node_modules\.bin")) {
-    Write-Host "Installing frontend dependencies..."
-    npm install
-}
+# Always run npm install -- it's a fast no-op when the lockfile already matches,
+# and it ensures newly added deps are picked up on re-runs.
+Write-Host "Installing frontend dependencies..."
+npm install
 Write-Host "Starting frontend..."
 $frontendScript = if ($useTls) { "npm run dev:tls" } else { "npm run dev" }
 Start-Process powershell -ArgumentList "-NoExit", "-Command", "Set-Location '$root\frontend'; $frontendScript"
