@@ -1,8 +1,10 @@
 import shutil
+from datetime import datetime
 
 import httpx
 from llama_index.core import VectorStoreIndex, StorageContext, Settings
 from llama_index.core.schema import TextNode
+from llama_index.core.vector_stores import MetadataFilter, MetadataFilters, FilterOperator
 from llama_index.vector_stores.chroma import ChromaVectorStore
 from llama_index.embeddings.ollama import OllamaEmbedding
 from llama_index.llms.ollama import Ollama
@@ -10,8 +12,24 @@ from llama_index.core.prompts import PromptTemplate
 
 from typing import Any
 
+from sqlmodel import Session
+
+from app.db import engine
+from app.repositories.sourceRepository import get_source_ids_in_range, get_sources_meta
 from app.services.chroma import get_chroma_collection
+from app.services.ranking import (
+    HARD_FILTER_STRICT,
+    MIN_POOL,
+    OVERSAMPLE,
+    _node_source_id,
+    score_candidates,
+    tokenize_query,
+)
 from app.services.settings_service import get_setting
+from app.services.temporal import parse_temporal_range
+from app import logging_config
+
+logger = logging_config.logger
 
 
 def _ollama_base_url() -> str:
@@ -26,7 +44,7 @@ def _llm_model() -> str:
     return get_setting("chat_model")
 
 
-# WARNING: `from app.services.rag import EMBED_MODEL` binds the value at import time
+# WARNING: `from at pp.services.rag imporEMBED_MODEL` binds the value at import time
 # and won't reflect later settings changes. Use `rag.EMBED_MODEL` (module attribute access)
 # or call get_setting() directly where a fresh value is needed.
 def __getattr__(name: str) -> Any:
@@ -40,7 +58,6 @@ def __getattr__(name: str) -> Any:
 
 
 def check_ollama_state() -> str:
-    """Returns 'ok', 'not_running', or 'not_installed'."""
     try:
         with httpx.Client(timeout=3.0) as client:
             client.get(_ollama_base_url())
@@ -52,27 +69,21 @@ def check_ollama_state() -> str:
 
 
 def check_model_installed(model: str) -> bool:
-    """Returns True if the given model appears in `ollama list`. Assumes Ollama is reachable."""
     try:
         with httpx.Client(timeout=5.0) as client:
             response = client.get(f"{_ollama_base_url()}/api/tags")
             response.raise_for_status()
             installed = {m.get("name", "") for m in response.json().get("models", [])}
-        # Ollama lists models as e.g. "nomic-embed-text:latest"; accept either exact or bare-name match.
         return any(name == model or name.startswith(f"{model}:") for name in installed)
     except Exception:
-        return True  # Best-effort: don't block on the precheck if /api/tags is unreachable.
+        return True 
 
 
 _thinking_capability_cache: dict[tuple[str, str], bool] = {}
 
 
 def model_supports_thinking(model: str) -> bool:
-    """Returns True if Ollama reports the model has the 'thinking' capability.
-
-    Cached per (host, model) for the lifetime of the process — a model's capabilities
-    don't change without a re-pull, and the user can restart the backend to refresh.
-    """
+    # Returns True if Ollama reports the model has the 'thinking' capability.
     host = _ollama_base_url()
     key = (host, model)
     if key in _thinking_capability_cache:
@@ -89,7 +100,7 @@ def model_supports_thinking(model: str) -> bool:
 
 
 def classify_ollama_error(exc: Exception) -> str:
-    """Returns 'not_running', 'model_missing', or 'unknown' based on the exception."""
+    # Returns 'not_running', 'model_missing', or 'unknown' based on the exception.
     msg = str(exc).lower()
     connection_markers = (
         "connection refused",
@@ -113,9 +124,27 @@ TEXT_QA_TEMPLATE = PromptTemplate(
     "---------------------\n"
     "{context_str}\n"
     "---------------------\n"
-    "Using the context above, answer the following question.\n"
-    "Always use 'you' and 'your' in your response. "
-    "Do NOT use 'I' or 'me'.\n"
+    "You are answering questions about a journal.\n"
+    "The journal entries are the source of truth.\n\n"
+    "RULE PRIORITY:\n"
+    "1. First-person journal entries refer to the journal author.\n"
+    "2. Do NOT require the name 'Maya' to appear in the text.\n"
+    "3. First-person content is always valid evidence.\n\n"
+    "RULES:\n"
+    "1. Use only information explicitly stated in the journal entries.\n"
+    "Do not add interpretation, psychological explanations, personality traits,\n"
+    "motivations, or behavioral patterns unless explicitly stated.\n\n"
+    "2. Do not generalize from single events into traits or habits.\n\n"
+    "3. Do not convert past events into general or permanent states.\n\n"
+    "4. If multiple notes are relevant, combine them into a single answer.\n"
+    "Do not treat each note in isolation if they refer to related events,\n"
+    "people, or timelines.\n\n"
+    "5. Answer directly if the information exists in the notes.\n\n"
+    "6. If the answer is not explicitly present in the context, respond with EXACTLY:\n"
+    "I don't know based on the notes.\n\n"
+    "No explanation, no punctuation, no extra text.\n\n"
+    "7. Always use 'you' and 'your' in your response when referring to the journal author.\n"
+    "Do NOT use 'I' or 'me'.\n\n"
     "Question: {query_str}\n"
     "Answer: "
 )
@@ -124,7 +153,6 @@ _llamaindex_signature: tuple[str, str, str] | None = None
 
 
 def configure_llamaindex() -> None:
-    """Configure LlamaIndex globals from current settings. Re-runs when settings change."""
     global _llamaindex_signature
     embed = _embed_model()
     llm = _llm_model()
@@ -173,12 +201,70 @@ def index_chunks(chunks: list[dict]):
 
     VectorStoreIndex(nodes, storage_context=storage_context)
 
-def retrieve_nodes(question: str, top_k: int = 5) -> list[Any]:
-    """Returns the top_k retrieved nodes for `question` without running the LLM step."""
+def ranked_retrieve(question: str, top_k: int = 5, session: Session | None = None) -> list[Any]:
     configure_llamaindex()
     index = _get_index()
-    retriever = index.as_retriever(similarity_top_k=top_k)
-    return retriever.retrieve(question)
+    now = datetime.utcnow()
+    pool_k = max(top_k * OVERSAMPLE, MIN_POOL)
+
+    owns_session = session is None
+    session = session or Session(engine)
+    try:
+        date_range = parse_temporal_range(question, now)
+        filters = None
+        if date_range and date_range.hard:
+            ids = get_source_ids_in_range(session, date_range.start, date_range.end)
+            if ids:
+                filters = MetadataFilters(
+                    filters=[
+                        MetadataFilter(
+                            key="source_id",
+                            value=[str(i) for i in ids],
+                            operator=FilterOperator.IN,
+                        )
+                    ]
+                )
+            elif HARD_FILTER_STRICT:
+                # No in-range sources and strict mode: honor the window literally.
+                return []
+            # Lenient (default): fall through with no filter; the soft recency
+            # decay still floats recent entries up.
+
+        nodes = index.as_retriever(similarity_top_k=pool_k, filters=filters).retrieve(question)
+
+        # Backfill a sparse filtered pool with unfiltered hits so we never truncate below top_k; recency decay keeps in-range items on top.
+        if filters is not None and len(nodes) < top_k:
+            seen = {n.node.node_id for n in nodes}
+            extra = index.as_retriever(similarity_top_k=pool_k).retrieve(question)
+            nodes.extend(n for n in extra if n.node.node_id not in seen)
+
+        source_ids = [sid for sid in (_node_source_id(n) for n in nodes) if sid is not None]
+        meta_by_id = get_sources_meta(session, source_ids)
+        scored = score_candidates(nodes, meta_by_id, tokenize_query(question), now)
+        _log_ranking(question, scored)
+        return [s.node for s in scored[:top_k]]
+    finally:
+        if owns_session:
+            session.close()
+
+
+def _log_ranking(question: str, scored: list[Any]) -> None:
+    """Log the per-query component contributions (embedding / time / metadata) so
+    the reranking weights in ranking.RankWeights can be tuned empirically."""
+    breakdown = " | ".join(
+        f"src={s.node.node.metadata.get('source_id')} "
+        f"total={s.breakdown.total:.3f}"
+        f"[sim={s.breakdown.similarity:.3f} "
+        f"time={s.breakdown.temporal:.3f} "
+        f"meta={s.breakdown.metadata:.3f}]"
+        for s in scored
+    )
+    logger.info("rerank %r -> %s", question[:80], breakdown)
+
+
+def retrieve_nodes(question: str, top_k: int = 5) -> list[Any]:
+    """Returns the top_k retrieved nodes for `question` without running the LLM step."""
+    return ranked_retrieve(question, top_k=top_k)
 
 
 def serialize_retrieved_nodes(nodes: list[Any]) -> list[dict[str, Any]]:
@@ -205,28 +291,18 @@ def build_context_str(nodes: list[Any]) -> str:
 
 
 def query_sources(question: str, top_k: int = 5) -> dict[str, Any]:
-    configure_llamaindex()
-    index = _get_index()
-    query_engine = index.as_query_engine(similarity_top_k=top_k, text_qa_template=TEXT_QA_TEMPLATE,)
-    print(f"Querying with question: {question}")
-    response = query_engine.query(question)
-    answer_text = response.response
+    """Retrieve (temporal-aware, re-ranked) then synthesize an answer.
 
-    sources = []
-    for source in getattr(response, "source_nodes", []) or []:
-        node = source.node
-        metadata = node.metadata or {}
-        sources.append(
-            {
-                "source_id": metadata.get("source_id"),
-                "chunk_id": metadata.get("chunk_id"),
-                "score": source.score,
-                "node_id": node.node_id,
-                "text": node.get_content(),
-            }
-        )
+    Shares the retrieval + ranking path with the streaming route via
+    ranked_retrieve, so both routes rank identically.
+    """
+    configure_llamaindex()
+    nodes = ranked_retrieve(question, top_k=top_k)
+    context_str = build_context_str(nodes)
+    prompt = TEXT_QA_TEMPLATE.format(context_str=context_str, query_str=question)
+    answer_text = Settings.llm.complete(prompt).text
 
     return {
         "answer": answer_text,
-        "sources": sources,
+        "sources": serialize_retrieved_nodes(nodes),
     }

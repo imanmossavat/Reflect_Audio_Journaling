@@ -1,12 +1,48 @@
 from datetime import datetime
 from typing import Any, Optional
 from sqlmodel import Session, select
+from sqlalchemy.orm import selectinload
 from database.models import Chat, Chunk, Source, SourceTag
+from app.services.ranking import SourceMeta
 
 def get_all_sources(session: Session):
     return session.exec(
         select(Source).order_by(Source.created_at.desc(), Source.id.desc())
     ).all()
+
+
+def get_source_ids_in_range(session: Session, start: datetime, end: datetime) -> list[int]:
+    """Ids of processed (indexed, hence searchable) sources whose created_at
+    falls in ``[start, end)``. Returns ints."""
+    return list(
+        session.exec(
+            select(Source.id).where(
+                Source.created_at >= start,
+                Source.created_at < end,
+                Source.status == "processed",
+            )
+        ).all()
+    )
+
+
+def get_sources_meta(session: Session, source_ids: list[int]) -> dict[int, SourceMeta]:
+    """Fetch created_at, file_type and tag names for the given sources in one
+    query, keyed by int id. Used to re-rank a retrieved candidate set."""
+    if not source_ids:
+        return {}
+    sources = session.exec(
+        select(Source)
+        .where(Source.id.in_(source_ids))
+        .options(selectinload(Source.tags))
+    ).all()
+    return {
+        s.id: SourceMeta(
+            created_at=s.created_at,
+            file_type=s.file_type,
+            tags=frozenset(t.name for t in s.tags),
+        )
+        for s in sources
+    }
 
 def get_sources_since(session: Session, since_id: int):
     return session.exec(

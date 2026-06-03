@@ -189,6 +189,7 @@ export interface GenerateQuestionRequest {
   focus_tag?: string
   focus_tag_summary?: string
   history?: Array<Record<string, unknown>>
+  journal_text?: string
 }
 
 export type AppDevice = "cpu" | "cuda" | "mps" | "rocm"

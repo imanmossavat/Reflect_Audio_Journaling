@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { api, type ChatSummary, type ChatMessageRecord, type ChatStreamStageName, PROCESSING_STATUSES } from "@/lib/api"
 import type { RawSource } from "@/components/home/types"
 import { mapBackendSource } from "@/hooks/useSourceManagement"
+import { GIBBS_STEP_COUNT } from "@/lib/gibbs"
 import { toast } from "sonner"
 
 interface UseChatManagementOptions {
@@ -46,6 +47,11 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
   const [inputValue, setInputValue] = useState("")
   const [streamingAssistant, setStreamingAssistant] = useState<StreamingAssistant | null>(null)
   const isAssistantThinking = streamingAssistant !== null
+  // Guided Gibbs reflection mode. Step state is local to this session (not yet
+  // persisted on the Chat), so it resets when the chat changes or on reload.
+  const [gibbsActive, setGibbsActive] = useState(false)
+  const [gibbsStep, setGibbsStep] = useState(1)
+  const [gibbsGenerating, setGibbsGenerating] = useState(false)
   // Don't persist activeChatId until we've restored it from storage on mount,
   // otherwise the initial null would wipe the stored value before we read it.
   const hasRestoredActiveChat = useRef(false)
@@ -144,6 +150,9 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
       toast.error(`Could not save message: ${error instanceof Error ? error.message : "Unknown error"}`)
       return
     }
+    // In guided reflection mode the AI only speaks when the user advances a stage
+    // or asks a clarifying question — a typed answer is just recorded.
+    if (gibbsActive) return
     setStreamingAssistant({ stages: [], thinking: "", answer: "" })
     await new Promise<void>((resolve) => {
       api.streamQuery(
@@ -188,9 +197,113 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
     })
   }
 
+  // --- Guided Gibbs reflection -------------------------------------------------
+
+  // Build the last two Q&A pairs as context for the next reflection question.
+  const buildGibbsHistory = (): Array<Record<string, unknown>> => {
+    const pairs: Array<{ question?: string; answer?: string }> = []
+    let pending: { question?: string; answer?: string } | null = null
+    for (const m of activeChatMessages) {
+      if (m.role === "question") {
+        if (pending) pairs.push(pending)
+        pending = { question: m.text }
+      } else {
+        if (!pending) pending = {}
+        pending.answer = m.text
+        pairs.push(pending)
+        pending = null
+      }
+    }
+    if (pending) pairs.push(pending)
+    return pairs.slice(-2)
+  }
+
+  const generateGibbsQuestion = async (targetStep: number, mode: "deep_dive" | "clarifying" = "deep_dive") => {
+    let chatId: number
+    try {
+      chatId = await ensureActiveChat()
+    } catch (error) {
+      toast.error(`Could not start reflection: ${error instanceof Error ? error.message : "Unknown error"}`)
+      return
+    }
+    // Ground the question in the user's included sources (mirrors AI Search).
+    const journalText = rawSources
+      .filter((s) => s.included)
+      .map((s) => s.content)
+      .filter(Boolean)
+      .join("\n")
+      .slice(0, 2000)
+    const history = buildGibbsHistory()
+
+    setGibbsGenerating(true)
+    setStreamingAssistant({ stages: [], thinking: "", answer: "" })
+    let acc = ""
+    await new Promise<void>((resolve) => {
+      api.streamGeneratedQuestion(
+        { mode, step: targetStep, journal_text: journalText || undefined, history },
+        {
+          onToken: (token) => {
+            acc += token
+            setStreamingAssistant((prev) => (prev ? { ...prev, answer: prev.answer + token } : prev))
+          },
+          onDone: async () => {
+            const text = acc.trim()
+            try {
+              if (text) await persistMessage(chatId, { role: "question", text })
+            } finally {
+              setStreamingAssistant(null)
+              setGibbsGenerating(false)
+              resolve()
+            }
+          },
+          onError: (error) => {
+            toast.error(error.message.replace(/^API\s+\d+:\s*/, ""))
+            setStreamingAssistant(null)
+            setGibbsGenerating(false)
+            resolve()
+          },
+        }
+      )
+    })
+  }
+
+  const startReflection = async () => {
+    if (gibbsGenerating) return
+    setGibbsActive(true)
+    setGibbsStep(1)
+    await generateGibbsQuestion(1, "deep_dive")
+  }
+
+  const advanceGibbsStep = async () => {
+    if (gibbsGenerating) return
+    if (gibbsStep >= GIBBS_STEP_COUNT) {
+      setGibbsActive(false) // already at the final stage — "Finish"
+      return
+    }
+    const next = gibbsStep + 1
+    setGibbsStep(next)
+    await generateGibbsQuestion(next, "deep_dive")
+  }
+
+  const askClarifying = async () => {
+    if (gibbsGenerating) return
+    await generateGibbsQuestion(gibbsStep, "clarifying")
+  }
+
+  const handleSelectGibbsStep = async (target: number) => {
+    if (gibbsGenerating || target === gibbsStep) return
+    setGibbsStep(target)
+    await generateGibbsQuestion(target, "deep_dive")
+  }
+
+  const exitReflection = () => {
+    setGibbsActive(false)
+  }
+
   const handleSelectChat = (chatId: number) => {
     setActiveChatId(chatId)
     setInputValue("")
+    setGibbsActive(false)
   }
 
   const handleStartRenameChat = (chat: ChatSummary, event: React.MouseEvent) => {
@@ -261,6 +374,7 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
     setActiveChatId(null)
     setActiveChatMessages([])
     setInputValue("")
+    setGibbsActive(false)
   }
 
   return {
@@ -271,5 +385,7 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
     handleSelectChat, handleStartRenameChat, handleStartRenameActiveChat, handleCommitRename, handleDeleteChat,
     handlePromoteChat, handleSubmitText,
     resetChatState,
+    gibbsActive, gibbsStep, gibbsGenerating,
+    startReflection, advanceGibbsStep, askClarifying, exitReflection, handleSelectGibbsStep,
   }
 }

@@ -22,6 +22,7 @@ import { ChatListPanel } from "@/components/home/chat-list-panel"
 import { ChatTopBar } from "@/components/home/chat-top-bar"
 import { ChatMessages } from "@/components/home/chat-messages"
 import { ChatInput } from "@/components/home/chat-input"
+import { ReflectionBanner } from "@/components/home/reflection-banner"
 import { RightSidebar } from "@/components/home/right-sidebar"
 import { NewSourceMenu } from "@/components/home/new-source-menu"
 import { NoteEditor } from "@/components/home/note-editor"
@@ -347,6 +348,16 @@ export default function HomePage() {
               onCancelRenameTitle={() => chats.setRenamingChatId(null)}
             />
           )}
+          <ReflectionBanner
+            active={chats.gibbsActive}
+            step={chats.gibbsStep}
+            generating={chats.gibbsGenerating}
+            onStart={() => void chats.startReflection()}
+            onAdvance={() => void chats.advanceGibbsStep()}
+            onClarify={() => void chats.askClarifying()}
+            onEnd={chats.exitReflection}
+            onSelectStep={(step) => void chats.handleSelectGibbsStep(step)}
+          />
           <ChatMessages
             activeChatMessages={chats.activeChatMessages}
             isLoadingActiveChat={chats.isLoadingActiveChat}

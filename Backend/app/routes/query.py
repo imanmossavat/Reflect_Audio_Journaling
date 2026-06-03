@@ -304,9 +304,14 @@ async def extract_tags(source_id: int) -> ExtractedTagsResponse:
 
 @router.post("/generate-question", tags=["Query"])
 async def generate_question(req: GenerateRequest):
-    with Session(engine) as session:
-        source = get_latest_source(session)
-        source_text = source.text
+    if req.journal_text and req.journal_text.strip():
+        # Frontend supplies the journal context (e.g. the user's included sources +
+        # conversation), so reflection questions aren't tied to only the latest entry.
+        source_text = req.journal_text
+    else:
+        with Session(engine) as session:
+            source = get_latest_source(session)
+            source_text = source.text if source else ""
 
     try:
         messages = simpler_dictionary_question_prompt.build_messages(
