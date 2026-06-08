@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "QASet",
+  "type": "object",
+  "required": ["qa_pairs"],
+  "additionalProperties": false,
+  "properties": {
+    "qa_pairs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["question_id", "question", "answer", "reasoning_type", "supporting_notes", "required_hops", "answerability"],
+        "additionalProperties": false,
+        "properties": {
+          "question_id":      { "type": "string" },
+          "question":         { "type": "string", "minLength": 5 },
+          "answer":           { "type": "string" },
+          "reasoning_type":   {
+            "type": "string",
+            "enum": ["direct_retrieval", "multi_hop", "temporal", "contradiction", "abstention", "comparison"]
+          },
+          "supporting_notes": { "type": "array", "items": { "type": "string" } },
+          "required_hops":    { "type": "integer", "minimum": 0 },
+          "answerability":    { "type": "string", "enum": ["answerable", "unanswerable", "partial"] }
+        }
+      }
+    }
+  }
+}
