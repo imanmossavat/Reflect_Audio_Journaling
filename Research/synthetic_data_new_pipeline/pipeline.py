@@ -9,14 +9,22 @@ Stages:
   4. QA set generation          → outputs/qa_set.json
 
 Usage:
-  python pipeline.py                        # run all stages
-  python pipeline.py --stage 1              # run only stage 1
-  python pipeline.py --from-stage 3        # resume from stage 3
-  python pipeline.py --validate-only       # validate existing outputs
+  python pipeline.py                             # Anthropic API, all stages
+  python pipeline.py --backend ollama            # local Ollama, all stages
+  python pipeline.py --backend ollama \
+         --model qwen2.5:32b                     # specific Ollama model
+  python pipeline.py --stage 1                   # run only stage 1
+  python pipeline.py --from-stage 3             # resume from stage 3
+  python pipeline.py --validate-only            # validate existing outputs
 
-Requirements:
+Requirements (Anthropic):
   pip install anthropic jsonschema
   export ANTHROPIC_API_KEY=sk-...
+
+Requirements (Ollama):
+  pip install openai jsonschema
+  ollama serve                  # must be running
+  ollama pull qwen2.5:32b       # or whichever model you choose
 """
 
 import argparse
@@ -26,16 +34,22 @@ import re
 import sys
 from pathlib import Path
 
-import anthropic
-
 import prompts
 import validator
 
 # ── Config ────────────────────────────────────────────────────────────────────
 
-MODEL         = "claude-opus-4-6"
-MAX_TOKENS    = 8192
-OUTPUT_DIR    = Path(__file__).parent / "outputs"
+# Anthropic defaults
+ANTHROPIC_MODEL   = "claude-opus-4-6"
+
+# Ollama defaults — change to whichever model you have pulled
+OLLAMA_MODEL      = "qwen2.5:32b"
+OLLAMA_BASE_URL   = "http://localhost:11434/v1"
+
+MAX_TOKENS        = 8192
+MAX_RETRIES       = 3          # local models need more retries than Claude
+
+OUTPUT_DIR = Path(__file__).parent / "outputs"
 OUTPUT_DIR.mkdir(exist_ok=True)
 
 PATHS = {
@@ -45,50 +59,88 @@ PATHS = {
     "qa_set":       OUTPUT_DIR / "qa_set.json",
 }
 
-# ── Claude client ─────────────────────────────────────────────────────────────
+# ── Backend clients ───────────────────────────────────────────────────────────
 
-def get_client() -> anthropic.Anthropic:
+def get_anthropic_client():
+    try:
+        import anthropic
+    except ImportError:
+        sys.exit("❌  anthropic package not installed. Run: pip install anthropic")
     key = os.environ.get("ANTHROPIC_API_KEY")
     if not key:
         sys.exit("❌  ANTHROPIC_API_KEY not set. Export it and retry.")
-    return anthropic.Anthropic(api_key=key)
+    return ("anthropic", anthropic.Anthropic(api_key=key))
 
 
-# ── Core LLM call ─────────────────────────────────────────────────────────────
+def get_ollama_client(model: str):
+    try:
+        import openai
+    except ImportError:
+        sys.exit("❌  openai package not installed. Run: pip install openai")
+    client = openai.OpenAI(
+        base_url=OLLAMA_BASE_URL,
+        api_key="ollama",   # required by openai SDK but ignored by Ollama
+    )
+    return ("ollama", client, model)
 
-def call_claude(client: anthropic.Anthropic, system: str, user: str, label: str) -> dict:
+
+# ── Core LLM call (backend-agnostic) ─────────────────────────────────────────
+
+def call_model(backend_tuple: tuple, system: str, user: str, label: str) -> dict:
     """
-    Call Claude and return parsed JSON. Retries once on JSON parse failure.
+    Call the configured backend and return parsed JSON.
+    Retries up to MAX_RETRIES times on JSON parse failure.
     """
-    print(f"\n  → Calling Claude for {label}…", flush=True)
+    backend = backend_tuple[0]
+    print(f"\n  → [{backend}] Calling model for {label}…", flush=True)
 
-    for attempt in range(1, 3):
-        response = client.messages.create(
-            model=MODEL,
-            max_tokens=MAX_TOKENS,
-            system=system,
-            messages=[{"role": "user", "content": user}],
-        )
-        raw = response.content[0].text.strip()
+    for attempt in range(1, MAX_RETRIES + 1):
+        # ── Anthropic ──────────────────────────────────────────────────────
+        if backend == "anthropic":
+            _, client = backend_tuple
+            import anthropic
+            response = client.messages.create(
+                model=ANTHROPIC_MODEL,
+                max_tokens=MAX_TOKENS,
+                system=system,
+                messages=[{"role": "user", "content": user}],
+            )
+            raw = response.content[0].text.strip()
 
-        # strip accidental markdown fences
+        # ── Ollama (OpenAI-compatible) ─────────────────────────────────────
+        elif backend == "ollama":
+            _, client, model = backend_tuple
+            response = client.chat.completions.create(
+                model=model,
+                max_tokens=MAX_TOKENS,
+                messages=[
+                    {"role": "system", "content": system},
+                    {"role": "user",   "content": user},
+                ],
+            )
+            raw = response.choices[0].message.content.strip()
+
+        else:
+            sys.exit(f"❌  Unknown backend: {backend}")
+
+        # ── strip accidental markdown fences ──────────────────────────────
         raw = re.sub(r"^```(?:json)?\s*", "", raw)
-        raw = re.sub(r"\s*```$",         "", raw)
+        raw = re.sub(r"\s*```$",          "", raw)
 
         try:
             return json.loads(raw)
         except json.JSONDecodeError as exc:
-            print(f"  ⚠️  JSON parse failed (attempt {attempt}): {exc}")
-            if attempt == 2:
+            print(f"  ⚠️  JSON parse failed (attempt {attempt}/{MAX_RETRIES}): {exc}")
+            if attempt == MAX_RETRIES:
                 debug_path = OUTPUT_DIR / f"{label}_raw_attempt{attempt}.txt"
                 debug_path.write_text(raw)
                 sys.exit(
-                    f"❌  Could not parse JSON from Claude after 2 attempts.\n"
-                    f"    Raw output saved to {debug_path}"
+                    f"❌  Could not parse JSON after {MAX_RETRIES} attempts.\n"
+                    f"    Raw output saved to: {debug_path}\n"
+                    f"    Tip: if using Ollama, try a larger model (≥32B)."
                 )
 
-    # unreachable
-    raise RuntimeError("Unexpected exit from call_claude retry loop")
+    raise RuntimeError("Unexpected exit from call_model retry loop")
 
 
 # ── Save / load helpers ───────────────────────────────────────────────────────
@@ -106,21 +158,11 @@ def load(key: str) -> dict:
     return json.loads(path.read_text())
 
 
-def validate_and_abort_on_errors(results: dict[str, list[str]]) -> None:
-    """Print validation report. Abort if any stage has errors."""
-    all_ok = validator.print_report(results)
-    if not all_ok:
-        sys.exit(
-            "\n❌  Validation failed. Fix the issues above and re-run, "
-            "or edit the output files manually, then re-run with --from-stage <next>."
-        )
-
-
 # ── Stages ────────────────────────────────────────────────────────────────────
 
-def stage1_world_state(client: anthropic.Anthropic) -> dict:
+def stage1_world_state(backend: tuple) -> dict:
     print("\n── Stage 1: World State Generation ─────────────────────────────────")
-    data = call_claude(client, prompts.STAGE1_SYSTEM, prompts.STAGE1_USER, "world_state")
+    data = call_model(backend, prompts.STAGE1_SYSTEM, prompts.STAGE1_USER, "world_state")
     errors = validator.validate_world_state(data)
     if errors:
         print("  ⚠️  Validation issues:")
@@ -131,11 +173,11 @@ def stage1_world_state(client: anthropic.Anthropic) -> dict:
     return data
 
 
-def stage2_event_stream(client: anthropic.Anthropic, world_state: dict) -> dict:
+def stage2_event_stream(backend: tuple, world_state: dict) -> dict:
     print("\n── Stage 2: Event Stream Generation ────────────────────────────────")
     ws_json = json.dumps(world_state, indent=2)
-    data = call_claude(
-        client,
+    data = call_model(
+        backend,
         prompts.STAGE2_SYSTEM,
         prompts.STAGE2_USER.format(world_state_json=ws_json),
         "event_stream",
@@ -158,11 +200,11 @@ def stage2_event_stream(client: anthropic.Anthropic, world_state: dict) -> dict:
     return data
 
 
-def stage3_note_corpus(client: anthropic.Anthropic, world_state: dict, event_stream: dict) -> dict:
+def stage3_note_corpus(backend: tuple, world_state: dict, event_stream: dict) -> dict:
     print("\n── Stage 3: Note Corpus Generation ─────────────────────────────────")
     events_json = json.dumps(event_stream, indent=2)
-    data = call_claude(
-        client,
+    data = call_model(
+        backend,
         prompts.STAGE4_SYSTEM,
         prompts.STAGE4_USER.format(events_json=events_json),
         "note_corpus",
@@ -180,11 +222,11 @@ def stage3_note_corpus(client: anthropic.Anthropic, world_state: dict, event_str
     return data
 
 
-def stage4_qa_set(client: anthropic.Anthropic, note_corpus: dict) -> dict:
+def stage4_qa_set(backend: tuple, note_corpus: dict) -> dict:
     print("\n── Stage 4: QA Set Generation ───────────────────────────────────────")
     notes_json = json.dumps(note_corpus, indent=2)
-    data = call_claude(
-        client,
+    data = call_model(
+        backend,
         prompts.STAGE5_SYSTEM,
         prompts.STAGE5_USER.format(notes_json=notes_json),
         "qa_set",
@@ -218,6 +260,20 @@ def validate_only() -> None:
 
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Synthetic RAG Memory Dataset Pipeline")
+
+    p.add_argument(
+        "--backend", choices=["anthropic", "ollama"], default="anthropic",
+        help="LLM backend to use (default: anthropic)",
+    )
+    p.add_argument(
+        "--model", default=None,
+        help=(
+            "Override the model name. "
+            "Anthropic default: claude-opus-4-6  "
+            "Ollama default: qwen2.5:32b"
+        ),
+    )
+
     group = p.add_mutually_exclusive_group()
     group.add_argument(
         "--stage", type=int, choices=[1, 2, 3, 4],
@@ -242,9 +298,21 @@ def main() -> None:
         validate_only()
         return
 
-    client = get_client()
+    # ── Build backend tuple ───────────────────────────────────────────────────
+    if args.backend == "anthropic":
+        backend = get_anthropic_client()
+        active_model = args.model or ANTHROPIC_MODEL
+        # patch the global so call_model uses the override
+        global ANTHROPIC_MODEL
+        ANTHROPIC_MODEL = active_model
+        print(f"Backend: Anthropic  |  Model: {active_model}")
 
-    # Determine which stages to run
+    else:  # ollama
+        active_model = args.model or OLLAMA_MODEL
+        backend = get_ollama_client(active_model)
+        print(f"Backend: Ollama  |  Model: {active_model}  |  URL: {OLLAMA_BASE_URL}")
+
+    # ── Determine which stages to run ─────────────────────────────────────────
     if args.stage:
         run = {args.stage}
     elif args.from_stage:
@@ -252,29 +320,14 @@ def main() -> None:
     else:
         run = {1, 2, 3, 4}
 
-    print(f"Running stages: {sorted(run)}")
+    print(f"Stages: {sorted(run)}")
 
-    # Stage 1
-    if 1 in run:
-        world_state = stage1_world_state(client)
-    else:
-        world_state = load("world_state")
-
-    # Stage 2
-    if 2 in run:
-        event_stream = stage2_event_stream(client, world_state)
-    else:
-        event_stream = load("event_stream")
-
-    # Stage 3
-    if 3 in run:
-        note_corpus = stage3_note_corpus(client, world_state, event_stream)
-    else:
-        note_corpus = load("note_corpus")
-
-    # Stage 4
+    # ── Execute stages ────────────────────────────────────────────────────────
+    world_state  = stage1_world_state(backend)            if 1 in run else load("world_state")
+    event_stream = stage2_event_stream(backend, world_state)  if 2 in run else load("event_stream")
+    note_corpus  = stage3_note_corpus(backend, world_state, event_stream) if 3 in run else load("note_corpus")
     if 4 in run:
-        stage4_qa_set(client, note_corpus)
+        stage4_qa_set(backend, note_corpus)
 
     print("\n\n── Pipeline complete ─────────────────────────────────────────────────")
     print(f"  Outputs in: {OUTPUT_DIR.resolve()}")
