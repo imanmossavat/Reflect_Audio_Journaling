@@ -3,7 +3,11 @@ prompts.py — Claude prompts for all four pipeline stages.
 
 Each prompt is a (system, user_template) pair.
 The user_template uses .format(**kwargs) for interpolation.
+
+All tunable values (duration, entity counts, etc.) come from config.py.
 """
+
+import config
 
 # ── Shared constraint injected into every system prompt ──────────────────────
 
@@ -26,7 +30,7 @@ Generate a realistic long-term life simulation for ONE primary user. The output 
 
 Requirements:
 - One primary user only.
-- 10–20 recurring entities spanning work, relationships, family, logistics, finances, health, hobbies, routines, travel, digital life, and home maintenance.
+- {config.MIN_ENTITIES}–{config.MAX_ENTITIES} recurring entities spanning work, relationships, family, logistics, finances, health, hobbies, routines, travel, digital life, and home maintenance.
 - Some entities must recur across multiple domains to create retrieval ambiguity.
 - Include major life events AND mundane repetitive behaviors.
 - Include: dormant periods, abandoned habits, stale plans, forgotten intentions, recurring annoyances, unfinished admin tasks, minor repeated failures, emotionally irrational behavior, inconsistencies between stated intentions and actual behavior, changing priorities, and periods where little changes.
@@ -36,41 +40,7 @@ Requirements:
 - Financial and logistical realism: subscriptions, repairs, appointments, insurance, taxes, scheduling friction.
 
 Output schema (return ONLY this JSON, no other text):
-{{
-  "user_profile": {{
-    "name": "string",
-    "age": 0,
-    "occupation": "string"
-  }},
-  "entities": [
-    {{
-      "entity_id": "string",
-      "name": "string",
-      "type": "string",
-      "domains": ["string"]
-    }}
-  ],
-  "story_arcs": [
-    {{
-      "arc_id": "string",
-      "title": "string",
-      "status": "active | dormant | stalled | resolved"
-    }}
-  ],
-  "projects": [
-    {{
-      "project_id": "string",
-      "title": "string",
-      "status": "string"
-    }}
-  ],
-  "latent_facts": [
-    {{
-      "fact_id": "string",
-      "description": "string"
-    }}
-  ]
-}}
+{{"user_profile": {{"name": "string","age": 0,"occupation": "string"}},"entities": [{{"entity_id": "string","name": "string","type": "string","domains": ["string"]}}],"story_arcs": [{{"arc_id": "string","title": "string","status": "active | dormant | stalled | resolved"}}],"projects": [{{"project_id": "string","title": "string","status": "string"}}],"latent_facts": [{{"fact_id": "string","description": "string"}}]}}
 """.strip()
 
 STAGE1_USER = "Generate the latent world state now."
@@ -79,14 +49,14 @@ STAGE1_USER = "Generate the latent world state now."
 # ── Stage 2: Event Stream ─────────────────────────────────────────────────────
 
 STAGE2_SYSTEM = f"""
-You are generating a 90-day event stream from a provided latent world state, for a synthetic RAG benchmark dataset.
+You are generating a {config.DURATION_DAYS}-day event stream from a provided latent world state, for a synthetic RAG benchmark dataset.
 
 {_SHARED_CONSTRAINTS}
 
 You are simulating a noisy, partially incomplete human memory system, not a narrative story.
 
 Requirements:
-- Generate events that evolve existing story arcs over time.
+- Generate events spanning exactly {config.DURATION_DAYS} days.
 - Include recurring routines with realistic irregularity, cancellations, reschedules, partial completions.
 - Include temporal dependencies: later events may depend on earlier ones.
 - Include resurfacing forgotten tasks after delays.
@@ -102,29 +72,15 @@ latent_fact_updates must be event-specific and represent one of: reinforcement, 
 Timestamps must be strictly increasing ISO format: YYYY-MM-DDTHH:MM:SS
 
 Output schema (return ONLY this JSON, no other text):
-{{
-  "events": [
-    {{
-      "event_id": "string",
-      "timestamp": "YYYY-MM-DDTHH:MM:SS",
-      "event_type": "string",
-      "involved_entities": ["string"],
-      "story_arc_id": "string",
-      "latent_fact_updates": ["string"],
-      "importance": 1
-    }}
-  ]
-}}
+{{"events": [{{"event_id": "string","timestamp": "YYYY-MM-DDTHH:MM:SS","event_type": "string","involved_entities": ["string"],"story_arc_id": "string","latent_fact_updates": ["string"],"importance": 1}}]}}
 """.strip()
 
-STAGE2_USER = """Generate the 90-day event stream from this latent world state:
-
-{world_state_json}"""
+STAGE2_USER = "Generate the {duration_days}-day event stream from this latent world state:\n\n{world_state_json}"
 
 
-# ── Stage 4: Note Generation ──────────────────────────────────────────────────
+# ── Stage 3: Note Generation ──────────────────────────────────────────────────
 
-STAGE4_SYSTEM = f"""
+STAGE3_SYSTEM = f"""
 You are converting structured events into realistic personal notes for a RAG benchmark dataset.
 
 {_SHARED_CONSTRAINTS}
@@ -140,31 +96,15 @@ Requirements:
 - Do not turn a note into a diagnosis, interpretation, or psychological summary.
 
 Output schema (return ONLY this JSON, no other text, one note per event):
-{{
-  "notes": [
-    {{
-      "note_id": "string",
-      "timestamp": "YYYY-MM-DDTHH:MM:SS",
-      "note_type": "string",
-      "text": "string",
-      "entities": ["string"],
-      "tags": ["string"],
-      "latent_facts": ["string"],
-      "story_arc_id": "string",
-      "importance": "string"
-    }}
-  ]
-}}
+{{"notes": [{{"note_id": "string","timestamp": "YYYY-MM-DDTHH:MM:SS","note_type": "string","text": "string","entities": ["string"],"tags": ["string"],"latent_facts": ["string"],"story_arc_id": "string","importance": "string"}}]}}
 """.strip()
 
-STAGE4_USER = """Convert these events into personal notes:
-
-{events_json}"""
+STAGE3_USER = "Convert these events into personal notes:\n\n{events_json}"
 
 
-# ── Stage 5: QA Generation ────────────────────────────────────────────────────
+# ── Stage 4: QA Generation ────────────────────────────────────────────────────
 
-STAGE5_SYSTEM = f"""
+STAGE4_SYSTEM = f"""
 You are generating question-answer pairs from a note corpus for a RAG benchmark dataset.
 
 {_SHARED_CONSTRAINTS}
@@ -183,21 +123,7 @@ reasoning_type must be one of: direct_retrieval, multi_hop, temporal, contradict
 answerability must be one of: answerable, unanswerable, partial
 
 Output schema (return ONLY this JSON, no other text):
-{{
-  "qa_pairs": [
-    {{
-      "question_id": "string",
-      "question": "string",
-      "answer": "string",
-      "reasoning_type": "string",
-      "supporting_notes": ["string"],
-      "required_hops": 0,
-      "answerability": "string"
-    }}
-  ]
-}}
+{{"qa_pairs": [{{"question_id": "string","question": "string","answer": "string","reasoning_type": "string","supporting_notes": ["string"],"required_hops": 0,"answerability": "string"}}]}}
 """.strip()
 
-STAGE5_USER = """Generate question-answer pairs from this note corpus:
-
-{notes_json}"""
+STAGE4_USER = "Generate question-answer pairs from this note corpus:\n\n{notes_json}"
