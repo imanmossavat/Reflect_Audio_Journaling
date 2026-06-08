@@ -1,7 +1,6 @@
 from datetime import datetime
 from typing import Any, Optional
 from sqlmodel import Session, select
-from sqlalchemy.orm import selectinload
 from database.models import Chat, Chunk, Source, SourceTag
 from app.services.ranking import SourceMeta
 
@@ -26,23 +25,13 @@ def get_source_ids_in_range(session: Session, start: datetime, end: datetime) ->
 
 
 def get_sources_meta(session: Session, source_ids: list[int]) -> dict[int, SourceMeta]:
-    """Fetch created_at, file_type and tag names for the given sources in one
-    query, keyed by int id. Used to re-rank a retrieved candidate set."""
+    """Fetch created_at for the given sources, keyed by int id, to recency-weight a candidate set."""
     if not source_ids:
         return {}
-    sources = session.exec(
-        select(Source)
-        .where(Source.id.in_(source_ids))
-        .options(selectinload(Source.tags))
+    rows = session.exec(
+        select(Source.id, Source.created_at).where(Source.id.in_(source_ids))
     ).all()
-    return {
-        s.id: SourceMeta(
-            created_at=s.created_at,
-            file_type=s.file_type,
-            tags=frozenset(t.name for t in s.tags),
-        )
-        for s in sources
-    }
+    return {sid: SourceMeta(created_at=created_at) for sid, created_at in rows}
 
 def get_sources_since(session: Session, since_id: int):
     return session.exec(

@@ -17,13 +17,13 @@ from sqlmodel import Session
 from app.db import engine
 from app.repositories.sourceRepository import get_source_ids_in_range, get_sources_meta
 from app.services.chroma import get_chroma_collection
+from app.services import reranker
 from app.services.ranking import (
     HARD_FILTER_STRICT,
     MIN_POOL,
     OVERSAMPLE,
     _node_source_id,
     score_candidates,
-    tokenize_query,
 )
 from app.services.settings_service import get_setting
 from app.services.temporal import parse_temporal_range
@@ -119,34 +119,39 @@ def classify_ollama_error(exc: Exception) -> str:
         return "model_missing"
     return "unknown"
 
-TEXT_QA_TEMPLATE = PromptTemplate(
-    "Context information is below.\n"
-    "---------------------\n"
-    "{context_str}\n"
-    "---------------------\n"
-    "You are answering questions about a journal.\n"
-    "The journal entries are the source of truth.\n\n"
-    "RULE PRIORITY:\n"
-    "1. First-person journal entries refer to the journal author.\n"
-    "2. Do NOT require the name 'Maya' to appear in the text.\n"
-    "3. First-person content is always valid evidence.\n\n"
-    "RULES:\n"
-    "1. Use only information explicitly stated in the journal entries.\n"
-    "Do not add interpretation, psychological explanations, personality traits,\n"
-    "motivations, or behavioral patterns unless explicitly stated.\n\n"
-    "2. Do not generalize from single events into traits or habits.\n\n"
-    "3. Do not convert past events into general or permanent states.\n\n"
-    "4. If multiple notes are relevant, combine them into a single answer.\n"
-    "Do not treat each note in isolation if they refer to related events,\n"
-    "people, or timelines.\n\n"
-    "5. Answer directly if the information exists in the notes.\n\n"
-    "6. If the answer is not explicitly present in the context, respond with EXACTLY:\n"
-    "I don't know based on the notes.\n\n"
-    "No explanation, no punctuation, no extra text.\n\n"
-    "7. Always use 'you' and 'your' in your response when referring to the journal author.\n"
-    "Do NOT use 'I' or 'me'.\n\n"
-    "Question: {query_str}\n"
-    "Answer: "
+TEXT_QA_TEMPLATE = PromptTemplate("""
+Context information is below.
+    ---------------------
+    {context_str}\
+    ---------------------
+    You are answering questions about a journal.
+    The journal entries are the source of truth.\n
+    RULE PRIORITY:
+    1. First-person journal entries refer to the journal author.
+    2. First-person content is always valid evidence.\n
+    RULES:
+    1. Use only information explicitly stated in the journal entries.
+    Do not add interpretation, psychological explanations, personality traits,
+    motivations, or behavioral patterns unless explicitly stated.\n
+    2. Do not generalize from single events into traits or habits.\n
+    3. Do not convert past events into general or permanent states.\n
+    4. If multiple notes are relevant, combine them into a single answer.
+    Do not treat each note in isolation if they refer to related events,
+    people, or timelines.\n
+    5. If the notes contain information relevant to the question, you MUST answer
+    using it. Answer even if the evidence is indirect, partial, or spread across
+    several notes -- combine what is there. Do not refuse just because the answer
+    is incomplete or not stated word-for-word.\n
+    6. Refuse ONLY when NOTHING in the context bears on the question. In that single
+    case, respond with EXACTLY:
+    I don't know based on the notes.\n
+    No explanation, no punctuation, no extra text.\n
+    7. Always use 'you' and 'your' in your response when referring to the journal author.
+    Do NOT use 'I' or 'me'. \n
+    Question: {query_str}
+    Answer:
+"""
+    
 )
 
 _llamaindex_signature: tuple[str, str, str] | None = None
@@ -167,7 +172,7 @@ def configure_llamaindex() -> None:
     Settings.llm = Ollama(
         model=llm,
         base_url=host,
-        request_timeout=120.0,
+        request_timeout=6700.0,
         temperature=0.0,
     )
     _llamaindex_signature = signature
@@ -184,6 +189,16 @@ def _get_index() -> VectorStoreIndex:
         vector_store, storage_context=storage_context
     )
 
+def _chunk_metadata(chunk: dict) -> dict[str, Any]:
+    """Node metadata for a chunk; created_at_ts/modality stamped when present (Chroma rejects None)."""
+    metadata: dict[str, Any] = {"source_id": chunk["source_id"], "chunk_id": chunk["id"]}
+    if chunk.get("created_at_ts") is not None:
+        metadata["created_at_ts"] = int(chunk["created_at_ts"])
+    if chunk.get("modality") is not None:
+        metadata["modality"] = chunk["modality"]
+    return metadata
+
+
 def index_chunks(chunks: list[dict]):
     configure_llamaindex()
     collection = get_chroma_collection()
@@ -194,14 +209,15 @@ def index_chunks(chunks: list[dict]):
         TextNode(
             text=c["text"],
             id_=str(c["id"]),
-            metadata={"source_id": c["source_id"], "chunk_id": c["id"]},
+            metadata=_chunk_metadata(c),
         )
         for c in chunks
     ]
 
     VectorStoreIndex(nodes, storage_context=storage_context)
 
-def ranked_retrieve(question: str, top_k: int = 5, session: Session | None = None) -> list[Any]:
+def ranked_retrieve(question: str, top_k: int = 5, session: Session | None = None,
+                    modality: str | None = None) -> list[Any]:
     configure_llamaindex()
     index = _get_index()
     now = datetime.utcnow()
@@ -211,25 +227,25 @@ def ranked_retrieve(question: str, top_k: int = 5, session: Session | None = Non
     session = session or Session(engine)
     try:
         date_range = parse_temporal_range(question, now)
-        filters = None
+        filter_list: list[MetadataFilter] = []
+        if modality:
+            filter_list.append(MetadataFilter(key="modality", value=modality, operator=FilterOperator.EQ))
         if date_range and date_range.hard:
             ids = get_source_ids_in_range(session, date_range.start, date_range.end)
             if ids:
-                filters = MetadataFilters(
-                    filters=[
-                        MetadataFilter(
-                            key="source_id",
-                            value=[str(i) for i in ids],
-                            operator=FilterOperator.IN,
-                        )
-                    ]
+                filter_list.append(
+                    MetadataFilter(
+                        key="source_id",
+                        value=[str(i) for i in ids],
+                        operator=FilterOperator.IN,
+                    )
                 )
             elif HARD_FILTER_STRICT:
                 # No in-range sources and strict mode: honor the window literally.
                 return []
-            # Lenient (default): fall through with no filter; the soft recency
-            # decay still floats recent entries up.
+            # Lenient (default): fall through; soft recency decay still floats recent entries up.
 
+        filters = MetadataFilters(filters=filter_list) if filter_list else None
         nodes = index.as_retriever(similarity_top_k=pool_k, filters=filters).retrieve(question)
 
         # Backfill a sparse filtered pool with unfiltered hits so we never truncate below top_k; recency decay keeps in-range items on top.
@@ -240,7 +256,8 @@ def ranked_retrieve(question: str, top_k: int = 5, session: Session | None = Non
 
         source_ids = [sid for sid in (_node_source_id(n) for n in nodes) if sid is not None]
         meta_by_id = get_sources_meta(session, source_ids)
-        scored = score_candidates(nodes, meta_by_id, tokenize_query(question), now)
+        reranked = reranker.rerank(question, nodes)
+        scored = score_candidates(reranked, meta_by_id, now)
         _log_ranking(question, scored)
         return [s.node for s in scored[:top_k]]
     finally:
@@ -249,22 +266,20 @@ def ranked_retrieve(question: str, top_k: int = 5, session: Session | None = Non
 
 
 def _log_ranking(question: str, scored: list[Any]) -> None:
-    """Log the per-query component contributions (embedding / time / metadata) so
-    the reranking weights in ranking.RankWeights can be tuned empirically."""
+    """Log per-query component contributions (relevance / time) for empirical weight tuning."""
     breakdown = " | ".join(
         f"src={s.node.node.metadata.get('source_id')} "
         f"total={s.breakdown.total:.3f}"
-        f"[sim={s.breakdown.similarity:.3f} "
-        f"time={s.breakdown.temporal:.3f} "
-        f"meta={s.breakdown.metadata:.3f}]"
+        f"[rel={s.breakdown.relevance:.3f} "
+        f"time={s.breakdown.temporal:.3f}]"
         for s in scored
     )
     logger.info("rerank %r -> %s", question[:80], breakdown)
 
 
-def retrieve_nodes(question: str, top_k: int = 5) -> list[Any]:
+def retrieve_nodes(question: str, top_k: int = 5, modality: str | None = None) -> list[Any]:
     """Returns the top_k retrieved nodes for `question` without running the LLM step."""
-    return ranked_retrieve(question, top_k=top_k)
+    return ranked_retrieve(question, top_k=top_k, modality=modality)
 
 
 def serialize_retrieved_nodes(nodes: list[Any]) -> list[dict[str, Any]]:
@@ -290,14 +305,14 @@ def build_context_str(nodes: list[Any]) -> str:
     return "\n\n".join((source.node.get_content() or "").strip() for source in nodes or [])
 
 
-def query_sources(question: str, top_k: int = 5) -> dict[str, Any]:
+def query_sources(question: str, top_k: int = 5, modality: str | None = None) -> dict[str, Any]:
     """Retrieve (temporal-aware, re-ranked) then synthesize an answer.
 
     Shares the retrieval + ranking path with the streaming route via
     ranked_retrieve, so both routes rank identically.
     """
     configure_llamaindex()
-    nodes = ranked_retrieve(question, top_k=top_k)
+    nodes = ranked_retrieve(question, top_k=top_k, modality=modality)
     context_str = build_context_str(nodes)
     prompt = TEXT_QA_TEMPLATE.format(context_str=context_str, query_str=question)
     answer_text = Settings.llm.complete(prompt).text

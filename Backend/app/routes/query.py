@@ -56,12 +56,14 @@ def _embed_model() -> str:
 class QueryRequest(BaseModel):
     question: str
     top_k: int = 5
+    modality: str | None = None
 
 
 class QueryStreamRequest(BaseModel):
     chat_id: int
     question: str
     top_k: int = 5
+    modality: str | None = None
 
 
 @router.post("/query", tags=["Query"], response_model=QueryResponse)
@@ -93,7 +95,7 @@ async def query(request: QueryRequest):
         )
 
     try:
-        result = query_sources(request.question, top_k=request.top_k)
+        result = query_sources(request.question, top_k=request.top_k, modality=request.modality)
     except Exception as exc:
         kind = classify_ollama_error(exc)
         if kind == "not_running":
@@ -161,7 +163,7 @@ async def query_stream(request: QueryStreamRequest):
 
         try:
             yield _sse("stage", {"name": "searching"})
-            nodes = retrieve_nodes(request.question, top_k=request.top_k)
+            nodes = retrieve_nodes(request.question, top_k=request.top_k, modality=request.modality)
             yield _sse("stage", {"name": "retrieved", "count": len(nodes)})
 
             context_str = build_context_str(nodes)

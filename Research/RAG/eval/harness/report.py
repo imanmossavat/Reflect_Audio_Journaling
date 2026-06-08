@@ -1,26 +1,31 @@
-"""Summarize results/judged.csv into per-failure-mode counts and the
-'these questions go wrong and in this sense' table the user asked for.
+"""Summarize a run's judged.csv into per-failure-mode counts and the
+'these questions go wrong and in this sense' table.
 
-Writes results/summary.csv and prints a readable table.
+Input:  <results-dir>/judged.csv
+Output: <results-dir>/failure_modes.csv  (+ printed table)
 
-Run: python report.py
+Run: python harness/report.py --results-dir runs/baseline/<ts>_<hash>
 """
+import argparse
 import csv
 import sys
 from collections import Counter, defaultdict
 from pathlib import Path
 
-HERE = Path(__file__).resolve().parent
-JUDGED_CSV = HERE / "results" / "judged.csv"
-SUMMARY_CSV = HERE / "results" / "summary.csv"
-
 
 def main() -> int:
-    if not JUDGED_CSV.exists():
-        print(f"{JUDGED_CSV} not found. Run judge.py first.", file=sys.stderr)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--results-dir", required=True, help="run folder containing judged.csv")
+    args = parser.parse_args()
+
+    results_dir = Path(args.results_dir)
+    judged_csv = results_dir / "judged.csv"
+    summary_csv = results_dir / "failure_modes.csv"
+    if not judged_csv.exists():
+        print(f"{judged_csv} not found. Run judge.py first.", file=sys.stderr)
         return 1
 
-    rows = list(csv.DictReader(JUDGED_CSV.open(encoding="utf-8")))
+    rows = list(csv.DictReader(judged_csv.open(encoding="utf-8")))
     counts = Counter(r["failure_mode"] for r in rows)
     by_mode: dict[str, list[dict]] = defaultdict(list)
     for r in rows:
@@ -29,7 +34,7 @@ def main() -> int:
     total = len(rows)
     print()
     print("=" * 72)
-    print(f"Maya RAG eval — {total} questions")
+    print(f"RAG eval — {total} questions  ({results_dir.name})")
     print("=" * 72)
     print(f"{'failure_mode':<30s} {'count':>5s}  {'%':>5s}")
     print("-" * 72)
@@ -56,13 +61,13 @@ def main() -> int:
             print(f"  {r['id']}: {r['question']}")
             print(f"     -> {r['rationale']}")
 
-    with SUMMARY_CSV.open("w", encoding="utf-8", newline="") as f:
+    with summary_csv.open("w", encoding="utf-8", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(["failure_mode", "count", "percent"])
         for mode, n in counts.most_common():
             writer.writerow([mode, n, f"{n*100/total:.1f}"])
 
-    print(f"\nWrote summary to {SUMMARY_CSV}")
+    print(f"\nWrote summary to {summary_csv}")
     return 0
 
 

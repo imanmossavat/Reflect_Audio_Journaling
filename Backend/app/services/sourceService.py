@@ -63,6 +63,7 @@ def _process_source_sync(source_id: int) -> None:
         file_type = source.file_type
         file_path = source.file_path
         text = source.text
+        created_at = source.created_at
 
     try:
         #Transcribe
@@ -118,8 +119,15 @@ def _process_source_sync(source_id: int) -> None:
         # Short-lived write to persist chunks
         with Session(engine) as session:
             db_chunks = sourceRepository.create_chunks(session, source_id, chunks)
+            created_at_ts = int(created_at.timestamp()) if created_at else None
             chunk_dicts = [
-                {"id": str(c.id), "text": c.chunk_text, "source_id": str(source_id)}
+                {
+                    "id": str(c.id),
+                    "text": c.chunk_text,
+                    "source_id": str(source_id),
+                    "created_at_ts": created_at_ts,
+                    "modality": file_type,
+                }
                 for c in db_chunks
             ]
 

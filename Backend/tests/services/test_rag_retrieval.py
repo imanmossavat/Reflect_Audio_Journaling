@@ -40,6 +40,8 @@ def patched(monkeypatch):
     """Stub out LlamaIndex config + SQL so ranked_retrieve is pure-ish."""
     monkeypatch.setattr(rag, "configure_llamaindex", lambda: None)
     monkeypatch.setattr(rag, "get_sources_meta", lambda *a, **k: {})
+    # Identity reranker: reuse the embedding score as relevance (no model load).
+    monkeypatch.setattr(rag.reranker, "rerank", lambda question, ns: [(n, n.score) for n in ns])
     # 6 nodes so the default top_k=5 never triggers backfill unless we want it.
     nodes = [make_node(i, 1.0 - i * 0.1, f"n{i}") for i in range(6)]
     index = FakeIndex(nodes)
@@ -95,7 +97,7 @@ def test_retrieve_nodes_delegates(monkeypatch):
     calls = []
     monkeypatch.setattr(
         rag, "ranked_retrieve",
-        lambda question, top_k=5, session=None: calls.append((question, top_k)) or ["x"],
+        lambda question, top_k=5, session=None, modality=None: calls.append((question, top_k)) or ["x"],
     )
     assert rag.retrieve_nodes("q", top_k=7) == ["x"]
     assert calls == [("q", 7)]
@@ -106,7 +108,7 @@ def test_query_sources_delegates(monkeypatch):
     monkeypatch.setattr(rag, "configure_llamaindex", lambda: None)
     monkeypatch.setattr(
         rag, "ranked_retrieve",
-        lambda question, top_k=5, session=None: calls.append((question, top_k)) or [],
+        lambda question, top_k=5, session=None, modality=None: calls.append((question, top_k)) or [],
     )
     monkeypatch.setattr(rag, "build_context_str", lambda nodes: "ctx")
     monkeypatch.setattr(rag, "serialize_retrieved_nodes", lambda nodes: [])
