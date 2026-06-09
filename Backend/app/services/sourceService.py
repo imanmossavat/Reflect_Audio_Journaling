@@ -12,6 +12,7 @@ import strip_markdown
 
 from app.db import engine
 from app.repositories import sourceRepository
+from app.services.chroma import get_chroma_collection
 from app.services.chunking import chunk_text
 from app.services.rag import check_model_installed, classify_ollama_error, index_chunks
 from app.services.transcription import TranscriptionManager
@@ -334,6 +335,12 @@ async def delete_source(session: Session, source_id: int):
     if not source:
         raise HTTPException(status_code=404, detail="Source not found.")
     sourceRepository.delete_source(session, source_id)
+    # Drop the source's vectors too, or RAG keeps retrieving orphaned chunks.
+    # Chunks are indexed with source_id stored as a string (see _process_source_sync).
+    try:
+        get_chroma_collection().delete(where={"source_id": str(source_id)})
+    except Exception as exc:
+        logger.warning(f"Chroma delete for source {source_id} failed: {exc}")
     return {"ok": True}
 
 

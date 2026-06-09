@@ -98,13 +98,25 @@ def write_summary_csv(path: Path, summary: dict) -> None:
 
 # --------------------------------------------------------------------------- answer scoring
 
+_THINK_BLOCK = re.compile(r"<(think|thinking)\b[^>]*>.*?</\1>", re.IGNORECASE | re.DOTALL)
+
+
+def strip_thinking(text: str) -> str:
+    """Drop any inline <think>…</think> / <thinking>…</thinking> reasoning block.
+
+    Thinking-capable models (deepseek-r1, gpt-oss, qwen3, …) can emit the chain of
+    thought inline in the answer text. Scoring (refusal / alias matching) must see only
+    the visible answer, or a stray mention inside the reasoning would skew the labels."""
+    return _THINK_BLOCK.sub(" ", text or "").strip()
+
+
 def _norm(s: str) -> str:
     """Lowercase, strip punctuation to spaces, collapse whitespace."""
     return re.sub(r"\s+", " ", re.sub(r"[^a-z0-9]+", " ", (s or "").lower())).strip()
 
 
 def is_refusal(text: str) -> bool:
-    t = (text or "").strip().lower().replace("’", "'")
+    t = strip_thinking(text).lower().replace("’", "'")
     return (
         t.startswith(("i don't know", "i do not know", "i dont know"))
         or "don't know based on the notes" in t
@@ -150,7 +162,7 @@ def build_state_index(world_path: Path) -> dict[str, set[str]]:
 
 
 def classify_answer(qmeta: dict, row: dict, state_index: dict[str, set[str]], k: int) -> str:
-    gen = row.get("generated_answer", "") or ""
+    gen = strip_thinking(row.get("generated_answer", ""))
     gen_norm = _norm(gen)
 
     if qmeta.get("answerability") == "unanswerable":

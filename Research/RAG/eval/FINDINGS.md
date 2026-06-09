@@ -8,6 +8,18 @@ Read alongside `GUIDE.md` (why the harness is built this way) and `README.md` (h
 
 ---
 
+## 2026-06-09 — added a thinking toggle (harness can now compare think on/off)
+
+**Change (no run yet):** wired the new `thinking_enabled` setting through the eval path.
+- `rag.configure_llamaindex()` now passes `thinking = thinking_enabled AND model_supports_thinking(chat_model)` to the LlamaIndex `Ollama` LLM (added to the rebuild signature). Previously the eval path — `query_sources` → `Settings.llm.complete()` — never set `think`, so thinking was untestable here even though the streaming route used it.
+- `run_eval.py`: `--thinking` / `--no-thinking` override settings.json for a single run; the **effective** value (after capability gating) is recorded in `config.json` as `thinking_enabled`.
+- `metrics.py`: `strip_thinking()` drops inline `<think>…</think>` blocks before refusal/alias matching, so reasoning text can't skew CORRECT/refusal labels.
+- `compare_runs.ipynb`: run labels get a `+think` tag so think-on vs -off runs are distinguishable in every chart.
+
+**Next:** run `--no-thinking` vs `--thinking` on `stateful` (same chat model) to see whether thinking moves answer_accuracy / WRONG_STATE.
+
+---
+
 ## 2026-06-08 — reranker ON vs OFF (`130136Z` = OFF) is a wash; generator masks all retrieval signal
 
 **Config:** reranker **OFF** · embed `nomic-embed-text` · chat `gemma4:26b` · top_k 5 · **old prompt**.

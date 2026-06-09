@@ -3,15 +3,19 @@ from pydantic import BaseModel
 import json
 
 from app.services.rag import (
-    TEXT_QA_TEMPLATE,
+    CONTEXT_QA_TEMPLATE,
+    MAX_HISTORY_MESSAGES,
+    SYSTEM_PROMPT,
     build_context_str,
     check_model_installed,
     check_ollama_state,
     classify_ollama_error,
+    condense_question,
     model_supports_thinking,
     query_sources,
     retrieve_nodes,
     serialize_retrieved_nodes,
+    to_chat_messages,
 )
 from app.services.settings_service import get_setting
 from app.services import chatService
@@ -26,7 +30,7 @@ from app import logging_config
 from app.db import engine, get_latest_source
 from app.prompts import simpler_dictionary_question_prompt
 from app.prompts import tag_extraction_prompt
-from app.repositories import tagRepository
+from app.repositories import chatRepository, tagRepository
 from app.schemas.journalSchemas import (
     ExtractedTagSchema,
     ExtractedTagsResponse,
@@ -159,16 +163,46 @@ async def query_stream(request: QueryStreamRequest):
             yield _sse("error", {"detail": f"The required {label} installed yet. Run `{commands}` in your terminal, then try again."})
             return
 
-        supports_thinking = model_supports_thinking(chat_model)
+        supports_thinking = bool(get_setting("thinking_enabled")) and model_supports_thinking(chat_model)
 
         try:
+            # Load prior conversation. The user's current question is already the
+            # last stored row (the frontend persists it before streaming), so drop
+            # it here and re-inject it below with the retrieved context attached.
+            with Session(engine) as session:
+                history = to_chat_messages(chatRepository.get_messages(session, request.chat_id))
+            if history and history[-1]["role"] == "user":
+                history = history[:-1]
+            history = history[-MAX_HISTORY_MESSAGES:]
+
             yield _sse("stage", {"name": "searching"})
-            nodes = retrieve_nodes(request.question, top_k=request.top_k, modality=request.modality)
+            # Conversation-aware retrieval: rewrite follow-ups ("tell me more about
+            # that") into a standalone query so embeddings match the real topic.
+            search_query = condense_question(history, request.question)
+            nodes = retrieve_nodes(search_query, top_k=request.top_k, modality=request.modality)
+            sources_payload = serialize_retrieved_nodes(nodes)
+            logger.info(
+                "retrieved %d chunk(s) | original=%r | search_query=%r:\n%s",
+                len(sources_payload),
+                request.question,
+                search_query,
+                json.dumps(sources_payload, indent=2, ensure_ascii=False, default=str),
+            )
             yield _sse("stage", {"name": "retrieved", "count": len(nodes)})
 
             context_str = build_context_str(nodes)
-            prompt = TEXT_QA_TEMPLATE.format(context_str=context_str, query_str=request.question)
-            messages = [{"role": "user", "content": prompt}]
+            user_turn = CONTEXT_QA_TEMPLATE.format(context_str=context_str, query_str=request.question)
+            messages = [
+                {"role": "system", "content": SYSTEM_PROMPT},
+                *history,
+                {"role": "user", "content": user_turn},
+            ]
+            logger.info(
+                "ollama.chat messages (model=%s, think=%s):\n%s",
+                chat_model,
+                supports_thinking,
+                json.dumps(messages, indent=2, ensure_ascii=False),
+            )
 
             answer_parts: list[str] = []
             thinking_parts: list[str] = []
@@ -200,7 +234,6 @@ async def query_stream(request: QueryStreamRequest):
                     answer_parts.append(content_delta)
                     yield _sse("token", {"delta": content_delta})
 
-            sources_payload = serialize_retrieved_nodes(nodes)
             yield _sse("sources", {"sources": sources_payload})
 
             answer_text = "".join(answer_parts).strip() or "(empty response)"

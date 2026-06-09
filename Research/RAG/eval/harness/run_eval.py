@@ -44,7 +44,8 @@ def _git_short_hash() -> str:
         return "nogit"
 
 
-def _make_run_dir(dataset: str, top_k: int, reranker: bool, questions: str) -> tuple[Path, dict]:
+def _make_run_dir(dataset: str, top_k: int, reranker: bool, questions: str,
+                  thinking: bool) -> tuple[Path, dict]:
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     git_hash = _git_short_hash()
     run_dir = _bootstrap.RUNS_DIR / dataset / f"{stamp}_{git_hash}"
@@ -55,6 +56,7 @@ def _make_run_dir(dataset: str, top_k: int, reranker: bool, questions: str) -> t
         "git_hash": git_hash,
         "top_k": top_k,
         "reranker": reranker,
+        "thinking_enabled": thinking,
         "questions": questions,
         "embed_model": get_setting("embed_model"),
         "chat_model": get_setting("chat_model"),
@@ -68,6 +70,11 @@ def main() -> int:
                         help=f"dataset name under datasets/ (have: {', '.join(_bootstrap.list_datasets()) or 'none'})")
     parser.add_argument("--top-k", type=int, default=5)
     parser.add_argument("--reranker", action="store_true", help="Record reranker=on in this run's config.")
+    thinking_grp = parser.add_mutually_exclusive_group()
+    thinking_grp.add_argument("--thinking", dest="thinking", action="store_true", default=None,
+                              help="Force thinking ON for this run (overrides settings.json).")
+    thinking_grp.add_argument("--no-thinking", dest="thinking", action="store_false",
+                              help="Force thinking OFF for this run (overrides settings.json).")
     parser.add_argument("--questions", default="questions.json",
                         help="Question set filename within the dataset dir (e.g. questions_multi.json).")
     args = parser.parse_args()
@@ -87,7 +94,15 @@ def main() -> int:
     source_to_note = {int(k): v for k, v in json.loads(index_map_path.read_text(encoding="utf-8")).items()}
 
     _apply_eval_isolation(args.reranker)
-    run_dir, config = _make_run_dir(args.dataset, args.top_k, args.reranker, args.questions)
+
+    # Resolve the thinking toggle: CLI flag overrides settings.json for this run only.
+    requested_thinking = get_setting("thinking_enabled") if args.thinking is None else args.thinking
+    rag_module._thinking_enabled = lambda: bool(requested_thinking)
+    # Effective = requested AND the chat model actually supports thinking.
+    effective_thinking = bool(requested_thinking) and rag_module.model_supports_thinking(get_setting("chat_model"))
+    rag_module.configure_llamaindex()  # rebuild the LLM with the resolved thinking flag
+
+    run_dir, config = _make_run_dir(args.dataset, args.top_k, args.reranker, args.questions, effective_thinking)
     raw_csv = run_dir / "raw.csv"
     raw_jsonl = run_dir / "raw.jsonl"
 

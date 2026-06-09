@@ -2,6 +2,7 @@ import shutil
 from datetime import datetime
 
 import httpx
+import ollama
 from llama_index.core import VectorStoreIndex, StorageContext, Settings
 from llama_index.core.schema import TextNode
 from llama_index.core.vector_stores import MetadataFilter, MetadataFilters, FilterOperator
@@ -119,42 +120,80 @@ def classify_ollama_error(exc: Exception) -> str:
         return "model_missing"
     return "unknown"
 
-TEXT_QA_TEMPLATE = PromptTemplate("""
-Context information is below.
-    ---------------------
-    {context_str}\
-    ---------------------
-    You are answering questions about a journal.
-    The journal entries are the source of truth.\n
-    RULE PRIORITY:
-    1. First-person journal entries refer to the journal author.
-    2. First-person content is always valid evidence.\n
-    RULES:
-    1. Use only information explicitly stated in the journal entries.
-    Do not add interpretation, psychological explanations, personality traits,
-    motivations, or behavioral patterns unless explicitly stated.\n
-    2. Do not generalize from single events into traits or habits.\n
-    3. Do not convert past events into general or permanent states.\n
-    4. If multiple notes are relevant, combine them into a single answer.
-    Do not treat each note in isolation if they refer to related events,
-    people, or timelines.\n
-    5. If the notes contain information relevant to the question, you MUST answer
-    using it. Answer even if the evidence is indirect, partial, or spread across
-    several notes -- combine what is there. Do not refuse just because the answer
-    is incomplete or not stated word-for-word.\n
-    6. Refuse ONLY when NOTHING in the context bears on the question. In that single
-    case, respond with EXACTLY:
-    I don't know based on the notes.\n
-    No explanation, no punctuation, no extra text.\n
-    7. Always use 'you' and 'your' in your response when referring to the journal author.
-    Do NOT use 'I' or 'me'. \n
-    Question: {query_str}
-    Answer:
-"""
-    
-)
+# The answering rules / persona. Sent ONCE as a `system` message in the chat path,
+# and folded into the single-string TEXT_QA_TEMPLATE for the stateless /query path.
+SYSTEM_PROMPT = """You are a thoughtful assistant helping someone reflect on their
+personal journal. The journal entries provided as context are your reference for
+recalling facts about the author's life, but they are only a partial record — the
+author may know, remember, or tell you things that were never written down.
 
-_llamaindex_signature: tuple[str, str, str] | None = None
+You are in an ongoing conversation. Earlier turns are available to you; use them to
+resolve follow-ups and references such as "tell me more about that", "repeat that",
+or "summarize what we just discussed".
+
+The latest message is not always a question. Decide what it is and respond accordingly:
+- Greeting, small talk, thanks, or a meta-request about the conversation itself
+  ("hello", "thanks", "repeat that", "what did we just discuss"): respond naturally
+  and briefly. Do not pull facts from the journal and do not use the refusal line.
+- A statement, correction, or something the author tells you about their life
+  ("actually that meeting was a company visit", "I forgot to mention X"): accept it
+  and engage naturally. The author knows their own life better than the notes do, so
+  do NOT contradict or "correct" them just because something is not in the notes, and
+  do not use the refusal line.
+- A question about the author's life: answer it using the journal entries, following
+  the grounding rules below.
+
+GROUNDING RULES (for questions about the author):
+1. First-person journal entries refer to the journal author, and first-person content
+   is always valid evidence.
+2. Use only information explicitly stated in the journal entries. Do not add
+   interpretation, psychological explanations, personality traits, motivations, or
+   behavioral patterns unless explicitly stated.
+3. Do not generalize from single events into traits or habits, and do not convert
+   past events into general or permanent states.
+4. If multiple notes are relevant, combine them into a single answer. Do not treat
+   each note in isolation if they refer to related events, people, or timelines.
+5. If the notes contain relevant information, you MUST answer using it, even if the
+   evidence is indirect, partial, or spread across several notes. Do not refuse just
+   because the answer is incomplete or not stated word-for-word.
+6. If — and only if — the message is a genuine question about the author and NOTHING
+   in the context or earlier conversation bears on it, respond with EXACTLY:
+   I don't know based on the notes.
+   No explanation, no punctuation, no extra text.
+
+VOICE:
+Address the journal author as 'you' and 'your'. Never retell their entries in the
+first person"""
+
+
+# Per-turn body for the chat path (the final `user` message; rules live in
+# SYSTEM_PROMPT above). Framed as "the latest message" rather than "Question:/Answer:"
+# so greetings, statements, and corrections aren't forced into Q&A mode — the routing
+# in SYSTEM_PROMPT decides how to respond.
+CONTEXT_QA_TEMPLATE = PromptTemplate("""Some of the author's journal entries that may be relevant are below (they may not relate to the message at all).
+---------------------
+{context_str}
+---------------------
+Latest message from the author: {query_str}""")
+
+# Single-string prompt for the stateless /query path (pure Q&A, no conversation):
+# Settings.llm.complete has no message roles, so rules + context + question are
+# combined into one prompt. Keeps the explicit Question/Answer framing for eval.
+_QA_BODY = """Context information from the journal is below.
+---------------------
+{context_str}
+---------------------
+Question: {query_str}
+Answer:"""
+
+TEXT_QA_TEMPLATE = PromptTemplate(SYSTEM_PROMPT + "\n\n" + _QA_BODY)
+
+
+def _thinking_enabled() -> bool:
+    return bool(get_setting("thinking_enabled"))
+
+
+_llamaindex_signature: tuple[str, str, str, bool] | None = None
 
 
 def configure_llamaindex() -> None:
@@ -162,7 +201,9 @@ def configure_llamaindex() -> None:
     embed = _embed_model()
     llm = _llm_model()
     host = _ollama_base_url()
-    signature = (embed, llm, host)
+    # Only think when the toggle is on AND the model actually supports it.
+    thinking = _thinking_enabled() and model_supports_thinking(llm)
+    signature = (embed, llm, host, thinking)
     if _llamaindex_signature == signature:
         return
     Settings.embed_model = OllamaEmbedding(
@@ -174,6 +215,7 @@ def configure_llamaindex() -> None:
         base_url=host,
         request_timeout=6700.0,
         temperature=0.0,
+        thinking=thinking,
     )
     _llamaindex_signature = signature
 
@@ -303,6 +345,81 @@ def serialize_retrieved_nodes(nodes: list[Any]) -> list[dict[str, Any]]:
 def build_context_str(nodes: list[Any]) -> str:
     """Join retrieved node texts into the `{context_str}` block for TEXT_QA_TEMPLATE."""
     return "\n\n".join((source.node.get_content() or "").strip() for source in nodes or [])
+
+
+# Map persisted chat roles to standard chat-completion roles. A user turn is stored
+# as "answer" and an assistant turn as "question" (legacy reflection-mode naming).
+_ROLE_TO_CHAT = {"answer": "user", "question": "assistant"}
+
+# Cap how much history we replay so small local models keep budget for the notes.
+MAX_HISTORY_MESSAGES = 12
+CONDENSE_HISTORY_MESSAGES = 6
+
+
+def to_chat_messages(records: list[Any]) -> list[dict[str, str]]:
+    """Map persisted ChatMessage rows to user/assistant chat messages.
+
+    Duck-typed on `.role`/`.text` so it doesn't import the DB model. Empty-text
+    rows (e.g. scale-only reflection answers) are skipped.
+    """
+    messages: list[dict[str, str]] = []
+    for record in records:
+        role = _ROLE_TO_CHAT.get(getattr(record, "role", ""))
+        text = (getattr(record, "text", "") or "").strip()
+        if role and text:
+            messages.append({"role": role, "content": text})
+    return messages
+
+
+CONDENSE_TEMPLATE = """Given the conversation so far and a follow-up message, rewrite \
+the follow-up into a standalone search query for retrieving journal entries. Resolve \
+pronouns and references ("that", "it", "the meeting") using the conversation. Keep it \
+concise and keep the user's wording where possible. Output ONLY the rewritten query \
+with no preamble or quotes.
+
+Conversation:
+{history_str}
+
+Follow-up: {question}
+
+Standalone query:"""
+
+
+def _format_history_for_condense(history: list[dict[str, str]]) -> str:
+    lines = []
+    for message in history[-CONDENSE_HISTORY_MESSAGES:]:
+        speaker = "User" if message["role"] == "user" else "Assistant"
+        lines.append(f"{speaker}: {message['content']}")
+    return "\n".join(lines)
+
+
+def condense_question(history: list[dict[str, str]], question: str) -> str:
+    """Rewrite a follow-up into a standalone retrieval query using recent history.
+
+    Returns the original question unchanged when there is no prior history or the
+    rewrite fails, so retrieval never breaks because of the condense step.
+    """
+    if not history:
+        return question
+    prompt = CONDENSE_TEMPLATE.format(
+        history_str=_format_history_for_condense(history),
+        question=question,
+    )
+    try:
+        response = ollama.chat(
+            model=_llm_model(),
+            messages=[{"role": "user", "content": prompt}],
+            stream=False,
+            think=False,
+            options={"temperature": 0.0},
+        )
+        rewritten = ((response.get("message") or {}).get("content") or "").strip()
+        if rewritten:
+            logger.info("condense %r -> %r", question[:80], rewritten[:80])
+            return rewritten
+    except Exception as exc:
+        logger.warning(f"Query condensing failed, using raw question: {exc}")
+    return question
 
 
 def query_sources(question: str, top_k: int = 5, modality: str | None = None) -> dict[str, Any]:
