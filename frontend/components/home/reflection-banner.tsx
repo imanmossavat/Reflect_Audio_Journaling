@@ -29,6 +29,7 @@ export function ReflectionBanner({
     return (
       <div className="border-b bg-muted/10 px-6 py-2 shrink-0">
         <button
+          data-tour="reflect"
           onClick={onStart}
           className="flex items-center gap-2 rounded-md px-2 py-1 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
         >

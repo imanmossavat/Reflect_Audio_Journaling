@@ -85,7 +85,7 @@ export function ChatInput({
   }, [inputValue, maxHeightPx])
 
   return (
-    <div className="bg-background p-4">
+    <div data-tour="chat" className="bg-background p-4">
       <div className="max-w-2xl mx-auto">
         {(showPrompts || activeChatId !== null) && (
           <div className="flex items-end gap-3 mb-3">

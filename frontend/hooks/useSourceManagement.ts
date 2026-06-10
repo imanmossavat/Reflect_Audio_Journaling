@@ -182,8 +182,10 @@ export function useSourceManagement() {
             .filter((id) => Number.isInteger(id) && id > 0)
         )
         if (inProgress.size > 0) setProcessingSources(inProgress)
+        // Onboard on the profile alone: a fresh install now ships a seeded
+        // example note, so "no sources" can no longer stand in for "new user".
         const hasProfile = Boolean(window.localStorage.getItem(profileStorageKey))
-        setIsOnboardingOpen(!hasProfile && mapped.length === 0)
+        setIsOnboardingOpen(!hasProfile)
       } catch (error) {
         toast.error(`Could not load sources: ${error instanceof Error ? error.message : "Unknown error"}`)
       } finally {

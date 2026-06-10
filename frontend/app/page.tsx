@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import {
   FileText,
   MessageSquare,
@@ -16,6 +16,7 @@ import {
   Sparkles,
 } from "lucide-react"
 import { OnboardingModal } from "@/components/onboarding-modal"
+import Tour, { buildTourSteps } from "@/components/Tour"
 import { TopNav } from "@/components/top-nav"
 import { SourceListPanel } from "@/components/home/source-list-panel"
 import { ChatListPanel } from "@/components/home/chat-list-panel"
@@ -36,6 +37,7 @@ import type { LeftTab } from "@/components/home/types"
 import { toast } from "sonner"
 
 const leftTabStorageKey = "reflect_left_tab"
+const tourSeenStorageKey = "reflect.tour.seen"
 
 type Stage = "chat" | "note" | "graph"
 
@@ -48,6 +50,7 @@ export default function HomePage() {
   const [installedModels, setInstalledModels] = useState<OllamaModelEntry[]>([])
   const [isOllamaReachable, setIsOllamaReachable] = useState(true)
   const [isSavingChatModel, setIsSavingChatModel] = useState(false)
+  const [tourOpen, setTourOpen] = useState(false)
 
   const sources = useSourceManagement()
   const chats = useChatManagement({
@@ -72,6 +75,28 @@ export default function HomePage() {
       setLeftTab("sources")
     }
   }, [])
+
+  // Auto-open the product tour once, on first startup. We wait until sources
+  // have loaded and the onboarding modal is dismissed so the tour never stacks
+  // on top of onboarding and can spotlight the real workspace.
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    if (sources.isLoadingSources || sources.isOnboardingOpen) return
+    if (window.localStorage.getItem(tourSeenStorageKey)) return
+    setTourOpen(true)
+  }, [sources.isLoadingSources, sources.isOnboardingOpen])
+
+  const closeTour = () => {
+    setTourOpen(false)
+    if (typeof window !== "undefined") window.localStorage.setItem(tourSeenStorageKey, "1")
+  }
+
+  // Empty library → invitational copy so the tour doesn't reference sources
+  // that don't exist yet on the first run.
+  const tourSteps = useMemo(
+    () => buildTourSteps(sources.rawSources.length > 0),
+    [sources.rawSources.length],
+  )
 
   const handleToggleTagFilter = (tag: string) => {
     setTagFilter((prev) =>
@@ -173,6 +198,7 @@ export default function HomePage() {
         onSkip={sources.handleOnboardingSkip}
         onSubmit={sources.handleOnboardingSubmit}
       />
+      {tourOpen && <Tour steps={tourSteps} onClose={closeTour} />}
       <TopNav activePath="/" />
 
       <div className="flex-1 flex min-h-0">
@@ -445,6 +471,7 @@ export default function HomePage() {
           </div>
         ) : (
         <aside
+          data-tour="tools"
           className="border-l flex flex-col bg-muted/10 relative shrink-0 min-h-0"
           style={{ width: sidebar.rightSidebarWidth }}
         >

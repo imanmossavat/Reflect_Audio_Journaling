@@ -33,6 +33,14 @@ async def lifespan(app: FastAPI):
         for source_id in stuck_ids:
             asyncio.ensure_future(_process_source_background(source_id))
 
+    # On a brand-new database, drop in a one-time example note and process it
+    # like any other source.
+    from app.services.seed import seed_welcome_note_if_needed
+
+    seeded_id = seed_welcome_note_if_needed()
+    if seeded_id is not None:
+        asyncio.ensure_future(_process_source_background(seeded_id))
+
     observer = start_watcher()
     yield
     observer.stop()

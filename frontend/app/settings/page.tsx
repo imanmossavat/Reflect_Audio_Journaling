@@ -1,8 +1,9 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
+import { useRouter } from "next/navigation"
 import { useTheme } from "next-themes"
-import { AlertTriangle, ExternalLink, Loader2 } from "lucide-react"
+import { AlertTriangle, ExternalLink, Loader2, Play } from "lucide-react"
 import { toast } from "sonner"
 
 import { TopNav } from "@/components/top-nav"
@@ -75,6 +76,14 @@ export default function SettingsPage() {
   const [hostDraft, setHostDraft] = useState("")
   const [dbPathDraft, setDbPathDraft] = useState("")
   const { theme, setTheme } = useTheme()
+  const router = useRouter()
+
+  // The tour lives on the workspace ("/") and auto-opens when the "seen" flag
+  // is absent. Clear it and head home so the tour replays from the top.
+  function replayTour() {
+    if (typeof window !== "undefined") window.localStorage.removeItem("reflect.tour.seen")
+    router.push("/")
+  }
 
   useEffect(() => {
     void loadAll()
@@ -452,6 +461,20 @@ export default function SettingsPage() {
                 </SelectContent>
               </Select>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Product tour */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Product tour</CardTitle>
+            <CardDescription>Take the guided walkthrough of the workspace again.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button variant="outline" onClick={replayTour}>
+              <Play className="h-4 w-4" />
+              Replay tour
+            </Button>
           </CardContent>
         </Card>
       </div>
