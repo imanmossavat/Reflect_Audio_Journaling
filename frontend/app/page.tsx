@@ -302,22 +302,26 @@ export default function HomePage() {
           {leftTab === "sources" ? (
             <>
               <div className="p-3 border-b flex items-center justify-between">
-                <h2 className="text-sm font-medium">Library</h2>
+                <h2 className="text-sm font-medium">Sources</h2>
                 <NewSourceMenu
                   addSourceMode={sources.addSourceMode}
                   setAddSourceMode={sources.setAddSourceMode}
                   onNewNote={() => setStage("note")}
                   isSavingSource={sources.isSavingSource}
                   isDragOverUpload={sources.isDragOverUpload}
-                  isRecording={sources.isRecording}
+                  recordingState={sources.recordingState}
                   recordingSeconds={sources.recordingSeconds}
+                  recordedAudioUrl={sources.recordedAudioUrl}
                   fileInputRef={sources.fileInputRef}
                   onAddFileSource={sources.handleAddFileSource}
                   onFileDrop={sources.handleFileDrop}
                   onFileDragEnter={sources.handleFileDragEnter}
                   onFileDragOver={sources.handleFileDragOver}
                   onFileDragLeave={sources.handleFileDragLeave}
-                  onToggleRecording={sources.handleToggleRecording}
+                  onStartRecording={sources.handleStartRecording}
+                  onPauseRecording={sources.handlePauseRecording}
+                  onResumeRecording={sources.handleResumeRecording}
+                  onSaveRecording={sources.handleSaveRecording}
                   onCloseRecordingPanel={sources.handleCloseRecordingPanel}
                   rawUploadUrl={sources.rawUploadUrl}
                 />

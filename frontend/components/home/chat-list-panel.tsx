@@ -44,7 +44,7 @@ export function ChatListPanel({
           className="flex items-center gap-1.5 rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700 transition-colors"
         >
           <Plus className="h-3.5 w-3.5" />
-          New
+          New Chat
         </button>
       </div>
       <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar p-2 space-y-1">

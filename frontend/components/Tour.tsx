@@ -31,11 +31,11 @@ export type TourStep = {
  */
 export function buildTourSteps(hasSources = true): TourStep[] {
   return [
-    { target: null, eyebrow: "Welcome in", title: "This is your Reflect workspace.", body: "Everything lives on one screen: your library on the left, a conversation in the middle, tools on the right. Here's a 40-second tour of what you can do." },
-    { target: "new", eyebrow: "Capture", title: "Add anything you want to reflect on.", body: "Hit New to record a voice note, upload an audio file or transcript, jot a quick note, or send a recording straight from your phone. Each one becomes a “source.”" },
+    { target: null, eyebrow: "Welcome in", title: "This is your Reflect workspace.", body: "Everything lives on one screen: your sources on the left, a conversation in the middle, tools on the right. Here's a 40-second tour of what you can do." },
+    { target: "new", eyebrow: "Capture", title: "Add anything you want to reflect on.", body: "Hit New Source to record a voice note, upload an audio file or transcript, jot a quick note, or send a recording straight from your phone. Each one becomes a “source.”" },
     hasSources
-      ? { target: "library", eyebrow: "Library", title: "Your sources collect here.", body: "Recordings, notes and files stack up in one place. New audio is transcribed locally and shows a live progress state while it processes, and nothing leaves your machine." }
-      : { target: "library", eyebrow: "Library", title: "Your library lives here.", body: "Everything you capture — recordings, notes and files — will stack up in this panel. New audio is transcribed locally with a live progress state, and nothing ever leaves your machine." },
+      ? { target: "library", eyebrow: "Sources", title: "Your sources collect here.", body: "Recordings, notes and files stack up in one place. New audio is transcribed locally and shows a live progress state while it processes, and nothing leaves your machine." }
+      : { target: "library", eyebrow: "Sources", title: "Your sources live here.", body: "Everything you capture — recordings, notes and files — will stack up in this panel. New audio is transcribed locally with a live progress state, and nothing ever leaves your machine." },
     hasSources
       ? { target: "tags", eyebrow: "Organize", title: "Tag and filter by theme.", body: "Give sources tags like “mentor” or “stress,” then type tag: in the filter to pull up everything on a theme at once, handy when patterns span several weeks." }
       : { target: "tags", eyebrow: "Organize", title: "Tag and filter by theme.", body: "Once you've added a few sources, you can tag them with themes like “mentor” or “stress,” then type tag: in this filter to pull up everything on a theme at once." },
