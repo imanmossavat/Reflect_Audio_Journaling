@@ -3,6 +3,17 @@ A private, local tool for recording your thoughts and getting AI-powered insight
 
 ---
 
+## Contents
+
+- [How the AI works](#how-the-ai-works-and-why-its-private)
+- [Prerequisites](#prerequisites-one-time-setup)
+- [Run](#run)
+- [Updates](#updates)
+- [Legacy version](#legacy-version)
+- [Tech Stack](#tech-stack)
+
+---
+
 ## How the AI works (and why it's private)
 
 REFLECT uses **open-weights AI models**. This is the same kind of technology behind large cloud AI services, except the model files live on your own machine. "Open weights" means the decision-making parameters of the model are publicly available and can be downloaded like any other file.
@@ -54,7 +65,7 @@ Everything else (uv, Node.js, Python dependencies) is installed automatically by
 chmod +x start.sh && ./start.sh
 ```
 
-Then open **http://localhost:3000** in your browser.
+Then open **https://localhost:3000** in your browser.
 
 > **First run takes a few minutes** — the script installs Python and Node dependencies automatically. Subsequent starts are fast.
 
@@ -81,3 +92,17 @@ git pull
 ## Legacy version
 
 An older prototype is preserved in the [`legacy`](../../tree/legacy) branch.
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | Next.js 16, React, TypeScript |
+| Backend | FastAPI, SQLite, SQLModel, Alembic |
+| Transcription | faster-whisper, WhisperX, pyannote-audio |
+| LLM inference | Ollama (local, open-weights) |
+| RAG | LlamaIndex, ChromaDB, nomic-embed-text |
+| NLP | spaCy (English + Dutch) |
+| Evaluation | RAGAS |
