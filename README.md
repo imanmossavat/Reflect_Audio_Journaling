@@ -99,10 +99,13 @@ An older prototype is preserved in the [`legacy`](../../tree/legacy) branch.
 
 | Layer | Technology |
 |---|---|
-| Frontend | Next.js 16, React, TypeScript |
-| Backend | FastAPI, SQLite, SQLModel, Alembic |
-| Transcription | faster-whisper, WhisperX, pyannote-audio |
+| Frontend | Next.js 16, React 19, TypeScript |
+| UI | Tailwind CSS v4, shadcn/ui (Radix UI), TipTap editor, Recharts, React Hook Form + Zod |
+| Backend | FastAPI, Uvicorn, Pydantic, SQLite, SQLModel, Alembic |
+| ML / audio | PyTorch (CPU/CUDA), librosa, Hugging Face Transformers |
+| Transcription | WhisperX (faster-whisper + pyannote-audio diarization) |
 | LLM inference | Ollama (local, open-weights) |
-| RAG | LlamaIndex, ChromaDB, nomic-embed-text |
+| RAG | LlamaIndex, ChromaDB, nomic-embed-text, sentence-transformers (reranking) |
 | NLP | spaCy (English + Dutch) |
 | Evaluation | RAGAS |
+| Tooling | uv (Python), npm / Node.js |

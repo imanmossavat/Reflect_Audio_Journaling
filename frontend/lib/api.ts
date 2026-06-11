@@ -142,7 +142,7 @@ export interface ChatMessageRecord {
   created_at: string
 }
 
-export type ChatStreamStageName = "searching" | "retrieved" | "thinking" | "writing"
+export type ChatStreamStageName = "queued" | "searching" | "retrieved" | "thinking" | "writing"
 
 export interface ChatStreamHandlers {
   onStage: (stage: { name: ChatStreamStageName; count?: number }) => void

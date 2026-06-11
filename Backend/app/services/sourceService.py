@@ -19,6 +19,7 @@ from app.services.transcription import TranscriptionManager
 from app.services.settings_service import get_setting
 from app.utils.filename_dates import parse_datetime_from_filename
 from app.utils.html_text import html_to_text
+from app.utils.markdown_html import markdown_to_html
 from app import logging_config
 
 
@@ -255,12 +256,20 @@ async def save_processed_source_file(session: Session, file: UploadFile):
     # Store text immediately for non-audio files so the background task can skip reading from disk
     text = raw_bytes.decode("utf-8") if file_type in ("text", "markdown") else None
 
+    # Markdown files keep their formatting on display via rich HTML; the canonical
+    # plain text (used for RAG) is derived from that HTML so no markup leaks through.
+    text_html = None
+    if file_type == "markdown":
+        text_html = markdown_to_html(text)
+        text = html_to_text(text_html)
+
     return sourceRepository.create_source(
         session=session,
         filename=file.filename,
         file_path=str(filepath),
         file_type=file_type,
         text=text,
+        text_html=text_html,
         status="queued",
         created_at=parse_datetime_from_filename(file.filename, get_setting("date_format")),
     )

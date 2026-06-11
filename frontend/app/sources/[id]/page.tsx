@@ -9,6 +9,7 @@ import { Placeholder } from "@tiptap/extensions"
 import { AlertTriangle, ArrowLeft, CalendarClock, CircleDot, FileAudio2, FileText, MessageSquare, Pencil, RefreshCw, X } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { TopNav } from "@/components/top-nav"
+import { Markdown } from "@/components/markdown"
 import { toast } from "sonner"
 import { api, type ChatMessageRecord, type SourceRecord, type SourceTag, type TranscriptSegment, PROCESSING_STATUSES, PROCESSING_STATUS_LABELS, OLLAMA_FAILURE_STATUSES, explainFailure } from "@/lib/api"
 
@@ -434,7 +435,7 @@ export default function SourceDetailPage() {
                                                                 <div className="flex justify-start">
                                                                     <div className="bg-muted rounded-2xl rounded-tl-sm px-4 py-3 max-w-[85%]">
                                                                         <span className="text-xs text-emerald-600 font-medium block mb-1">REFLECT</span>
-                                                                        <p className="text-[15px]">{pendingQuestion.text}</p>
+                                                                        <Markdown className="text-[15px]">{pendingQuestion.text}</Markdown>
                                                                     </div>
                                                                 </div>
                                                             )}
@@ -453,7 +454,7 @@ export default function SourceDetailPage() {
                                                         <div key={`pending-${q.id}`} className="flex justify-start">
                                                             <div className="bg-muted rounded-2xl rounded-tl-sm px-4 py-3 max-w-[85%]">
                                                                 <span className="text-xs text-emerald-600 font-medium block mb-1">REFLECT</span>
-                                                                <p className="text-[15px]">{q.text}</p>
+                                                                <Markdown className="text-[15px]">{q.text}</Markdown>
                                                             </div>
                                                         </div>
                                                     )

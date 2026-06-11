@@ -184,3 +184,44 @@
 .tiptap pre code { background: transparent; padding: 0; }
 .tiptap hr { margin: 1.25rem 0; border: 0; border-top: 1px solid var(--border); }
 .tiptap a { color: #059669; text-decoration: underline; text-underline-offset: 2px; }
+
+/* Rendered Markdown (assistant answers, reflection prompts). Mirrors .tiptap but
+   trims outer margins so it sits flush inside chat bubbles. */
+.markdown > :first-child { margin-top: 0; }
+.markdown > :last-child { margin-bottom: 0; }
+.markdown h1 { font-size: 1.4em; font-weight: 600; margin: 1rem 0 0.5rem; }
+.markdown h2 { font-size: 1.25em; font-weight: 600; margin: 0.875rem 0 0.5rem; }
+.markdown h3 { font-size: 1.1em; font-weight: 600; margin: 0.75rem 0 0.375rem; }
+.markdown p { margin: 0.5rem 0; line-height: 1.6; }
+.markdown ul { list-style: disc; margin: 0.5rem 0; padding-left: 1.5rem; }
+.markdown ol { list-style: decimal; margin: 0.5rem 0; padding-left: 1.5rem; }
+.markdown li { line-height: 1.6; margin: 0.125rem 0; }
+.markdown li > p { margin: 0; }
+.markdown blockquote {
+  margin: 0.5rem 0;
+  border-left: 2px solid color-mix(in oklab, var(--color-emerald-500, #10b981) 60%, transparent);
+  padding-left: 0.75rem;
+  font-style: italic;
+  opacity: 0.85;
+}
+.markdown code {
+  border-radius: 0.25rem;
+  background: color-mix(in oklab, currentColor 12%, transparent);
+  padding: 0.125rem 0.375rem;
+  font-size: 0.85em;
+  font-family: var(--font-mono);
+}
+.markdown pre {
+  margin: 0.5rem 0;
+  overflow-x: auto;
+  border-radius: 0.5rem;
+  background: color-mix(in oklab, currentColor 12%, transparent);
+  padding: 0.75rem;
+  font-size: 0.875em;
+}
+.markdown pre code { background: transparent; padding: 0; }
+.markdown hr { margin: 0.75rem 0; border: 0; border-top: 1px solid color-mix(in oklab, currentColor 25%, transparent); }
+.markdown a { text-decoration: underline; text-underline-offset: 2px; }
+.markdown table { border-collapse: collapse; margin: 0.5rem 0; font-size: 0.9em; }
+.markdown th, .markdown td { border: 1px solid color-mix(in oklab, currentColor 25%, transparent); padding: 0.25rem 0.5rem; }
+.markdown strong { font-weight: 600; }

@@ -8,6 +8,60 @@ Read alongside `GUIDE.md` (why the harness is built this way) and `README.md` (h
 
 ---
 
+## 2026-06-11 — pipeline modularized; eval now injects instead of monkeypatching
+
+**Change (no new run):** split the production RAG monolith `Backend/app/services/rag.py` into
+four swappable modules + a back-compat facade, and replaced the eval harness's monkeypatching
+with real injection seams. Goal: another engineer can swap a retriever/prompt/model and run an
+experiment end-to-end without editing the pipeline.
+
+- **`prompt.py`** — all templates + a `PROMPTS` registry / `get_prompt(name)`. Current prod prompt
+  = `"default"`; the old aggressive-refusal prompt is preserved as `"strict_refusal"` so the
+  0.467-vs-0.667 comparison stays reproducible without checking out old code.
+- **`retrieval.py`** — `ranked_retrieve(..., reranker_fn=, source_meta_provider=, weights=)`.
+  The two old eval monkeypatches (`reranker.rerank` swap, `get_sources_meta -> {}`) are now
+  injected kwargs (defaults resolved at call time, so behavior is identical for app callers).
+- **`generation.py`** — `query_sources(..., prompt=, llm=, retrieve_fn=)`.
+- **`llm_runtime.py`** — Ollama/LlamaIndex config + health/capability checks (shared, no cycle).
+- **`rag.py`** — thin re-export facade; `routes/query.py`, `sourceService.py`, the user_eval
+  scripts need zero changes. `tests/services/test_rag_retrieval.py` migrated to patch the new
+  modules + exercise the injection seams (7 passed; full suite green apart from pre-existing
+  `pytest_mock`-missing errors in `test_journalService.py`).
+- **Eval:** `harness/evaluation.py` consolidates `metrics`+`judge`+`report` behind one API
+  (`evaluate` / `run_judge` / `report`). `harness/run_experiment.py` is the new single
+  config-driven runner (`ExperimentConfig` + CLI/`--config`), injecting components — `run_eval.py`
+  is now legacy. `_make_run_dir` got a uniquifier so same-second launches can't clobber (fixes the
+  `103914Z` collision noted 2026-06-08). **Parity verified:** re-scoring `132239Z` through
+  `evaluation` reproduces answer_accuracy 0.6667 / P@5 0.3733 / R@5 0.6595 / MRR 0.7244 exactly.
+
+**Next:** reproduce the prompt comparison through the new runner
+(`--prompt default` vs `--prompt strict_refusal`, `--no-reranker`) to confirm 0.667 vs 0.467
+end-to-end, then the reranker-ON arm on the `default` prompt (still outstanding from 06-08).
+
+---
+
+## 2026-06-08 — `stateful` run `20260608T132239Z` (backfill): NEW prompt lifts accuracy 0.467 → 0.667
+
+**Config:** reranker **OFF** · embed `nomic-embed-text` · chat `gemma4:26b` · top_k 5 · **new prompt**
+(the rewritten refusal clause, now `prompt.py:"default"`). *Logged late — this run predates the
+thinking toggle so its config.json has no `thinking_enabled` field.*
+
+**Summary:** P@5 0.3733 · R@5 0.6595 · MRR 0.7244 · context_recall 0.9333 ·
+**answer_accuracy 0.6667 (10/15)** · 10 CORRECT · 3 CORRECT_REFUSAL · 3 PARTIAL ·
+**1 INCORRECT_REFUSAL** · 1 REFUSAL_NO_CONTEXT.
+
+**Finding — the prediction held.** Three prior levers (model size, reranker on/off) all left
+accuracy pinned at 0.467 with the diagnosis "the `TEXT_QA_TEMPLATE` refusal clause is the sole
+bottleneck." Rewriting that clause is the *only* change here, and retrieval metrics are
+**byte-identical** to the OFF arm (`130136Z`: P@5 0.3733 / R@5 0.6595 / MRR 0.7244) — so the
++20-point jump is **purely generation-side**. Incorrect refusals collapsed 5 → 1; `n_correct`
+7 → 10. The generator now commits, which is the precondition for measuring reranker/model effects.
+
+**Next:** re-run the **reranker-ON** arm on this prompt (the only remaining cell), and the
+think-on/off comparison.
+
+---
+
 ## 2026-06-09 — added a thinking toggle (harness can now compare think on/off)
 
 **Change (no run yet):** wired the new `thinking_enabled` setting through the eval path.

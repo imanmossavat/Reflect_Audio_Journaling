@@ -1,9 +1,5 @@
 """Chunk and index a dataset's notes into its isolated Chroma collection.
 
-Reuses Backend chunking + rag.index_chunks. Writes datasets/<dataset>/notes_index.json
--- a numeric source_id -> note_id map used by run_eval.py to translate retrieved
-source_ids back to note_ids.
-
 Run:  python harness/ingest.py --dataset baseline
       python harness/ingest.py --dataset stateful
 """

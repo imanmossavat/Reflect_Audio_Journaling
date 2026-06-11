@@ -46,7 +46,16 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
   const [isPromotingChat, setIsPromotingChat] = useState(false)
   const [inputValue, setInputValue] = useState("")
   const [streamingAssistant, setStreamingAssistant] = useState<StreamingAssistant | null>(null)
+  // Which chat the in-flight stream belongs to. The stream keeps running in the
+  // background when you switch chats, so we use this to only show it in (and write
+  // its result to) the chat it actually started in — never the one you switched to.
+  const [streamingChatId, setStreamingChatId] = useState<number | null>(null)
+  // A live mirror of activeChatId so async stream callbacks (onDone) can check the
+  // *current* chat instead of the stale value captured when the stream started.
+  const activeChatIdRef = useRef<number | null>(null)
   const isAssistantThinking = streamingAssistant !== null
+  // Only surface the live stream in the chat that owns it (no bleed across chats).
+  const visibleStreamingAssistant = streamingChatId === activeChatId ? streamingAssistant : null
   // Guided Gibbs reflection mode. Step state is local to this session (not yet
   // persisted on the Chat), so it resets when the chat changes or on reload.
   const [gibbsActive, setGibbsActive] = useState(false)
@@ -82,6 +91,10 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
     if (typeof window === "undefined" || !hasRestoredActiveChat.current) return
     if (activeChatId === null) window.localStorage.removeItem(ACTIVE_CHAT_STORAGE_KEY)
     else window.localStorage.setItem(ACTIVE_CHAT_STORAGE_KEY, String(activeChatId))
+  }, [activeChatId])
+
+  useEffect(() => {
+    activeChatIdRef.current = activeChatId
   }, [activeChatId])
 
   useEffect(() => {
@@ -128,7 +141,9 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
   const persistMessage = async (chatId: number, payload: Parameters<typeof api.appendChatMessage>[1]) => {
     try {
       const created = await api.appendChatMessage(chatId, payload)
-      setActiveChatMessages((prev) => [...prev, created])
+      // Only touch the visible list if this is still the chat on screen; otherwise
+      // it's a background write and would otherwise leak into the chat you switched to.
+      if (activeChatIdRef.current === chatId) setActiveChatMessages((prev) => [...prev, created])
       void refreshChats()
       return created
     } catch (error) {
@@ -153,6 +168,7 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
     // In guided reflection mode the AI only speaks when the user advances a stage
     // or asks a clarifying question — a typed answer is just recorded.
     if (gibbsActive) return
+    setStreamingChatId(chatId)
     setStreamingAssistant({ stages: [], thinking: "", answer: "" })
     await new Promise<void>((resolve) => {
       api.streamQuery(
@@ -174,15 +190,21 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
           },
           onDone: async ({ message_id }) => {
             try {
-              const detail = await api.getChat(chatId)
-              const created = detail.messages.find((m) => m.id === message_id)
-              if (created) setActiveChatMessages((prev) => [...prev, created])
-              else setActiveChatMessages(detail.messages)
+              // Only update the on-screen list if the user is still on this chat.
+              // If they've switched away the answer is already saved server-side;
+              // returning to the chat reloads it in full via the load effect.
+              if (activeChatIdRef.current === chatId) {
+                const detail = await api.getChat(chatId)
+                const created = detail.messages.find((m) => m.id === message_id)
+                if (created) setActiveChatMessages((prev) => [...prev, created])
+                else setActiveChatMessages(detail.messages)
+              }
               void refreshChats()
             } catch (error) {
               console.warn("Failed to refetch chat after stream", error)
             } finally {
               setStreamingAssistant(null)
+              setStreamingChatId(null)
               resolve()
             }
           },
@@ -190,6 +212,7 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
             const friendly = error.message.replace(/^API\s+\d+:\s*/, "")
             toast.error(friendly)
             setStreamingAssistant(null)
+            setStreamingChatId(null)
             resolve()
           },
         }
@@ -236,6 +259,7 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
     const history = buildGibbsHistory()
 
     setGibbsGenerating(true)
+    setStreamingChatId(chatId)
     setStreamingAssistant({ stages: [], thinking: "", answer: "" })
     let acc = ""
     await new Promise<void>((resolve) => {
@@ -249,9 +273,12 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
           onDone: async () => {
             const text = acc.trim()
             try {
+              // persistMessage guards the on-screen append by chat id; the question
+              // is always saved server-side even if the user switched chats.
               if (text) await persistMessage(chatId, { role: "question", text })
             } finally {
               setStreamingAssistant(null)
+              setStreamingChatId(null)
               setGibbsGenerating(false)
               resolve()
             }
@@ -259,6 +286,7 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
           onError: (error) => {
             toast.error(error.message.replace(/^API\s+\d+:\s*/, ""))
             setStreamingAssistant(null)
+            setStreamingChatId(null)
             setGibbsGenerating(false)
             resolve()
           },
@@ -380,7 +408,8 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
   return {
     chats, activeChatId, activeChatMessages, isLoadingChats, isLoadingActiveChat,
     renamingChatId, renameDraft, setRenameDraft, setRenamingChatId,
-    isPromotingChat, inputValue, setInputValue, isAssistantThinking, streamingAssistant,
+    isPromotingChat, inputValue, setInputValue, isAssistantThinking,
+    streamingAssistant: visibleStreamingAssistant,
     activeChat, activeChatSourceId, activeChatLinkedSourceStatus, isLinkedSourceProcessing,
     handleSelectChat, handleStartRenameChat, handleStartRenameActiveChat, handleCommitRename, handleDeleteChat,
     handlePromoteChat, handleSubmitText,

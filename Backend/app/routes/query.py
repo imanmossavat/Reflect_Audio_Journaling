@@ -1,3 +1,4 @@
+import asyncio
 import datetime
 from pydantic import BaseModel
 import json
@@ -19,9 +20,10 @@ from app.services.rag import (
 )
 from app.services.settings_service import get_setting
 from app.services import chatService
+from app.services.ollama_gate import generation_lock, is_busy
 
 import httpx
-import ollama
+from ollama import AsyncClient
 from fastapi import APIRouter, HTTPException, Response
 from fastapi.responses import JSONResponse, StreamingResponse
 from sqlmodel import Session
@@ -99,7 +101,13 @@ async def query(request: QueryRequest):
         )
 
     try:
-        result = query_sources(request.question, top_k=request.top_k, modality=request.modality)
+        # query_sources (LlamaIndex Settings.llm.complete) is synchronous, so run it
+        # in a worker thread to keep the event loop free, and hold the generation gate
+        # so it can't run a second generation alongside a streaming chat answer.
+        async with generation_lock:
+            result = await asyncio.to_thread(
+                query_sources, request.question, top_k=request.top_k, modality=request.modality
+            )
     except Exception as exc:
         kind = classify_ollama_error(exc)
         if kind == "not_running":
@@ -178,8 +186,12 @@ async def query_stream(request: QueryStreamRequest):
             yield _sse("stage", {"name": "searching"})
             # Conversation-aware retrieval: rewrite follow-ups ("tell me more about
             # that") into a standalone query so embeddings match the real topic.
-            search_query = condense_question(history, request.question)
-            nodes = retrieve_nodes(search_query, top_k=request.top_k, modality=request.modality)
+            # condense_question and retrieve_nodes both block (Ollama + embedding),
+            # so offload them to keep the event loop free for other requests.
+            search_query = await asyncio.to_thread(condense_question, history, request.question)
+            nodes = await asyncio.to_thread(
+                retrieve_nodes, search_query, top_k=request.top_k, modality=request.modality
+            )
             sources_payload = serialize_retrieved_nodes(nodes)
             logger.info(
                 "retrieved %d chunk(s) | original=%r | search_query=%r:\n%s",
@@ -209,30 +221,37 @@ async def query_stream(request: QueryStreamRequest):
             wrote_writing_stage = False
             wrote_thinking_stage = False
 
-            stream_iter = ollama.chat(
-                model=chat_model,
-                messages=messages,
-                stream=True,
-                think=supports_thinking,
-            )
-            for chunk in stream_iter:
-                msg = chunk.get("message", {}) or {}
-                thinking_delta = msg.get("thinking") or ""
-                content_delta = msg.get("content") or ""
+            # Only one generation runs at a time. If the model is already busy, tell
+            # the client it's waiting in line, then queue on the gate (FIFO).
+            if is_busy():
+                yield _sse("stage", {"name": "queued"})
+            async with generation_lock:
+                # AsyncClient streams without blocking the event loop, so other
+                # requests (sources, chat reads) are served while this generates.
+                client = AsyncClient(host=_ollama_host())
+                async for chunk in await client.chat(
+                    model=chat_model,
+                    messages=messages,
+                    stream=True,
+                    think=supports_thinking,
+                ):
+                    msg = chunk.get("message", {}) or {}
+                    thinking_delta = msg.get("thinking") or ""
+                    content_delta = msg.get("content") or ""
 
-                if thinking_delta:
-                    if not wrote_thinking_stage:
-                        wrote_thinking_stage = True
-                        yield _sse("stage", {"name": "thinking"})
-                    thinking_parts.append(thinking_delta)
-                    yield _sse("thinking", {"delta": thinking_delta})
+                    if thinking_delta:
+                        if not wrote_thinking_stage:
+                            wrote_thinking_stage = True
+                            yield _sse("stage", {"name": "thinking"})
+                        thinking_parts.append(thinking_delta)
+                        yield _sse("thinking", {"delta": thinking_delta})
 
-                if content_delta:
-                    if not wrote_writing_stage:
-                        wrote_writing_stage = True
-                        yield _sse("stage", {"name": "writing"})
-                    answer_parts.append(content_delta)
-                    yield _sse("token", {"delta": content_delta})
+                    if content_delta:
+                        if not wrote_writing_stage:
+                            wrote_writing_stage = True
+                            yield _sse("stage", {"name": "writing"})
+                        answer_parts.append(content_delta)
+                        yield _sse("token", {"delta": content_delta})
 
             yield _sse("sources", {"sources": sources_payload})
 
@@ -276,7 +295,7 @@ async def extract_tags(source_id: int) -> ExtractedTagsResponse:
     prompt = tag_extraction_prompt.build_prompt(source_text)
 
     try:
-        async with httpx.AsyncClient(
+        async with generation_lock, httpx.AsyncClient(
             timeout=httpx.Timeout(connect=10.0, read=300.0, write=10.0, pool=10.0)
         ) as client:
             response = await client.post(
@@ -362,11 +381,14 @@ async def generate_question(req: GenerateRequest):
 
     async def stream_ollama():
         try:
-            stream = ollama.chat(model=_chat_model(), messages=messages, stream=True, think=False)
-            for chunk in stream:
-                token = chunk.get("message", {}).get("content", "")
-                if token:
-                    yield f"data: {json.dumps({'token': token})}\\n\\n"
+            async with generation_lock:
+                client = AsyncClient(host=_ollama_host())
+                async for chunk in await client.chat(
+                    model=_chat_model(), messages=messages, stream=True, think=False
+                ):
+                    token = chunk.get("message", {}).get("content", "")
+                    if token:
+                        yield f"data: {json.dumps({'token': token})}\\n\\n"
             yield "data: [DONE]\\n\\n"
         except Exception as e:
             logger.error(f"Ollama streaming error: {e}")
