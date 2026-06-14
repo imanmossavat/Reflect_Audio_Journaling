@@ -1,28 +1,22 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState } from "react"
-import { api, type ChatSummary, type ChatMessageRecord, type ChatStreamStageName, PROCESSING_STATUSES } from "@/lib/api"
+import { api, type ChatSummary, type ChatMessageRecord, PROCESSING_STATUSES } from "@/lib/api"
 import type { RawSource } from "@/components/home/types"
 import { mapBackendSource } from "@/hooks/useSourceManagement"
+import { useGeneration } from "@/context/generation-provider"
+import type { StreamingAssistant, StreamingStage } from "@/context/generation-provider"
 import { GIBBS_STEP_COUNT } from "@/lib/gibbs"
 import { toast } from "sonner"
+
+// Streaming types now live with the provider that owns the streaming state. Re-export
+// them here so existing consumers (e.g. chat-messages) keep their import path.
+export type { StreamingStage, StreamingAssistant }
 
 interface UseChatManagementOptions {
   rawSources: RawSource[]
   setRawSources: React.Dispatch<React.SetStateAction<RawSource[]>>
   setProcessingSources: React.Dispatch<React.SetStateAction<Set<number>>>
-}
-
-export type StreamingStage = {
-  name: ChatStreamStageName
-  count?: number
-  done: boolean
-}
-
-export type StreamingAssistant = {
-  stages: StreamingStage[]
-  thinking: string
-  answer: string
 }
 
 const ACTIVE_CHAT_STORAGE_KEY = "reflect.activeChatId"
@@ -45,17 +39,23 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
   const [renameDraft, setRenameDraft] = useState("")
   const [isPromotingChat, setIsPromotingChat] = useState(false)
   const [inputValue, setInputValue] = useState("")
+  // Query answers stream through the GenerationProvider so they survive navigation and
+  // refresh. The local streamingAssistant below is only for guided Gibbs questions,
+  // which are session-local by design and don't need to outlive the page.
+  const generation = useGeneration()
   const [streamingAssistant, setStreamingAssistant] = useState<StreamingAssistant | null>(null)
-  // Which chat the in-flight stream belongs to. The stream keeps running in the
-  // background when you switch chats, so we use this to only show it in (and write
-  // its result to) the chat it actually started in — never the one you switched to.
+  // Which chat the local (Gibbs) stream belongs to, so it only shows in its own chat.
   const [streamingChatId, setStreamingChatId] = useState<number | null>(null)
   // A live mirror of activeChatId so async stream callbacks (onDone) can check the
   // *current* chat instead of the stale value captured when the stream started.
   const activeChatIdRef = useRef<number | null>(null)
-  const isAssistantThinking = streamingAssistant !== null
-  // Only surface the live stream in the chat that owns it (no bleed across chats).
-  const visibleStreamingAssistant = streamingChatId === activeChatId ? streamingAssistant : null
+  // Only surface a stream in the chat that owns it (no bleed across chats). The query
+  // answer (provider) takes precedence; otherwise fall back to a local Gibbs stream.
+  const queryStreaming = generation.generationFor(activeChatId)
+  const gibbsStreaming = streamingChatId === activeChatId ? streamingAssistant : null
+  const visibleStreamingAssistant = queryStreaming ?? gibbsStreaming
+  // Block re-submitting only while *this* chat is busy (other chats can queue).
+  const isAssistantThinking = visibleStreamingAssistant !== null
   // Guided Gibbs reflection mode. Step state is local to this session (not yet
   // persisted on the Chat), so it resets when the chat changes or on reload.
   const [gibbsActive, setGibbsActive] = useState(false)
@@ -168,57 +168,36 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
     // In guided reflection mode the AI only speaks when the user advances a stage
     // or asks a clarifying question — a typed answer is just recorded.
     if (gibbsActive) return
-    setStreamingChatId(chatId)
-    setStreamingAssistant({ stages: [], thinking: "", answer: "" })
-    await new Promise<void>((resolve) => {
-      api.streamQuery(
-        { chatId, question: trimmed },
-        {
-          onStage: ({ name, count }) => {
-            setStreamingAssistant((prev) => {
-              if (!prev) return prev
-              const stages = prev.stages.map((s) => ({ ...s, done: true }))
-              stages.push({ name, count, done: false })
-              return { ...prev, stages }
-            })
-          },
-          onThinking: (delta) => {
-            setStreamingAssistant((prev) => (prev ? { ...prev, thinking: prev.thinking + delta } : prev))
-          },
-          onToken: (delta) => {
-            setStreamingAssistant((prev) => (prev ? { ...prev, answer: prev.answer + delta } : prev))
-          },
-          onDone: async ({ message_id }) => {
-            try {
-              // Only update the on-screen list if the user is still on this chat.
-              // If they've switched away the answer is already saved server-side;
-              // returning to the chat reloads it in full via the load effect.
-              if (activeChatIdRef.current === chatId) {
-                const detail = await api.getChat(chatId)
-                const created = detail.messages.find((m) => m.id === message_id)
-                if (created) setActiveChatMessages((prev) => [...prev, created])
-                else setActiveChatMessages(detail.messages)
-              }
-              void refreshChats()
-            } catch (error) {
-              console.warn("Failed to refetch chat after stream", error)
-            } finally {
-              setStreamingAssistant(null)
-              setStreamingChatId(null)
-              resolve()
-            }
-          },
-          onError: (error) => {
-            const friendly = error.message.replace(/^API\s+\d+:\s*/, "")
-            toast.error(friendly)
-            setStreamingAssistant(null)
-            setStreamingChatId(null)
-            resolve()
-          },
-        }
-      )
-    })
+    // Hand off to the provider: it runs the answer server-side (so it survives leaving
+    // the page) and streams it back. Completion is handled by the onComplete effect.
+    generation.startTextGeneration(chatId, trimmed)
   }
+
+  // When a query generation finishes, fold its answer into the on-screen chat (if it's
+  // the one in view) and drop the streaming entry. Runs for generations started here or
+  // resumed after a refresh. The provider also auto-clears as a safety net.
+  useEffect(() => {
+    return generation.onComplete((chatId, outcome, info) => {
+      if (outcome === "done" && info && activeChatIdRef.current === chatId) {
+        void (async () => {
+          try {
+            const detail = await api.getChat(chatId)
+            const created = detail.messages.find((m) => m.id === info.message_id)
+            setActiveChatMessages((prev) => (created ? [...prev, created] : detail.messages))
+          } catch (error) {
+            console.warn("Failed to refetch chat after stream", error)
+          } finally {
+            generation.clearGeneration(chatId)
+          }
+        })()
+      } else {
+        generation.clearGeneration(chatId)
+      }
+      void refreshChats()
+    })
+    // onComplete/clearGeneration are stable; refreshChats is closure-stable.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [generation.onComplete, generation.clearGeneration])
 
   // --- Guided Gibbs reflection -------------------------------------------------
 
@@ -410,6 +389,7 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
     renamingChatId, renameDraft, setRenameDraft, setRenamingChatId,
     isPromotingChat, inputValue, setInputValue, isAssistantThinking,
     streamingAssistant: visibleStreamingAssistant,
+    generatingChatIds: generation.generatingChatIds,
     activeChat, activeChatSourceId, activeChatLinkedSourceStatus, isLinkedSourceProcessing,
     handleSelectChat, handleStartRenameChat, handleStartRenameActiveChat, handleCommitRename, handleDeleteChat,
     handlePromoteChat, handleSubmitText,

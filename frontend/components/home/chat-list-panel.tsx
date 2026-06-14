@@ -1,6 +1,6 @@
 "use client"
 
-import { EllipsisVerticalIcon, Pencil, Plus, MessageSquare, Trash2 } from "lucide-react"
+import { EllipsisVerticalIcon, Loader2, Pencil, Plus, MessageSquare, Trash2 } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Skeleton } from "@/components/ui/skeleton"
 import type { ChatSummary } from "@/lib/api"
@@ -10,6 +10,7 @@ interface ChatListPanelProps {
   chats: ChatSummary[]
   isLoadingChats: boolean
   activeChatId: number | null
+  generatingChatIds: Set<number>
   renamingChatId: number | null
   renameDraft: string
   setRenameDraft: (v: string) => void
@@ -25,6 +26,7 @@ export function ChatListPanel({
   chats,
   isLoadingChats,
   activeChatId,
+  generatingChatIds,
   renamingChatId,
   renameDraft,
   setRenameDraft,
@@ -63,6 +65,7 @@ export function ChatListPanel({
           chats.map((chat) => {
             const isActive = chat.id === activeChatId
             const isRenaming = chat.id === renamingChatId
+            const isGenerating = generatingChatIds.has(chat.id)
             return (
               <div
                 key={chat.id}
@@ -73,7 +76,11 @@ export function ChatListPanel({
                 }`}
               >
                 <div className="flex items-start gap-2">
-                  <MessageSquare className="h-3.5 w-3.5 mt-0.5 shrink-0 text-muted-foreground" />
+                  {isGenerating ? (
+                    <Loader2 className="h-3.5 w-3.5 mt-0.5 shrink-0 text-emerald-600 animate-spin" />
+                  ) : (
+                    <MessageSquare className="h-3.5 w-3.5 mt-0.5 shrink-0 text-muted-foreground" />
+                  )}
                   <div className="flex-1 min-w-0">
                     {isRenaming ? (
                       <input

@@ -343,6 +343,7 @@ export default function HomePage() {
               chats={chats.chats}
               isLoadingChats={chats.isLoadingChats}
               activeChatId={chats.activeChatId}
+              generatingChatIds={chats.generatingChatIds}
               renamingChatId={chats.renamingChatId}
               renameDraft={chats.renameDraft}
               setRenameDraft={chats.setRenameDraft}
