@@ -115,7 +115,7 @@ export function SourceListPanel({
 
   return (
     <>
-      <div className="px-3 py-2 border-b space-y-1.5">
+      <div data-tour="tags" className="px-3 py-2 border-b space-y-1.5">
         <div className="relative">
           <Filter className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground pointer-events-none" />
           <input
@@ -210,7 +210,7 @@ export function SourceListPanel({
         )}
       </div>
 
-      <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar p-2 space-y-1">
+      <div data-tour="library" className="flex-1 min-h-0 overflow-y-auto no-scrollbar p-2 space-y-1">
         <div className="flex items-center justify-between px-2.5 pb-1">
           <span className="text-xs text-muted-foreground">{includedSources.length}/{rawSources.length}</span>
           {selectableSources.length > 0 && (
@@ -244,7 +244,7 @@ export function SourceListPanel({
         ) : filteredSources.length === 0 && (tagFilter.length > 0 || titleSearchTerm) ? (
           <p className="text-xs text-muted-foreground px-2 py-4 text-center">No sources match the current filter.</p>
         ) : (
-          filteredSources.map((source) => {
+          filteredSources.map((source, sourceIndex) => {
             const isInProgress = PROCESSING_STATUSES.has(source.status)
             const isFailed = source.status === "failed"
             const isOllamaFailure = OLLAMA_FAILURE_STATUSES.has(source.status)
@@ -379,7 +379,10 @@ export function SourceListPanel({
                       </>
                     )}
                   </div>
-                  <div className="flex items-center gap-1 self-center shrink-0">
+                  <div
+                    data-tour={sourceIndex === 0 ? "include" : undefined}
+                    className="flex items-center gap-1 self-center shrink-0"
+                  >
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <button

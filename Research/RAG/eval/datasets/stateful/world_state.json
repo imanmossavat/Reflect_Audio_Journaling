@@ -1,0 +1,76 @@
+{
+  "_note": "Hidden answer-key for the STATEFUL eval set. NOT ingested. The RAG system never sees this; it only sees notes.json. Each state_variable timeline has airtight validity intervals (no gaps/overlaps) so 'current/former/prospective' is deterministic given as_of_anchor. Gold answers in questions.json are derived from here and then verified to be supported by the realized notes. Status words (former/current/ex/new) deliberately never appear in the note prose -- they must be INFERRED from dates + multiple notes.",
+  "as_of_anchor": "2026-06-01",
+  "user_profile": {
+    "full_name": "Niels Vermeer",
+    "birth_year": 1993,
+    "current_city": "Rotterdam",
+    "occupation": "backend software developer",
+    "voice": "dry, fragmentary, a little self-deprecating; writes short journal notes to himself"
+  },
+  "entities": [
+    {"name": "Priya", "role": "partner (broke up, later reconciled)"},
+    {"name": "Lotte", "role": "person he dated between the breakup and reconciliation"},
+    {"name": "Meridian Logistics", "role": "employer he was laid off from"},
+    {"name": "Polder Health", "role": "employer he accepted and started at"},
+    {"name": "Bright Harbor", "role": "company that made an offer he declined"},
+    {"name": "Kasten Bank", "role": "company that interviewed and rejected him"},
+    {"name": "Saffron", "role": "self-hosted recipe side project"},
+    {"name": "Capelle house", "role": "house he bid on and lost"},
+    {"name": "Kralingen flat", "role": "flat he bought and moved into"},
+    {"name": "Joost", "role": "climbing friend, passed his CV to Polder"},
+    {"name": "Hanna", "role": "recruiter on the Bright Harbor offer"},
+    {"name": "Fenna", "role": "sister"}
+  ],
+  "state_variables": [
+    {
+      "var_id": "employment",
+      "entity": "Niels Vermeer",
+      "attribute": "employer",
+      "timeline": [
+        {"value": "Meridian Logistics", "aliases": ["Meridian"], "status_at_anchor": "former", "valid_from": "2024-01-08", "valid_to": "2026-02-10", "transition_out": "laid_off", "evidence_notes": ["S-001", "S-012"]},
+        {"value": "(unemployed / job searching)", "status_at_anchor": "former", "valid_from": "2026-02-10", "valid_to": "2026-05-18", "transition_out": "hired", "evidence_notes": ["S-014", "S-016", "S-024", "S-026"]},
+        {"value": "Polder Health", "aliases": ["Polder"], "status_at_anchor": "current", "valid_from": "2026-05-18", "valid_to": null, "transition_in": "accepted_offer", "evidence_notes": ["S-027", "S-029"]}
+      ],
+      "non_state_mentions": [
+        {"value": "Kasten Bank", "role": "rejected_him", "evidence_notes": ["S-016", "S-017"]},
+        {"value": "Bright Harbor", "role": "declined_offer", "evidence_notes": ["S-024", "S-025"]}
+      ]
+    },
+    {
+      "var_id": "relationship",
+      "entity": "Niels Vermeer",
+      "attribute": "partner",
+      "timeline": [
+        {"value": "Priya", "status_at_anchor": "current", "valid_from": "(pre-corpus)", "valid_to": "2025-11-15", "transition_out": "breakup", "evidence_notes": ["S-002", "S-006"], "note": "first interval -- ended"},
+        {"value": "Lotte", "status_at_anchor": "former", "valid_from": "2026-01-10", "valid_to": "2026-03-05", "transition_out": "ended", "evidence_notes": ["S-008", "S-015"]},
+        {"value": "Priya", "status_at_anchor": "current", "valid_from": "2026-04-12", "valid_to": null, "transition_in": "reconciliation", "evidence_notes": ["S-022", "S-031", "S-032"], "note": "state REVERSAL -- Priya is both a former and the current partner"}
+      ]
+    },
+    {
+      "var_id": "side_project",
+      "entity": "Niels Vermeer",
+      "attribute": "project_status",
+      "timeline": [
+        {"value": "planned", "valid_from": "2025-09-20", "valid_to": "2025-10-05", "evidence_notes": ["S-003"]},
+        {"value": "active", "valid_from": "2025-10-05", "valid_to": "2025-12-10", "evidence_notes": ["S-004"]},
+        {"value": "paused", "valid_from": "2025-12-10", "valid_to": "2026-03-22", "evidence_notes": ["S-007"]},
+        {"value": "resumed/active", "valid_from": "2026-03-22", "valid_to": "2026-05-20", "evidence_notes": ["S-019"]},
+        {"value": "abandoned", "status_at_anchor": "current", "valid_from": "2026-05-20", "valid_to": null, "evidence_notes": ["S-030"]}
+      ],
+      "project_name": "Saffron"
+    },
+    {
+      "var_id": "residence",
+      "entity": "Niels Vermeer",
+      "attribute": "home",
+      "timeline": [
+        {"value": "rented flat, Rotterdam West", "status_at_anchor": "former", "valid_from": "(pre-corpus)", "valid_to": "2026-05-24", "transition_out": "moved_out", "evidence_notes": ["S-009"]},
+        {"value": "Kralingen flat (owned)", "status_at_anchor": "current", "valid_from": "2026-05-24", "valid_to": null, "transition_in": "moved_in", "evidence_notes": ["S-020", "S-031"]}
+      ],
+      "non_state_mentions": [
+        {"value": "Capelle house", "role": "bid_lost", "evidence_notes": ["S-011", "S-013"]}
+      ]
+    }
+  ]
+}

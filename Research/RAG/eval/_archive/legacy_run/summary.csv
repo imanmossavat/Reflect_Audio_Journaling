@@ -1,0 +1,10 @@
+metric,value
+k,5
+n_questions,25
+n_answerable,20
+precision_at_5,0.16
+recall_at_5,0.725
+mrr,0.32
+context_recall,0.8
+context_precision,0.16
+unanswerable_idk_rate,1.0

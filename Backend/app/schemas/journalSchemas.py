@@ -31,6 +31,7 @@ class GenerateRequest(BaseModel):
     focus_tag: str | None = None
     focus_tag_summary: str | None = None
     history: list[dict] | None = None
+    journal_text: str | None = None
 
 
 class ExtractedTagsResponse(BaseModel):

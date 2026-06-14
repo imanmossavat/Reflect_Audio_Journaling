@@ -75,6 +75,11 @@ class InboxHandler(FileSystemEventHandler):
         path = Path(src_path)
         if path.suffix.lower() not in SUPPORTED_EXT:
             return
+        # Only process files that sit directly in the inbox root. This prevents
+        # reprocessing the file once it has been moved into done/ — the move
+        # itself fires an on_moved event whose dest_path points into done/.
+        if path.parent.resolve() != INBOX.resolve():
+            return
         logger.info(f"[inbox] event={event_label} path={path.name}")
         threading.Thread(target=_process_file, args=(path,), daemon=True).start()
 
@@ -91,10 +96,6 @@ class InboxHandler(FileSystemEventHandler):
     def on_modified(self, event):
         # Some tools (cloud sync, editors) write via modify rather than create
         if event.is_directory:
-            return
-        path = Path(event.src_path)
-        # Only re-trigger if file actually still sits in inbox root (not in done/)
-        if path.parent.resolve() != INBOX.resolve():
             return
         self._handle(event.src_path, "modified")
 

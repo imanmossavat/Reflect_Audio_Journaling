@@ -2,11 +2,36 @@ from datetime import datetime
 from typing import Any, Optional
 from sqlmodel import Session, select
 from database.models import Chat, Chunk, Source, SourceTag
+from app.services.ranking import SourceMeta
 
 def get_all_sources(session: Session):
     return session.exec(
         select(Source).order_by(Source.created_at.desc(), Source.id.desc())
     ).all()
+
+
+def get_source_ids_in_range(session: Session, start: datetime, end: datetime) -> list[int]:
+    """Ids of processed (indexed, hence searchable) sources whose created_at
+    falls in ``[start, end)``. Returns ints."""
+    return list(
+        session.exec(
+            select(Source.id).where(
+                Source.created_at >= start,
+                Source.created_at < end,
+                Source.status == "processed",
+            )
+        ).all()
+    )
+
+
+def get_sources_meta(session: Session, source_ids: list[int]) -> dict[int, SourceMeta]:
+    """Fetch created_at for the given sources, keyed by int id, to recency-weight a candidate set."""
+    if not source_ids:
+        return {}
+    rows = session.exec(
+        select(Source.id, Source.created_at).where(Source.id.in_(source_ids))
+    ).all()
+    return {sid: SourceMeta(created_at=created_at) for sid, created_at in rows}
 
 def get_sources_since(session: Session, since_id: int):
     return session.exec(

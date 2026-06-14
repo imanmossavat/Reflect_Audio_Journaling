@@ -1,27 +1,22 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState } from "react"
-import { api, type ChatSummary, type ChatMessageRecord, type ChatStreamStageName, PROCESSING_STATUSES } from "@/lib/api"
+import { api, type ChatSummary, type ChatMessageRecord, PROCESSING_STATUSES } from "@/lib/api"
 import type { RawSource } from "@/components/home/types"
 import { mapBackendSource } from "@/hooks/useSourceManagement"
+import { useGeneration } from "@/context/generation-provider"
+import type { StreamingAssistant, StreamingStage } from "@/context/generation-provider"
+import { GIBBS_STEP_COUNT } from "@/lib/gibbs"
 import { toast } from "sonner"
+
+// Streaming types now live with the provider that owns the streaming state. Re-export
+// them here so existing consumers (e.g. chat-messages) keep their import path.
+export type { StreamingStage, StreamingAssistant }
 
 interface UseChatManagementOptions {
   rawSources: RawSource[]
   setRawSources: React.Dispatch<React.SetStateAction<RawSource[]>>
   setProcessingSources: React.Dispatch<React.SetStateAction<Set<number>>>
-}
-
-export type StreamingStage = {
-  name: ChatStreamStageName
-  count?: number
-  done: boolean
-}
-
-export type StreamingAssistant = {
-  stages: StreamingStage[]
-  thinking: string
-  answer: string
 }
 
 const ACTIVE_CHAT_STORAGE_KEY = "reflect.activeChatId"
@@ -44,8 +39,28 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
   const [renameDraft, setRenameDraft] = useState("")
   const [isPromotingChat, setIsPromotingChat] = useState(false)
   const [inputValue, setInputValue] = useState("")
+  // Query answers stream through the GenerationProvider so they survive navigation and
+  // refresh. The local streamingAssistant below is only for guided Gibbs questions,
+  // which are session-local by design and don't need to outlive the page.
+  const generation = useGeneration()
   const [streamingAssistant, setStreamingAssistant] = useState<StreamingAssistant | null>(null)
-  const isAssistantThinking = streamingAssistant !== null
+  // Which chat the local (Gibbs) stream belongs to, so it only shows in its own chat.
+  const [streamingChatId, setStreamingChatId] = useState<number | null>(null)
+  // A live mirror of activeChatId so async stream callbacks (onDone) can check the
+  // *current* chat instead of the stale value captured when the stream started.
+  const activeChatIdRef = useRef<number | null>(null)
+  // Only surface a stream in the chat that owns it (no bleed across chats). The query
+  // answer (provider) takes precedence; otherwise fall back to a local Gibbs stream.
+  const queryStreaming = generation.generationFor(activeChatId)
+  const gibbsStreaming = streamingChatId === activeChatId ? streamingAssistant : null
+  const visibleStreamingAssistant = queryStreaming ?? gibbsStreaming
+  // Block re-submitting only while *this* chat is busy (other chats can queue).
+  const isAssistantThinking = visibleStreamingAssistant !== null
+  // Guided Gibbs reflection mode. Step state is local to this session (not yet
+  // persisted on the Chat), so it resets when the chat changes or on reload.
+  const [gibbsActive, setGibbsActive] = useState(false)
+  const [gibbsStep, setGibbsStep] = useState(1)
+  const [gibbsGenerating, setGibbsGenerating] = useState(false)
   // Don't persist activeChatId until we've restored it from storage on mount,
   // otherwise the initial null would wipe the stored value before we read it.
   const hasRestoredActiveChat = useRef(false)
@@ -76,6 +91,10 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
     if (typeof window === "undefined" || !hasRestoredActiveChat.current) return
     if (activeChatId === null) window.localStorage.removeItem(ACTIVE_CHAT_STORAGE_KEY)
     else window.localStorage.setItem(ACTIVE_CHAT_STORAGE_KEY, String(activeChatId))
+  }, [activeChatId])
+
+  useEffect(() => {
+    activeChatIdRef.current = activeChatId
   }, [activeChatId])
 
   useEffect(() => {
@@ -122,7 +141,9 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
   const persistMessage = async (chatId: number, payload: Parameters<typeof api.appendChatMessage>[1]) => {
     try {
       const created = await api.appendChatMessage(chatId, payload)
-      setActiveChatMessages((prev) => [...prev, created])
+      // Only touch the visible list if this is still the chat on screen; otherwise
+      // it's a background write and would otherwise leak into the chat you switched to.
+      if (activeChatIdRef.current === chatId) setActiveChatMessages((prev) => [...prev, created])
       void refreshChats()
       return created
     } catch (error) {
@@ -144,43 +165,108 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
       toast.error(`Could not save message: ${error instanceof Error ? error.message : "Unknown error"}`)
       return
     }
+    // In guided reflection mode the AI only speaks when the user advances a stage
+    // or asks a clarifying question — a typed answer is just recorded.
+    if (gibbsActive) return
+    // Hand off to the provider: it runs the answer server-side (so it survives leaving
+    // the page) and streams it back. Completion is handled by the onComplete effect.
+    generation.startTextGeneration(chatId, trimmed)
+  }
+
+  // When a query generation finishes, fold its answer into the on-screen chat (if it's
+  // the one in view) and drop the streaming entry. Runs for generations started here or
+  // resumed after a refresh. The provider also auto-clears as a safety net.
+  useEffect(() => {
+    return generation.onComplete((chatId, outcome, info) => {
+      if (outcome === "done" && info && activeChatIdRef.current === chatId) {
+        void (async () => {
+          try {
+            const detail = await api.getChat(chatId)
+            const created = detail.messages.find((m) => m.id === info.message_id)
+            setActiveChatMessages((prev) => (created ? [...prev, created] : detail.messages))
+          } catch (error) {
+            console.warn("Failed to refetch chat after stream", error)
+          } finally {
+            generation.clearGeneration(chatId)
+          }
+        })()
+      } else {
+        generation.clearGeneration(chatId)
+      }
+      void refreshChats()
+    })
+    // onComplete/clearGeneration are stable; refreshChats is closure-stable.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [generation.onComplete, generation.clearGeneration])
+
+  // --- Guided Gibbs reflection -------------------------------------------------
+
+  // Build the last two Q&A pairs as context for the next reflection question.
+  const buildGibbsHistory = (): Array<Record<string, unknown>> => {
+    const pairs: Array<{ question?: string; answer?: string }> = []
+    let pending: { question?: string; answer?: string } | null = null
+    for (const m of activeChatMessages) {
+      if (m.role === "question") {
+        if (pending) pairs.push(pending)
+        pending = { question: m.text }
+      } else {
+        if (!pending) pending = {}
+        pending.answer = m.text
+        pairs.push(pending)
+        pending = null
+      }
+    }
+    if (pending) pairs.push(pending)
+    return pairs.slice(-2)
+  }
+
+  const generateGibbsQuestion = async (targetStep: number, mode: "deep_dive" | "clarifying" = "deep_dive") => {
+    let chatId: number
+    try {
+      chatId = await ensureActiveChat()
+    } catch (error) {
+      toast.error(`Could not start reflection: ${error instanceof Error ? error.message : "Unknown error"}`)
+      return
+    }
+    // Ground the question in the user's included sources (mirrors AI Search).
+    const journalText = rawSources
+      .filter((s) => s.included)
+      .map((s) => s.content)
+      .filter(Boolean)
+      .join("\n")
+      .slice(0, 2000)
+    const history = buildGibbsHistory()
+
+    setGibbsGenerating(true)
+    setStreamingChatId(chatId)
     setStreamingAssistant({ stages: [], thinking: "", answer: "" })
+    let acc = ""
     await new Promise<void>((resolve) => {
-      api.streamQuery(
-        { chatId, question: trimmed },
+      api.streamGeneratedQuestion(
+        { mode, step: targetStep, journal_text: journalText || undefined, history },
         {
-          onStage: ({ name, count }) => {
-            setStreamingAssistant((prev) => {
-              if (!prev) return prev
-              const stages = prev.stages.map((s) => ({ ...s, done: true }))
-              stages.push({ name, count, done: false })
-              return { ...prev, stages }
-            })
+          onToken: (token) => {
+            acc += token
+            setStreamingAssistant((prev) => (prev ? { ...prev, answer: prev.answer + token } : prev))
           },
-          onThinking: (delta) => {
-            setStreamingAssistant((prev) => (prev ? { ...prev, thinking: prev.thinking + delta } : prev))
-          },
-          onToken: (delta) => {
-            setStreamingAssistant((prev) => (prev ? { ...prev, answer: prev.answer + delta } : prev))
-          },
-          onDone: async ({ message_id }) => {
+          onDone: async () => {
+            const text = acc.trim()
             try {
-              const detail = await api.getChat(chatId)
-              const created = detail.messages.find((m) => m.id === message_id)
-              if (created) setActiveChatMessages((prev) => [...prev, created])
-              else setActiveChatMessages(detail.messages)
-              void refreshChats()
-            } catch (error) {
-              console.warn("Failed to refetch chat after stream", error)
+              // persistMessage guards the on-screen append by chat id; the question
+              // is always saved server-side even if the user switched chats.
+              if (text) await persistMessage(chatId, { role: "question", text })
             } finally {
               setStreamingAssistant(null)
+              setStreamingChatId(null)
+              setGibbsGenerating(false)
               resolve()
             }
           },
           onError: (error) => {
-            const friendly = error.message.replace(/^API\s+\d+:\s*/, "")
-            toast.error(friendly)
+            toast.error(error.message.replace(/^API\s+\d+:\s*/, ""))
             setStreamingAssistant(null)
+            setStreamingChatId(null)
+            setGibbsGenerating(false)
             resolve()
           },
         }
@@ -188,9 +274,43 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
     })
   }
 
+  const startReflection = async () => {
+    if (gibbsGenerating) return
+    setGibbsActive(true)
+    setGibbsStep(1)
+    await generateGibbsQuestion(1, "deep_dive")
+  }
+
+  const advanceGibbsStep = async () => {
+    if (gibbsGenerating) return
+    if (gibbsStep >= GIBBS_STEP_COUNT) {
+      setGibbsActive(false) // already at the final stage — "Finish"
+      return
+    }
+    const next = gibbsStep + 1
+    setGibbsStep(next)
+    await generateGibbsQuestion(next, "deep_dive")
+  }
+
+  const askClarifying = async () => {
+    if (gibbsGenerating) return
+    await generateGibbsQuestion(gibbsStep, "clarifying")
+  }
+
+  const handleSelectGibbsStep = async (target: number) => {
+    if (gibbsGenerating || target === gibbsStep) return
+    setGibbsStep(target)
+    await generateGibbsQuestion(target, "deep_dive")
+  }
+
+  const exitReflection = () => {
+    setGibbsActive(false)
+  }
+
   const handleSelectChat = (chatId: number) => {
     setActiveChatId(chatId)
     setInputValue("")
+    setGibbsActive(false)
   }
 
   const handleStartRenameChat = (chat: ChatSummary, event: React.MouseEvent) => {
@@ -261,15 +381,20 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
     setActiveChatId(null)
     setActiveChatMessages([])
     setInputValue("")
+    setGibbsActive(false)
   }
 
   return {
     chats, activeChatId, activeChatMessages, isLoadingChats, isLoadingActiveChat,
     renamingChatId, renameDraft, setRenameDraft, setRenamingChatId,
-    isPromotingChat, inputValue, setInputValue, isAssistantThinking, streamingAssistant,
+    isPromotingChat, inputValue, setInputValue, isAssistantThinking,
+    streamingAssistant: visibleStreamingAssistant,
+    generatingChatIds: generation.generatingChatIds,
     activeChat, activeChatSourceId, activeChatLinkedSourceStatus, isLinkedSourceProcessing,
     handleSelectChat, handleStartRenameChat, handleStartRenameActiveChat, handleCommitRename, handleDeleteChat,
     handlePromoteChat, handleSubmitText,
     resetChatState,
+    gibbsActive, gibbsStep, gibbsGenerating,
+    startReflection, advanceGibbsStep, askClarifying, exitReflection, handleSelectGibbsStep,
   }
 }

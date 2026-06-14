@@ -1,0 +1,57 @@
+/* ============================================================
+   Reflect product tour — spotlight + coach-marks
+   Self-contained. Import once (e.g. in the file that renders <Tour/>,
+   or globally). All selectors are namespaced .tour-* so nothing leaks.
+
+   Note: the overlay is position:fixed so it covers the viewport in a
+   real scrolling app (the prototype used absolute inside a scaled stage).
+   ============================================================ */
+.tour-layer { position: fixed; inset: 0; z-index: 200; pointer-events: none; }
+.tour-layer .tour-skip,
+.tour-layer .tour-tip { pointer-events: auto; }
+
+/* spotlight: a transparent window with a massive shadow dimming everything else */
+.tour-spot {
+  position: fixed; border-radius: 12px; pointer-events: none;
+  box-shadow: 0 0 0 9999px rgba(7, 9, 13, 0.72);
+  outline: 2px solid #10b981; outline-offset: 2px;
+  transition: all .42s cubic-bezier(.5,.05,.2,1);
+}
+/* full dim (welcome / done, no target) */
+.tour-dim { position: fixed; inset: 0; background: rgba(7,9,13,0.78); }
+
+.tour-tip {
+  position: fixed; width: 332px; max-width: calc(100vw - 32px); z-index: 210;
+  background: oklch(0.235 0.01 260); border: 1px solid oklch(0.34 0.016 260);
+  border-radius: 14px; padding: 18px; color: oklch(0.97 0.004 260);
+  font-family: "Geist", ui-sans-serif, system-ui, sans-serif;
+  box-shadow: 0 24px 60px -20px rgba(0,0,0,.8);
+  transition: top .42s cubic-bezier(.5,.05,.2,1), left .42s cubic-bezier(.5,.05,.2,1);
+}
+.tour-tip.center { left: 50%; top: 50%; transform: translate(-50%,-50%); width: 420px; padding: 30px; text-align: center; }
+
+.tour-eyebrow { font-family: "Geist Mono", monospace; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: #34d399; display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.tour-tip.center .tour-eyebrow { justify-content: center; }
+.tour-eyebrow::before { content: ""; width: 16px; height: 1px; background: #34d399; }
+.tour-tip.center .tour-eyebrow::before { display: none; }
+.tour-tip h3 { font-size: 19px; line-height: 1.2; letter-spacing: -0.02em; margin: 0 0 8px; font-weight: 600; }
+.tour-tip.center h3 { font-size: 26px; }
+.tour-tip p { font-size: 13.5px; line-height: 1.55; color: oklch(0.78 0.012 260); margin: 0; text-wrap: pretty; }
+.tour-tip.center p { font-size: 15px; max-width: 42ch; margin: 0 auto; }
+
+.tour-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 18px; gap: 12px; }
+.tour-dots { display: flex; gap: 6px; }
+.tour-dot { width: 6px; height: 6px; border-radius: 50%; background: oklch(0.45 0.02 260); transition: all .2s; }
+.tour-dot.on { background: #10b981; width: 18px; border-radius: 3px; }
+.tour-btns { display: flex; align-items: center; gap: 8px; }
+.tour-btn { font-size: 13px; font-weight: 500; border-radius: 8px; padding: 8px 14px; border: 1px solid transparent; transition: all .15s; font-family: inherit; cursor: pointer; }
+.tour-btn.ghost { background: none; color: oklch(0.74 0.015 260); }
+.tour-btn.ghost:hover { color: oklch(0.97 0.004 260); background: oklch(0.34 0.016 260); }
+.tour-btn.primary { background: #059669; color: #fff; display: inline-flex; align-items: center; gap: 7px; }
+.tour-btn.primary:hover { background: #047857; }
+.tour-skip { position: fixed; top: 20px; right: 24px; z-index: 210; font-size: 12px; color: oklch(0.74 0.015 260); background: oklch(0.235 0.01 260 / .6); border: 1px solid oklch(0.34 0.016 260); border-radius: 8px; padding: 7px 12px; font-family: "Geist", sans-serif; backdrop-filter: blur(4px); cursor: pointer; }
+.tour-skip:hover { color: #fff; }
+
+@media (prefers-reduced-motion: reduce) {
+  .tour-spot, .tour-tip { transition: none; }
+}

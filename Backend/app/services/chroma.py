@@ -20,9 +20,19 @@ def get_chroma_collection():
     return _collection
 
 
+def _chunk_metadata(chunk: dict) -> dict:
+    """Node metadata for a chunk; created_at_ts/modality stamped when present (Chroma rejects None)."""
+    metadata = {"source_id": chunk["source_id"], "chunk_id": chunk["id"]}
+    if chunk.get("created_at_ts") is not None:
+        metadata["created_at_ts"] = int(chunk["created_at_ts"])
+    if chunk.get("modality") is not None:
+        metadata["modality"] = chunk["modality"]
+    return metadata
+
+
 def upsert_chunks(chunks: list[dict]):
     """
-    chunks: list of {id, text, source_id, chunk_id}
+    chunks: list of {id, text, source_id, chunk_id, [created_at_ts], [modality]}
     Embeddings are handled by LlamaIndex, so we store raw docs here
     and let LlamaIndex manage the vector side via its ChromaVectorStore.
     This util is for direct upserts if needed outside LlamaIndex.
@@ -31,5 +41,5 @@ def upsert_chunks(chunks: list[dict]):
     collection.upsert(
         ids=[str(c["id"]) for c in chunks],
         documents=[c["text"] for c in chunks],
-        metadatas=[{"source_id": c["source_id"], "chunk_id": c["id"]} for c in chunks],
+        metadatas=[_chunk_metadata(c) for c in chunks],
     )

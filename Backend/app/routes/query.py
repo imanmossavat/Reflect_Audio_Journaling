@@ -1,23 +1,30 @@
+import asyncio
 import datetime
 from pydantic import BaseModel
 import json
 
 from app.services.rag import (
-    TEXT_QA_TEMPLATE,
+    CONTEXT_QA_TEMPLATE,
+    MAX_HISTORY_MESSAGES,
+    SYSTEM_PROMPT,
     build_context_str,
     check_model_installed,
     check_ollama_state,
     classify_ollama_error,
+    condense_question,
     model_supports_thinking,
     query_sources,
     retrieve_nodes,
     serialize_retrieved_nodes,
+    to_chat_messages,
 )
 from app.services.settings_service import get_setting
 from app.services import chatService
+from app.services import generation_registry
+from app.services.ollama_gate import generation_lock, is_busy
 
 import httpx
-import ollama
+from ollama import AsyncClient
 from fastapi import APIRouter, HTTPException, Response
 from fastapi.responses import JSONResponse, StreamingResponse
 from sqlmodel import Session
@@ -26,7 +33,7 @@ from app import logging_config
 from app.db import engine, get_latest_source
 from app.prompts import simpler_dictionary_question_prompt
 from app.prompts import tag_extraction_prompt
-from app.repositories import tagRepository
+from app.repositories import chatRepository, tagRepository
 from app.schemas.journalSchemas import (
     ExtractedTagSchema,
     ExtractedTagsResponse,
@@ -56,12 +63,14 @@ def _embed_model() -> str:
 class QueryRequest(BaseModel):
     question: str
     top_k: int = 5
+    modality: str | None = None
 
 
 class QueryStreamRequest(BaseModel):
     chat_id: int
     question: str
     top_k: int = 5
+    modality: str | None = None
 
 
 @router.post("/query", tags=["Query"], response_model=QueryResponse)
@@ -93,7 +102,13 @@ async def query(request: QueryRequest):
         )
 
     try:
-        result = query_sources(request.question, top_k=request.top_k)
+        # query_sources (LlamaIndex Settings.llm.complete) is synchronous, so run it
+        # in a worker thread to keep the event loop free, and hold the generation gate
+        # so it can't run a second generation alongside a streaming chat answer.
+        async with generation_lock:
+            result = await asyncio.to_thread(
+                query_sources, request.question, top_k=request.top_k, modality=request.modality
+            )
     except Exception as exc:
         kind = classify_ollama_error(exc)
         if kind == "not_running":
@@ -122,12 +137,27 @@ def _sse(event_type: str, payload: dict) -> str:
     return f"data: {json.dumps({'type': event_type, **payload})}\n\n"
 
 
+async def _sse_stream(events):
+    """Format an async iterator of `{type, ...}` event dicts as an SSE response body.
+
+    Events are shared across the replay buffer and every subscriber, so this must not
+    mutate them — each already carries its `type`, matching the `_sse` wire shape.
+    """
+    async for event in events:
+        yield f"data: {json.dumps(event)}\n\n"
+
+
 @router.post("/query-stream", tags=["Query"])
 async def query_stream(request: QueryStreamRequest):
     """Streaming version of /query.
 
+    Starts (or re-attaches to) a background generation for the chat and streams its
+    events. The generation lives in `generation_registry` and outlives this request, so
+    disconnecting — navigating away or refreshing — no longer cancels or loses the answer;
+    reconnect via `GET /chats/{chat_id}/generation-stream`.
+
     Emits SSE events of shape `{type: <event>, ...}`:
-      - stage    {name: "searching" | "retrieved" | "thinking" | "writing", count?: number}
+      - stage    {name: "searching" | "retrieved" | "thinking" | "writing" | "queued"}
       - thinking {delta: str}
       - token    {delta: str}
       - sources  {sources: [...]}
@@ -137,95 +167,33 @@ async def query_stream(request: QueryStreamRequest):
     if not request.question.strip():
         raise HTTPException(status_code=400, detail="Question cannot be empty.")
 
-    async def stream():
-        # Prechecks — emit `error` instead of HTTPException so the SSE response itself
-        # carries the failure (the response status is already 200 by the time we yield).
-        ollama_state = check_ollama_state()
-        if ollama_state == "not_installed":
-            yield _sse("error", {"detail": "Ollama isn't installed on your machine. Install it from https://ollama.com, then try again."})
-            return
-        if ollama_state == "not_running":
-            yield _sse("error", {"detail": "Ollama isn't running on your machine. Start it and send the message again."})
-            return
+    generation_registry.start(
+        request.chat_id, request.question, top_k=request.top_k, modality=request.modality
+    )
+    return StreamingResponse(
+        _sse_stream(generation_registry.subscribe(request.chat_id)),
+        media_type="text/event-stream",
+    )
 
-        embed_model = _embed_model()
-        chat_model = _chat_model()
-        missing = [m for m in (embed_model, chat_model) if not check_model_installed(m)]
-        if missing:
-            commands = " && ".join(f"ollama pull {m}" for m in missing)
-            label = "model isn't" if len(missing) == 1 else "models aren't"
-            yield _sse("error", {"detail": f"The required {label} installed yet. Run `{commands}` in your terminal, then try again."})
-            return
 
-        supports_thinking = model_supports_thinking(chat_model)
+@router.get("/chats/{chat_id}/generation-stream", tags=["Query"])
+async def generation_stream(chat_id: int):
+    """Re-attach to an in-flight generation for `chat_id` (resume after refresh/navigate).
 
-        try:
-            yield _sse("stage", {"name": "searching"})
-            nodes = retrieve_nodes(request.question, top_k=request.top_k)
-            yield _sse("stage", {"name": "retrieved", "count": len(nodes)})
+    Replays buffered events (so the partial answer reappears) then streams live. If no
+    generation is active, emits a single `idle` event so the client falls back to a
+    normal chat load.
+    """
+    return StreamingResponse(
+        _sse_stream(generation_registry.subscribe(chat_id)),
+        media_type="text/event-stream",
+    )
 
-            context_str = build_context_str(nodes)
-            prompt = TEXT_QA_TEMPLATE.format(context_str=context_str, query_str=request.question)
-            messages = [{"role": "user", "content": prompt}]
 
-            answer_parts: list[str] = []
-            thinking_parts: list[str] = []
-            wrote_writing_stage = False
-            wrote_thinking_stage = False
-
-            stream_iter = ollama.chat(
-                model=chat_model,
-                messages=messages,
-                stream=True,
-                think=supports_thinking,
-            )
-            for chunk in stream_iter:
-                msg = chunk.get("message", {}) or {}
-                thinking_delta = msg.get("thinking") or ""
-                content_delta = msg.get("content") or ""
-
-                if thinking_delta:
-                    if not wrote_thinking_stage:
-                        wrote_thinking_stage = True
-                        yield _sse("stage", {"name": "thinking"})
-                    thinking_parts.append(thinking_delta)
-                    yield _sse("thinking", {"delta": thinking_delta})
-
-                if content_delta:
-                    if not wrote_writing_stage:
-                        wrote_writing_stage = True
-                        yield _sse("stage", {"name": "writing"})
-                    answer_parts.append(content_delta)
-                    yield _sse("token", {"delta": content_delta})
-
-            sources_payload = serialize_retrieved_nodes(nodes)
-            yield _sse("sources", {"sources": sources_payload})
-
-            answer_text = "".join(answer_parts).strip() or "(empty response)"
-            thinking_text = "".join(thinking_parts).strip() or None
-
-            with Session(engine) as session:
-                snapshot = chatService.append_message(
-                    session,
-                    request.chat_id,
-                    role="question",
-                    text=answer_text,
-                    model=chat_model,
-                    thinking=thinking_text,
-                )
-
-            yield _sse("done", {"model": chat_model, "message_id": snapshot["id"]})
-        except Exception as exc:
-            kind = classify_ollama_error(exc)
-            if kind == "not_running":
-                yield _sse("error", {"detail": "Ollama stopped while answering. Start it and send the message again."})
-            elif kind == "model_missing":
-                yield _sse("error", {"detail": f"A required Ollama model is missing. Run `ollama pull {_embed_model()}` and `ollama pull {_chat_model()}`, then try again."})
-            else:
-                logger.exception(f"Query stream failed: {exc}")
-                yield _sse("error", {"detail": "Something went wrong while answering. Check the backend logs."})
-
-    return StreamingResponse(stream(), media_type="text/event-stream")
+@router.get("/generations", tags=["Query"])
+async def list_generations():
+    """Chats with a generation currently in progress (sidebar spinner + reconnect)."""
+    return generation_registry.active()
 
 
 @router.post("/extract-tags", tags=["Query"])
@@ -241,7 +209,7 @@ async def extract_tags(source_id: int) -> ExtractedTagsResponse:
     prompt = tag_extraction_prompt.build_prompt(source_text)
 
     try:
-        async with httpx.AsyncClient(
+        async with generation_lock, httpx.AsyncClient(
             timeout=httpx.Timeout(connect=10.0, read=300.0, write=10.0, pool=10.0)
         ) as client:
             response = await client.post(
@@ -304,9 +272,14 @@ async def extract_tags(source_id: int) -> ExtractedTagsResponse:
 
 @router.post("/generate-question", tags=["Query"])
 async def generate_question(req: GenerateRequest):
-    with Session(engine) as session:
-        source = get_latest_source(session)
-        source_text = source.text
+    if req.journal_text and req.journal_text.strip():
+        # Frontend supplies the journal context (e.g. the user's included sources +
+        # conversation), so reflection questions aren't tied to only the latest entry.
+        source_text = req.journal_text
+    else:
+        with Session(engine) as session:
+            source = get_latest_source(session)
+            source_text = source.text if source else ""
 
     try:
         messages = simpler_dictionary_question_prompt.build_messages(
@@ -322,11 +295,14 @@ async def generate_question(req: GenerateRequest):
 
     async def stream_ollama():
         try:
-            stream = ollama.chat(model=_chat_model(), messages=messages, stream=True, think=False)
-            for chunk in stream:
-                token = chunk.get("message", {}).get("content", "")
-                if token:
-                    yield f"data: {json.dumps({'token': token})}\\n\\n"
+            async with generation_lock:
+                client = AsyncClient(host=_ollama_host())
+                async for chunk in await client.chat(
+                    model=_chat_model(), messages=messages, stream=True, think=False
+                ):
+                    token = chunk.get("message", {}).get("content", "")
+                    if token:
+                        yield f"data: {json.dumps({'token': token})}\\n\\n"
             yield "data: [DONE]\\n\\n"
         except Exception as e:
             logger.error(f"Ollama streaming error: {e}")

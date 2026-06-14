@@ -12,12 +12,14 @@ import strip_markdown
 
 from app.db import engine
 from app.repositories import sourceRepository
+from app.services.chroma import get_chroma_collection
 from app.services.chunking import chunk_text
 from app.services.rag import check_model_installed, classify_ollama_error, index_chunks
 from app.services.transcription import TranscriptionManager
 from app.services.settings_service import get_setting
 from app.utils.filename_dates import parse_datetime_from_filename
 from app.utils.html_text import html_to_text
+from app.utils.markdown_html import markdown_to_html
 from app import logging_config
 
 
@@ -63,6 +65,7 @@ def _process_source_sync(source_id: int) -> None:
         file_type = source.file_type
         file_path = source.file_path
         text = source.text
+        created_at = source.created_at
 
     try:
         #Transcribe
@@ -118,8 +121,15 @@ def _process_source_sync(source_id: int) -> None:
         # Short-lived write to persist chunks
         with Session(engine) as session:
             db_chunks = sourceRepository.create_chunks(session, source_id, chunks)
+            created_at_ts = int(created_at.timestamp()) if created_at else None
             chunk_dicts = [
-                {"id": str(c.id), "text": c.chunk_text, "source_id": str(source_id)}
+                {
+                    "id": str(c.id),
+                    "text": c.chunk_text,
+                    "source_id": str(source_id),
+                    "created_at_ts": created_at_ts,
+                    "modality": file_type,
+                }
                 for c in db_chunks
             ]
 
@@ -246,12 +256,20 @@ async def save_processed_source_file(session: Session, file: UploadFile):
     # Store text immediately for non-audio files so the background task can skip reading from disk
     text = raw_bytes.decode("utf-8") if file_type in ("text", "markdown") else None
 
+    # Markdown files keep their formatting on display via rich HTML; the canonical
+    # plain text (used for RAG) is derived from that HTML so no markup leaks through.
+    text_html = None
+    if file_type == "markdown":
+        text_html = markdown_to_html(text)
+        text = html_to_text(text_html)
+
     return sourceRepository.create_source(
         session=session,
         filename=file.filename,
         file_path=str(filepath),
         file_type=file_type,
         text=text,
+        text_html=text_html,
         status="queued",
         created_at=parse_datetime_from_filename(file.filename, get_setting("date_format")),
     )
@@ -326,6 +344,12 @@ async def delete_source(session: Session, source_id: int):
     if not source:
         raise HTTPException(status_code=404, detail="Source not found.")
     sourceRepository.delete_source(session, source_id)
+    # Drop the source's vectors too, or RAG keeps retrieving orphaned chunks.
+    # Chunks are indexed with source_id stored as a string (see _process_source_sync).
+    try:
+        get_chroma_collection().delete(where={"source_id": str(source_id)})
+    except Exception as exc:
+        logger.warning(f"Chroma delete for source {source_id} failed: {exc}")
     return {"ok": True}
 
 

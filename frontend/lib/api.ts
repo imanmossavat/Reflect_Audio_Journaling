@@ -142,7 +142,7 @@ export interface ChatMessageRecord {
   created_at: string
 }
 
-export type ChatStreamStageName = "searching" | "retrieved" | "thinking" | "writing"
+export type ChatStreamStageName = "queued" | "searching" | "retrieved" | "thinking" | "writing"
 
 export interface ChatStreamHandlers {
   onStage: (stage: { name: ChatStreamStageName; count?: number }) => void
@@ -151,6 +151,14 @@ export interface ChatStreamHandlers {
   onSources?: (sources: QuerySource[]) => void
   onDone: (info: { model: string | null; message_id: number }) => void
   onError: (error: Error) => void
+  // Emitted by a resume stream when no generation is active for the chat, so the
+  // caller can fall back to a normal chat load instead of waiting on tokens.
+  onIdle?: () => void
+}
+
+export interface ActiveGeneration {
+  chat_id: number
+  status: string
 }
 
 export interface ChatSummary {
@@ -189,6 +197,7 @@ export interface GenerateQuestionRequest {
   focus_tag?: string
   focus_tag_summary?: string
   history?: Array<Record<string, unknown>>
+  journal_text?: string
 }
 
 export type AppDevice = "cpu" | "cuda" | "mps" | "rocm"
@@ -344,6 +353,76 @@ function parseNestedTokenPayload(text: string): { tokens: string[]; done: boolea
   }
 
   return { tokens, done }
+}
+
+// Read an SSE chat stream (POST /query-stream or GET resume) to completion, dispatching
+// each `data:` event to the handlers. Shared by streamQuery and subscribeGeneration so
+// the parsing lives in one place.
+async function consumeChatStream(response: Response, handlers: ChatStreamHandlers): Promise<void> {
+  if (!response.ok || !response.body) {
+    throw new Error(`Unable to stream answer (${response.status})`)
+  }
+
+  const decoder = new TextDecoder()
+  const reader = response.body.getReader()
+  let buffer = ""
+
+  const dispatch = (raw: string) => {
+    const trimmed = raw.trim()
+    if (!trimmed) return
+    let parsed: Record<string, unknown>
+    try {
+      parsed = JSON.parse(trimmed) as Record<string, unknown>
+    } catch {
+      return
+    }
+    const eventType = parsed.type as string | undefined
+    switch (eventType) {
+      case "stage":
+        handlers.onStage({
+          name: parsed.name as ChatStreamStageName,
+          count: typeof parsed.count === "number" ? parsed.count : undefined,
+        })
+        break
+      case "thinking":
+        if (typeof parsed.delta === "string") handlers.onThinking(parsed.delta)
+        break
+      case "token":
+        if (typeof parsed.delta === "string") handlers.onToken(parsed.delta)
+        break
+      case "sources":
+        handlers.onSources?.(parsed.sources as QuerySource[])
+        break
+      case "done":
+        handlers.onDone({
+          model: (parsed.model as string | null) ?? null,
+          message_id: parsed.message_id as number,
+        })
+        break
+      case "error":
+        handlers.onError(new Error((parsed.detail as string) || "Stream error"))
+        break
+      case "idle":
+        handlers.onIdle?.()
+        break
+    }
+  }
+
+  const drainEvents = (chunk: string) => {
+    for (const line of chunk.split(/\r?\n/)) {
+      if (line.startsWith("data:")) dispatch(line.slice(5).trim())
+    }
+  }
+
+  while (true) {
+    const { value, done } = await reader.read()
+    if (done) break
+    buffer += decoder.decode(value, { stream: true })
+    const events = buffer.split(/\r?\n\r?\n/)
+    buffer = events.pop() ?? ""
+    for (const evt of events) drainEvents(evt)
+  }
+  if (buffer.trim()) drainEvents(buffer)
 }
 
 async function request<T>(path: string, init?: RequestInit, timeoutMs: number = 20000): Promise<T> {
@@ -582,6 +661,9 @@ export const api = {
   listSpacyModels() {
     return request<SpacyModelEntry[]>("/settings/spacy-models")
   },
+  listActiveGenerations() {
+    return request<ActiveGeneration[]>("/generations")
+  },
   streamQuery(
     payload: { chatId: number; question: string; top_k?: number },
     handlers: ChatStreamHandlers
@@ -600,68 +682,26 @@ export const api = {
           signal: controller.signal,
           credentials: "include",
         })
-
-        if (!response.ok || !response.body) {
-          throw new Error(`Unable to stream answer (${response.status})`)
-        }
-
-        const decoder = new TextDecoder()
-        const reader = response.body.getReader()
-        let buffer = ""
-
-        const dispatch = (raw: string) => {
-          const trimmed = raw.trim()
-          if (!trimmed) return
-          let parsed: Record<string, unknown>
-          try {
-            parsed = JSON.parse(trimmed) as Record<string, unknown>
-          } catch {
-            return
-          }
-          const eventType = parsed.type as string | undefined
-          switch (eventType) {
-            case "stage":
-              handlers.onStage({
-                name: parsed.name as ChatStreamStageName,
-                count: typeof parsed.count === "number" ? parsed.count : undefined,
-              })
-              break
-            case "thinking":
-              if (typeof parsed.delta === "string") handlers.onThinking(parsed.delta)
-              break
-            case "token":
-              if (typeof parsed.delta === "string") handlers.onToken(parsed.delta)
-              break
-            case "sources":
-              handlers.onSources?.(parsed.sources as QuerySource[])
-              break
-            case "done":
-              handlers.onDone({
-                model: (parsed.model as string | null) ?? null,
-                message_id: parsed.message_id as number,
-              })
-              break
-            case "error":
-              handlers.onError(new Error((parsed.detail as string) || "Stream error"))
-              break
-          }
-        }
-
-        const drainEvents = (chunk: string) => {
-          for (const line of chunk.split(/\r?\n/)) {
-            if (line.startsWith("data:")) dispatch(line.slice(5).trim())
-          }
-        }
-
-        while (true) {
-          const { value, done } = await reader.read()
-          if (done) break
-          buffer += decoder.decode(value, { stream: true })
-          const events = buffer.split(/\r?\n\r?\n/)
-          buffer = events.pop() ?? ""
-          for (const evt of events) drainEvents(evt)
-        }
-        if (buffer.trim()) drainEvents(buffer)
+        await consumeChatStream(response, handlers)
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") return
+        handlers.onError(error instanceof Error ? error : new Error("Unknown stream error"))
+      }
+    }
+    void run()
+    return () => controller.abort()
+  },
+  // Re-attach to an in-flight generation (resume after refresh/navigate). Replays the
+  // buffered events then streams live; emits `onIdle` if nothing is generating.
+  subscribeGeneration(chatId: number, handlers: ChatStreamHandlers) {
+    const controller = new AbortController()
+    const run = async () => {
+      try {
+        const response = await fetch(
+          `${getBackendBaseUrl()}/chats/${chatId}/generation-stream`,
+          { signal: controller.signal, credentials: "include" }
+        )
+        await consumeChatStream(response, handlers)
       } catch (error) {
         if (error instanceof DOMException && error.name === "AbortError") return
         handlers.onError(error instanceof Error ? error : new Error("Unknown stream error"))

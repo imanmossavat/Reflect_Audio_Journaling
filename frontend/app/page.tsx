@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import {
   FileText,
   MessageSquare,
@@ -16,12 +16,14 @@ import {
   Sparkles,
 } from "lucide-react"
 import { OnboardingModal } from "@/components/onboarding-modal"
+import Tour, { buildTourSteps } from "@/components/Tour"
 import { TopNav } from "@/components/top-nav"
 import { SourceListPanel } from "@/components/home/source-list-panel"
 import { ChatListPanel } from "@/components/home/chat-list-panel"
 import { ChatTopBar } from "@/components/home/chat-top-bar"
 import { ChatMessages } from "@/components/home/chat-messages"
 import { ChatInput } from "@/components/home/chat-input"
+import { ReflectionBanner } from "@/components/home/reflection-banner"
 import { RightSidebar } from "@/components/home/right-sidebar"
 import { NewSourceMenu } from "@/components/home/new-source-menu"
 import { NoteEditor } from "@/components/home/note-editor"
@@ -35,6 +37,7 @@ import type { LeftTab } from "@/components/home/types"
 import { toast } from "sonner"
 
 const leftTabStorageKey = "reflect_left_tab"
+const tourSeenStorageKey = "reflect.tour.seen"
 
 type Stage = "chat" | "note" | "graph"
 
@@ -47,6 +50,7 @@ export default function HomePage() {
   const [installedModels, setInstalledModels] = useState<OllamaModelEntry[]>([])
   const [isOllamaReachable, setIsOllamaReachable] = useState(true)
   const [isSavingChatModel, setIsSavingChatModel] = useState(false)
+  const [tourOpen, setTourOpen] = useState(false)
 
   const sources = useSourceManagement()
   const chats = useChatManagement({
@@ -71,6 +75,28 @@ export default function HomePage() {
       setLeftTab("sources")
     }
   }, [])
+
+  // Auto-open the product tour once, on first startup. We wait until sources
+  // have loaded and the onboarding modal is dismissed so the tour never stacks
+  // on top of onboarding and can spotlight the real workspace.
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    if (sources.isLoadingSources || sources.isOnboardingOpen) return
+    if (window.localStorage.getItem(tourSeenStorageKey)) return
+    setTourOpen(true)
+  }, [sources.isLoadingSources, sources.isOnboardingOpen])
+
+  const closeTour = () => {
+    setTourOpen(false)
+    if (typeof window !== "undefined") window.localStorage.setItem(tourSeenStorageKey, "1")
+  }
+
+  // Empty library → invitational copy so the tour doesn't reference sources
+  // that don't exist yet on the first run.
+  const tourSteps = useMemo(
+    () => buildTourSteps(sources.rawSources.length > 0),
+    [sources.rawSources.length],
+  )
 
   const handleToggleTagFilter = (tag: string) => {
     setTagFilter((prev) =>
@@ -172,6 +198,7 @@ export default function HomePage() {
         onSkip={sources.handleOnboardingSkip}
         onSubmit={sources.handleOnboardingSubmit}
       />
+      {tourOpen && <Tour steps={tourSteps} onClose={closeTour} />}
       <TopNav activePath="/" />
 
       <div className="flex-1 flex min-h-0">
@@ -275,22 +302,26 @@ export default function HomePage() {
           {leftTab === "sources" ? (
             <>
               <div className="p-3 border-b flex items-center justify-between">
-                <h2 className="text-sm font-medium">Library</h2>
+                <h2 className="text-sm font-medium">Sources</h2>
                 <NewSourceMenu
                   addSourceMode={sources.addSourceMode}
                   setAddSourceMode={sources.setAddSourceMode}
                   onNewNote={() => setStage("note")}
                   isSavingSource={sources.isSavingSource}
                   isDragOverUpload={sources.isDragOverUpload}
-                  isRecording={sources.isRecording}
+                  recordingState={sources.recordingState}
                   recordingSeconds={sources.recordingSeconds}
+                  recordedAudioUrl={sources.recordedAudioUrl}
                   fileInputRef={sources.fileInputRef}
                   onAddFileSource={sources.handleAddFileSource}
                   onFileDrop={sources.handleFileDrop}
                   onFileDragEnter={sources.handleFileDragEnter}
                   onFileDragOver={sources.handleFileDragOver}
                   onFileDragLeave={sources.handleFileDragLeave}
-                  onToggleRecording={sources.handleToggleRecording}
+                  onStartRecording={sources.handleStartRecording}
+                  onPauseRecording={sources.handlePauseRecording}
+                  onResumeRecording={sources.handleResumeRecording}
+                  onSaveRecording={sources.handleSaveRecording}
                   onCloseRecordingPanel={sources.handleCloseRecordingPanel}
                   rawUploadUrl={sources.rawUploadUrl}
                 />
@@ -312,6 +343,7 @@ export default function HomePage() {
               chats={chats.chats}
               isLoadingChats={chats.isLoadingChats}
               activeChatId={chats.activeChatId}
+              generatingChatIds={chats.generatingChatIds}
               renamingChatId={chats.renamingChatId}
               renameDraft={chats.renameDraft}
               setRenameDraft={chats.setRenameDraft}
@@ -347,6 +379,16 @@ export default function HomePage() {
               onCancelRenameTitle={() => chats.setRenamingChatId(null)}
             />
           )}
+          <ReflectionBanner
+            active={chats.gibbsActive}
+            step={chats.gibbsStep}
+            generating={chats.gibbsGenerating}
+            onStart={() => void chats.startReflection()}
+            onAdvance={() => void chats.advanceGibbsStep()}
+            onClarify={() => void chats.askClarifying()}
+            onEnd={chats.exitReflection}
+            onSelectStep={(step) => void chats.handleSelectGibbsStep(step)}
+          />
           <ChatMessages
             activeChatMessages={chats.activeChatMessages}
             isLoadingActiveChat={chats.isLoadingActiveChat}
@@ -434,6 +476,7 @@ export default function HomePage() {
           </div>
         ) : (
         <aside
+          data-tour="tools"
           className="border-l flex flex-col bg-muted/10 relative shrink-0 min-h-0"
           style={{ width: sidebar.rightSidebarWidth }}
         >

@@ -1,0 +1,109 @@
+{
+  "_note": "Multi-note-gold question set. Each answerable question requires synthesizing 2-4 notes, so precision@K and recall@K have real headroom (unlike questions.json where every answer is a single note and precision@5 is capped at ~0.2). gold_supporting_notes lists every note needed for a complete answer. Use this set to judge whether a reranker actually improves ordering. Run: python run_eval.py --questions questions_multi.json --reranker",
+  "questions": [
+    {
+      "id": "M1",
+      "question": "Which messages from people has Maya left unanswered or unfinished?",
+      "expected_answer": "Her reply to Lina (drafts written then deleted, left unsent), Sophie's unlistened nine-minute voice message from Copenhagen, Eva's long voice message about a maybe wedding shoot that she only half-listened to, and Daan's meme about the Portugal money that she never replied to.",
+      "answerability": "answerable",
+      "gold_supporting_notes": ["N-7815", "N-7827", "N-7822", "N-7832"],
+      "reasoning_type": "multi_hop"
+    },
+    {
+      "id": "M2",
+      "question": "What health or self-improvement routines has Maya started and then abandoned?",
+      "expected_answer": "A sleep tracker she restarted again (the third this year), the physio exercises she quit after about two minutes, the swim/pool bag that has sat unopened by the door, and the ADHD form she keeps opening but never fills in.",
+      "answerability": "answerable",
+      "gold_supporting_notes": ["N-7821", "N-7814", "N-7820", "N-7831"],
+      "reasoning_type": "multi_hop"
+    },
+    {
+      "id": "M3",
+      "question": "What paperwork or documents is Maya avoiding finishing?",
+      "expected_answer": "The promotion evidence doc in Notion, the mortgage spreadsheet she only re-reads without changing, the tax reimbursement draft that keeps migrating between apps, and the ADHD form she leaves open without filling in.",
+      "answerability": "answerable",
+      "gold_supporting_notes": ["N-7811", "N-7818", "N-7830", "N-7831"],
+      "reasoning_type": "multi_hop"
+    },
+    {
+      "id": "M4",
+      "question": "Which colleagues have been chasing Maya about unfinished work?",
+      "expected_answer": "Lina about the promotion evidence doc, Karel about the humidity readings, Yuki about the print shop, and Tom about the tax reimbursement.",
+      "answerability": "answerable",
+      "gold_supporting_notes": ["N-7811", "N-7812", "N-7813", "N-7830"],
+      "reasoning_type": "multi_hop"
+    },
+    {
+      "id": "M5",
+      "question": "What money matters are unresolved or vague for Maya?",
+      "expected_answer": "A bill she agreed to split with Eva without noting the amount, the Portugal deposit Daan hinted she owes, the mortgage sheet she treats as a thinking space rather than a decision tool, and the unfinished tax reimbursement draft.",
+      "answerability": "answerable",
+      "gold_supporting_notes": ["N-7816", "N-7832", "N-7818", "N-7830"],
+      "reasoning_type": "multi_hop"
+    },
+    {
+      "id": "M6",
+      "question": "What household tasks did Maya attempt but not really complete?",
+      "expected_answer": "The dehumidifier runs for hours but the bedroom corner still smells damp, the shelf is still uneven after an hour with Anika's drill, and she only wiped the iPad instead of actually using Procreate.",
+      "answerability": "answerable",
+      "gold_supporting_notes": ["N-7826", "N-7829", "N-7823"],
+      "reasoning_type": "multi_hop"
+    },
+    {
+      "id": "M7",
+      "question": "In what different contexts does Tom come up in Maya's notes?",
+      "expected_answer": "Tom said he had handled the humidity readings, he asked again about the tax reimbursement, and he was in the other room while she covered part of a bill, which left her with some dread about raising the 'Tom thing'.",
+      "answerability": "answerable",
+      "gold_supporting_notes": ["N-7812", "N-7830", "N-7816"],
+      "reasoning_type": "multi_hop"
+    },
+    {
+      "id": "M8",
+      "question": "What voice messages has Maya received and how did she handle them?",
+      "expected_answer": "Eva's long voice message about a maybe wedding shoot, which she only half-listened to, and Sophie's nine-minute message from Copenhagen, which is still sitting unlistened.",
+      "answerability": "answerable",
+      "gold_supporting_notes": ["N-7822", "N-7827"],
+      "reasoning_type": "multi_hop"
+    },
+    {
+      "id": "M9",
+      "question": "When has Maya's phone or scrolling distracted her from something?",
+      "expected_answer": "Her phone derailed the physio session so she lost the thread completely, and she lost time late at night scrolling past Mira's burnout post.",
+      "answerability": "answerable",
+      "gold_supporting_notes": ["N-7814", "N-7825"],
+      "reasoning_type": "multi_hop"
+    },
+    {
+      "id": "M10",
+      "question": "Where does Maya avoid difficult conversations or let them slide?",
+      "expected_answer": "She left her reply to Lina unsent, mentioned visiting her dad again but let it drop when Hans didn't acknowledge it, and didn't reply to Daan about the money he hinted she owed.",
+      "answerability": "answerable",
+      "gold_supporting_notes": ["N-7815", "N-7819", "N-7832"],
+      "reasoning_type": "multi_hop"
+    },
+    {
+      "id": "M11",
+      "question": "How much did Maya pay for the dehumidifier?",
+      "expected_answer": "I don't know based on the notes.",
+      "answerability": "unanswerable",
+      "gold_supporting_notes": [],
+      "reasoning_type": "unanswerable"
+    },
+    {
+      "id": "M12",
+      "question": "When is Miso's vet appointment scheduled?",
+      "expected_answer": "I don't know based on the notes.",
+      "answerability": "unanswerable",
+      "gold_supporting_notes": [],
+      "reasoning_type": "unanswerable"
+    },
+    {
+      "id": "M13",
+      "question": "Who is Maya's manager?",
+      "expected_answer": "I don't know based on the notes.",
+      "answerability": "unanswerable",
+      "gold_supporting_notes": [],
+      "reasoning_type": "unanswerable"
+    }
+  ]
+}

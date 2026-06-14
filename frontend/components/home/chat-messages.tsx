@@ -4,6 +4,7 @@ import { ChevronRight, Loader2, Check } from "lucide-react"
 import type { ChatMessageRecord, ChatStreamStageName } from "@/lib/api"
 import type { StreamingAssistant, StreamingStage } from "@/hooks/useChatManagement"
 import { formatListTimestamp } from "@/lib/utils"
+import { Markdown } from "@/components/markdown"
 
 interface ChatMessagesProps {
   activeChatMessages: ChatMessageRecord[]
@@ -12,6 +13,7 @@ interface ChatMessagesProps {
 }
 
 const STAGE_LABELS: Record<ChatStreamStageName, (count?: number) => string> = {
+  queued: () => "Waiting for the model",
   searching: () => "Searching your sources",
   retrieved: (count) => `Read ${count ?? 0} relevant chunk${count === 1 ? "" : "s"}`,
   thinking: () => "Thinking",
@@ -74,7 +76,7 @@ export function ChatMessages({ activeChatMessages, isLoadingActiveChat, streamin
                         </div>
                       </details>
                     )}
-                    <p className="text-[15px] whitespace-pre-wrap">{message.text}</p>
+                    <Markdown className="text-[15px]">{message.text}</Markdown>
                     <div className="flex items-center justify-between gap-2 mt-1.5">
                       <span className="text-[10px] text-muted-foreground">{timestamp}</span>
                       {message.model && (
@@ -125,7 +127,7 @@ export function ChatMessages({ activeChatMessages, isLoadingActiveChat, streamin
                 </details>
               )}
               {streamingAssistant.answer ? (
-                <p className="text-[15px] whitespace-pre-wrap">{streamingAssistant.answer}</p>
+                <Markdown className="text-[15px]">{streamingAssistant.answer}</Markdown>
               ) : streamingAssistant.stages.length === 0 ? (
                 <div className="flex items-center gap-1">
                   <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60 animate-bounce [animation-delay:-0.3s]" />

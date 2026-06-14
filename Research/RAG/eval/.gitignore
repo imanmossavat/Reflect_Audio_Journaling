@@ -1,0 +1,5 @@
+# Regenerable / machine-local eval artifacts
+chroma/
+runs/
+__pycache__/
+*.pyc

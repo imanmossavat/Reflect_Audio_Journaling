@@ -8,7 +8,12 @@ import type { OnboardingProfile } from "@/components/onboarding-modal"
 import { toast } from "sonner"
 
 const profileStorageKey = "reflect_profile"
+const onboardingSkippedStorageKey = "reflect_onboarding_skipped"
 const mobileOriginStorageKey = "reflect_mobile_origin"
+
+// idle → recording ⇄ paused. Pausing drops into the review screen (playback +
+// upload + continue); there is no separate "recorded" step.
+export type RecordingState = "idle" | "recording" | "paused"
 
 const allowedUploadExtensions = new Set([".wav", ".mp3", ".m4a", ".webm", ".ogg", ".txt", ".md"])
 const allowedUploadMimeTypes = new Set(["audio/mpeg", "audio/wav", "audio/webm", "audio/ogg", "text/plain", "text/markdown"])
@@ -77,8 +82,11 @@ export function useSourceManagement() {
   const [isDragOverUpload, setIsDragOverUpload] = useState(false)
   const [addSourceMode, setAddSourceMode] = useState<AddSourceMode>(null)
   const [newSourceText, setNewSourceText] = useState("")
-  const [isRecording, setIsRecording] = useState(false)
+  // Recording lifecycle: idle → recording ⇄ paused → recorded (review). The
+  // audio is only uploaded once the user explicitly saves from the review step.
+  const [recordingState, setRecordingState] = useState<RecordingState>("idle")
   const [recordingSeconds, setRecordingSeconds] = useState(0)
+  const [recordedAudioUrl, setRecordedAudioUrl] = useState<string | null>(null)
   const [processingSources, setProcessingSources] = useState<Set<number>>(new Set())
   const [rawUploadUrl, setRawUploadUrl] = useState("/upload/raw")
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false)
@@ -87,6 +95,11 @@ export function useSourceManagement() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const audioChunksRef = useRef<Blob[]>([])
   const recordingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const recordingStreamRef = useRef<MediaStream | null>(null)
+  const recordingMimeRef = useRef<string>("audio/webm")
+  // Set just before stop() so the shared onstop handler knows whether to upload
+  // the finalised clip (Upload) or simply discard it (delete/close).
+  const uploadPendingRef = useRef(false)
   const rawSourcesRef = useRef<RawSource[]>([])
   const maxSourceIdRef = useRef(0)
 
@@ -182,8 +195,11 @@ export function useSourceManagement() {
             .filter((id) => Number.isInteger(id) && id > 0)
         )
         if (inProgress.size > 0) setProcessingSources(inProgress)
+        // Onboard on the profile alone: a fresh install now ships a seeded
+        // example note, so "no sources" can no longer stand in for "new user".
         const hasProfile = Boolean(window.localStorage.getItem(profileStorageKey))
-        setIsOnboardingOpen(!hasProfile && mapped.length === 0)
+        const hasSkipped = Boolean(window.localStorage.getItem(onboardingSkippedStorageKey))
+        setIsOnboardingOpen(!hasProfile && !hasSkipped)
       } catch (error) {
         toast.error(`Could not load sources: ${error instanceof Error ? error.message : "Unknown error"}`)
       } finally {
@@ -307,18 +323,75 @@ export function useSourceManagement() {
       setIsDragOverUpload(false)
   }
 
-  const handleToggleRecording = () => {
-    if (isRecording) {
-      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive")
-        mediaRecorderRef.current.stop()
-      if (recordingTimerRef.current) {
-        clearInterval(recordingTimerRef.current)
-        recordingTimerRef.current = null
-      }
-      setIsRecording(false)
-      return
+  const stopRecordingTimer = () => {
+    if (recordingTimerRef.current) {
+      clearInterval(recordingTimerRef.current)
+      recordingTimerRef.current = null
     }
+  }
 
+  const startRecordingTimer = () => {
+    stopRecordingTimer()
+    recordingTimerRef.current = setInterval(() => { setRecordingSeconds((prev) => prev + 1) }, 1000)
+  }
+
+  const clearRecordedAudioUrl = () => {
+    setRecordedAudioUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev)
+      return null
+    })
+  }
+
+  // Build a playable clip from the chunks captured so far. Because the recorder
+  // runs with a timeslice, those chunks form a valid (if slightly truncated)
+  // clip we can preview while paused, without ending the recording.
+  const refreshPausedPreview = () => {
+    if (audioChunksRef.current.length === 0) return
+    const blob = new Blob(audioChunksRef.current, { type: recordingMimeRef.current })
+    setRecordedAudioUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev)
+      return URL.createObjectURL(blob)
+    })
+  }
+
+  const uploadRecordedFile = async (audioFile: File) => {
+    try {
+      const created = await api.uploadFileSource(audioFile, true)
+      if (created.id > maxSourceIdRef.current) maxSourceIdRef.current = created.id
+      setRawSources((prev) => (prev.some((s) => s.id === String(created.id)) ? prev : [mapBackendSource(created), ...prev].sort(compareSourcesNewestFirst)))
+      setProcessingSources((prev) => new Set([...prev, created.id]))
+      toast("Recording saved — transcribing in background.")
+      audioChunksRef.current = []
+      clearRecordedAudioUrl()
+      setRecordingSeconds(0)
+      setRecordingState("idle")
+      setAddSourceMode(null)
+    } catch (error) {
+      toast.error(`Recording upload failed: ${error instanceof Error ? error.message : "Unknown error"}`)
+    } finally {
+      setIsSavingSource(false)
+    }
+  }
+
+  // Tear down the active recorder/stream and drop any captured audio without
+  // uploading. Used for an explicit delete and when closing the panel.
+  const teardownRecording = () => {
+    stopRecordingTimer()
+    uploadPendingRef.current = false
+    const recorder = mediaRecorderRef.current
+    if (recorder && recorder.state !== "inactive") recorder.stop()
+    mediaRecorderRef.current = null
+    if (recordingStreamRef.current) {
+      recordingStreamRef.current.getTracks().forEach((track) => track.stop())
+      recordingStreamRef.current = null
+    }
+    audioChunksRef.current = []
+    clearRecordedAudioUrl()
+    setRecordingSeconds(0)
+    setRecordingState("idle")
+  }
+
+  const handleStartRecording = () => {
     if (!window.isSecureContext) {
       toast.error("Microphone unavailable", { description: "Recording requires HTTPS or localhost." })
       return
@@ -329,62 +402,91 @@ export function useSourceManagement() {
     }
 
     navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
+      recordingStreamRef.current = stream
       const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
         ? "audio/webm;codecs=opus"
         : MediaRecorder.isTypeSupported("audio/webm")
           ? "audio/webm"
           : "audio/ogg"
+      const baseMime = mimeType.split(";")[0]
+      const extension = baseMime.includes("ogg") ? ".ogg" : ".webm"
+      recordingMimeRef.current = baseMime
 
       const mediaRecorder = new MediaRecorder(stream, { mimeType })
       mediaRecorderRef.current = mediaRecorder
       audioChunksRef.current = []
+      uploadPendingRef.current = false
 
       mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) audioChunksRef.current.push(event.data)
+        // A flush that lands after pausing refines the preview clip.
+        if (mediaRecorderRef.current?.state === "paused") refreshPausedPreview()
       }
 
+      // stop() finalises the clip. Upload only when the user asked to (Upload);
+      // a delete/close stops with uploadPending false and the audio is dropped.
       mediaRecorder.onstop = () => {
         stream.getTracks().forEach((track) => track.stop())
-        const baseMime = mimeType.split(";")[0]
-        const extension = baseMime.includes("ogg") ? ".ogg" : ".webm"
+        recordingStreamRef.current = null
+        if (!uploadPendingRef.current) return
+        uploadPendingRef.current = false
         const audioBlob = new Blob(audioChunksRef.current, { type: baseMime })
         const audioFile = new File([audioBlob], `recording-${Date.now()}${extension}`, { type: baseMime })
-        setIsSavingSource(true)
-        api.uploadFileSource(audioFile, true)
-          .then((created) => {
-            if (created.id > maxSourceIdRef.current) maxSourceIdRef.current = created.id
-            setRawSources((prev) => (prev.some((s) => s.id === String(created.id)) ? prev : [mapBackendSource(created), ...prev].sort(compareSourcesNewestFirst)))
-            setProcessingSources((prev) => new Set([...prev, created.id]))
-            setAddSourceMode(null)
-            setRecordingSeconds(0)
-            toast("Recording saved — transcribing in background.")
-          })
-          .catch((error) => {
-            toast.error(`Recording upload failed: ${error instanceof Error ? error.message : "Unknown error"}`)
-          })
-          .finally(() => { setIsSavingSource(false) })
+        void uploadRecordedFile(audioFile)
       }
 
-      mediaRecorder.start()
-      setIsRecording(true)
+      // Timeslice so chunks accumulate during recording, enabling pause preview.
+      mediaRecorder.start(1000)
+      setRecordingState("recording")
       setRecordingSeconds(0)
-      recordingTimerRef.current = setInterval(() => { setRecordingSeconds((prev) => prev + 1) }, 1000)
+      startRecordingTimer()
     }).catch((error) => {
       toast.error(`Microphone access denied: ${error instanceof Error ? error.message : "Unknown error"}`)
     })
   }
 
-  const handleCloseRecordingPanel = () => {
-    if (isRecording) {
-      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive")
-        mediaRecorderRef.current.stop()
-      if (recordingTimerRef.current) {
-        clearInterval(recordingTimerRef.current)
-        recordingTimerRef.current = null
-      }
-      setIsRecording(false)
-      setRecordingSeconds(0)
+  // The red button: pause recording and drop into the review screen.
+  const handlePauseRecording = () => {
+    const recorder = mediaRecorderRef.current
+    if (!recorder || recorder.state !== "recording") return
+    stopRecordingTimer()
+    try { recorder.requestData() } catch { /* best-effort flush */ }
+    recorder.pause()
+    setRecordingState("paused")
+    refreshPausedPreview()
+  }
+
+  // Continue recording from the review screen.
+  const handleResumeRecording = () => {
+    const recorder = mediaRecorderRef.current
+    if (!recorder || recorder.state !== "paused") return
+    clearRecordedAudioUrl()
+    recorder.resume()
+    startRecordingTimer()
+    setRecordingState("recording")
+  }
+
+  // Upload from the review screen: finalise the clip, then send it. onstop
+  // builds the complete file (including any tail after the last timeslice).
+  const handleSaveRecording = () => {
+    const recorder = mediaRecorderRef.current
+    if (!recorder || isSavingSource) return
+    setIsSavingSource(true)
+    uploadPendingRef.current = true
+    if (recorder.state !== "inactive") {
+      recorder.stop()
+    } else {
+      const extension = recordingMimeRef.current.includes("ogg") ? ".ogg" : ".webm"
+      const audioBlob = new Blob(audioChunksRef.current, { type: recordingMimeRef.current })
+      uploadPendingRef.current = false
+      void uploadRecordedFile(new File([audioBlob], `recording-${Date.now()}${extension}`, { type: recordingMimeRef.current }))
     }
+  }
+
+  // Delete the recording and close the panel. The panel's close (X) button
+  // confirms before calling this; the captured audio is dropped, not uploaded.
+  const handleCloseRecordingPanel = () => {
+    teardownRecording()
     setAddSourceMode(null)
   }
 
@@ -424,7 +526,12 @@ export function useSourceManagement() {
     }
   }
 
-  const handleOnboardingSkip = () => { setIsOnboardingOpen(false) }
+  const handleOnboardingSkip = () => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(onboardingSkippedStorageKey, "1")
+    }
+    setIsOnboardingOpen(false)
+  }
 
   const handleOnboardingSubmit = (nextProfile: OnboardingProfile) => {
     window.localStorage.setItem(profileStorageKey, JSON.stringify(nextProfile))
@@ -434,13 +541,14 @@ export function useSourceManagement() {
 
   return {
     rawSources, includedSources, isLoadingSources, isSavingSource, isDragOverUpload,
-    addSourceMode, newSourceText, isRecording, recordingSeconds, rawUploadUrl,
+    addSourceMode, newSourceText, recordingState, recordingSeconds, recordedAudioUrl, rawUploadUrl,
     isOnboardingOpen, fileInputRef,
     setNewSourceText, setAddSourceMode: handleSetAddSourceMode,
     setRawSources, setProcessingSources,
     handleSetSourceIncluded, handleAddTextSource, handleSaveNote, handleAddFileSource,
     handleFileDrop, handleFileDragEnter, handleFileDragOver, handleFileDragLeave,
-    handleToggleRecording, handleCloseRecordingPanel,
+    handleStartRecording, handlePauseRecording, handleResumeRecording,
+    handleSaveRecording, handleCloseRecordingPanel,
     handleOnboardingSkip, handleOnboardingSubmit,
     handleDeleteSource, handleRenameSource, handleRetryProcessing,
   }
