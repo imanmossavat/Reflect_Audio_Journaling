@@ -1,7 +1,7 @@
 # PII Module — Integration Contract
 
 **Status:** design contract (no implementation in this doc)
-**Owners:** Engine = Pedro (piiBERT). Integration = Reflect backend team.
+**Owners:** Engine = Pedro (piiBERT). Integration = Reflect team.
 **Goal:** a contract precise enough to implement both sides independently without further clarification.
 
 ---
