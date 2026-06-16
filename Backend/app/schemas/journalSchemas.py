@@ -8,6 +8,8 @@ from pydantic import BaseModel
 class Mode(str, Enum):
     clarifying = "clarifying"
     deep_dive = "deep_dive"
+    # Conversational facilitator responding to a user's typed answer within a stage.
+    reply = "reply"
 
 
 class StepN(int, Enum):

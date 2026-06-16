@@ -1,6 +1,6 @@
 // Metadata for the six stages of the Gibbs reflective cycle. This mirrors the
-// backend `step_questions` map in
-// Backend/app/prompts/simpler_dictionary_question_prompt.py — keep the two in sync.
+// backend `STAGES` map in
+// Backend/app/prompts/gibbs_facilitator_prompt.py — keep the two in sync.
 
 export interface GibbsStep {
   step: number

@@ -165,9 +165,12 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
       toast.error(`Could not save message: ${error instanceof Error ? error.message : "Unknown error"}`)
       return
     }
-    // In guided reflection mode the AI only speaks when the user advances a stage
-    // or asks a clarifying question — a typed answer is just recorded.
-    if (gibbsActive) return
+    // In guided reflection mode the facilitator responds conversationally to each
+    // typed answer (rather than running a full source-grounded query).
+    if (gibbsActive) {
+      await generateGibbsReply(chatId, trimmed)
+      return
+    }
     // Hand off to the provider: it runs the answer server-side (so it survives leaving
     // the page) and streams it back. Completion is handled by the onComplete effect.
     generation.startTextGeneration(chatId, trimmed)
@@ -201,11 +204,16 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
 
   // --- Guided Gibbs reflection -------------------------------------------------
 
-  // Build the last two Q&A pairs as context for the next reflection question.
-  const buildGibbsHistory = (): Array<Record<string, unknown>> => {
+  // Build the conversation so far as Q&A pairs for the facilitator. Pass `appendAnswer`
+  // to include a just-typed answer that may not be in `activeChatMessages` state yet
+  // (state updates are async; this closure still holds the pre-answer list).
+  const buildGibbsHistory = (appendAnswer?: string): Array<Record<string, unknown>> => {
+    const msgs: Array<Pick<ChatMessageRecord, "role" | "text">> = appendAnswer
+      ? [...activeChatMessages, { role: "answer", text: appendAnswer }]
+      : activeChatMessages
     const pairs: Array<{ question?: string; answer?: string }> = []
     let pending: { question?: string; answer?: string } | null = null
-    for (const m of activeChatMessages) {
+    for (const m of msgs) {
       if (m.role === "question") {
         if (pending) pairs.push(pending)
         pending = { question: m.text }
@@ -217,25 +225,26 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
       }
     }
     if (pending) pairs.push(pending)
-    return pairs.slice(-2)
+    // Keep the recent conversation (last 8 turns) so the facilitator has context
+    // without sending the whole thread.
+    return pairs.slice(-8)
   }
 
-  const generateGibbsQuestion = async (targetStep: number, mode: "deep_dive" | "clarifying" = "deep_dive") => {
-    let chatId: number
-    try {
-      chatId = await ensureActiveChat()
-    } catch (error) {
-      toast.error(`Could not start reflection: ${error instanceof Error ? error.message : "Unknown error"}`)
-      return
-    }
-    // Ground the question in the user's included sources (mirrors AI Search).
+  // Shared streaming runner for the conversational Gibbs facilitator. The facilitator's
+  // reply is persisted as a "question" (assistant) message so it renders on the AI side.
+  const streamFacilitator = async (
+    chatId: number,
+    mode: "deep_dive" | "clarifying" | "reply",
+    step: number,
+    history: Array<Record<string, unknown>>
+  ) => {
+    // Ground the facilitator in the user's included sources (mirrors AI Search).
     const journalText = rawSources
       .filter((s) => s.included)
       .map((s) => s.content)
       .filter(Boolean)
       .join("\n")
       .slice(0, 2000)
-    const history = buildGibbsHistory()
 
     setGibbsGenerating(true)
     setStreamingChatId(chatId)
@@ -243,7 +252,7 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
     let acc = ""
     await new Promise<void>((resolve) => {
       api.streamGeneratedQuestion(
-        { mode, step: targetStep, journal_text: journalText || undefined, history },
+        { mode, step, journal_text: journalText || undefined, history },
         {
           onToken: (token) => {
             acc += token
@@ -252,7 +261,7 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
           onDone: async () => {
             const text = acc.trim()
             try {
-              // persistMessage guards the on-screen append by chat id; the question
+              // persistMessage guards the on-screen append by chat id; the message
               // is always saved server-side even if the user switched chats.
               if (text) await persistMessage(chatId, { role: "question", text })
             } finally {
@@ -272,6 +281,22 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
         }
       )
     })
+  }
+
+  const generateGibbsQuestion = async (targetStep: number, mode: "deep_dive" | "clarifying" = "deep_dive") => {
+    let chatId: number
+    try {
+      chatId = await ensureActiveChat()
+    } catch (error) {
+      toast.error(`Could not start reflection: ${error instanceof Error ? error.message : "Unknown error"}`)
+      return
+    }
+    await streamFacilitator(chatId, mode, targetStep, buildGibbsHistory())
+  }
+
+  // The facilitator responds to a typed answer within the current stage.
+  const generateGibbsReply = async (chatId: number, answerText: string) => {
+    await streamFacilitator(chatId, "reply", gibbsStep, buildGibbsHistory(answerText))
   }
 
   const startReflection = async () => {

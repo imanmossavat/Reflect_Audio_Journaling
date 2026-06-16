@@ -31,7 +31,7 @@ from sqlmodel import Session
 
 from app import logging_config
 from app.db import engine, get_latest_source
-from app.prompts import simpler_dictionary_question_prompt
+from app.prompts import gibbs_facilitator_prompt
 from app.prompts import tag_extraction_prompt
 from app.repositories import chatRepository, tagRepository
 from app.schemas.journalSchemas import (
@@ -281,13 +281,19 @@ async def generate_question(req: GenerateRequest):
             source = get_latest_source(session)
             source_text = source.text if source else ""
 
+    # The Gibbs reflection is a conversational facilitator. Each frontend action maps to
+    # a facilitator "action": opening a stage, clarifying within it, or replying to a
+    # typed answer. (focus_tag is unused for now — reflection is grounded in the included
+    # sources passed as journal_text.)
+    action_for_mode = {"deep_dive": "open", "clarifying": "clarify", "reply": "reply"}
+    action = action_for_mode.get(getattr(req.mode, "value", req.mode))
+    if action is None:
+        raise HTTPException(status_code=400, detail=f"Unknown mode: {req.mode}")
     try:
-        messages = simpler_dictionary_question_prompt.build_messages(
+        messages = gibbs_facilitator_prompt.build_messages(
             source_text,
-            mode=req.mode,
-            focus_tag=req.focus_tag,
-            focus_tag_summary=req.focus_tag_summary,
-            step=req.step,
+            action=action,
+            step=int(req.step) if req.step is not None else None,
             history=req.history,
         )
     except ValueError as e:
@@ -302,12 +308,12 @@ async def generate_question(req: GenerateRequest):
                 ):
                     token = chunk.get("message", {}).get("content", "")
                     if token:
-                        yield f"data: {json.dumps({'token': token})}\\n\\n"
-            yield "data: [DONE]\\n\\n"
+                        yield f"data: {json.dumps({'token': token})}\n\n"
+            yield "data: [DONE]\n\n"
         except Exception as e:
             logger.error(f"Ollama streaming error: {e}")
-            yield f"data: {json.dumps({'token': f'Error: {str(e)}'})}\\n\\n"
-            yield "data: [DONE]\\n\\n"
+            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+            yield "data: [DONE]\n\n"
 
     return StreamingResponse(stream_ollama(), media_type="text/event-stream")
 

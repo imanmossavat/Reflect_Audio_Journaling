@@ -56,7 +56,9 @@ export function ReflectionBanner({
             </span>
             <span className="text-sm font-semibold text-foreground">{current.label}</span>
           </div>
-          <p className="mt-0.5 text-xs text-muted-foreground">Reflecting on {current.blurb}.</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Reflecting on {current.blurb} — reply below in your own words, or move on when you're ready.
+          </p>
 
           {/* Progress dots mirror the wheel. */}
           <div className="mt-2 flex items-center gap-1.5">
