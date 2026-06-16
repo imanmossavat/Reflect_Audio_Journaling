@@ -1,5 +1,5 @@
 # REFLECT startup script - Windows
-# Installs uv, Node.js, and mkcert if missing, then starts backend + frontend.
+# Installs uv, Node.js, and mkcert if missing, then starts backend + frontend
 
 $ErrorActionPreference = "Stop"
 $root = $PSScriptRoot
