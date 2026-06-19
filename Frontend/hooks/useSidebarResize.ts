@@ -107,6 +107,14 @@ export function useSidebarResize() {
     })
   }
 
+  // Force the right panel open (used when a feature needs to surface there, e.g. the
+  // guided-reflection panel on start). No-op if it's already expanded.
+  const openRight = () => {
+    setIsRightCollapsed(false)
+    if (typeof window !== "undefined")
+      window.localStorage.setItem(rightSidebarCollapsedStorageKey, "false")
+  }
+
   return {
     leftSidebarWidth,
     rightSidebarWidth,
@@ -114,6 +122,7 @@ export function useSidebarResize() {
     isRightCollapsed,
     toggleLeftCollapsed,
     toggleRightCollapsed,
+    openRight,
     handleSidebarResizeStart,
   }
 }

@@ -244,6 +244,7 @@ async def _run(job: GenerationJob, question: str, top_k: int, modality: Optional
                 text=answer_text,
                 model=chat_model,
                 thinking=thinking_text,
+                sources=sources_payload or None,
             )
 
         job.message_id = snapshot["id"]

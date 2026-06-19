@@ -1,15 +1,68 @@
 "use client"
 
-import { ChevronRight, Loader2, Check } from "lucide-react"
-import type { ChatMessageRecord, ChatStreamStageName } from "@/lib/api"
+import { Fragment } from "react"
+import { ChevronRight, Loader2, Check, Search } from "lucide-react"
+import type { ChatMessageRecord, ChatStreamStageName, QuerySource } from "@/lib/api"
 import type { StreamingAssistant, StreamingStage } from "@/hooks/useChatManagement"
 import { formatListTimestamp } from "@/lib/utils"
 import { Markdown } from "@/components/markdown"
+import { getGibbsStep } from "@/lib/gibbs"
+
+/** Divider marking where a thread section begins: a Gibbs stage, or a RAG "context" block. */
+function GroupHeader({ step }: { step: number | null }) {
+  const label =
+    step != null ? `${String(step).padStart(2, "0")} · ${getGibbsStep(step).label}` : "Context"
+  return (
+    <div className="flex items-center gap-3 pt-2">
+      <span className="h-px flex-1 bg-border" />
+      <span className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-emerald-600">
+        {step == null && <Search className="h-3 w-3" />}
+        {label}
+      </span>
+      <span className="h-px flex-1 bg-border" />
+    </div>
+  )
+}
+
+/** Source chips under a RAG answer, deduped by source, labelled with the source name. */
+function SourceChips({
+  sources,
+  sourceNameById,
+}: {
+  sources: QuerySource[]
+  sourceNameById: Record<string, string>
+}) {
+  const seen = new Set<string>()
+  const chips: { key: string; label: string }[] = []
+  for (const s of sources) {
+    const id = s.source_id != null ? String(s.source_id) : null
+    const key = id ?? s.node_id ?? s.chunk_id ?? ""
+    if (!key || seen.has(key)) continue
+    seen.add(key)
+    const label = (id && sourceNameById[id]) || (id ? `Source ${id}` : "Source")
+    chips.push({ key, label })
+  }
+  if (chips.length === 0) return null
+  return (
+    <div className="mt-2 flex flex-wrap gap-1.5">
+      {chips.map((c) => (
+        <span
+          key={c.key}
+          className="inline-flex max-w-[200px] items-center gap-1 rounded-full border bg-background px-2 py-0.5 text-[10px] text-muted-foreground"
+        >
+          <Search className="h-2.5 w-2.5 text-emerald-600 shrink-0" />
+          <span className="truncate">{c.label}</span>
+        </span>
+      ))}
+    </div>
+  )
+}
 
 interface ChatMessagesProps {
   activeChatMessages: ChatMessageRecord[]
   isLoadingActiveChat: boolean
   streamingAssistant: StreamingAssistant | null
+  sourceNameById: Record<string, string>
 }
 
 const STAGE_LABELS: Record<ChatStreamStageName, (count?: number) => string> = {
@@ -51,19 +104,26 @@ function StageRow({ stage, thinking }: { stage: StreamingStage; thinking?: strin
   )
 }
 
-export function ChatMessages({ activeChatMessages, isLoadingActiveChat, streamingAssistant }: ChatMessagesProps) {
+export function ChatMessages({ activeChatMessages, isLoadingActiveChat, streamingAssistant, sourceNameById }: ChatMessagesProps) {
   return (
     <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar p-6">
       <div className="max-w-2xl mx-auto space-y-4">
         {isLoadingActiveChat ? (
           <p className="text-sm text-muted-foreground text-center">Loading chat...</p>
         ) : (
-          activeChatMessages.map((message) => {
+          activeChatMessages.map((message, i) => {
             const timestamp = formatListTimestamp(message.created_at)
+            // Divide the thread into sections: each Gibbs stage, and RAG "context" blocks
+            // (gibbs_step == null). Show the header wherever the section changes.
+            const curStep = message.gibbs_step ?? null
+            const prevStep = i > 0 ? activeChatMessages[i - 1].gibbs_step ?? null : undefined
+            const stepHeader = curStep !== prevStep ? <GroupHeader step={curStep} /> : null
             if (message.role === "question") {
               const hasThinking = !!(message.thinking && message.thinking.trim())
               return (
-                <div key={message.id} className="flex justify-start">
+                <Fragment key={message.id}>
+                {stepHeader}
+                <div className="flex justify-start">
                   <div className="bg-muted rounded-2xl rounded-tl-sm px-4 py-3 max-w-[85%]">
                     {hasThinking && (
                       <details className="group mb-2">
@@ -77,6 +137,9 @@ export function ChatMessages({ activeChatMessages, isLoadingActiveChat, streamin
                       </details>
                     )}
                     <Markdown className="text-[15px]">{message.text}</Markdown>
+                    {message.sources && message.sources.length > 0 && (
+                      <SourceChips sources={message.sources} sourceNameById={sourceNameById} />
+                    )}
                     <div className="flex items-center justify-between gap-2 mt-1.5">
                       <span className="text-[10px] text-muted-foreground">{timestamp}</span>
                       {message.model && (
@@ -87,6 +150,7 @@ export function ChatMessages({ activeChatMessages, isLoadingActiveChat, streamin
                     </div>
                   </div>
                 </div>
+                </Fragment>
               )
             }
             const answerText =
@@ -94,7 +158,9 @@ export function ChatMessages({ activeChatMessages, isLoadingActiveChat, streamin
                 ? `${message.scale_value}/${message.scale_max ?? 10}`
                 : message.text
             return (
-              <div key={message.id} className="flex justify-end">
+              <Fragment key={message.id}>
+              {stepHeader}
+              <div className="flex justify-end">
                 <div className="bg-emerald-900 text-white rounded-2xl rounded-tr-sm px-4 py-3 max-w-[85%]">
                   <p className="text-[15px] whitespace-pre-wrap">{answerText}</p>
                   <div className="flex items-center justify-end gap-2 mt-1.5">
@@ -102,6 +168,7 @@ export function ChatMessages({ activeChatMessages, isLoadingActiveChat, streamin
                   </div>
                 </div>
               </div>
+              </Fragment>
             )
           })
         )}

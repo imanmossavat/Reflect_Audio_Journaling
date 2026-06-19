@@ -26,6 +26,7 @@ class AppendMessageRequest(BaseModel):
     scale_low_label: Optional[str] = None
     scale_high_label: Optional[str] = None
     model: Optional[str] = None
+    gibbs_step: Optional[int] = None
 
 
 @router.get("/chats", tags=["Chat"])
@@ -77,6 +78,7 @@ async def append_message(
         scale_low_label=payload.scale_low_label,
         scale_high_label=payload.scale_high_label,
         model=payload.model,
+        gibbs_step=payload.gibbs_step,
     )
 
 

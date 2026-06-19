@@ -139,6 +139,10 @@ export interface ChatMessageRecord {
   scale_high_label: string | null
   model: string | null
   thinking: string | null
+  /** Gibbs stage (1-6) this message belongs to during guided reflection; null otherwise. */
+  gibbs_step: number | null
+  /** Retrieved sources backing a RAG ("context question") answer; null otherwise. */
+  sources: QuerySource[] | null
   created_at: string
 }
 
@@ -187,6 +191,7 @@ export interface AppendChatMessagePayload {
   scale_low_label?: string | null
   scale_high_label?: string | null
   model?: string | null
+  gibbs_step?: number | null
 }
 
 type GenerateQuestionMode = "clarifying" | "deep_dive" | "reply"

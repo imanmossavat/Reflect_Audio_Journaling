@@ -164,6 +164,12 @@ class ChatMessage(SQLModel, table=True):
     scale_high_label: Optional[str] = Field(default=None, max_length=100)
     model: Optional[str] = Field(default=None, max_length=255)
     thinking: Optional[str] = Field(default=None)
+    # Gibbs stage (1-6) this message belongs to during a guided reflection; None for
+    # ordinary chat messages. Lets the UI group questions/answers by reflection step.
+    gibbs_step: Optional[int] = Field(default=None)
+    # Retrieved source chunks backing a RAG ("context question") answer; None otherwise.
+    # Lets the UI show source chips under the answer, persisted across reloads.
+    sources: Optional[list] = Field(default=None, sa_column=Column(JSON))
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     # Relationships

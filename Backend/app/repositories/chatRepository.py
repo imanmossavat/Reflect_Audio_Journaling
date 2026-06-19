@@ -100,6 +100,8 @@ def append_message(
     scale_high_label: Optional[str] = None,
     model: Optional[str] = None,
     thinking: Optional[str] = None,
+    gibbs_step: Optional[int] = None,
+    sources: Optional[list] = None,
 ) -> ChatMessage:
     message = ChatMessage(
         chat_id=chat_id,
@@ -111,6 +113,8 @@ def append_message(
         scale_high_label=scale_high_label,
         model=model,
         thinking=thinking,
+        gibbs_step=gibbs_step,
+        sources=sources,
         created_at=datetime.now(),
     )
     session.add(message)

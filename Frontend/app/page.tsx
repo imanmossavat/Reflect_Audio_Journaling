@@ -25,11 +25,13 @@ import { ChatMessages } from "@/components/home/chat-messages"
 import { ChatInput } from "@/components/home/chat-input"
 import { ReflectionBanner } from "@/components/home/reflection-banner"
 import { RightSidebar } from "@/components/home/right-sidebar"
+import { GibbsPanel } from "@/components/home/gibbs-panel"
 import { NewSourceMenu } from "@/components/home/new-source-menu"
 import { NoteEditor } from "@/components/home/note-editor"
 import { GraphStage } from "@/components/home/graph-stage"
 import { StageHeader } from "@/components/home/stage-header"
 import { api, type AppSettings, type OllamaModelEntry } from "@/lib/api"
+import { GIBBS_STEP_COUNT } from "@/lib/gibbs"
 import { useSourceManagement } from "@/hooks/useSourceManagement"
 import { useChatManagement } from "@/hooks/useChatManagement"
 import { useSidebarResize } from "@/hooks/useSidebarResize"
@@ -144,6 +146,13 @@ export default function HomePage() {
   }
 
   const hasIncludedSources = sources.includedSources.length > 0
+
+  // id -> display name, so RAG answers can render readable source chips.
+  const sourceNameById = useMemo(() => {
+    const map: Record<string, string> = {}
+    for (const s of sources.rawSources) map[String(s.id)] = s.name
+    return map
+  }, [sources.rawSources])
 
   const handleNewChat = () => {
     chats.resetChatState()
@@ -381,24 +390,25 @@ export default function HomePage() {
           )}
           <ReflectionBanner
             active={chats.gibbsActive}
-            step={chats.gibbsStep}
-            generating={chats.gibbsGenerating}
-            onStart={() => void chats.startReflection()}
-            onAdvance={() => void chats.advanceGibbsStep()}
-            onClarify={() => void chats.askClarifying()}
-            onEnd={chats.exitReflection}
-            onSelectStep={(step) => void chats.handleSelectGibbsStep(step)}
+            onStart={() => {
+              sidebar.openRight()
+              void chats.startReflection()
+            }}
           />
           <ChatMessages
             activeChatMessages={chats.activeChatMessages}
             isLoadingActiveChat={chats.isLoadingActiveChat}
             streamingAssistant={chats.streamingAssistant}
+            sourceNameById={sourceNameById}
           />
           <ChatInput
             inputValue={chats.inputValue}
             setInputValue={chats.setInputValue}
             onSubmitText={chats.handleSubmitText}
             isAssistantThinking={chats.isAssistantThinking}
+            gibbsActive={chats.gibbsActive}
+            chatMode={chats.chatMode}
+            onChangeChatMode={chats.setChatMode}
             activeChatId={chats.activeChatId}
             activeChatSourceId={chats.activeChatSourceId}
             activeChatLinkedSourceStatus={chats.activeChatLinkedSourceStatus}
@@ -446,6 +456,16 @@ export default function HomePage() {
             >
               <PanelRightOpen className="h-4 w-4" />
             </button>
+            {chats.gibbsActive && (
+              <button
+                onClick={sidebar.openRight}
+                aria-label="Open guided reflection"
+                title={`Guided reflection · step ${chats.gibbsStep} of ${GIBBS_STEP_COUNT}`}
+                className="flex h-8 w-8 items-center justify-center rounded-md bg-emerald-600/10 font-mono text-[10px] font-medium tabular-nums text-emerald-600 hover:bg-emerald-600/20 transition-colors"
+              >
+                {chats.gibbsComplete ? "✓" : `${chats.gibbsStep}/${GIBBS_STEP_COUNT}`}
+              </button>
+            )}
             <div className="my-1 h-px w-6 bg-border" />
             <button
               onClick={exportToMarkdown}
@@ -487,14 +507,30 @@ export default function HomePage() {
             onMouseDown={(e) => sidebar.handleSidebarResizeStart("right", e)}
             className="absolute top-0 left-0 h-full w-1 -translate-x-1/2 cursor-col-resize bg-transparent hover:bg-emerald-500/30 transition-colors"
           />
-          <RightSidebar
-            hasIncludedSources={hasIncludedSources}
-            isRunningSearch={isRunningSearch}
-            onExportMarkdown={exportToMarkdown}
-            onAISearch={handleAISearch}
-            onCollapse={sidebar.toggleRightCollapsed}
-            onOpenGraph={() => setStage("graph")}
-          />
+          {chats.gibbsActive ? (
+            <GibbsPanel
+              step={chats.gibbsStep}
+              generating={chats.gibbsGenerating}
+              complete={chats.gibbsComplete}
+              isPromotingChat={chats.isPromotingChat}
+              onAdvance={() => void chats.advanceGibbsStep()}
+              onClarify={() => void chats.askClarifying()}
+              onEnd={chats.exitReflection}
+              onSelectStep={(step) => void chats.handleSelectGibbsStep(step)}
+              onSaveToSources={() => void chats.handlePromoteChat()}
+              onBeginNewCycle={() => void chats.beginNewCycle()}
+              onCollapse={sidebar.toggleRightCollapsed}
+            />
+          ) : (
+            <RightSidebar
+              hasIncludedSources={hasIncludedSources}
+              isRunningSearch={isRunningSearch}
+              onExportMarkdown={exportToMarkdown}
+              onAISearch={handleAISearch}
+              onCollapse={sidebar.toggleRightCollapsed}
+              onOpenGraph={() => setStage("graph")}
+            />
+          )}
         </aside>
         )}
       </div>

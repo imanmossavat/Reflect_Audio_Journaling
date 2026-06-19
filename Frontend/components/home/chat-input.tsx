@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef } from "react"
-import { Send, Upload, RotateCw } from "lucide-react"
+import { Send, Upload, RotateCw, PenLine, Search } from "lucide-react"
 import { PROCESSING_STATUS_LABELS } from "@/lib/api"
 import type { ChatMessageRecord, OllamaModelEntry } from "@/lib/api"
 import {
@@ -27,6 +27,10 @@ interface ChatInputProps {
   setInputValue: (v: string) => void
   onSubmitText: (e: React.FormEvent) => Promise<void>
   isAssistantThinking: boolean
+  // reflect/ask mode (toggle shown only during a guided reflection)
+  gibbsActive: boolean
+  chatMode: "reflect" | "ask"
+  onChangeChatMode: (mode: "reflect" | "ask") => void
   // promote-to-source controls
   activeChatId: number | null
   activeChatSourceId: number | null
@@ -49,6 +53,9 @@ export function ChatInput({
   setInputValue,
   onSubmitText,
   isAssistantThinking,
+  gibbsActive,
+  chatMode,
+  onChangeChatMode,
   activeChatId,
   activeChatSourceId,
   activeChatLinkedSourceStatus,
@@ -65,6 +72,12 @@ export function ChatInput({
 }: ChatInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const showPrompts = inputValue.trim().length === 0
+  const reflectMode = gibbsActive && chatMode === "reflect"
+  const placeholder = reflectMode
+    ? "Write your reflection…"
+    : gibbsActive
+      ? "Ask about your sources…"
+      : "Write a message..."
   const promoteDisabled = isPromotingChat || isLinkedSourceProcessing || activeChatMessages.length === 0
   const promoteLabel = (() => {
     if (activeChatSourceId === null) return isPromotingChat ? "Promoting..." : "Promote to source"
@@ -116,6 +129,34 @@ export function ChatInput({
             )}
           </div>
         )}
+        {gibbsActive && (
+          <div className="mb-2 inline-flex rounded-lg border bg-muted/30 p-0.5 text-xs font-medium">
+            <button
+              type="button"
+              onClick={() => onChangeChatMode("reflect")}
+              className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 transition-colors ${
+                chatMode === "reflect"
+                  ? "bg-emerald-600 text-white"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <PenLine className="h-3.5 w-3.5" />
+              Reflect
+            </button>
+            <button
+              type="button"
+              onClick={() => onChangeChatMode("ask")}
+              className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 transition-colors ${
+                chatMode === "ask"
+                  ? "bg-emerald-600 text-white"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Search className="h-3.5 w-3.5" />
+              Ask sources
+            </button>
+          </div>
+        )}
         <form
           onSubmit={onSubmitText}
           className="rounded-xl border bg-background focus-within:ring-2 focus-within:ring-emerald-500/20 focus-within:border-emerald-500 overflow-hidden"
@@ -130,7 +171,7 @@ export function ChatInput({
                 void onSubmitText(e as unknown as React.FormEvent)
               }
             }}
-            placeholder="Write a message..."
+            placeholder={placeholder}
             rows={1}
             style={{ maxHeight: `${maxHeightPx}px`, lineHeight: `${LINE_HEIGHT_PX}px` }}
             className="w-full px-3 py-2.5 bg-background resize-none focus:outline-none block overflow-y-auto"
