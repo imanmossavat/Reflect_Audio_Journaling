@@ -6,6 +6,7 @@ A private, local tool for recording your thoughts and getting AI-powered insight
 ## Contents
 
 - [How the AI works](#how-the-ai-works-and-why-its-private)
+- [System Requirements](#system-requirements)
 - [Prerequisites](#prerequisites-one-time-setup)
 - [Run](#run)
 - [Updates](#updates)
@@ -22,6 +23,38 @@ When you talk to REFLECT, every word is processed locally. Nothing is sent to a 
 
 ---
 
+## System Requirements
+
+A full install is **~18 GB** (Python env ~3.3 GB, frontend ~0.45 GB, AI
+models ~13.7 GB). Your journal data then grows over time — audio is about
+1 MB per minute.
+
+**Minimum**
+
+| Component | |
+|---|---|
+| CPU | 4-core, 64-bit |
+| RAM | 16 GB |
+| GPU | none — runs on CPU |
+| Free disk | 20 GB (SSD) |
+| OS | Windows 10/11, macOS, or Linux |
+
+**Recommended**
+
+| Component | |
+|---|---|
+| CPU | 8-core, 64-bit |
+| RAM | 32 GB |
+| GPU | dedicated, 8 GB+ VRAM |
+| Free disk | 25 GB (SSD) |
+| OS | Windows 10/11, macOS, or Linux |
+
+The LLM uses ~10 GB of RAM while loaded, so 16 GB is the floor. It runs on
+CPU by default; a dedicated GPU speeds up chat and transcription. On Apple
+Silicon the LLM uses the GPU automatically.
+
+---
+
 ## Prerequisites (one-time setup)
 
 **1. Install Ollama**
@@ -30,7 +63,7 @@ Ollama runs AI models locally on your computer. Download it from [ollama.com](ht
 
 **2. Pull the required models**
 
-This downloads the open-weights model files (~5 GB total). Run these commands once:
+This downloads the open-weights model files (~10 GB total). Run these commands once:
 
 ```bash
 ollama pull gemma4:e4b
