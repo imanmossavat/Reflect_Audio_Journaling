@@ -130,6 +130,8 @@ def update_source_summary(
     Reassigns derived_meta to a new dict so SQLAlchemy detects the JSON change.
     """
     source.summary = summary
+    # A freshly generated summary supersedes any prior hand-edited HTML.
+    source.summary_html = None
     if provenance is not None:
         meta = dict(source.derived_meta or {})
         meta["summary"] = provenance
@@ -173,6 +175,8 @@ def update_source_fields(
     *,
     text: Optional[str] = None,
     text_html: Optional[str] = None,
+    summary: Optional[str] = None,
+    summary_html: Optional[str] = None,
     filename: Optional[str] = None,
     created_at_str: Optional[str] = None,
     status: Optional[str] = None,
@@ -181,6 +185,10 @@ def update_source_fields(
         source.text = text
     if text_html is not None:
         source.text_html = text_html
+    if summary is not None:
+        source.summary = summary
+    if summary_html is not None:
+        source.summary_html = summary_html
     if filename is not None:
         source.filename = filename
     if created_at_str is not None:

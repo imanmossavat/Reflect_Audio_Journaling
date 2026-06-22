@@ -135,6 +135,7 @@ async def patch_source(
 ):
     return await sourceService.update_source(
         session, source_id, text=payload.text, text_html=payload.text_html,
+        summary=payload.summary, summary_html=payload.summary_html,
         filename=payload.filename, created_at_str=payload.created_at
     )
 

@@ -6,12 +6,12 @@ import { useParams } from "next/navigation"
 import { EditorContent, useEditor } from "@tiptap/react"
 import StarterKit from "@tiptap/starter-kit"
 import { Placeholder } from "@tiptap/extensions"
-import { AlertTriangle, ArrowLeft, CalendarClock, ChevronDown, CircleDot, FileAudio2, FileText, Layers, Loader2, MessageSquare, Pencil, RefreshCw, Sparkles, X } from "lucide-react"
+import { AlertTriangle, ArrowLeft, CalendarClock, CircleDot, FileAudio2, FileText, Loader2, MessageSquare, Pencil, RefreshCw, Sparkles, X } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { TopNav } from "@/components/top-nav"
 import { Markdown } from "@/components/markdown"
 import { toast } from "sonner"
-import { api, type ChatMessageRecord, type SourceChunk, type SourceRecord, type SourceTag, type TranscriptSegment, PROCESSING_STATUSES, PROCESSING_STATUS_LABELS, OLLAMA_FAILURE_STATUSES, explainFailure } from "@/lib/api"
+import { api, type ChatMessageRecord, type SourceRecord, type SourceTag, type TranscriptSegment, PROCESSING_STATUSES, PROCESSING_STATUS_LABELS, OLLAMA_FAILURE_STATUSES, explainFailure } from "@/lib/api"
 
 const getSourceKind = (source: SourceRecord) => {
     const fileType = (source.file_type ?? "").toLowerCase()
@@ -38,6 +38,9 @@ export default function SourceDetailPage() {
     const [sourceText, setSourceText] = useState("")
     // Rich HTML for the editor; falls back to plain text for legacy/audio sources.
     const [sourceHtml, setSourceHtml] = useState("")
+    const [summaryText, setSummaryText] = useState("")
+    // Rich HTML for the summary editor; plain text is derived for legacy/LLM-generated summaries.
+    const [summaryHtml, setSummaryHtml] = useState("")
     const [sourceTags, setSourceTags] = useState<SourceTag[]>([])
     const [newTagName, setNewTagName] = useState("")
     const [isLoading, setIsLoading] = useState(true)
@@ -50,8 +53,6 @@ export default function SourceDetailPage() {
     const [editingDate, setEditingDate] = useState(false)
     const [isRetrying, setIsRetrying] = useState(false)
     const [isRegeneratingSummary, setIsRegeneratingSummary] = useState(false)
-    const [chunks, setChunks] = useState<SourceChunk[]>([])
-    const [chunksOpen, setChunksOpen] = useState(false)
     const [suggestions, setSuggestions] = useState<{ name: string; reason: string }[] | null>(null)
     const [isSuggesting, setIsSuggesting] = useState(false)
 
@@ -59,6 +60,7 @@ export default function SourceDetailPage() {
     const activeSegmentRef = useRef<HTMLSpanElement>(null)
     const titleSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
     const transcriptSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+    const summarySaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
     const sourceId = useMemo(() => {
         const parsed = Number(params.id)
@@ -83,13 +85,14 @@ export default function SourceDetailPage() {
             setNewTagName("")
             setTagIdsBeingRemoved([])
             setChatMessages(null)
-            setChunks([])
             setSuggestions(null)
 
             try {
                 const loadedSource = await api.getSourceById(sourceId)
                 setSource(loadedSource)
                 setTitleValue(loadedSource.filename || "")
+                setSummaryText(loadedSource.summary ?? "")
+                setSummaryHtml(loadedSource.summary_html ?? "")
 
                 const textPromise = loadedSource.text ? Promise.resolve(loadedSource.text) : api.getSourceText(sourceId)
                 const [fullText, loadedTags] = await Promise.all([textPromise, api.getSourceTags(sourceId)])
@@ -115,13 +118,13 @@ export default function SourceDetailPage() {
         void loadSource()
     }, [sourceId])
 
-    // Semantic chunks become available once the source finishes processing; (re)load them
-    // whenever it reaches "processed" so reprocessing after an edit refreshes the list.
+    // Tags can be auto-generated during processing; refresh them whenever the source
+    // reaches "processed" so newly generated tags appear without a manual reload.
     useEffect(() => {
         if (!source || source.status !== "processed") return
         let cancelled = false
-        api.getSourceChunks(source.id)
-            .then((loaded) => { if (!cancelled) setChunks(loaded) })
+        api.getSourceTags(source.id)
+            .then((loaded) => { if (!cancelled) setSourceTags(loaded) })
             .catch(() => { /* non-critical */ })
         return () => { cancelled = true }
     }, [source?.id, source?.status])
@@ -173,6 +176,52 @@ export default function SourceDetailPage() {
         transcriptEditor.commands.setContent(desired, { emitUpdate: false })
     }, [transcriptEditor, sourceHtml, sourceText])
 
+    // Summary editor: plain-text, inline-editable with debounced autosave (same UX as the
+    // transcript). The summary column stores plain text, so we persist getText() not HTML.
+    const summaryEditor = useEditor({
+        extensions: [
+            StarterKit,
+            Placeholder.configure({ placeholder: "Write a summary..." }),
+        ],
+        content: "",
+        immediatelyRender: false,
+        editorProps: {
+            attributes: {
+                class: "tiptap min-h-[40px] w-full bg-transparent text-sm leading-6 text-foreground focus:outline-none",
+            },
+        },
+        onUpdate: ({ editor }) => {
+            const html = editor.isEmpty ? "" : editor.getHTML()
+            setSummaryHtml(html)
+            setSummaryText(editor.getText())
+            if (summarySaveTimerRef.current) clearTimeout(summarySaveTimerRef.current)
+            const id = source?.id
+            if (!id) return
+            summarySaveTimerRef.current = setTimeout(async () => {
+                try {
+                    // Save HTML so styling persists; the backend derives the plain summary.
+                    // Editing the summary doesn't re-index content, so it won't reprocess.
+                    const updated = await api.patchSource(id, { summary_html: html })
+                    setSource(updated)
+                } catch (err) {
+                    toast.error(`Could not save summary: ${err instanceof Error ? err.message : "Unknown error"}`)
+                }
+            }, 800)
+        },
+    })
+
+    // Sync external summary changes (initial load, regenerate, background poll) into the
+    // editor, unless the user is actively typing. Prefer rich HTML; fall back to plain text
+    // for LLM-generated summaries that have no HTML.
+    useEffect(() => {
+        if (!summaryEditor) return
+        if (summaryEditor.isFocused) return
+        const desired = summaryHtml || summaryText || ""
+        const current = summaryHtml ? summaryEditor.getHTML() : summaryEditor.getText()
+        if (current === desired) return
+        summaryEditor.commands.setContent(desired, { emitUpdate: false })
+    }, [summaryEditor, summaryHtml, summaryText])
+
     // Poll while source is being processed in background
     useEffect(() => {
         if (!source || !PROCESSING_STATUSES.has(source.status)) return
@@ -184,6 +233,10 @@ export default function SourceDetailPage() {
                 if (!transcriptEditor?.isFocused) {
                     if (updated.text && updated.text !== sourceText) setSourceText(updated.text)
                     if ((updated.text_html ?? "") !== sourceHtml) setSourceHtml(updated.text_html ?? "")
+                }
+                if (!summaryEditor?.isFocused) {
+                    if ((updated.summary ?? "") !== summaryText) setSummaryText(updated.summary ?? "")
+                    if ((updated.summary_html ?? "") !== summaryHtml) setSummaryHtml(updated.summary_html ?? "")
                 }
                 if (!PROCESSING_STATUSES.has(updated.status)) {
                     clearInterval(interval)
@@ -311,6 +364,8 @@ export default function SourceDetailPage() {
         try {
             const updated = await api.regenerateSummary(source.id)
             setSource(updated)
+            setSummaryText(updated.summary ?? "")
+            setSummaryHtml(updated.summary_html ?? "")
         } catch (err) {
             toast.error(`Could not regenerate summary: ${err instanceof Error ? err.message : "Unknown error"}`)
         } finally {
@@ -479,10 +534,10 @@ export default function SourceDetailPage() {
                                     <p className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
                                         <Loader2 className="h-3.5 w-3.5 animate-spin" /> Generating summary...
                                     </p>
-                                ) : source.summary ? (
-                                    <p className="mt-3 text-sm leading-6 text-foreground">{source.summary}</p>
                                 ) : (
-                                    <p className="mt-3 text-sm text-muted-foreground">No summary yet.</p>
+                                    <div className="mt-3">
+                                        <EditorContent editor={summaryEditor} />
+                                    </div>
                                 )}
                             </div>
 
@@ -721,37 +776,6 @@ export default function SourceDetailPage() {
                                             </div>
                                         ) : (
                                             <p className="mt-3 text-sm text-muted-foreground">No tags yet.</p>
-                                        )}
-                                    </div>
-
-                                    <div className="rounded-xl border bg-background p-4">
-                                        <button
-                                            type="button"
-                                            onClick={() => setChunksOpen((v) => !v)}
-                                            className="flex w-full items-center justify-between gap-2"
-                                        >
-                                            <h2 className="flex items-center gap-1.5 text-sm font-semibold">
-                                                <Layers className="h-3.5 w-3.5 text-muted-foreground" />
-                                                Chunks
-                                            </h2>
-                                            <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                                                {chunks.length}
-                                                <ChevronDown className={`h-4 w-4 transition-transform ${chunksOpen ? "rotate-180" : ""}`} />
-                                            </span>
-                                        </button>
-                                        {chunksOpen && (
-                                            chunks.length > 0 ? (
-                                                <ol className="mt-3 space-y-2">
-                                                    {chunks.map((chunk, i) => (
-                                                        <li key={chunk.id} className="rounded-lg border bg-muted/20 p-2.5">
-                                                            <div className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Chunk {i + 1}</div>
-                                                            <p className="mt-1 text-xs leading-5 text-foreground whitespace-pre-wrap wrap-break-word">{chunk.chunk_text}</p>
-                                                        </li>
-                                                    ))}
-                                                </ol>
-                                            ) : (
-                                                <p className="mt-3 text-sm text-muted-foreground">No chunks yet.</p>
-                                            )
                                         )}
                                     </div>
                                 </aside>

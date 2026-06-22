@@ -39,6 +39,9 @@ class Source(SQLModel, table=True):
     transcript_segments: Optional[list] = Field(default=None, sa_column=Column(JSON))
     # LLM-generated one-paragraph summary produced during ingest enrichment.
     summary: Optional[str] = Field(default=None)
+    # Rich HTML for the summary editor. Plain-text `summary` above is derived from it
+    # and stays the value used elsewhere (lists, RAG context).
+    summary_html: Optional[str] = Field(default=None)
     # Provenance/versioning for recomputable derived artifacts, e.g.
     # {"summary": {"model": ..., "prompt_version": ..., "generated_at": ...}, "tags": {...}}.
     # Kept as JSON so new artifacts (entities, etc.) can be added without a migration.

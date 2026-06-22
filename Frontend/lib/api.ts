@@ -87,6 +87,7 @@ export interface SourceRecord {
   text_html: string | null
   transcript_segments: TranscriptSegment[] | null
   summary: string | null
+  summary_html: string | null
   status: SourceStatus
   created_at: string
 }
@@ -493,7 +494,7 @@ export const api = {
       throw error
     })
   },
-  patchSource(sourceId: number, fields: { text?: string; text_html?: string; filename?: string; created_at?: string }) {
+  patchSource(sourceId: number, fields: { text?: string; text_html?: string; summary?: string; summary_html?: string; filename?: string; created_at?: string }) {
     return request<SourceRecord>(`/source/${sourceId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },

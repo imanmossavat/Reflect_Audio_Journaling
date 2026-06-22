@@ -178,11 +178,11 @@ async def query_stream(request: QueryStreamRequest):
     reconnect via `GET /chats/{chat_id}/generation-stream`.
 
     Emits SSE events of shape `{type: <event>, ...}`:
-      - stage    {name: "searching" | "retrieved" | "thinking" | "writing" | "queued"}
-      - thinking {delta: str}
-      - token    {delta: str}
+      - stage    {name: "checking" | "searching" | "retrieved" | "thinking" | "writing" | "queued"}
+      - progress {chars: int}   # buffered answer length; grows the UI skeleton (text is withheld)
       - sources  {sources: [...]}
-      - done     {model: str, message_id: int}
+      - done     {model: str, message_id: int}   # guard passed; client refetches & reveals
+      - fallback {kind: "self_harm" | "support"}   # guard tripped; show a support card, no answer
       - error    {detail: str}
     """
     if not request.question.strip():
@@ -282,9 +282,7 @@ async def generate_question(req: GenerateRequest):
             parts: list[str] = []
             answer_len = 0
             emitted_chars = 0
-            # Buffer the facilitator's question; stream only a growing character count so the
-            # UI can animate a skeleton. The real text is withheld until the output guard
-            # clears it (same skeleton-reveal contract as the RAG answer flow).
+            # stream only a character count so the UI can animate a skeleton
             async with generation_lock:
                 client = AsyncClient(host=_ollama_host())
                 async for chunk in await client.chat(

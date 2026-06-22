@@ -78,23 +78,24 @@ const STAGE_LABELS: Record<ChatStreamStageName, (count?: number) => string> = {
   writing: () => "Writing answer",
 }
 
-/** The pulsing "skeleton reveal": grows with the answer's character count while the real
- *  text is withheld server-side, then is replaced by the persisted message once the output
- *  guard passes. Conveys length/progress without ever showing unguarded content. */
+/** The skeleton, text is withheld server-side, then is replacedonce the output guard passes. */
 function AnswerSkeleton({ chars }: { chars: number }) {
-  const CHARS_PER_LINE = 56
+  const CHARS_PER_LINE = 80
   const lines = Math.max(1, Math.ceil(chars / CHARS_PER_LINE))
-  const lastLineChars = chars - (lines - 1) * CHARS_PER_LINE
-  const lastWidth = Math.max(20, Math.min(100, Math.round((lastLineChars / CHARS_PER_LINE) * 100)))
+  
   return (
     <div className="space-y-2 py-0.5" aria-label="Writing answer">
-      {Array.from({ length: lines }).map((_, i) => (
-        <div
-          key={i}
-          className="h-3.5 rounded bg-muted-foreground/15 animate-pulse"
-          style={{ width: i === lines - 1 ? `${lastWidth}%` : "100%" }}
-        />
-      ))}
+      {Array.from({ length: lines }).map((_, i) => {
+        const isLast = i === lines - 1
+        const lineChars = isLast ? chars - (lines - 1) * CHARS_PER_LINE : CHARS_PER_LINE
+        return (
+          <div
+            key={i}
+            className="h-3.5 rounded bg-muted-foreground/15 animate-pulse max-w-full"
+            style={{ width: `${Math.max(15, lineChars)}ch` }}
+          />
+        )
+      })}
     </div>
   )
 }

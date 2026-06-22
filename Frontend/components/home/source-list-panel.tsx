@@ -6,6 +6,7 @@ import Link from "next/link"
 import { Checkbox } from "@/components/ui/checkbox"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { PROCESSING_STATUSES, PROCESSING_STATUS_LABELS, OLLAMA_FAILURE_STATUSES, EMBED_MODEL_NAME } from "@/lib/api"
 import type { RawSource } from "./types"
 
@@ -326,13 +327,23 @@ export function SourceListPanel({
                               )}
                             </>
                           )}
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="text-[10px] text-muted-foreground">{source.timestamp}</span>
-                            {source.tags.map((tag) => (
-                              <span key={tag.name} className="text-[10px] px-1.5 py-0.5 rounded-full bg-muted">
-                                {tag.name}
-                              </span>
+                          <div className="flex items-center gap-2 mt-1 min-w-0">
+                            <span className="text-[10px] text-muted-foreground shrink-0">{source.timestamp}</span>
+                            {source.tags.slice(0, 3).map((tag) => (
+                              <TagPill key={tag.name} name={tag.name} />
                             ))}
+                            {source.tags.length > 3 && (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-muted shrink-0">
+                                    +{source.tags.length - 3}
+                                  </span>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  {source.tags.slice(3).map((tag) => tag.name).join(", ")}
+                                </TooltipContent>
+                              </Tooltip>
+                            )}
                           </div>
                         </Link>
                         {isOllamaFailure ? (
@@ -427,5 +438,18 @@ export function SourceListPanel({
         )}
       </div>
     </>
+  )
+}
+
+function TagPill({ name }: { name: string }) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-muted truncate max-w-[80px]">
+          {name}
+        </span>
+      </TooltipTrigger>
+      <TooltipContent>{name}</TooltipContent>
+    </Tooltip>
   )
 }

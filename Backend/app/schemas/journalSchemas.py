@@ -50,6 +50,8 @@ class SaveAnswerRequest(BaseModel):
 class SourcePatchRequest(BaseModel):
     text: str | None = None
     text_html: str | None = None  # rich HTML for display; plain text is derived from it
+    summary: str | None = None  # user-edited summary; does not trigger reprocessing
+    summary_html: str | None = None  # rich HTML for the summary; plain summary derived from it
     filename: str | None = None
     created_at: str | None = None  # ISO 8601 datetime string
 

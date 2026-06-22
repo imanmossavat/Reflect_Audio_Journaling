@@ -366,6 +366,8 @@ async def update_source(
     *,
     text: str | None = None,
     text_html: str | None = None,
+    summary: str | None = None,
+    summary_html: str | None = None,
     filename: str | None = None,
     created_at_str: str | None = None,
 ):
@@ -375,10 +377,15 @@ async def update_source(
     # Rich edits arrive as HTML; derive the canonical plain text from it.
     if text_html is not None:
         text = html_to_text(text_html)
+    # Same for the summary: persist the HTML for the editor, derive the plain summary.
+    if summary_html is not None:
+        summary = html_to_text(summary_html)
+    # Editing the summary doesn't change indexed content, so it never reprocesses.
     content_changed = text is not None or text_html is not None
     new_status = "not processed" if (content_changed and source.status == "processed") else None
     return sourceRepository.update_source_fields(
         session, source, text=text, text_html=text_html,
+        summary=summary, summary_html=summary_html,
         filename=filename, created_at_str=created_at_str, status=new_status
     )
 
