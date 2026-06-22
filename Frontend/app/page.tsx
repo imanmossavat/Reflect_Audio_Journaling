@@ -400,6 +400,9 @@ export default function HomePage() {
             isLoadingActiveChat={chats.isLoadingActiveChat}
             streamingAssistant={chats.streamingAssistant}
             sourceNameById={sourceNameById}
+            supportCard={chats.supportCard}
+            onDismissSupportCard={chats.dismissSupportCard}
+            language={appSettings?.language}
           />
           <ChatInput
             inputValue={chats.inputValue}

@@ -1,3 +1,4 @@
+import asyncio
 import mimetypes
 import os
 import shutil
@@ -11,6 +12,7 @@ from sqlmodel import Session
 from app.db import get_session
 from app.schemas.journalSchemas import SourcePatchRequest
 from app.services import sourceService
+from app.services.ollama_gate import generation_lock
 
 router = APIRouter()
 
@@ -47,6 +49,28 @@ async def get_source_text(
 ):
     source = sourceService.get_source_by_id(session, source_id)
     return source.text
+
+
+@router.get("/source/{source_id}/chunks", tags=["Source"], description="Semantic chunks the source was split into for retrieval.")
+async def get_source_chunks(
+    source_id: int,
+    session: Session = Depends(get_session),
+):
+    return sourceService.get_source_chunks(session, source_id)
+
+
+@router.post("/source/{source_id}/summary/regenerate", tags=["Source"], description="Regenerate the LLM summary for a source.")
+async def regenerate_source_summary(
+    source_id: int,
+    session: Session = Depends(get_session),
+):
+    source = sourceService.get_source_by_id(session, source_id)
+    if not source.text or not source.text.strip():
+        raise HTTPException(status_code=422, detail="Source has no text to summarise yet.")
+    # Serialize against chat generation; the summary call is synchronous, so run it
+    # off the event loop.
+    async with generation_lock:
+        return await asyncio.to_thread(sourceService.regenerate_summary, source_id)
 
 
 @router.post("/source/uploadFile/processed", tags=["Source"], description="Upload a source file. Returns immediately; transcription and indexing run in the background.")

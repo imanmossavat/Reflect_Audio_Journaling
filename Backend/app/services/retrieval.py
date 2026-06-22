@@ -22,6 +22,7 @@ from sqlmodel import Session
 
 from app.db import engine
 from app.repositories.sourceRepository import get_source_ids_in_range, get_sources_meta
+from app.repositories.tagRepository import get_sources_by_tags
 from app.services.chroma import get_chroma_collection
 from app.services import reranker
 from app.services.ranking import (
@@ -88,6 +89,7 @@ def ranked_retrieve(
     session: Session | None = None,
     modality: str | None = None,
     *,
+    tags: list[str] | None = None,
     reranker_fn: Callable[[str, list[Any]], list[tuple[Any, float]]] | None = None,
     source_meta_provider: Callable[..., dict] | None = None,
     weights: RankWeights = DEFAULT_WEIGHTS,
@@ -106,8 +108,25 @@ def ranked_retrieve(
     try:
         date_range = parse_temporal_range(question, now)
         filter_list: list[MetadataFilter] = []
+        # A tag scope is an explicit, hard constraint chosen by the user, so it must never
+        # be backfilled with unrelated chunks (unlike the lenient temporal window below).
+        allow_backfill = True
         if modality:
             filter_list.append(MetadataFilter(key="modality", value=modality, operator=FilterOperator.EQ))
+        if tags:
+            tag_source_ids = [s.id for s in get_sources_by_tags(session, tag_names=tags, match="any")]
+            if not tag_source_ids:
+                # Explicit tag scope with no matching sources: return nothing rather than
+                # silently widening to untagged notes.
+                return []
+            filter_list.append(
+                MetadataFilter(
+                    key="source_id",
+                    value=[str(i) for i in tag_source_ids],
+                    operator=FilterOperator.IN,
+                )
+            )
+            allow_backfill = False
         if date_range and date_range.hard:
             ids = get_source_ids_in_range(session, date_range.start, date_range.end)
             if ids:
@@ -127,7 +146,7 @@ def ranked_retrieve(
         nodes = index.as_retriever(similarity_top_k=pool_k, filters=filters).retrieve(question)
 
         # Backfill a sparse filtered pool with unfiltered hits so we never truncate below top_k; recency decay keeps in-range items on top.
-        if filters is not None and len(nodes) < top_k:
+        if filters is not None and allow_backfill and len(nodes) < top_k:
             seen = {n.node.node_id for n in nodes}
             extra = index.as_retriever(similarity_top_k=pool_k).retrieve(question)
             nodes.extend(n for n in extra if n.node.node_id not in seen)
@@ -155,9 +174,11 @@ def _log_ranking(question: str, scored: list[Any]) -> None:
     logger.info("rerank %r -> %s", question[:80], breakdown)
 
 
-def retrieve_nodes(question: str, top_k: int = 5, modality: str | None = None) -> list[Any]:
+def retrieve_nodes(
+    question: str, top_k: int = 5, modality: str | None = None, tags: list[str] | None = None
+) -> list[Any]:
     """Returns the top_k retrieved nodes for `question` without running the LLM step."""
-    return ranked_retrieve(question, top_k=top_k, modality=modality)
+    return ranked_retrieve(question, top_k=top_k, modality=modality, tags=tags)
 
 
 def serialize_retrieved_nodes(nodes: list[Any]) -> list[dict[str, Any]]:

@@ -1,7 +1,7 @@
 "use client"
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react"
-import { api, type ChatStreamStageName } from "@/lib/api"
+import { api, type ChatStreamStageName, type SafetyKind } from "@/lib/api"
 import { toast } from "sonner"
 
 // Streaming-answer shapes (formerly local to useChatManagement). They live here now
@@ -17,17 +17,26 @@ export type StreamingAssistant = {
   stages: StreamingStage[]
   thinking: string
   answer: string
+  /** Buffered answer length from the backend — drives the pulsing "skeleton reveal". The
+   *  real text never streams; it arrives via the persisted message after the guard passes. */
+  progressChars: number
 }
 
-type GenerationStatus = "active" | "done" | "error"
+type GenerationStatus = "active" | "done" | "error" | "fallback"
 
 type GenerationEntry = StreamingAssistant & { status: GenerationStatus }
 
 export type GenerationDoneInfo = { model: string | null; message_id: number }
+export type GenerationFallbackInfo = { kind: SafetyKind }
+export type GenerationFinishInfo = GenerationDoneInfo | GenerationFallbackInfo | null
 
-// Fired when a generation finishes (done or error). Consumers use it to refetch the
-// chat's persisted messages (when it's the chat on screen) and to clear the entry.
-type CompleteListener = (chatId: number, outcome: "done" | "error", info: GenerationDoneInfo | null) => void
+// Fired when a generation finishes (done, error, or a guard `fallback`). Consumers refetch
+// the chat's persisted messages (on done) or surface a support card (on fallback).
+type CompleteListener = (
+  chatId: number,
+  outcome: "done" | "error" | "fallback",
+  info: GenerationFinishInfo,
+) => void
 
 interface GenerationContextValue {
   /** Begin a text-answer generation for a chat (the user already persisted their turn). */
@@ -48,7 +57,7 @@ const GenerationContext = createContext<GenerationContextValue | null>(null)
 // consumer is watching (e.g. it finished while the user was on another route).
 const FINISHED_RETENTION_MS = 2000
 
-const EMPTY_ENTRY: GenerationEntry = { stages: [], thinking: "", answer: "", status: "active" }
+const EMPTY_ENTRY: GenerationEntry = { stages: [], thinking: "", answer: "", progressChars: 0, status: "active" }
 
 export function GenerationProvider({ children }: { children: React.ReactNode }) {
   const [entries, setEntries] = useState<Record<number, GenerationEntry>>({})
@@ -70,7 +79,7 @@ export function GenerationProvider({ children }: { children: React.ReactNode }) 
   }, [])
 
   const finish = useCallback(
-    (chatId: number, outcome: "done" | "error", info: GenerationDoneInfo | null) => {
+    (chatId: number, outcome: "done" | "error" | "fallback", info: GenerationFinishInfo) => {
       updateEntry(chatId, (entry) => ({ ...entry, status: outcome }))
       cancelers.current.delete(chatId)
       completeListeners.current.forEach((listener) => listener(chatId, outcome, info))
@@ -92,13 +101,11 @@ export function GenerationProvider({ children }: { children: React.ReactNode }) 
           return { ...entry, stages, status: "active" as GenerationStatus }
         })
       },
-      onThinking: (delta: string) => {
-        updateEntry(chatId, (entry) => ({ ...entry, thinking: entry.thinking + delta }))
-      },
-      onToken: (delta: string) => {
-        updateEntry(chatId, (entry) => ({ ...entry, answer: entry.answer + delta }))
+      onProgress: (chars: number) => {
+        updateEntry(chatId, (entry) => ({ ...entry, progressChars: chars, status: "active" as GenerationStatus }))
       },
       onDone: (info: GenerationDoneInfo) => finish(chatId, "done", info),
+      onFallback: (kind: SafetyKind) => finish(chatId, "fallback", { kind }),
       onError: (error: Error) => {
         toast.error(error.message.replace(/^API\s+\d+:\s*/, ""))
         finish(chatId, "error", null)
@@ -150,8 +157,9 @@ export function GenerationProvider({ children }: { children: React.ReactNode }) 
     (chatId: number | null): StreamingAssistant | null => {
       if (chatId === null) return null
       const entry = entries[chatId]
-      if (!entry || entry.status === "error") return null
-      return { stages: entry.stages, thinking: entry.thinking, answer: entry.answer }
+      // A fallback (guard tripped) shows a support card, not a streaming bubble — hide it.
+      if (!entry || entry.status === "error" || entry.status === "fallback") return null
+      return { stages: entry.stages, thinking: entry.thinking, answer: entry.answer, progressChars: entry.progressChars }
     },
     [entries]
   )

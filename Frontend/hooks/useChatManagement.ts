@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState } from "react"
-import { api, type ChatSummary, type ChatMessageRecord, PROCESSING_STATUSES } from "@/lib/api"
+import { api, type ChatSummary, type ChatMessageRecord, type SafetyKind, PROCESSING_STATUSES } from "@/lib/api"
 import type { RawSource } from "@/components/home/types"
 import { mapBackendSource } from "@/hooks/useSourceManagement"
 import { useGeneration } from "@/context/generation-provider"
@@ -68,6 +68,10 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
   // Gibbs step; "ask" = a RAG "context question" grounded in the user's sources.
   // Outside a reflection the chat is always in "ask" mode.
   const [chatMode, setChatMode] = useState<"reflect" | "ask">("ask")
+  // A distress signal surfaced for the chat on screen. Ephemeral (never persisted), shown
+  // as a dismissible support card; cleared whenever the active chat changes.
+  const [supportCard, setSupportCard] = useState<{ kind: SafetyKind } | null>(null)
+  const dismissSupportCard = () => setSupportCard(null)
   // Don't persist activeChatId until we've restored it from storage on mount,
   // otherwise the initial null would wipe the stored value before we read it.
   const hasRestoredActiveChat = useRef(false)
@@ -105,12 +109,26 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
   }, [activeChatId])
 
   useEffect(() => {
+    setSupportCard(null) // ephemeral: a support card belongs to the chat that triggered it
     if (activeChatId === null) { setActiveChatMessages([]); return }
     const loadChat = async () => {
       setIsLoadingActiveChat(true)
       try {
         const detail = await api.getChat(activeChatId)
         setActiveChatMessages(detail.messages)
+        // Reflection state isn't stored on the Chat, but reflection messages are
+        // tagged with their Gibbs stage. If this chat has any, treat it as a
+        // reflection again and resume at the furthest stage reached, so leaving
+        // and returning to (or reloading) the chat doesn't lose that it's guided.
+        const steps = detail.messages
+          .map((m) => m.gibbs_step)
+          .filter((s): s is number => typeof s === "number" && s >= 1)
+        if (steps.length > 0) {
+          setGibbsActive(true)
+          setGibbsComplete(false)
+          setGibbsStep(Math.min(Math.max(...steps), GIBBS_STEP_COUNT))
+          setChatMode("reflect")
+        }
       } catch (error) {
         toast.error(`Could not load chat: ${error instanceof Error ? error.message : "Unknown error"}`)
       } finally {
@@ -177,6 +195,13 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
         ...(asReflection ? { gibbs_step: gibbsStep } : {}),
       })
       if (asReflection) {
+        // Screen the reflection answer for distress — non-blocking, so it never delays the
+        // save or interrupts journaling. On a hit, surface an empathetic support card.
+        void api.checkSafety(trimmed)
+          .then((v) => {
+            if (v.flagged && v.kind && activeChatIdRef.current === chatId) setSupportCard({ kind: v.kind })
+          })
+          .catch(() => {})
         // The facilitator stays silent after a reflection answer — one answer per
         // question. The user advances the stage or hits "Ask another question".
         return
@@ -195,11 +220,16 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
   // resumed after a refresh. The provider also auto-clears as a safety net.
   useEffect(() => {
     return generation.onComplete((chatId, outcome, info) => {
-      if (outcome === "done" && info && activeChatIdRef.current === chatId) {
+      if (outcome === "fallback") {
+        // The guard intercepted the question or blocked the answer — show support, no message.
+        if (info && "kind" in info && activeChatIdRef.current === chatId) setSupportCard({ kind: info.kind })
+        generation.clearGeneration(chatId)
+      } else if (outcome === "done" && info && "message_id" in info && activeChatIdRef.current === chatId) {
+        const messageId = info.message_id
         void (async () => {
           try {
             const detail = await api.getChat(chatId)
-            const created = detail.messages.find((m) => m.id === info.message_id)
+            const created = detail.messages.find((m) => m.id === messageId)
             setActiveChatMessages((prev) => (created ? [...prev, created] : detail.messages))
           } catch (error) {
             console.warn("Failed to refetch chat after stream", error)
@@ -259,23 +289,26 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
 
     setGibbsGenerating(true)
     setStreamingChatId(chatId)
-    setStreamingAssistant({ stages: [], thinking: "", answer: "" })
-    let acc = ""
+    setStreamingAssistant({ stages: [], thinking: "", answer: "", progressChars: 0 })
     await new Promise<void>((resolve) => {
       api.streamGeneratedQuestion(
         { mode, step, journal_text: journalText || undefined, history },
         {
-          onToken: (token) => {
-            acc += token
-            setStreamingAssistant((prev) => (prev ? { ...prev, answer: prev.answer + token } : prev))
+          onProgress: (chars) => {
+            setStreamingAssistant((prev) => (prev ? { ...prev, progressChars: chars } : prev))
           },
-          onDone: async () => {
-            const text = acc.trim()
+          onDone: async ({ text, fallbackKind }) => {
             try {
-              // persistMessage guards the on-screen append by chat id; the message
-              // is always saved server-side even if the user switched chats. Tag the
-              // facilitator's question with the stage it belongs to.
-              if (text) await persistMessage(chatId, { role: "question", text, gibbs_step: step })
+              if (fallbackKind) {
+                // The facilitator's question was blocked by the output guard — offer support
+                // instead of revealing/persisting it.
+                if (activeChatIdRef.current === chatId) setSupportCard({ kind: fallbackKind })
+              } else if (text) {
+                // persistMessage guards the on-screen append by chat id; the message
+                // is always saved server-side even if the user switched chats. Tag the
+                // facilitator's question with the stage it belongs to.
+                await persistMessage(chatId, { role: "question", text, gibbs_step: step })
+              }
             } finally {
               setStreamingAssistant(null)
               setStreamingChatId(null)
@@ -440,6 +473,7 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
     handleSelectChat, handleStartRenameChat, handleStartRenameActiveChat, handleCommitRename, handleDeleteChat,
     handlePromoteChat, handleSubmitText,
     resetChatState,
+    supportCard, dismissSupportCard,
     gibbsActive, gibbsStep, gibbsGenerating, gibbsComplete,
     startReflection, advanceGibbsStep, askClarifying, exitReflection, handleSelectGibbsStep, beginNewCycle,
     chatMode, setChatMode,

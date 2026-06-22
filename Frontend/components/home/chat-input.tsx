@@ -71,7 +71,9 @@ export function ChatInput({
   onChangeChatModel,
 }: ChatInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
-  const showPrompts = inputValue.trim().length === 0
+  // Example prompts are a starting nudge — only show them on an empty chat, and
+  // hide them once the first message has been sent.
+  const showPrompts = inputValue.trim().length === 0 && activeChatMessages.length === 0
   const reflectMode = gibbsActive && chatMode === "reflect"
   const placeholder = reflectMode
     ? "Write your reflection…"
@@ -89,6 +91,22 @@ export function ChatInput({
   const maxHeightPx = LINE_HEIGHT_PX * MAX_TEXTAREA_ROWS + TEXTAREA_VERTICAL_PADDING_PX
   const modelInList = chatModel ? installedModels.some((m) => m.name === chatModel) : false
 
+  // The promote/update button is rendered in one of two spots depending on mode:
+  // top-right above the prompts outside a reflection, or inline with the
+  // reflect/ask toggle during one. Build it once so both placements stay in sync.
+  const promoteButton =
+    activeChatId !== null ? (
+      <button
+        type="button"
+        onClick={() => void onPromoteChat()}
+        disabled={promoteDisabled}
+        className="h-7 px-2.5 inline-flex items-center gap-1.5 text-xs font-medium rounded-md border border-border bg-background hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors shrink-0"
+      >
+        <PromoteIcon className={`h-3 w-3 ${promoteIconSpin ? "animate-spin" : ""}`} />
+        {promoteLabel}
+      </button>
+    ) : null
+
   useEffect(() => {
     const el = textareaRef.current
     if (!el) return
@@ -100,7 +118,9 @@ export function ChatInput({
   return (
     <div data-tour="chat" className="bg-background p-4">
       <div className="max-w-2xl mx-auto">
-        {(showPrompts || activeChatId !== null) && (
+        {/* Top row: example prompts, plus the promote button when not reflecting.
+            During a reflection the promote button moves down to the toggle row. */}
+        {(showPrompts || (!gibbsActive && promoteButton)) && (
           <div className="flex items-end gap-3 mb-3">
             {showPrompts && (
               <div className="flex flex-col gap-2 items-start flex-1 min-w-0">
@@ -116,45 +136,38 @@ export function ChatInput({
                 ))}
               </div>
             )}
-            {activeChatId !== null && (
-              <button
-                type="button"
-                onClick={() => void onPromoteChat()}
-                disabled={promoteDisabled}
-                className="h-7 px-2.5 inline-flex items-center gap-1.5 text-xs font-medium rounded-md border border-border bg-background hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors ml-auto shrink-0"
-              >
-                <PromoteIcon className={`h-3 w-3 ${promoteIconSpin ? "animate-spin" : ""}`} />
-                {promoteLabel}
-              </button>
-            )}
+            {!gibbsActive && promoteButton && <div className="ml-auto shrink-0">{promoteButton}</div>}
           </div>
         )}
         {gibbsActive && (
-          <div className="mb-2 inline-flex rounded-lg border bg-muted/30 p-0.5 text-xs font-medium">
-            <button
-              type="button"
-              onClick={() => onChangeChatMode("reflect")}
-              className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 transition-colors ${
-                chatMode === "reflect"
-                  ? "bg-emerald-600 text-white"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <PenLine className="h-3.5 w-3.5" />
-              Reflect
-            </button>
-            <button
-              type="button"
-              onClick={() => onChangeChatMode("ask")}
-              className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 transition-colors ${
-                chatMode === "ask"
-                  ? "bg-emerald-600 text-white"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <Search className="h-3.5 w-3.5" />
-              Ask sources
-            </button>
+          <div className="mb-2 flex items-center gap-2">
+            <div className="inline-flex rounded-lg border bg-muted/30 p-0.5 text-xs font-medium">
+              <button
+                type="button"
+                onClick={() => onChangeChatMode("reflect")}
+                className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 transition-colors ${
+                  chatMode === "reflect"
+                    ? "bg-emerald-600 text-white"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <PenLine className="h-3.5 w-3.5" />
+                Reflect
+              </button>
+              <button
+                type="button"
+                onClick={() => onChangeChatMode("ask")}
+                className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 transition-colors ${
+                  chatMode === "ask"
+                    ? "bg-emerald-600 text-white"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Search className="h-3.5 w-3.5" />
+                Ask sources
+              </button>
+            </div>
+            {promoteButton && <div className="ml-auto shrink-0">{promoteButton}</div>}
           </div>
         )}
         <form

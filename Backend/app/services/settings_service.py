@@ -21,6 +21,8 @@ DEFAULTS: dict[str, Any] = {
     "theme": "system",
     "date_format": "dmy",
     "thinking_enabled": True,
+    "safety_enabled": True,
+    "safety_model": "llama-guard3:1b",
 }
 
 ALLOWED_DEVICES = {"cpu", "cuda", "mps", "rocm"}
@@ -85,10 +87,10 @@ def _validate(patch: dict[str, Any]) -> dict[str, Any]:
         elif key == "date_format":
             if value not in ALLOWED_DATE_FORMATS:
                 raise ValueError(f"date_format must be one of {sorted(ALLOWED_DATE_FORMATS)}")
-        elif key == "thinking_enabled":
+        elif key in ("thinking_enabled", "safety_enabled"):
             if not isinstance(value, bool):
-                raise ValueError("thinking_enabled must be a boolean")
-        elif key in ("chat_model", "embed_model", "ollama_host", "db_path"):
+                raise ValueError(f"{key} must be a boolean")
+        elif key in ("chat_model", "embed_model", "ollama_host", "db_path", "safety_model"):
             if not isinstance(value, str) or not value.strip():
                 raise ValueError(f"{key} must be a non-empty string")
             value = value.strip()

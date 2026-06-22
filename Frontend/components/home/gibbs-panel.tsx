@@ -139,31 +139,6 @@ export function GibbsPanel({
         <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar px-4 py-5">
           <SegmentedRing step={step} complete={false} />
 
-          {/* Turn indicator */}
-          <div className="mt-5 flex justify-center">
-            <span
-              className={`inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.16em] ${
-                generating ? "text-muted-foreground" : "text-emerald-600"
-              }`}
-            >
-              {generating ? (
-                <>
-                  <span className="flex items-center gap-1">
-                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-current [animation-delay:0ms]" />
-                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-current [animation-delay:150ms]" />
-                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-current [animation-delay:300ms]" />
-                  </span>
-                  Facilitator is reflecting
-                </>
-              ) : (
-                <>
-                  <span className="h-1.5 w-1.5 rounded-full bg-current" />
-                  Your turn
-                </>
-              )}
-            </span>
-          </div>
-
           {/* Focus block */}
           <div className="mt-5">
             <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-emerald-600">
@@ -177,8 +152,34 @@ export function GibbsPanel({
             </p>
           </div>
 
+          {/* Actions — kept above the step list so they stay reachable without scrolling */}
+          <div className="mt-6 flex flex-col gap-2">
+            <button
+              onClick={onAdvance}
+              disabled={generating}
+              className="flex items-center justify-center gap-2 rounded-full bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {generating ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : isLastStep ? (
+                <CheckCircle2 className="h-4 w-4" />
+              ) : (
+                <ArrowRight className="h-4 w-4" />
+              )}
+              {isLastStep ? "Finish reflection" : `Continue to ${nextLabel}`}
+            </button>
+            <button
+              onClick={onClarify}
+              disabled={generating}
+              className="flex items-center justify-center gap-2 rounded-full border border-emerald-600/40 bg-emerald-600/10 px-4 py-2 text-sm font-medium text-emerald-700 transition-colors hover:bg-emerald-600/20 hover:border-emerald-600/60 dark:text-emerald-400 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+              Ask another question
+            </button>
+          </div>
+
           {/* Step list */}
-          <div className="mt-5 flex flex-col gap-0.5">
+          <div className="mt-6 flex flex-col gap-0.5">
             {GIBBS_STEPS.map((s) => {
               const isDone = s.step < step
               const isCurrent = s.step === step
@@ -224,30 +225,8 @@ export function GibbsPanel({
             })}
           </div>
 
-          {/* Actions */}
+          {/* End reflection — secondary, stays at the bottom */}
           <div className="mt-6 flex flex-col gap-2">
-            <button
-              onClick={onAdvance}
-              disabled={generating}
-              className="flex items-center justify-center gap-2 rounded-full bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {generating ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : isLastStep ? (
-                <CheckCircle2 className="h-4 w-4" />
-              ) : (
-                <ArrowRight className="h-4 w-4" />
-              )}
-              {isLastStep ? "Finish reflection" : `Continue to ${nextLabel}`}
-            </button>
-            <button
-              onClick={onClarify}
-              disabled={generating}
-              className="flex items-center justify-center gap-2 rounded-full border border-emerald-600/40 bg-emerald-600/10 px-4 py-2 text-sm font-medium text-emerald-700 transition-colors hover:bg-emerald-600/20 hover:border-emerald-600/60 dark:text-emerald-400 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <RotateCcw className="h-3.5 w-3.5" />
-              Ask another question
-            </button>
             <button
               onClick={onEnd}
               className="mt-1 flex items-center justify-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"

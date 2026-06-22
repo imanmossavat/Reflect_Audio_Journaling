@@ -122,6 +122,31 @@ def create_chunks(session: Session, source_id: int, chunks: list[dict[str, Any]]
         raise exc
 
 
+def update_source_summary(
+    session: Session, source: Source, summary: str, provenance: Optional[dict] = None
+) -> Source:
+    """Persist the LLM summary and merge its provenance into derived_meta.
+
+    Reassigns derived_meta to a new dict so SQLAlchemy detects the JSON change.
+    """
+    source.summary = summary
+    if provenance is not None:
+        meta = dict(source.derived_meta or {})
+        meta["summary"] = provenance
+        source.derived_meta = meta
+    source.edited_at = datetime.utcnow()
+    session.add(source)
+    session.commit()
+    session.refresh(source)
+    return source
+
+
+def get_chunks_for_source(session: Session, source_id: int) -> list[Chunk]:
+    return session.exec(
+        select(Chunk).where(Chunk.source_id == source_id).order_by(Chunk.chunk_index)
+    ).all()
+
+
 def update_source_status(session: Session, source: Source, status: str) -> Source:
     source.status = status
     source.edited_at = datetime.utcnow()

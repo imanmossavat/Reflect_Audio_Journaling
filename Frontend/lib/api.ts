@@ -5,13 +5,14 @@ export type SourceStatus =
   | "transcribing"
   | "chunking"
   | "indexing"
+  | "enriching"
   | "failed"
   | "failed_ollama_not_running"
   | "failed_ollama_not_installed"
   | "failed_ollama_model_missing"
   | string
 
-export const PROCESSING_STATUSES = new Set<SourceStatus>(["queued", "transcribing", "chunking", "indexing"])
+export const PROCESSING_STATUSES = new Set<SourceStatus>(["queued", "transcribing", "chunking", "indexing", "enriching"])
 
 export const OLLAMA_FAILURE_STATUSES = new Set<SourceStatus>([
   "failed_ollama_not_running",
@@ -24,6 +25,7 @@ export const PROCESSING_STATUS_LABELS: Record<string, string> = {
   transcribing: "Transcribing audio...",
   chunking: "Splitting into chunks...",
   indexing: "Building search index...",
+  enriching: "Summarizing & tagging...",
   failed: "Processing failed",
   failed_ollama_not_running: "Failed — Ollama is not running",
   failed_ollama_not_installed: "Failed — Ollama is not installed",
@@ -84,6 +86,7 @@ export interface SourceRecord {
   text: string | null
   text_html: string | null
   transcript_segments: TranscriptSegment[] | null
+  summary: string | null
   status: SourceStatus
   created_at: string
 }
@@ -91,6 +94,12 @@ export interface SourceRecord {
 export interface SourceTag {
   id: number
   name: string
+}
+
+export interface SourceChunk {
+  id: number
+  chunk_index: number
+  chunk_text: string
 }
 
 export interface TagSourceMembership {
@@ -146,14 +155,26 @@ export interface ChatMessageRecord {
   created_at: string
 }
 
-export type ChatStreamStageName = "queued" | "searching" | "retrieved" | "thinking" | "writing"
+export type ChatStreamStageName = "checking" | "queued" | "searching" | "retrieved" | "thinking" | "writing"
+
+/** Care pathway a guard hit maps to — drives which support card the UI shows. */
+export type SafetyKind = "self_harm" | "support"
+
+export interface SafetyVerdict {
+  flagged: boolean
+  kind: SafetyKind | null
+  categories: string[]
+}
 
 export interface ChatStreamHandlers {
   onStage: (stage: { name: ChatStreamStageName; count?: number }) => void
-  onThinking: (delta: string) => void
-  onToken: (delta: string) => void
+  /** Cumulative answer length so the UI can grow a skeleton; the real text stays
+   *  server-side until the output guard passes (then it arrives via onDone + refetch). */
+  onProgress: (chars: number) => void
   onSources?: (sources: QuerySource[]) => void
   onDone: (info: { model: string | null; message_id: number }) => void
+  /** Guard tripped (input intercept or blocked output): show a support card, no answer. */
+  onFallback: (kind: SafetyKind) => void
   onError: (error: Error) => void
   // Emitted by a resume stream when no generation is active for the chat, so the
   // caller can fall back to a normal chat load instead of waiting on tokens.
@@ -304,11 +325,8 @@ async function consumeChatStream(response: Response, handlers: ChatStreamHandler
           count: typeof parsed.count === "number" ? parsed.count : undefined,
         })
         break
-      case "thinking":
-        if (typeof parsed.delta === "string") handlers.onThinking(parsed.delta)
-        break
-      case "token":
-        if (typeof parsed.delta === "string") handlers.onToken(parsed.delta)
+      case "progress":
+        if (typeof parsed.chars === "number") handlers.onProgress(parsed.chars)
         break
       case "sources":
         handlers.onSources?.(parsed.sources as QuerySource[])
@@ -318,6 +336,9 @@ async function consumeChatStream(response: Response, handlers: ChatStreamHandler
           model: (parsed.model as string | null) ?? null,
           message_id: parsed.message_id as number,
         })
+        break
+      case "fallback":
+        handlers.onFallback((parsed.kind as SafetyKind) || "support")
         break
       case "error":
         handlers.onError(new Error((parsed.detail as string) || "Stream error"))
@@ -399,6 +420,9 @@ export const api = {
   },
   getSourceText(sourceId: number) {
     return request<string>(`/source-text/${sourceId}`)
+  },
+  getSourceChunks(sourceId: number) {
+    return request<SourceChunk[]>(`/source/${sourceId}/chunks`)
   },
   uploadRawTextSource(sourceText: string) {
     const body = new FormData()
@@ -482,6 +506,9 @@ export const api = {
   processSource(sourceId: number) {
     return request<SourceRecord>(`/source/process/${sourceId}`, { method: "POST" }, 600000)
   },
+  regenerateSummary(sourceId: number) {
+    return request<SourceRecord>(`/source/${sourceId}/summary/regenerate`, { method: "POST" }, 600000)
+  },
   query(question: string, top_k = 5) {
     return request<QueryResponse>("/query", {
       method: "POST",
@@ -493,6 +520,13 @@ export const api = {
     return request<{ tags: Array<{ name: string; summary: string; quotes: string[] }>; source_text: string }>(
       `/extract-tags?source_id=${sourceId}`,
       { method: "POST" }
+    )
+  },
+  suggestTags(sourceId: number) {
+    return request<{ suggestions: Array<{ name: string; reason: string }> }>(
+      `/tags/${sourceId}/suggest`,
+      { method: "GET" },
+      600000,
     )
   },
   getAllTags() {
@@ -584,6 +618,15 @@ export const api = {
   listActiveGenerations() {
     return request<ActiveGeneration[]>("/generations")
   },
+  // Screen a user-authored snippet (reflection-writing flow). Never blocks; returns a care
+  // `kind` when the text trips a relevant Llama Guard category so the UI can offer support.
+  checkSafety(text: string) {
+    return request<SafetyVerdict>("/safety/check", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text }),
+    })
+  },
   streamQuery(
     payload: { chatId: number; question: string; top_k?: number },
     handlers: ChatStreamHandlers
@@ -633,13 +676,18 @@ export const api = {
   streamGeneratedQuestion(
     payload: GenerateQuestionRequest,
     handlers: {
-      onToken: (token: string) => void
-      onDone: () => void
+      // Cumulative character count so the UI can grow a skeleton (the question text is
+      // withheld until the output guard clears it).
+      onProgress: (chars: number) => void
+      // Terminal: the guarded question (`text`) or, if the guard tripped, a `fallbackKind`.
+      onDone: (result: { text: string | null; fallbackKind: SafetyKind | null }) => void
       onError: (error: Error) => void
     }
   ) {
     const controller = new AbortController()
     const run = async () => {
+      let resultText: string | null = null
+      let fallbackKind: SafetyKind | null = null
       try {
         const response = await fetch(`${getBackendBaseUrl()}/generate-question`, {
           method: "POST",
@@ -666,38 +714,42 @@ export const api = {
             const data = trimmed.slice(5).trim()
             if (!data) continue
             if (data === "[DONE]") return true
-            let parsed: { token?: string; error?: string }
+            let parsed: { progress?: number; text?: string; fallback?: string; error?: string }
             try {
               parsed = JSON.parse(data)
             } catch {
               continue // ignore a rare malformed JSON fragment
             }
             if (parsed.error) throw new Error(parsed.error)
-            if (parsed.token) handlers.onToken(parsed.token)
+            if (typeof parsed.progress === "number") handlers.onProgress(parsed.progress)
+            if (typeof parsed.text === "string") resultText = parsed.text
+            if (parsed.fallback) fallbackKind = parsed.fallback as SafetyKind
           }
           return false
         }
 
+        const done = () => handlers.onDone({ text: resultText, fallbackKind })
+
         while (true) {
-          const { value, done } = await reader.read()
-          if (done) break
+          const { value, done: streamDone } = await reader.read()
+          if (streamDone) break
           buffer += decoder.decode(value, { stream: true })
           const events = buffer.split(/\r?\n\r?\n/)
           buffer = events.pop() ?? ""
           for (const evt of events) {
             if (processEvent(evt)) {
-              handlers.onDone()
+              done()
               return
             }
           }
         }
 
         if (buffer.trim() && processEvent(buffer)) {
-          handlers.onDone()
+          done()
           return
         }
 
-        handlers.onDone()
+        done()
       } catch (error) {
         if (error instanceof DOMException && error.name === "AbortError") {
           handlers.onError(new Error("Question generation timed out. Check whether Ollama is running."))

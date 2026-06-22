@@ -2,11 +2,12 @@
 
 import { Fragment } from "react"
 import { ChevronRight, Loader2, Check, Search } from "lucide-react"
-import type { ChatMessageRecord, ChatStreamStageName, QuerySource } from "@/lib/api"
+import type { ChatMessageRecord, ChatStreamStageName, QuerySource, SafetyKind, AppLanguage } from "@/lib/api"
 import type { StreamingAssistant, StreamingStage } from "@/hooks/useChatManagement"
 import { formatListTimestamp } from "@/lib/utils"
 import { Markdown } from "@/components/markdown"
 import { getGibbsStep } from "@/lib/gibbs"
+import { CrisisSupportCard } from "@/components/home/crisis-support-card"
 
 /** Divider marking where a thread section begins: a Gibbs stage, or a RAG "context" block. */
 function GroupHeader({ step }: { step: number | null }) {
@@ -63,14 +64,39 @@ interface ChatMessagesProps {
   isLoadingActiveChat: boolean
   streamingAssistant: StreamingAssistant | null
   sourceNameById: Record<string, string>
+  supportCard: { kind: SafetyKind } | null
+  onDismissSupportCard: () => void
+  language?: AppLanguage
 }
 
 const STAGE_LABELS: Record<ChatStreamStageName, (count?: number) => string> = {
+  checking: () => "Preparing",
   queued: () => "Waiting for the model",
   searching: () => "Searching your sources",
   retrieved: (count) => `Read ${count ?? 0} relevant chunk${count === 1 ? "" : "s"}`,
   thinking: () => "Thinking",
   writing: () => "Writing answer",
+}
+
+/** The pulsing "skeleton reveal": grows with the answer's character count while the real
+ *  text is withheld server-side, then is replaced by the persisted message once the output
+ *  guard passes. Conveys length/progress without ever showing unguarded content. */
+function AnswerSkeleton({ chars }: { chars: number }) {
+  const CHARS_PER_LINE = 56
+  const lines = Math.max(1, Math.ceil(chars / CHARS_PER_LINE))
+  const lastLineChars = chars - (lines - 1) * CHARS_PER_LINE
+  const lastWidth = Math.max(20, Math.min(100, Math.round((lastLineChars / CHARS_PER_LINE) * 100)))
+  return (
+    <div className="space-y-2 py-0.5" aria-label="Writing answer">
+      {Array.from({ length: lines }).map((_, i) => (
+        <div
+          key={i}
+          className="h-3.5 rounded bg-muted-foreground/15 animate-pulse"
+          style={{ width: i === lines - 1 ? `${lastWidth}%` : "100%" }}
+        />
+      ))}
+    </div>
+  )
 }
 
 function StageRow({ stage, thinking }: { stage: StreamingStage; thinking?: string }) {
@@ -104,20 +130,26 @@ function StageRow({ stage, thinking }: { stage: StreamingStage; thinking?: strin
   )
 }
 
-export function ChatMessages({ activeChatMessages, isLoadingActiveChat, streamingAssistant, sourceNameById }: ChatMessagesProps) {
+export function ChatMessages({ activeChatMessages, isLoadingActiveChat, streamingAssistant, sourceNameById, supportCard, onDismissSupportCard, language }: ChatMessagesProps) {
   return (
     <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar p-6">
       <div className="max-w-2xl mx-auto space-y-4">
         {isLoadingActiveChat ? (
           <p className="text-sm text-muted-foreground text-center">Loading chat...</p>
         ) : (
-          activeChatMessages.map((message, i) => {
+          (() => {
+          // "Context" divider onlyIn a plain (non-reflection) chat
+          const hasReflection = activeChatMessages.some((m) => m.gibbs_step != null)
+          return activeChatMessages.map((message, i) => {
             const timestamp = formatListTimestamp(message.created_at)
             // Divide the thread into sections: each Gibbs stage, and RAG "context" blocks
             // (gibbs_step == null). Show the header wherever the section changes.
             const curStep = message.gibbs_step ?? null
             const prevStep = i > 0 ? activeChatMessages[i - 1].gibbs_step ?? null : undefined
-            const stepHeader = curStep !== prevStep ? <GroupHeader step={curStep} /> : null
+            const stepHeader =
+              curStep !== prevStep && (curStep != null || hasReflection) ? (
+                <GroupHeader step={curStep} />
+              ) : null
             if (message.role === "question") {
               const hasThinking = !!(message.thinking && message.thinking.trim())
               return (
@@ -171,6 +203,7 @@ export function ChatMessages({ activeChatMessages, isLoadingActiveChat, streamin
               </Fragment>
             )
           })
+          })()
         )}
 
         {streamingAssistant && (
@@ -193,8 +226,8 @@ export function ChatMessages({ activeChatMessages, isLoadingActiveChat, streamin
                   </div>
                 </details>
               )}
-              {streamingAssistant.answer ? (
-                <Markdown className="text-[15px]">{streamingAssistant.answer}</Markdown>
+              {streamingAssistant.progressChars > 0 ? (
+                <AnswerSkeleton chars={streamingAssistant.progressChars} />
               ) : streamingAssistant.stages.length === 0 ? (
                 <div className="flex items-center gap-1">
                   <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60 animate-bounce [animation-delay:-0.3s]" />
@@ -204,6 +237,10 @@ export function ChatMessages({ activeChatMessages, isLoadingActiveChat, streamin
               ) : null}
             </div>
           </div>
+        )}
+
+        {supportCard && (
+          <CrisisSupportCard kind={supportCard.kind} language={language} onDismiss={onDismissSupportCard} />
         )}
       </div>
     </div>

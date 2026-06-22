@@ -12,6 +12,9 @@ class SourceTag(SQLModel, table=True):
 
     source_id: int = Field(foreign_key="source.id", primary_key=True)
     tag_id: int = Field(foreign_key="tag.id", primary_key=True)
+    # Provenance: "llm" for auto-extracted on ingest, "user" for hand-added. Lets a
+    # recompute refresh only LLM tags while preserving the user's manual edits.
+    origin: str = Field(max_length=20, default="user")
 
 
 class QuestionTag(SQLModel, table=True):
@@ -22,17 +25,6 @@ class QuestionTag(SQLModel, table=True):
 
 
 #Tables
-
-class TagCluster(SQLModel, table=True):
-    __tablename__ = "tag_cluster"
-
-    id: Optional[int] = Field(default=None, primary_key=True)
-    name: str = Field(max_length=255, unique=True)
-    description: Optional[str] = Field(default=None)
-
-    # Relationships
-    tags: List["Tag"] = Relationship(back_populates="tag_cluster")
-
 
 class Source(SQLModel, table=True):
     __tablename__ = "source"
@@ -45,6 +37,12 @@ class Source(SQLModel, table=True):
     # Rich HTML for display only. The plain-text `text` above stays the value used for chunking, embeddings, tags and chat context.
     text_html: Optional[str] = Field(default=None)
     transcript_segments: Optional[list] = Field(default=None, sa_column=Column(JSON))
+    # LLM-generated one-paragraph summary produced during ingest enrichment.
+    summary: Optional[str] = Field(default=None)
+    # Provenance/versioning for recomputable derived artifacts, e.g.
+    # {"summary": {"model": ..., "prompt_version": ..., "generated_at": ...}, "tags": {...}}.
+    # Kept as JSON so new artifacts (entities, etc.) can be added without a migration.
+    derived_meta: Optional[dict] = Field(default=None, sa_column=Column(JSON))
     status: str = Field(max_length=255, default="not processed")
     created_at: datetime = Field(default_factory=datetime.utcnow)
     edited_at: datetime = Field(default_factory=datetime.utcnow)
@@ -74,13 +72,11 @@ class Tag(SQLModel, table=True):
 
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str = Field(max_length=255)
-    tag_cluster_id: int = Field(foreign_key="tag_cluster.id")
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     # Relationships
     sources: List[Source] = Relationship(back_populates="tags", link_model=SourceTag)
     questions: List["Question"] = Relationship(back_populates="tags", link_model=QuestionTag)
-    tag_cluster: Optional[TagCluster] = Relationship(back_populates="tags")
 
 
 class Question(SQLModel, table=True):

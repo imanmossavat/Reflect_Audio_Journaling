@@ -11,6 +11,7 @@ from app import logging_config
 from app.db import engine
 from app.repositories import chatRepository
 from app.services import chatService
+from app.services import safety
 from app.services.ollama_gate import generation_lock, is_busy
 from app.services.rag import (
     CONTEXT_QA_TEMPLATE,
@@ -35,7 +36,12 @@ logger = logging_config.logger
 # seamless live-resume.
 _RETENTION_SECONDS = 30
 
-_TERMINAL_TYPES = {"done", "error", "idle"}
+_TERMINAL_TYPES = {"done", "error", "idle", "fallback"}
+
+# Emit a skeleton-growth tick roughly every this many answer characters. The frontend
+# renders a pulsing skeleton sized to this count and never sees the real text until the
+# output guard passes (see `_run`).
+_PROGRESS_STEP = 20
 
 
 def _ollama_host() -> str:
@@ -90,7 +96,13 @@ def active() -> list[dict]:
     ]
 
 
-def start(chat_id: int, question: str, top_k: int = 5, modality: Optional[str] = None) -> GenerationJob:
+def start(
+    chat_id: int,
+    question: str,
+    top_k: int = 5,
+    modality: Optional[str] = None,
+    tags: Optional[list[str]] = None,
+) -> GenerationJob:
     """Begin (or re-attach to) a generation for `chat_id`.    """
     existing = _jobs.get(chat_id)
     if existing is not None and not existing.finished:
@@ -98,7 +110,7 @@ def start(chat_id: int, question: str, top_k: int = 5, modality: Optional[str] =
 
     job = GenerationJob(chat_id)
     _jobs[chat_id] = job
-    job.task = asyncio.create_task(_run(job, question, top_k, modality))
+    job.task = asyncio.create_task(_run(job, question, top_k, modality, tags))
     return job
 
 
@@ -133,7 +145,13 @@ async def _evict_later(chat_id: int) -> None:
         _jobs.pop(chat_id, None)
 
 
-async def _run(job: GenerationJob, question: str, top_k: int, modality: Optional[str]) -> None:
+async def _run(
+    job: GenerationJob,
+    question: str,
+    top_k: int,
+    modality: Optional[str],
+    tags: Optional[list[str]] = None,
+) -> None:
     try:
         ollama_state = check_ollama_state()
         if ollama_state == "not_installed":
@@ -158,6 +176,17 @@ async def _run(job: GenerationJob, question: str, top_k: int, modality: Optional
             job.emit("error", detail=job.error_detail)
             return
 
+        # Input guardrail: screen the user's question before any retrieval or generation.
+        # A self-harm question is intercepted with a support card instead of an answer — we
+        # never try to "answer" it. (support-kind questions still generate: they're
+        # high-false-positive and the output guard below is the backstop.)
+        job.emit("stage", name="checking")
+        in_verdict = await safety.classify_user_text(question)
+        if in_verdict.kind == "self_harm":
+            job.status = "done"
+            job.emit("fallback", kind="self_harm")
+            return
+
         supports_thinking = bool(get_setting("thinking_enabled")) and model_supports_thinking(chat_model)
 
         # Load prior conversation.
@@ -170,7 +199,7 @@ async def _run(job: GenerationJob, question: str, top_k: int, modality: Optional
         job.emit("stage", name="searching")
         # Conversation-aware retrieval: rewrite follow-ups into a standalone query so embeddings match the real topic. 
         search_query = await asyncio.to_thread(condense_question, history, question)
-        nodes = await asyncio.to_thread(retrieve_nodes, search_query, top_k=top_k, modality=modality)
+        nodes = await asyncio.to_thread(retrieve_nodes, search_query, top_k=top_k, modality=modality, tags=tags)
         sources_payload = serialize_retrieved_nodes(nodes)
         logger.info(
             "retrieved %d chunk(s) | original=%r | search_query=%r:\n%s",
@@ -199,6 +228,8 @@ async def _run(job: GenerationJob, question: str, top_k: int, modality: Optional
         thinking_parts: list[str] = []
         wrote_writing_stage = False
         wrote_thinking_stage = False
+        answer_len = 0
+        emitted_chars = 0
 
         # Only one generation hits the model at a time.
         if is_busy():
@@ -216,12 +247,14 @@ async def _run(job: GenerationJob, question: str, top_k: int, modality: Optional
                 thinking_delta = msg.get("thinking") or ""
                 content_delta = msg.get("content") or ""
 
+                # The real answer streams into a server-side buffer only. The client gets a
+                # growing character count ("progress") to animate a skeleton, but never the
+                # text — that's withheld until the output guard clears it below.
                 if thinking_delta:
                     if not wrote_thinking_stage:
                         wrote_thinking_stage = True
                         job.emit("stage", name="thinking")
                     thinking_parts.append(thinking_delta)
-                    job.emit("thinking", delta=thinking_delta)
 
                 if content_delta:
                     if not wrote_writing_stage:
@@ -229,12 +262,27 @@ async def _run(job: GenerationJob, question: str, top_k: int, modality: Optional
                         job.status = "writing"
                         job.emit("stage", name="writing")
                     answer_parts.append(content_delta)
-                    job.emit("token", delta=content_delta)
+                    answer_len += len(content_delta)
+                    if answer_len - emitted_chars >= _PROGRESS_STEP:
+                        emitted_chars = answer_len
+                        job.emit("progress", chars=answer_len)
 
-        job.emit("sources", sources=sources_payload)
+        if answer_len > emitted_chars:
+            job.emit("progress", chars=answer_len)
 
         answer_text = "".join(answer_parts).strip() or "(empty response)"
         thinking_text = "".join(thinking_parts).strip() or None
+
+        # Output guardrail: screen the AI's reply before it is ever revealed. If it trips a
+        # category (e.g. jailbroken into harmful advice), swap in a support card instead of
+        # showing — and persisting — the text.
+        out_verdict = await safety.classify_ai_text(question, answer_text)
+        if out_verdict.flagged:
+            job.status = "done"
+            job.emit("fallback", kind=out_verdict.kind or "support")
+            return
+
+        job.emit("sources", sources=sources_payload)
 
         with Session(engine) as session:
             snapshot = chatService.append_message(

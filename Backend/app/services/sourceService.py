@@ -51,6 +51,45 @@ def _set_status(source_id: int, status: str) -> None:
             sourceRepository.update_source_status(session, source, status)
 
 
+def _enrich_source(source_id: int) -> None:
+    """Structured-metadata enrichment: LLM summary + auto-extracted tags.
+
+    Runs after indexing so search is already functional. Best-effort and non-fatal: any
+    LLM hiccup is logged and swallowed so the source still reaches "processed". A null
+    summary / missing tags can be recomputed later from the source detail view.
+    """
+    from datetime import datetime
+    from app.services import summaryService, tagService
+    from app.prompts.summary_prompt import SUMMARY_PROMPT_VERSION
+    from app.services.settings_service import get_setting
+
+    with Session(engine) as session:
+        source = sourceRepository.get_source_by_id(session, source_id)
+        text = source.text if source else None
+    if not text or not text.strip():
+        return
+
+    try:
+        summary = summaryService.generate_summary(text)
+        if summary:
+            provenance = {
+                "model": get_setting("chat_model"),
+                "prompt_version": SUMMARY_PROMPT_VERSION,
+                "generated_at": datetime.utcnow().isoformat(),
+            }
+            with Session(engine) as session:
+                source = sourceRepository.get_source_by_id(session, source_id)
+                if source:
+                    sourceRepository.update_source_summary(session, source, summary, provenance)
+    except Exception as exc:
+        logger.warning(f"Summary generation failed for source {source_id}: {exc}")
+
+    try:
+        tagService.extract_and_store_tags(source_id, origin="llm", replace_existing=True)
+    except Exception as exc:
+        logger.warning(f"Auto-tagging failed for source {source_id}: {exc}")
+
+
 def _process_source_sync(source_id: int) -> None:
     """Full processing pipeline — safe to run in a thread pool.
     Each DB interaction uses its own short-lived session so SQLite is only
@@ -159,6 +198,11 @@ def _process_source_sync(source_id: int) -> None:
                 _set_status(source_id, "failed_ollama_not_running")
                 return
             raise
+
+        # Structured-metadata enrichment (summary + auto-tags). Non-fatal: the source is
+        # already indexed and searchable, so failures here don't fail the source.
+        _set_status(source_id, "enriching")
+        _enrich_source(source_id)
 
         _set_status(source_id, "processed")
         logger.info(f"Background processing complete for source {source_id}")
@@ -351,6 +395,42 @@ async def delete_source(session: Session, source_id: int):
     except Exception as exc:
         logger.warning(f"Chroma delete for source {source_id} failed: {exc}")
     return {"ok": True}
+
+
+def get_source_chunks(session: Session, source_id: int) -> list[dict]:
+    """Semantic chunks for a source, ordered, as plain dicts for the UI."""
+    source = sourceRepository.get_source_by_id(session, source_id)
+    if not source:
+        raise HTTPException(status_code=404, detail="Source not found.")
+    chunks = sourceRepository.get_chunks_for_source(session, source_id)
+    return [
+        {"id": c.id, "chunk_index": c.chunk_index, "chunk_text": c.chunk_text}
+        for c in chunks
+    ]
+
+
+def regenerate_summary(source_id: int):
+    """Regenerate and persist the LLM summary for a source (sync; run via to_thread).
+
+    Assumes the source exists and has text — the route validates that before locking.
+    """
+    from datetime import datetime
+    from app.services import summaryService
+    from app.prompts.summary_prompt import SUMMARY_PROMPT_VERSION
+
+    with Session(engine) as session:
+        source = sourceRepository.get_source_by_id(session, source_id)
+        text = source.text if source else None
+
+    summary = summaryService.generate_summary(text or "")
+    provenance = {
+        "model": get_setting("chat_model"),
+        "prompt_version": SUMMARY_PROMPT_VERSION,
+        "generated_at": datetime.utcnow().isoformat(),
+    }
+    with Session(engine) as session:
+        source = sourceRepository.get_source_by_id(session, source_id)
+        return sourceRepository.update_source_summary(session, source, summary, provenance)
 
 
 async def process_source(session: Session, source_id: int):

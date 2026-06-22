@@ -87,6 +87,7 @@ def query_sources(
     question: str,
     top_k: int = 5,
     modality: str | None = None,
+    tags: list[str] | None = None,
     *,
     prompt: PromptTemplate | None = None,
     llm: Any | None = None,
@@ -104,7 +105,7 @@ def query_sources(
     prompt = prompt if prompt is not None else TEXT_QA_TEMPLATE
     llm = llm if llm is not None else Settings.llm
 
-    nodes = retrieve_fn(question, top_k=top_k, modality=modality)
+    nodes = retrieve_fn(question, top_k=top_k, modality=modality, tags=tags)
     context_str = build_context_str(nodes)
     prompt_str = prompt.format(context_str=context_str, query_str=question)
     answer_text = llm.complete(prompt_str).text

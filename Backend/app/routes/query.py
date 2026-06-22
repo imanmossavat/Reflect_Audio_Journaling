@@ -21,6 +21,7 @@ from app.services.rag import (
 from app.services.settings_service import get_setting
 from app.services import chatService
 from app.services import generation_registry
+from app.services import safety
 from app.services.ollama_gate import generation_lock, is_busy
 
 import httpx
@@ -32,8 +33,8 @@ from sqlmodel import Session
 from app import logging_config
 from app.db import engine, get_latest_source
 from app.prompts import gibbs_facilitator_prompt
-from app.prompts import tag_extraction_prompt
-from app.repositories import chatRepository, tagRepository
+from app.repositories import chatRepository
+from app.services import tagService
 from app.schemas.journalSchemas import (
     ExtractedTagSchema,
     ExtractedTagsResponse,
@@ -64,6 +65,8 @@ class QueryRequest(BaseModel):
     question: str
     top_k: int = 5
     modality: str | None = None
+    # Optional tag scope: retrieval is restricted to sources carrying any of these tags.
+    tags: list[str] | None = None
 
 
 class QueryStreamRequest(BaseModel):
@@ -71,6 +74,7 @@ class QueryStreamRequest(BaseModel):
     question: str
     top_k: int = 5
     modality: str | None = None
+    tags: list[str] | None = None
 
 
 @router.post("/query", tags=["Query"], response_model=QueryResponse)
@@ -107,7 +111,8 @@ async def query(request: QueryRequest):
         # so it can't run a second generation alongside a streaming chat answer.
         async with generation_lock:
             result = await asyncio.to_thread(
-                query_sources, request.question, top_k=request.top_k, modality=request.modality
+                query_sources, request.question, top_k=request.top_k,
+                modality=request.modality, tags=request.tags
             )
     except Exception as exc:
         kind = classify_ollama_error(exc)
@@ -132,6 +137,22 @@ async def query(request: QueryRequest):
         sources=result["sources"],
         model_used=chat_model,
     )
+
+class SafetyCheckRequest(BaseModel):
+    text: str
+
+
+@router.post("/safety/check", tags=["Safety"])
+async def safety_check(request: SafetyCheckRequest):
+    """Screen a user-authored snippet (used by the no-AI reflection-writing flow).
+
+    Never blocks: returns a care `kind` ("self_harm" | "support") when the text trips a
+    relevant Llama Guard category, so the UI can offer an empathetic support card.
+    Fail-open by design — see `safety.classify_user_text`.
+    """
+    verdict = await safety.classify_user_text(request.text)
+    return {"flagged": verdict.flagged, "kind": verdict.kind, "categories": verdict.categories}
+
 
 def _sse(event_type: str, payload: dict) -> str:
     return f"data: {json.dumps({'type': event_type, **payload})}\n\n"
@@ -168,7 +189,8 @@ async def query_stream(request: QueryStreamRequest):
         raise HTTPException(status_code=400, detail="Question cannot be empty.")
 
     generation_registry.start(
-        request.chat_id, request.question, top_k=request.top_k, modality=request.modality
+        request.chat_id, request.question, top_k=request.top_k,
+        modality=request.modality, tags=request.tags
     )
     return StreamingResponse(
         _sse_stream(generation_registry.subscribe(request.chat_id)),
@@ -204,62 +226,18 @@ async def extract_tags(source_id: int) -> ExtractedTagsResponse:
             raise HTTPException(status_code=404, detail="Source not found")
         if not source.text:
             raise HTTPException(status_code=422, detail="Source has no text")
-        source_text = source.text
-
-    prompt = tag_extraction_prompt.build_prompt(source_text)
 
     try:
-        async with generation_lock, httpx.AsyncClient(
-            timeout=httpx.Timeout(connect=10.0, read=300.0, write=10.0, pool=10.0)
-        ) as client:
-            response = await client.post(
-                f"{_ollama_host()}/api/generate",
-                json={
-                    "model": _chat_model(),
-                    "prompt": prompt,
-                    "stream": False,
-                    "options": {"num_predict": 1024},
-                    "think": False,
-                },
+        # Serialize against chat generation; the extraction call itself is synchronous
+        # (shared with the ingest pipeline), so run it off the event loop.
+        async with generation_lock:
+            tags, source_text = await asyncio.to_thread(
+                tagService.extract_and_store_tags, source_id, origin="llm", replace_existing=True
             )
-            if response.status_code != 200:
-                logger.error(f"Ollama returned non-200 status: {response.status_code}")
-                raise HTTPException(status_code=500, detail="Ollama error")
-
-            result = response.json()
-            response_text = result.get("response", "").strip()
-
-            json_start = response_text.find("[")
-            json_end = response_text.rfind("]") + 1
-            if json_start == -1 or json_end <= json_start:
-                raise ValueError("No JSON array found in response")
-
-            raw_tags = json.loads(response_text[json_start:json_end])
-            tags = [
-                ExtractedTagSchema(
-                    name=t.get("name", ""),
-                    summary=t.get("summary", ""),
-                    quotes=t.get("quotes", []),
-                )
-                for t in raw_tags
-            ]
-
-            with Session(engine) as session:
-                db_source = session.get(Source, source_id)
-                if db_source:
-                    for tag_item in tags:
-                        normalised_name = tag_item.name.strip().lower()
-                        if not normalised_name:
-                            continue
-                        tag = tagRepository.get_or_create_tag(session, name=normalised_name)
-                        tagRepository.add_tag_to_source(
-                            session,
-                            source_id=db_source.id,
-                            tag_id=tag.id,
-                        )
-
-            return ExtractedTagsResponse(tags=tags, source_text=source_text)
-
+        return ExtractedTagsResponse(
+            tags=[ExtractedTagSchema(**t) for t in tags],
+            source_text=source_text,
+        )
     except (json.JSONDecodeError, ValueError, KeyError) as e:
         logger.error(f"Failed to parse Ollama tag response: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to parse tags: {str(e)}")
@@ -301,6 +279,12 @@ async def generate_question(req: GenerateRequest):
 
     async def stream_ollama():
         try:
+            parts: list[str] = []
+            answer_len = 0
+            emitted_chars = 0
+            # Buffer the facilitator's question; stream only a growing character count so the
+            # UI can animate a skeleton. The real text is withheld until the output guard
+            # clears it (same skeleton-reveal contract as the RAG answer flow).
             async with generation_lock:
                 client = AsyncClient(host=_ollama_host())
                 async for chunk in await client.chat(
@@ -308,7 +292,17 @@ async def generate_question(req: GenerateRequest):
                 ):
                     token = chunk.get("message", {}).get("content", "")
                     if token:
-                        yield f"data: {json.dumps({'token': token})}\n\n"
+                        parts.append(token)
+                        answer_len += len(token)
+                        if answer_len - emitted_chars >= 20:
+                            emitted_chars = answer_len
+                            yield f"data: {json.dumps({'progress': answer_len})}\n\n"
+            text = "".join(parts).strip()
+            verdict = await safety.classify_ai_text(source_text, text)
+            if verdict.flagged:
+                yield f"data: {json.dumps({'fallback': verdict.kind or 'support'})}\n\n"
+            else:
+                yield f"data: {json.dumps({'text': text})}\n\n"
             yield "data: [DONE]\n\n"
         except Exception as e:
             logger.error(f"Ollama streaming error: {e}")

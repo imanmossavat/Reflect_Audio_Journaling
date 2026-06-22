@@ -51,17 +51,18 @@ class ExperimentConfig:
 # --------------------------------------------------------------------------- component wiring
 
 def build_retriever(cfg: ExperimentConfig):
-    """A retrieve_fn(question, top_k, modality) with cfg's reranker/recency/weights injected.
+    """A retrieve_fn(question, top_k, modality, tags) with cfg's reranker/recency/weights injected.
 
     Eval isolation: synthetic source_ids collide with real SQLite rows, so we neutralize
     recency (source_meta_provider -> {}). Reranker OFF = identity rerank (embedding score)."""
     reranker_fn = None if cfg.reranker else retrieval._identity_rerank
 
-    def retrieve_fn(question, top_k=cfg.top_k, modality=None):
+    def retrieve_fn(question, top_k=cfg.top_k, modality=None, tags=None):
         return retrieval.ranked_retrieve(
             question,
             top_k=top_k,
             modality=modality,
+            tags=tags,
             reranker_fn=reranker_fn,
             source_meta_provider=lambda *a, **k: {},
             weights=cfg.weights,

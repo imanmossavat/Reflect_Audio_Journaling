@@ -2,27 +2,13 @@ from sqlalchemy import func
 from sqlmodel import Session, select
 from sqlalchemy.orm import selectinload, load_only
 
-from database.models import Source, SourceTag, Tag, TagCluster
+from database.models import Source, SourceTag, Tag
 
 
 
 
 def get_tag_by_name(session: Session, name: str) -> Tag | None:
     return session.exec(select(Tag).where(Tag.name == name.strip().lower())).first()
-
-
-def get_cluster_by_name(session: Session, name: str) -> TagCluster | None:
-    return session.exec(select(TagCluster).where(TagCluster.name == name.strip().lower())).first()
-
-
-def get_or_create_cluster(session: Session, *, name: str, description: str | None = None) -> TagCluster:
-    normalised = name.strip().lower()
-    cluster = get_cluster_by_name(session, normalised)
-    if not cluster:
-        cluster = TagCluster(name=normalised, description=description)
-        session.add(cluster)
-        session.flush()
-    return cluster
 
 
 def get_tag_by_id(session: Session, tag_id: int) -> Tag | None:
@@ -52,12 +38,7 @@ def get_or_create_tag(session: Session, *, name: str) -> Tag:
     normalised = name.strip().lower()
     tag = get_tag_by_name(session, normalised)
     if not tag:
-        default_cluster = get_or_create_cluster(
-            session,
-            name="general",
-            description="Default cluster for extracted and manual tags",
-        )
-        tag = Tag(name=normalised, tag_cluster_id=default_cluster.id)
+        tag = Tag(name=normalised)
         session.add(tag)
         session.flush()
     return tag
@@ -84,16 +65,37 @@ def get_junction(session: Session, source_id: int, tag_id: int) -> SourceTag | N
 
 
 def add_tag_to_source(
-    session: Session, *, source_id: int, tag_id: int, commit: bool = True
+    session: Session, *, source_id: int, tag_id: int, origin: str = "user", commit: bool = True
 ) -> bool:
     if get_junction(session, source_id, tag_id):
         return False
-    session.add(SourceTag(source_id=source_id, tag_id=tag_id))
+    session.add(SourceTag(source_id=source_id, tag_id=tag_id, origin=origin))
     if commit:
         session.commit()
     else:
         session.flush()
     return True
+
+
+def clear_llm_tags_for_source(session: Session, source_id: int, *, commit: bool = True) -> int:
+    """Remove only the auto-extracted (origin="llm") tag links for a source.
+
+    Used before re-extracting so a recompute refreshes LLM tags without touching the
+    user's manual ("user") tags. Returns how many links were removed.
+    """
+    links = session.exec(
+        select(SourceTag).where(
+            SourceTag.source_id == source_id,
+            SourceTag.origin == "llm",
+        )
+    ).all()
+    for link in links:
+        session.delete(link)
+    if commit:
+        session.commit()
+    else:
+        session.flush()
+    return len(links)
 
 
 def remove_tag_from_source(session: Session, *, source_id: int, tag_id: int) -> bool:

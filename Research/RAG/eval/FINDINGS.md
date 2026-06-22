@@ -8,6 +8,35 @@ Read alongside `GUIDE.md` (why the harness is built this way) and `README.md` (h
 
 ---
 
+## 2026-06-22 — structured ingestion: optional tag scope added to retrieval
+
+**Change (no new metric run):** added an opt-in `tags` filter to the retrieval path as part of
+the structured-ingestion feature. `ranked_retrieve(..., tags=None)` resolves tag names → source
+ids via `tagRepository.get_sources_by_tags(match="any")` (SQLite, mirroring the existing temporal
+`source_id IN` filter) and appends a `MetadataFilter(key="source_id", IN)`. Threaded through
+`retrieve_nodes` / `query_sources` / the query routes + streaming. Unlike the lenient temporal
+window, a tag scope is **hard**: it disables the sparse-pool backfill and returns `[]` when no
+source carries the tag, so an explicit scope never widens to untagged notes.
+
+- **No-tag path unchanged by construction:** `tags` defaults to `None`; the new branch is only
+  entered when tags are supplied, so existing P@K/Recall@K/MRR for the eval (which passes no tags)
+  are unaffected. The eval injector `harness/run_experiment.build_retriever` gained a `tags=None`
+  param to match the new `retrieve_fn` contract (`query_sources` now always forwards `tags=`).
+- **Targeted verification (not a full dataset run):** against the live stack (Ollama up,
+  `gemma4:26b` + `nomic-embed-text`), ingested a fresh note, confirmed enrichment populated a
+  summary (+`derived_meta` provenance) and 4 `origin="llm"` tags. Retrieval checks:
+  scope=`["rock climbing"]` → only the tagged source; scope=`["nonexistent"]` → 0 nodes (strict, no
+  backfill); no scope → unchanged multi-source baseline. Edit feedback: removing the tag dropped
+  the source from the scope and re-adding it restored it, **with no re-indexing** (filter resolves
+  from SQLite at query time). Recompute (`/extract-tags`) refreshed `origin="llm"` tags while
+  preserving the manually added `origin="user"` tag.
+
+**Next:** if tag scoping is later exposed to the chat UI, add a `stateful` dataset arm that asserts
+a tag-scoped query excludes off-tag competing-state notes (the salience/recency traps), and record
+P@K/Recall@K under scope vs no-scope here.
+
+---
+
 ## 2026-06-11 — pipeline modularized; eval now injects instead of monkeypatching
 
 **Change (no new run):** split the production RAG monolith `Backend/app/services/rag.py` into
