@@ -1,4 +1,3 @@
-import time
 import subprocess
 import os
 import numpy as np
@@ -24,7 +23,6 @@ class TranscriptionManager:
         self.language = settings.LANGUAGE
         self.whisperx = self._load_whisperx()
 
-        logger.info(f"Loading WhisperX ({self.model_size}) on {self.device}...")
         self.asr_model = self.whisperx.load_model(
             self.model_size,
             device=self.device,
@@ -45,11 +43,9 @@ class TranscriptionManager:
         """
 
         audio = self._load_audio_ffmpeg(recording.path, sr=self.sample_rate)
-    
-        start_time = time.time()
+
         result = self.asr_model.transcribe(audio)
-        logger.info(f"Raw transcription done in {time.time() - start_time:.2f}s")
-    
+
         if result.get("language") and result["language"] != self.align_metadata.get("language"):
             self.alignment_model, self.align_metadata = self.whisperx.load_align_model(
                 language_code=result["language"],

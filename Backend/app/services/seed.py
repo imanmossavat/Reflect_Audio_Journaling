@@ -84,7 +84,6 @@ def seed_welcome_note_if_needed() -> int | None:
             )
             source_id = source.id
         _mark_seeded()
-        logger.info(f"Seeded welcome example note as source {source_id}")
         return source_id
     except Exception as exc:  # noqa: BLE001 - seeding is best-effort, never fatal
         logger.warning(f"Welcome-note seed skipped: {exc}")

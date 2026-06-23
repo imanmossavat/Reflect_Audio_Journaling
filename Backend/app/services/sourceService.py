@@ -205,7 +205,6 @@ def _process_source_sync(source_id: int) -> None:
         _enrich_source(source_id)
 
         _set_status(source_id, "processed")
-        logger.info(f"Background processing complete for source {source_id}")
 
     except Exception as exc:
         logger.exception(f"Background processing failed for source {source_id}: {exc}")

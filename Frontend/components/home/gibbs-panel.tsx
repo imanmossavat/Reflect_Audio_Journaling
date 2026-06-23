@@ -5,6 +5,7 @@ import {
   BookmarkPlus,
   Check,
   CheckCircle2,
+  FileText,
   Loader2,
   PanelRightClose,
   RotateCcw,
@@ -19,6 +20,13 @@ interface GibbsPanelProps {
   generating: boolean
   /** True once the final stage is finished — shows the wrap-up. */
   complete: boolean
+  /** True during the pre-reflection setup phase; the interactive setup (pick sources +
+   *  write a goal) lives in the center column, so this panel only shows status. */
+  setup: boolean
+  /** The user's goal/topic for this reflection, shown read-only during setup. */
+  goal: string
+  /** Number of sources currently included for this reflection. */
+  includedCount: number
   /** Whether the active chat is being promoted to a source. */
   isPromotingChat: boolean
   onAdvance: () => void
@@ -89,6 +97,9 @@ export function GibbsPanel({
   step,
   generating,
   complete,
+  setup,
+  goal,
+  includedCount,
   isPromotingChat,
   onAdvance,
   onClarify,
@@ -108,14 +119,15 @@ export function GibbsPanel({
       <div className="flex h-12 shrink-0 items-center justify-between border-b px-4">
         <div className="flex items-center gap-2">
           <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-muted-foreground">reflect</span>
-          {!complete && (
-            <span className="font-mono text-[11px] tracking-[0.16em] text-muted-foreground/70">
-              {pad(step)} / {pad(GIBBS_STEP_COUNT)}
-            </span>
-          )}
-          {complete && (
+          {setup ? (
+            <span className="font-mono text-[11px] tracking-[0.16em] text-emerald-600">setup</span>
+          ) : complete ? (
             <span className="font-mono text-[11px] tracking-[0.16em] text-emerald-600">
               {pad(GIBBS_STEP_COUNT)} / {pad(GIBBS_STEP_COUNT)} ✓
+            </span>
+          ) : (
+            <span className="font-mono text-[11px] tracking-[0.16em] text-muted-foreground/70">
+              {pad(step)} / {pad(GIBBS_STEP_COUNT)}
             </span>
           )}
         </div>
@@ -129,7 +141,9 @@ export function GibbsPanel({
         </button>
       </div>
 
-      {complete ? (
+      {setup ? (
+        <SetupView goal={goal} includedCount={includedCount} onEnd={onEnd} />
+      ) : complete ? (
         <CompletionView
           isPromotingChat={isPromotingChat}
           onSaveToSources={onSaveToSources}
@@ -237,6 +251,62 @@ export function GibbsPanel({
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+/** During setup the interactive form lives in the center column; this panel just shows
+ *  the cycle is being set up, mirroring the live source count and goal. */
+function SetupView({
+  goal,
+  includedCount,
+  onEnd,
+}: {
+  goal: string
+  includedCount: number
+  onEnd: () => void
+}) {
+  return (
+    <div className="flex flex-1 flex-col min-h-0">
+      <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar px-4 py-5">
+        <SegmentedRing step={1} complete={false} />
+
+        <div className="mt-5 text-center">
+          <div className="font-mono text-[11px] uppercase tracking-[0.24em] text-emerald-600">Setting up</div>
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+            Choose your sources and a goal in the center, then begin.
+          </p>
+        </div>
+
+        <div className="mt-6 flex flex-col gap-3">
+          <div className="rounded-xl border bg-background/60 p-3">
+            <div className="flex items-center gap-2">
+              <FileText className="h-4 w-4 shrink-0 text-emerald-600" />
+              <span className="text-sm text-foreground">
+                {includedCount === 0
+                  ? "No sources included yet"
+                  : `${includedCount} source${includedCount === 1 ? "" : "s"} included`}
+              </span>
+            </div>
+          </div>
+          <div className="rounded-xl border bg-background/60 p-3">
+            <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Goal</div>
+            <p className="mt-1.5 text-sm leading-snug text-foreground">
+              {goal.trim() ? goal : <span className="text-muted-foreground/60">Not set yet</span>}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="shrink-0 border-t p-4">
+        <button
+          onClick={onEnd}
+          className="flex w-full items-center justify-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <X className="h-3.5 w-3.5" />
+          End reflection
+        </button>
+      </div>
     </div>
   )
 }

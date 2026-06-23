@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState } from "react"
-import { api, type ChatSummary, type ChatMessageRecord, type SafetyKind, PROCESSING_STATUSES } from "@/lib/api"
+import { api, type ChatSummary, type ChatMessageRecord, type GuardUnavailableInfo, type SafetyKind, type TopicGroup, PROCESSING_STATUSES } from "@/lib/api"
 import type { RawSource } from "@/components/home/types"
 import { mapBackendSource } from "@/hooks/useSourceManagement"
 import { useGeneration } from "@/context/generation-provider"
@@ -61,6 +61,16 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
   const [gibbsActive, setGibbsActive] = useState(false)
   const [gibbsStep, setGibbsStep] = useState(1)
   const [gibbsGenerating, setGibbsGenerating] = useState(false)
+  // The setup phase: after starting a reflection the user picks sources and writes a
+  // goal before any questions are asked. While true, the right panel shows the setup
+  // screen and no facilitator call has been made yet.
+  const [gibbsSetup, setGibbsSetup] = useState(false)
+  // The user's stated focus/topic for this reflection. Persisted on the Chat (so it
+  // survives reload/resume) and sent to the facilitator on every step.
+  const [gibbsGoal, setGibbsGoal] = useState("")
+  // Supporting excerpts for the chosen topic (when grouping was used). Keep the
+  // facilitator scoped and are persisted alongside the goal as the reflection scope.
+  const [gibbsScopeItems, setGibbsScopeItems] = useState<string[]>([])
   // Once the final stage is finished the cycle enters a "complete" wrap-up phase
   // (still active, so the right panel shows the summary instead of step controls).
   const [gibbsComplete, setGibbsComplete] = useState(false)
@@ -72,6 +82,10 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
   // as a dismissible support card; cleared whenever the active chat changes.
   const [supportCard, setSupportCard] = useState<{ kind: SafetyKind } | null>(null)
   const dismissSupportCard = () => setSupportCard(null)
+  // The mandatory guard model isn't installed, so the chat couldn't answer. Shown as a
+  // dismissible in-thread setup card (like the support card); cleared on chat change.
+  const [guardNotice, setGuardNotice] = useState<GuardUnavailableInfo | null>(null)
+  const dismissGuardNotice = () => setGuardNotice(null)
   // Don't persist activeChatId until we've restored it from storage on mount,
   // otherwise the initial null would wipe the stored value before we read it.
   const hasRestoredActiveChat = useRef(false)
@@ -110,6 +124,7 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
 
   useEffect(() => {
     setSupportCard(null) // ephemeral: a support card belongs to the chat that triggered it
+    setGuardNotice(null) // ditto for the guard-setup card
     if (activeChatId === null) { setActiveChatMessages([]); return }
     const loadChat = async () => {
       setIsLoadingActiveChat(true)
@@ -126,6 +141,11 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
         if (steps.length > 0) {
           setGibbsActive(true)
           setGibbsComplete(false)
+          // Resuming an in-progress reflection goes straight to the active phase —
+          // setup only happens once, when the cycle is first started.
+          setGibbsSetup(false)
+          setGibbsGoal(detail.reflection_goal ?? detail.reflection_scope?.topic ?? "")
+          setGibbsScopeItems(detail.reflection_scope?.items ?? [])
           setGibbsStep(Math.min(Math.max(...steps), GIBBS_STEP_COUNT))
           setChatMode("reflect")
         }
@@ -224,6 +244,10 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
         // The guard intercepted the question or blocked the answer — show support, no message.
         if (info && "kind" in info && activeChatIdRef.current === chatId) setSupportCard({ kind: info.kind })
         generation.clearGeneration(chatId)
+      } else if (outcome === "guard_unavailable") {
+        // The mandatory guard model isn't installed — show the setup card, no message.
+        if (info && "command" in info && activeChatIdRef.current === chatId) setGuardNotice(info)
+        generation.clearGeneration(chatId)
       } else if (outcome === "done" && info && "message_id" in info && activeChatIdRef.current === chatId) {
         const messageId = info.message_id
         void (async () => {
@@ -292,7 +316,14 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
     setStreamingAssistant({ stages: [], thinking: "", answer: "", progressChars: 0 })
     await new Promise<void>((resolve) => {
       api.streamGeneratedQuestion(
-        { mode, step, journal_text: journalText || undefined, history },
+        {
+          mode,
+          step,
+          journal_text: journalText || undefined,
+          history,
+          goal: gibbsGoal.trim() || undefined,
+          scope_items: gibbsScopeItems.length ? gibbsScopeItems : undefined,
+        },
         {
           onProgress: (chars) => {
             setStreamingAssistant((prev) => (prev ? { ...prev, progressChars: chars } : prev))
@@ -339,12 +370,72 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
     await streamFacilitator(chatId, mode, targetStep, buildGibbsHistory())
   }
 
+  // Starting a reflection no longer fires a question. It opens the setup phase, where
+  // the user picks sources and writes a goal. Sources start deselected so the user
+  // deliberately opts each one in. The first question is generated by beginReflection().
   const startReflection = async () => {
     if (gibbsGenerating) return
+    try {
+      await ensureActiveChat()
+    } catch (error) {
+      toast.error(`Could not start reflection: ${error instanceof Error ? error.message : "Unknown error"}`)
+      return
+    }
+    setRawSources((prev) => prev.map((s) => (s.included ? { ...s, included: false } : s)))
     setGibbsActive(true)
     setGibbsComplete(false)
+    setGibbsSetup(true)
     setGibbsStep(1)
+    setGibbsGoal("")
+    setGibbsScopeItems([])
     setChatMode("reflect")
+  }
+
+  // Group the included sources into topics so the user can pick a theme without naming
+  // it themselves. Returns [] (and toasts) on failure so the UI can fall back to free text.
+  const groupReflectionTopics = async (): Promise<TopicGroup[]> => {
+    const journalText = rawSources
+      .filter((s) => s.included)
+      .map((s) => s.content)
+      .filter(Boolean)
+      .join("\n")
+      .slice(0, 6000)
+    if (!journalText.trim()) return []
+    try {
+      const { topics } = await api.groupTopics(journalText)
+      return topics
+    } catch (error) {
+      toast.error(`Could not group topics: ${error instanceof Error ? error.message.replace(/^API\s+\d+:\s*/, "") : "Unknown error"}`)
+      return []
+    }
+  }
+
+  // Leave the setup phase and ask the first question, persisting the goal/scope on the
+  // chat so they survive reload/resume. By the time the user reaches the Ready stage,
+  // the goal/scope state has settled, so we read it directly.
+  const beginReflection = async () => {
+    if (gibbsGenerating) return
+    const goal = gibbsGoal.trim()
+    if (activeChatId !== null) {
+      const chatId = activeChatId
+      const sourceIds = rawSources.filter((s) => s.included).map((s) => Number(s.id)).filter(Number.isFinite)
+      // Persist the scope when a topic with excerpts was chosen; otherwise just the goal.
+      const save = gibbsScopeItems.length
+        ? api.setReflectionScope(chatId, { topic: goal, items: gibbsScopeItems, source_ids: sourceIds })
+        : goal
+          ? api.setReflectionGoal(chatId, goal)
+          : null
+      if (save) {
+        void save
+          .then((updated) =>
+            setChats((prev) => prev.map((c) => (c.id === chatId ? { ...c, reflection_goal: updated.reflection_goal, reflection_scope: updated.reflection_scope } : c)))
+          )
+          .catch((error) =>
+            toast.error(`Could not save reflection setup: ${error instanceof Error ? error.message : "Unknown error"}`)
+          )
+      }
+    }
+    setGibbsSetup(false)
     await generateGibbsQuestion(1, "deep_dive")
   }
 
@@ -381,6 +472,9 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
   const exitReflection = () => {
     setGibbsActive(false)
     setGibbsComplete(false)
+    setGibbsSetup(false)
+    setGibbsGoal("")
+    setGibbsScopeItems([])
     setChatMode("ask")
   }
 
@@ -389,6 +483,9 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
     setInputValue("")
     setGibbsActive(false)
     setGibbsComplete(false)
+    setGibbsSetup(false)
+    setGibbsGoal("")
+    setGibbsScopeItems([])
   }
 
   const handleStartRenameChat = (chat: ChatSummary, event: React.MouseEvent) => {
@@ -461,6 +558,9 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
     setInputValue("")
     setGibbsActive(false)
     setGibbsComplete(false)
+    setGibbsSetup(false)
+    setGibbsGoal("")
+    setGibbsScopeItems([])
   }
 
   return {
@@ -474,8 +574,10 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
     handlePromoteChat, handleSubmitText,
     resetChatState,
     supportCard, dismissSupportCard,
-    gibbsActive, gibbsStep, gibbsGenerating, gibbsComplete,
-    startReflection, advanceGibbsStep, askClarifying, exitReflection, handleSelectGibbsStep, beginNewCycle,
+    guardNotice, dismissGuardNotice,
+    gibbsActive, gibbsStep, gibbsGenerating, gibbsComplete, gibbsSetup, gibbsGoal, setGibbsGoal,
+    gibbsScopeItems, setGibbsScopeItems, groupReflectionTopics,
+    startReflection, beginReflection, advanceGibbsStep, askClarifying, exitReflection, handleSelectGibbsStep, beginNewCycle,
     chatMode, setChatMode,
   }
 }

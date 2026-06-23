@@ -65,25 +65,58 @@ def _action_instruction(action: str, stage: dict[str, str]) -> str:
     raise ValueError(f"Unknown action: {action}")
 
 
+_ACTION_STAGE_NOTE = (
+    "\n\nNote for this stage: do not pressure the user to invent a concrete action. "
+    "Ground anything you raise in their own earlier words, and prefer asking what they "
+    "would like to keep noticing over what they should do. Make clear it is optional."
+)
+
+
+def _scope_block(goal: str | None, scope_items: list[str] | None) -> str:
+    """The validated scoping technique: name the focus and list the supporting excerpts
+    so the facilitator stays on topic instead of drifting across the whole journal."""
+    topic = (goal or "").strip()
+    items = [s.strip() for s in (scope_items or []) if s and s.strip()]
+    if items:
+        bulleted = "\n".join(f"- {item}" for item in items)
+        label = f'related to "{topic}"' if topic else "in this theme"
+        return (
+            f"\n\nScope: focus only on statements {label}, such as:\n{bulleted}\n"
+            f"Stay within this scope; if the user drifts, gently bring them back to it."
+        )
+    if topic:
+        return (
+            f'\n\nThe user has set this focus for the whole reflection — keep your '
+            f'questions oriented to it: "{topic}".'
+        )
+    return ""
+
+
 def build_messages(
     journal_text: str,
     action: str,
     step: int | None = None,
     history: list[dict] | None = None,
+    goal: str | None = None,
+    scope_items: list[str] | None = None,
 ) -> list[dict]:
     stage = STAGES.get(step or 1, STAGES[1])
+
+    scope_line = _scope_block(goal, scope_items)
+    # The Action Orientation stage (6) is the hardest for users to answer — soften it.
+    action_note = _ACTION_STAGE_NOTE if (step or 1) == 6 else ""
 
     system_content = f"""You are a reflective facilitator using the Gibbs reflective cycle internally to help the user reflect. Treat the journal below as a stream-of-thought journal.
 
 The Gibbs stages, in order:
 {_STAGE_OVERVIEW}
 
-You are currently on stage {step or 1}: {stage['name']}.
+You are currently on stage {step or 1}: {stage['name']}.{scope_line}
 
 {GUIDELINES}
 
 Right now:
-{_action_instruction(action, stage)}"""
+{_action_instruction(action, stage)}{action_note}"""
 
     messages = [{"role": "system", "content": system_content}]
 

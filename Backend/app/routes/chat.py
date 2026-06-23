@@ -14,8 +14,11 @@ class CreateChatRequest(BaseModel):
     title: Optional[str] = None
 
 
-class RenameChatRequest(BaseModel):
-    title: str
+class UpdateChatRequest(BaseModel):
+    # Partial update: any field that is None is left unchanged.
+    title: Optional[str] = None
+    reflection_goal: Optional[str] = None
+    reflection_scope: Optional[dict] = None
 
 
 class AppendMessageRequest(BaseModel):
@@ -48,12 +51,23 @@ async def get_chat(chat_id: int, session: Session = Depends(get_session)):
 
 
 @router.patch("/chats/{chat_id}", tags=["Chat"])
-async def rename_chat(
+async def update_chat(
     chat_id: int,
-    payload: RenameChatRequest,
+    payload: UpdateChatRequest,
     session: Session = Depends(get_session),
 ):
-    return chatService.rename_chat(session, chat_id, payload.title)
+    # Partial update: rename and/or set the reflection goal/scope. Whichever field is
+    # present wins; the last applied update is returned.
+    chat = None
+    if payload.reflection_goal is not None:
+        chat = chatService.update_reflection_goal(session, chat_id, payload.reflection_goal)
+    if payload.reflection_scope is not None:
+        chat = chatService.update_reflection_scope(session, chat_id, payload.reflection_scope)
+    if payload.title is not None:
+        chat = chatService.rename_chat(session, chat_id, payload.title)
+    if chat is None:
+        chat = chatService.get_chat_with_messages(session, chat_id)
+    return chat
 
 
 @router.delete("/chats/{chat_id}", tags=["Chat"])

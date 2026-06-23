@@ -161,6 +161,12 @@ export type ChatStreamStageName = "checking" | "queued" | "searching" | "retriev
 /** Care pathway a guard hit maps to — drives which support card the UI shows. */
 export type SafetyKind = "self_harm" | "support"
 
+/** The mandatory guard model isn't installed — drives the in-chat "set up the guard" card. */
+export interface GuardUnavailableInfo {
+  model: string
+  command: string
+}
+
 export interface SafetyVerdict {
   flagged: boolean
   kind: SafetyKind | null
@@ -176,6 +182,9 @@ export interface ChatStreamHandlers {
   onDone: (info: { model: string | null; message_id: number }) => void
   /** Guard tripped (input intercept or blocked output): show a support card, no answer. */
   onFallback: (kind: SafetyKind) => void
+  /** Guard model isn't installed: the guard is mandatory, so we can't answer. Show a setup
+   *  card (in-thread, like a support card) with the install command — not a hard error. */
+  onGuardUnavailable?: (info: GuardUnavailableInfo) => void
   onError: (error: Error) => void
   // Emitted by a resume stream when no generation is active for the chat, so the
   // caller can fall back to a normal chat load instead of waiting on tokens.
@@ -187,10 +196,26 @@ export interface ActiveGeneration {
   status: string
 }
 
+/** A topic group proposed from the selected sources during reflection setup. */
+export interface TopicGroup {
+  name: string
+  summary: string
+  items: string[]
+}
+
+/** The chosen scope persisted on a reflection chat. */
+export interface ReflectionScope {
+  topic: string
+  items: string[]
+  source_ids?: number[]
+}
+
 export interface ChatSummary {
   id: number
   title: string
   source_id: number | null
+  reflection_goal: string | null
+  reflection_scope: ReflectionScope | null
   message_count: number
   edited_at: string
   created_at: string
@@ -200,6 +225,8 @@ export interface ChatDetail {
   id: number
   title: string
   source_id: number | null
+  reflection_goal: string | null
+  reflection_scope: ReflectionScope | null
   created_at: string
   edited_at: string
   messages: ChatMessageRecord[]
@@ -225,6 +252,8 @@ export interface GenerateQuestionRequest {
   focus_tag_summary?: string
   history?: Array<Record<string, unknown>>
   journal_text?: string
+  goal?: string
+  scope_items?: string[]
 }
 
 export type AppDevice = "cpu" | "cuda" | "mps" | "rocm"
@@ -340,6 +369,12 @@ async function consumeChatStream(response: Response, handlers: ChatStreamHandler
         break
       case "fallback":
         handlers.onFallback((parsed.kind as SafetyKind) || "support")
+        break
+      case "guard_unavailable":
+        handlers.onGuardUnavailable?.({
+          model: (parsed.model as string) || "",
+          command: (parsed.command as string) || "",
+        })
         break
       case "error":
         handlers.onError(new Error((parsed.detail as string) || "Stream error"))
@@ -575,6 +610,27 @@ export const api = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ title }),
     })
+  },
+  setReflectionGoal(chatId: number, goal: string) {
+    return request<ChatSummary>(`/chats/${chatId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reflection_goal: goal }),
+    })
+  },
+  setReflectionScope(chatId: number, scope: ReflectionScope) {
+    return request<ChatSummary>(`/chats/${chatId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reflection_scope: scope }),
+    })
+  },
+  groupTopics(journalText: string) {
+    return request<{ topics: TopicGroup[] }>("/reflection/topics", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ journal_text: journalText }),
+    }, 300000)
   },
   deleteChat(chatId: number) {
     return request<{ ok: boolean }>(`/chats/${chatId}`, { method: "DELETE" })

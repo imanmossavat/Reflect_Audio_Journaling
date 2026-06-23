@@ -34,6 +34,10 @@ class GenerateRequest(BaseModel):
     focus_tag_summary: str | None = None
     history: list[dict] | None = None
     journal_text: str | None = None
+    # The user's stated focus/topic for the whole reflection, set on the setup screen.
+    goal: str | None = None
+    # Supporting excerpts that define the chosen topic, so the facilitator stays scoped.
+    scope_items: list[str] | None = None
 
 
 class ExtractedTagsResponse(BaseModel):

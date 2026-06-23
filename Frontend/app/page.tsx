@@ -24,6 +24,7 @@ import { ChatTopBar } from "@/components/home/chat-top-bar"
 import { ChatMessages } from "@/components/home/chat-messages"
 import { ChatInput } from "@/components/home/chat-input"
 import { ReflectionBanner } from "@/components/home/reflection-banner"
+import { ReflectionSetup } from "@/components/home/reflection-setup"
 import { RightSidebar } from "@/components/home/right-sidebar"
 import { GibbsPanel } from "@/components/home/gibbs-panel"
 import { NewSourceMenu } from "@/components/home/new-source-menu"
@@ -391,41 +392,63 @@ export default function HomePage() {
           <ReflectionBanner
             active={chats.gibbsActive}
             onStart={() => {
+              setLeftTab("sources")
               sidebar.openRight()
               void chats.startReflection()
             }}
           />
-          <ChatMessages
-            activeChatMessages={chats.activeChatMessages}
-            isLoadingActiveChat={chats.isLoadingActiveChat}
-            streamingAssistant={chats.streamingAssistant}
-            sourceNameById={sourceNameById}
-            supportCard={chats.supportCard}
-            onDismissSupportCard={chats.dismissSupportCard}
-            language={appSettings?.language}
-          />
-          <ChatInput
-            inputValue={chats.inputValue}
-            setInputValue={chats.setInputValue}
-            onSubmitText={chats.handleSubmitText}
-            isAssistantThinking={chats.isAssistantThinking}
-            gibbsActive={chats.gibbsActive}
-            chatMode={chats.chatMode}
-            onChangeChatMode={chats.setChatMode}
-            activeChatId={chats.activeChatId}
-            activeChatSourceId={chats.activeChatSourceId}
-            activeChatLinkedSourceStatus={chats.activeChatLinkedSourceStatus}
-            isLinkedSourceProcessing={chats.isLinkedSourceProcessing}
-            isPromotingChat={chats.isPromotingChat}
-            activeChatMessages={chats.activeChatMessages}
-            onPromoteChat={chats.handlePromoteChat}
-            includedSourcesCount={sources.includedSources.length}
-            chatModel={appSettings?.chat_model ?? null}
-            installedModels={installedModels}
-            isOllamaReachable={isOllamaReachable}
-            isSavingChatModel={isSavingChatModel}
-            onChangeChatModel={handleChangeChatModel}
-          />
+          {chats.gibbsSetup ? (
+            <ReflectionSetup
+              includedSourceNames={sources.includedSources.map((s) => s.name)}
+              goal={chats.gibbsGoal}
+              scopeItemCount={chats.gibbsScopeItems.length}
+              onChangeGoal={chats.setGibbsGoal}
+              onGroupTopics={chats.groupReflectionTopics}
+              onSelectTopic={(t) => {
+                chats.setGibbsGoal(t.name)
+                chats.setGibbsScopeItems(t.items)
+              }}
+              onClearScope={() => chats.setGibbsScopeItems([])}
+              onBegin={() => void chats.beginReflection()}
+              onCancel={chats.exitReflection}
+            />
+          ) : (
+            <>
+              <ChatMessages
+                activeChatMessages={chats.activeChatMessages}
+                isLoadingActiveChat={chats.isLoadingActiveChat}
+                streamingAssistant={chats.streamingAssistant}
+                sourceNameById={sourceNameById}
+                supportCard={chats.supportCard}
+                onDismissSupportCard={chats.dismissSupportCard}
+                guardNotice={chats.guardNotice}
+                onDismissGuardNotice={chats.dismissGuardNotice}
+                language={appSettings?.language}
+              />
+              <ChatInput
+                inputValue={chats.inputValue}
+                setInputValue={chats.setInputValue}
+                onSubmitText={chats.handleSubmitText}
+                isAssistantThinking={chats.isAssistantThinking}
+                gibbsActive={chats.gibbsActive}
+                chatMode={chats.chatMode}
+                onChangeChatMode={chats.setChatMode}
+                activeChatId={chats.activeChatId}
+                activeChatSourceId={chats.activeChatSourceId}
+                activeChatLinkedSourceStatus={chats.activeChatLinkedSourceStatus}
+                isLinkedSourceProcessing={chats.isLinkedSourceProcessing}
+                isPromotingChat={chats.isPromotingChat}
+                activeChatMessages={chats.activeChatMessages}
+                onPromoteChat={chats.handlePromoteChat}
+                includedSourcesCount={sources.includedSources.length}
+                chatModel={appSettings?.chat_model ?? null}
+                installedModels={installedModels}
+                isOllamaReachable={isOllamaReachable}
+                isSavingChatModel={isSavingChatModel}
+                onChangeChatModel={handleChangeChatModel}
+              />
+            </>
+          )}
 
           {stage !== "chat" && (
             <div className="absolute inset-0 z-10 bg-background flex flex-col">
@@ -463,10 +486,10 @@ export default function HomePage() {
               <button
                 onClick={sidebar.openRight}
                 aria-label="Open guided reflection"
-                title={`Guided reflection · step ${chats.gibbsStep} of ${GIBBS_STEP_COUNT}`}
+                title={chats.gibbsSetup ? "Guided reflection · setup" : `Guided reflection · step ${chats.gibbsStep} of ${GIBBS_STEP_COUNT}`}
                 className="flex h-8 w-8 items-center justify-center rounded-md bg-emerald-600/10 font-mono text-[10px] font-medium tabular-nums text-emerald-600 hover:bg-emerald-600/20 transition-colors"
               >
-                {chats.gibbsComplete ? "✓" : `${chats.gibbsStep}/${GIBBS_STEP_COUNT}`}
+                {chats.gibbsSetup ? "·" : chats.gibbsComplete ? "✓" : `${chats.gibbsStep}/${GIBBS_STEP_COUNT}`}
               </button>
             )}
             <div className="my-1 h-px w-6 bg-border" />
@@ -515,6 +538,9 @@ export default function HomePage() {
               step={chats.gibbsStep}
               generating={chats.gibbsGenerating}
               complete={chats.gibbsComplete}
+              setup={chats.gibbsSetup}
+              goal={chats.gibbsGoal}
+              includedCount={sources.includedSources.length}
               isPromotingChat={chats.isPromotingChat}
               onAdvance={() => void chats.advanceGibbsStep()}
               onClarify={() => void chats.askClarifying()}

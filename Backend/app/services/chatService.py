@@ -29,6 +29,8 @@ def get_chat_with_messages(session: Session, chat_id: int) -> dict:
         "id": chat.id,
         "title": chat.title,
         "source_id": chat.source_id,
+        "reflection_goal": chat.reflection_goal,
+        "reflection_scope": chat.reflection_scope,
         "created_at": chat.created_at,
         "edited_at": chat.edited_at,
         "messages": messages,
@@ -47,6 +49,24 @@ def rename_chat(session: Session, chat_id: int, title: str) -> Chat:
     if not clean:
         raise HTTPException(status_code=400, detail="Title cannot be empty.")
     return chatRepository.update_chat_title(session, chat, clean[:255])
+
+
+def update_reflection_goal(session: Session, chat_id: int, goal: Optional[str]) -> Chat:
+    chat = chatRepository.get_chat_by_id(session, chat_id)
+    if not chat:
+        raise HTTPException(status_code=404, detail="Chat not found.")
+    clean = (goal or "").strip()
+    return chatRepository.set_reflection_goal(session, chat, clean or None)
+
+
+def update_reflection_scope(session: Session, chat_id: int, scope: Optional[dict]) -> Chat:
+    chat = chatRepository.get_chat_by_id(session, chat_id)
+    if not chat:
+        raise HTTPException(status_code=404, detail="Chat not found.")
+    # An empty scope (no items and no topic) is stored as None.
+    if scope and (scope.get("items") or scope.get("topic")):
+        return chatRepository.set_reflection_scope(session, chat, scope)
+    return chatRepository.set_reflection_scope(session, chat, None)
 
 
 def delete_chat(session: Session, chat_id: int) -> None:

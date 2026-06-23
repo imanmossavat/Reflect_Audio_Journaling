@@ -36,7 +36,7 @@ logger = logging_config.logger
 # seamless live-resume.
 _RETENTION_SECONDS = 30
 
-_TERMINAL_TYPES = {"done", "error", "idle", "fallback"}
+_TERMINAL_TYPES = {"done", "error", "idle", "fallback", "guard_unavailable"}
 
 # Emit a skeleton-growth tick roughly every this many answer characters. The frontend
 # renders a pulsing skeleton sized to this count and never sees the real text until the
@@ -54,6 +54,10 @@ def _chat_model() -> str:
 
 def _embed_model() -> str:
     return get_setting("embed_model")
+
+
+def _safety_model() -> str:
+    return get_setting("safety_model")
 
 
 class GenerationJob:
@@ -174,6 +178,15 @@ async def _run(
             job.error_detail = f"The required {label} installed yet. Run `{commands}` in your terminal, then try again."
             job.status = "error"
             job.emit("error", detail=job.error_detail)
+            return
+
+        # The Llama Guard model is mandatory: without the guardrail we can't ensure a safe
+        # environment, so we don't generate. Surface it as a gentle in-chat card (not a hard
+        # error) telling the user how to install it — same in-thread treatment as a support card.
+        safety_model = _safety_model()
+        if not check_model_installed(safety_model):
+            job.status = "done"
+            job.emit("guard_unavailable", model=safety_model, command=f"ollama pull {safety_model}")
             return
 
         # Input guardrail: screen the user's question before any retrieval or generation.

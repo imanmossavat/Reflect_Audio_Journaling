@@ -40,13 +40,11 @@ def _process_file(path: Path):
     key = str(path.resolve())
     with _inflight_lock:
         if key in _inflight:
-            logger.debug(f"[inbox] already processing {path.name}, skipping")
             return
         _inflight.add(key)
     try:
         if path.suffix.lower() not in SUPPORTED_EXT:
             return
-        logger.info(f"[inbox] detected {path.name}, waiting for write to settle")
         _wait_stable(path)
         if not path.exists():
             logger.warning(f"[inbox] {path.name} disappeared before processing")
@@ -62,7 +60,6 @@ def _process_file(path: Path):
             resp.raise_for_status()
             DONE.mkdir(parents=True, exist_ok=True)
             shutil.move(str(path), DONE / path.name)
-            logger.info(f"[inbox] processed and moved: {path.name}")
         except Exception as e:
             logger.exception(f"[inbox] failed to process {path.name}: {e}")
     finally:
@@ -80,7 +77,6 @@ class InboxHandler(FileSystemEventHandler):
         # itself fires an on_moved event whose dest_path points into done/.
         if path.parent.resolve() != INBOX.resolve():
             return
-        logger.info(f"[inbox] event={event_label} path={path.name}")
         threading.Thread(target=_process_file, args=(path,), daemon=True).start()
 
     def on_created(self, event):
@@ -108,7 +104,6 @@ def _sweep_existing():
             continue
         if path.suffix.lower() not in SUPPORTED_EXT:
             continue
-        logger.info(f"[inbox] sweep picked up {path.name}")
         threading.Thread(target=_process_file, args=(path,), daemon=True).start()
 
 
@@ -118,7 +113,6 @@ def start_watcher():
         observer = Observer()
         observer.schedule(InboxHandler(), str(INBOX), recursive=False)
         observer.start()
-        logger.info(f"[inbox] watcher started on {INBOX}")
         _sweep_existing()
         return observer
     except Exception:

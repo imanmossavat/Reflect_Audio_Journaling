@@ -21,9 +21,12 @@ DEFAULTS: dict[str, Any] = {
     "theme": "system",
     "date_format": "dmy",
     "thinking_enabled": True,
-    "safety_enabled": True,
     "safety_model": "llama-guard3:1b",
 }
+
+# The safety guard is mandatory and can only be a Llama Guard model (any tag, e.g.
+# llama-guard3:1b or llama-guard3:8b). Without one installed, sending messages is blocked.
+SAFETY_MODEL_BASE = "llama-guard3"
 
 ALLOWED_DEVICES = {"cpu", "cuda", "mps", "rocm"}
 ALLOWED_WHISPER_MODELS = {"tiny", "base", "small", "medium", "large-v3"}
@@ -87,10 +90,19 @@ def _validate(patch: dict[str, Any]) -> dict[str, Any]:
         elif key == "date_format":
             if value not in ALLOWED_DATE_FORMATS:
                 raise ValueError(f"date_format must be one of {sorted(ALLOWED_DATE_FORMATS)}")
-        elif key in ("thinking_enabled", "safety_enabled"):
+        elif key == "thinking_enabled":
             if not isinstance(value, bool):
                 raise ValueError(f"{key} must be a boolean")
-        elif key in ("chat_model", "embed_model", "ollama_host", "db_path", "safety_model"):
+        elif key == "safety_model":
+            if not isinstance(value, str) or not value.strip():
+                raise ValueError("safety_model must be a non-empty string")
+            value = value.strip()
+            if value != SAFETY_MODEL_BASE and not value.startswith(f"{SAFETY_MODEL_BASE}:"):
+                raise ValueError(
+                    f"safety_model must be a Llama Guard model "
+                    f"({SAFETY_MODEL_BASE} or {SAFETY_MODEL_BASE}:<tag>)"
+                )
+        elif key in ("chat_model", "embed_model", "ollama_host", "db_path"):
             if not isinstance(value, str) or not value.strip():
                 raise ValueError(f"{key} must be a non-empty string")
             value = value.strip()

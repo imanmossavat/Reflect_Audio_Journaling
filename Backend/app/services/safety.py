@@ -6,8 +6,12 @@ itself. We repurpose Llama Guard's MLCommons hazard taxonomy as a *wellbeing* si
 handful of categories map to a care `kind`, everything else is ignored. Acting on a kind
 never blocks journaling — it surfaces an empathetic support card (see the frontend).
 
-Design rules: only map the few relevant categories, **fail open** on any error (a guard
-hiccup must never break the app), and stay disable-able via settings.
+The guard is mandatory: a Llama Guard model must be installed or sending messages is
+blocked upstream (see the preflight checks in `query` / `generation_registry`). There is
+no disable switch — without the guard we can't ensure a safe environment.
+
+Design rules: only map the few relevant categories and **fail open** on any runtime error
+(a guard hiccup must never break the app).
 """
 import asyncio
 from dataclasses import dataclass, field
@@ -41,10 +45,6 @@ class SafetyVerdict:
 
 
 _SAFE = SafetyVerdict(flagged=False, kind=None)
-
-
-def _safety_enabled() -> bool:
-    return bool(get_setting("safety_enabled"))
 
 
 def _safety_model() -> str:
@@ -81,10 +81,10 @@ def _kind_for(categories: list[str]) -> str | None:
 
 
 async def _classify(messages: list[dict]) -> SafetyVerdict:
-    if not _safety_enabled():
-        return _SAFE
     model = _safety_model()
-    # Don't break chat if the guard model simply isn't pulled — degrade gracefully.
+    # Chat sends are blocked upstream when the guard model isn't installed (preflight). This
+    # branch is a backstop for the journaling-only flows (no preflight); there we degrade
+    # gracefully rather than break journaling.
     if not await asyncio.to_thread(check_model_installed, model):
         logger.warning("safety model %r not installed; skipping guardrail", model)
         return _SAFE

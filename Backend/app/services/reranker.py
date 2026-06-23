@@ -2,10 +2,6 @@
 from functools import lru_cache
 from typing import Any
 
-from app import logging_config
-
-logger = logging_config.logger
-
 MODEL_NAME = "BAAI/bge-reranker-v2-m3"
 
 
@@ -13,7 +9,6 @@ MODEL_NAME = "BAAI/bge-reranker-v2-m3"
 def _model():
     from sentence_transformers import CrossEncoder
 
-    logger.info("Loading reranker %s (first call downloads weights)", MODEL_NAME)
     return CrossEncoder(MODEL_NAME)
 
 

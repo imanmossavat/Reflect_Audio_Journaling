@@ -37,6 +37,8 @@ def list_chats(session: Session) -> list[dict]:
             "id": chat.id,
             "title": chat.title,
             "source_id": chat.source_id,
+            "reflection_goal": chat.reflection_goal,
+            "reflection_scope": chat.reflection_scope,
             "message_count": int(message_count or 0),
             "edited_at": chat.edited_at,
             "created_at": chat.created_at,
@@ -54,6 +56,24 @@ def get_messages(session: Session, chat_id: int) -> list[ChatMessage]:
 
 def update_chat_title(session: Session, chat: Chat, title: str) -> Chat:
     chat.title = title
+    chat.edited_at = datetime.now()
+    session.add(chat)
+    session.commit()
+    session.refresh(chat)
+    return chat
+
+
+def set_reflection_goal(session: Session, chat: Chat, goal: Optional[str]) -> Chat:
+    chat.reflection_goal = goal
+    chat.edited_at = datetime.now()
+    session.add(chat)
+    session.commit()
+    session.refresh(chat)
+    return chat
+
+
+def set_reflection_scope(session: Session, chat: Chat, scope: Optional[dict]) -> Chat:
+    chat.reflection_scope = scope
     chat.edited_at = datetime.now()
     session.add(chat)
     session.commit()

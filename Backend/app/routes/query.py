@@ -21,6 +21,7 @@ from app.services.rag import (
 from app.services.settings_service import get_setting
 from app.services import chatService
 from app.services import generation_registry
+from app.services import reflectionService
 from app.services import safety
 from app.services.ollama_gate import generation_lock, is_busy
 
@@ -61,6 +62,10 @@ def _embed_model() -> str:
     return get_setting("embed_model")
 
 
+def _safety_model() -> str:
+    return get_setting("safety_model")
+
+
 class QueryRequest(BaseModel):
     question: str
     top_k: int = 5
@@ -96,7 +101,10 @@ async def query(request: QueryRequest):
 
     embed_model = _embed_model()
     chat_model = _chat_model()
-    missing = [m for m in (embed_model, chat_model) if not check_model_installed(m)]
+    safety_model = _safety_model()
+    # The Llama Guard model is required too: without the guardrail we can't ensure a safe
+    # environment, so a missing guard model blocks sending just like chat/embed.
+    missing = [m for m in (embed_model, chat_model, safety_model) if not check_model_installed(m)]
     if missing:
         commands = " && ".join(f"ollama pull {m}" for m in missing)
         label = "model isn't" if len(missing) == 1 else "models aren't"
@@ -142,6 +150,25 @@ class SafetyCheckRequest(BaseModel):
     text: str
 
 
+class GroupTopicsRequest(BaseModel):
+    journal_text: str
+
+
+@router.post("/reflection/topics", tags=["Query"])
+async def group_topics(request: GroupTopicsRequest):
+    """Group the selected sources into 2-5 named topics (each with supporting excerpts)
+    so the user can pick a single theme to reflect on, instead of naming it themselves."""
+    try:
+        async with generation_lock:
+            topics = await asyncio.to_thread(reflectionService.group_topics, request.journal_text)
+        return {"topics": topics}
+    except (json.JSONDecodeError, ValueError, KeyError) as e:
+        raise HTTPException(status_code=502, detail=f"Could not group topics: {e}")
+    except Exception as e:
+        logger.exception(f"Topic grouping failed: {e}")
+        raise HTTPException(status_code=500, detail="Topic grouping failed.")
+
+
 @router.post("/safety/check", tags=["Safety"])
 async def safety_check(request: SafetyCheckRequest):
     """Screen a user-authored snippet (used by the no-AI reflection-writing flow).
@@ -183,6 +210,7 @@ async def query_stream(request: QueryStreamRequest):
       - sources  {sources: [...]}
       - done     {model: str, message_id: int}   # guard passed; client refetches & reveals
       - fallback {kind: "self_harm" | "support"}   # guard tripped; show a support card, no answer
+      - guard_unavailable {model: str, command: str}   # guard model not installed; show setup card
       - error    {detail: str}
     """
     if not request.question.strip():
@@ -273,6 +301,8 @@ async def generate_question(req: GenerateRequest):
             action=action,
             step=int(req.step) if req.step is not None else None,
             history=req.history,
+            goal=req.goal,
+            scope_items=req.scope_items,
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

@@ -2,12 +2,13 @@
 
 import { Fragment } from "react"
 import { ChevronRight, Loader2, Check, Search } from "lucide-react"
-import type { ChatMessageRecord, ChatStreamStageName, QuerySource, SafetyKind, AppLanguage } from "@/lib/api"
+import type { ChatMessageRecord, ChatStreamStageName, QuerySource, GuardUnavailableInfo, SafetyKind, AppLanguage } from "@/lib/api"
 import type { StreamingAssistant, StreamingStage } from "@/hooks/useChatManagement"
 import { formatListTimestamp } from "@/lib/utils"
 import { Markdown } from "@/components/markdown"
 import { getGibbsStep } from "@/lib/gibbs"
 import { CrisisSupportCard } from "@/components/home/crisis-support-card"
+import { GuardUnavailableCard } from "@/components/home/guard-unavailable-card"
 
 /** Divider marking where a thread section begins: a Gibbs stage, or a RAG "context" block. */
 function GroupHeader({ step }: { step: number | null }) {
@@ -66,6 +67,8 @@ interface ChatMessagesProps {
   sourceNameById: Record<string, string>
   supportCard: { kind: SafetyKind } | null
   onDismissSupportCard: () => void
+  guardNotice: GuardUnavailableInfo | null
+  onDismissGuardNotice: () => void
   language?: AppLanguage
 }
 
@@ -131,7 +134,7 @@ function StageRow({ stage, thinking }: { stage: StreamingStage; thinking?: strin
   )
 }
 
-export function ChatMessages({ activeChatMessages, isLoadingActiveChat, streamingAssistant, sourceNameById, supportCard, onDismissSupportCard, language }: ChatMessagesProps) {
+export function ChatMessages({ activeChatMessages, isLoadingActiveChat, streamingAssistant, sourceNameById, supportCard, onDismissSupportCard, guardNotice, onDismissGuardNotice, language }: ChatMessagesProps) {
   return (
     <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar p-6">
       <div className="max-w-2xl mx-auto space-y-4">
@@ -242,6 +245,10 @@ export function ChatMessages({ activeChatMessages, isLoadingActiveChat, streamin
 
         {supportCard && (
           <CrisisSupportCard kind={supportCard.kind} language={language} onDismiss={onDismissSupportCard} />
+        )}
+
+        {guardNotice && (
+          <GuardUnavailableCard command={guardNotice.command} language={language} onDismiss={onDismissGuardNotice} />
         )}
       </div>
     </div>

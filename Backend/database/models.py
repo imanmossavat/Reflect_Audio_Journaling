@@ -143,6 +143,14 @@ class Chat(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     title: str = Field(max_length=255, default="Untitled")
     source_id: Optional[int] = Field(default=None, foreign_key="source.id")
+    # The user's stated focus/topic for a guided reflection, set on the setup screen
+    # before any questions are asked; None for ordinary chats. Passed to the facilitator
+    # on every step so its questions stay oriented to this goal.
+    reflection_goal: Optional[str] = Field(default=None)
+    # The chosen topic's scope when grouping was used: {topic, items, source_ids}. The
+    # excerpts (items) keep the facilitator on-topic and survive reload; source_ids are
+    # the first concrete link between a reflection and its originating sources.
+    reflection_scope: Optional[dict] = Field(default=None, sa_column=Column(JSON))
     created_at: datetime = Field(default_factory=datetime.utcnow)
     edited_at: datetime = Field(default_factory=datetime.utcnow)
 
