@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { api, type SourceRecord, PROCESSING_STATUSES } from "@/lib/api"
 import { formatListTimestamp } from "@/lib/utils"
 import type { RawSource, AddSourceMode } from "@/components/home/types"
@@ -105,6 +105,23 @@ export function useSourceManagement() {
 
   useEffect(() => { rawSourcesRef.current = rawSources }, [rawSources])
 
+  // Refetch a source's tags from the backend and merge them into the list. Used
+  // when an entry finishes processing (the home list otherwise shows no tags
+  // until you open the detail page) and after the user confirms AI tags.
+  const hydrateTags = useCallback(async (sourceId: number) => {
+    if (!Number.isInteger(sourceId) || sourceId <= 0) return
+    try {
+      const loadedTags = await api.getSourceTags(sourceId)
+      setRawSources((prev) =>
+        prev.map((s) =>
+          s.id === String(sourceId)
+            ? { ...s, tags: loadedTags.map((tag) => ({ name: tag.name, color: getTagColor(tag.name) })) }
+            : s
+        )
+      )
+    } catch { /* ignore transient errors */ }
+  }, [])
+
   useEffect(() => {
     const interval = setInterval(async () => {
       try {
@@ -154,7 +171,13 @@ export function useSourceManagement() {
                   : s
               )
             )
-            if (!PROCESSING_STATUSES.has(updated.status)) done.push(sourceId)
+            if (!PROCESSING_STATUSES.has(updated.status)) {
+              done.push(sourceId)
+              // Tags are attached during processing-completion on the backend (or
+              // shortly after via the AI flow); refetch so the row isn't stuck
+              // showing "no tags".
+              void hydrateTags(sourceId)
+            }
           } catch { /* ignore transient errors */ }
         })
       )

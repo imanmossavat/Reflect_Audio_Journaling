@@ -209,7 +209,7 @@ def reindex_chat(session: Session, chat_id: int):
             collection = get_chroma_collection()
             collection.delete(where={"source_id": str(source.id)})
         except Exception as exc:
-            logger.warning(f"Chroma delete for source {source.id} failed: {exc}")
+            logger.error(f"Chroma delete for source {source.id} failed — vectors orphaned: {exc}")
 
     sourceRepository.update_source_text(session, source, markdown)
     updated_source = sourceRepository.update_source_status(session, source, "queued")

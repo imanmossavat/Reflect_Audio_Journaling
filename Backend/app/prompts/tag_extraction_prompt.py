@@ -6,7 +6,7 @@ A tag is a recurring theme, subject, or emotional thread and does NOT have to be
 The same tag may appear in multiple places throughout the text.
 
 For each tag return:
-- name: a short label (2-5 words, lowercase)
+- name: a short label (max 3 words, lowercase)
 - summary: one sentence describing what this tag captures
 - quotes: a list of 1-5 short, EXACT quotes from the journal text related to this tag. Each quote should be a phrase or sentence copied verbatim from the text (5-40 words). These quotes are used for highlighting, so they MUST appear exactly in the original text.
 

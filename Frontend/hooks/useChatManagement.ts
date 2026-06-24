@@ -28,6 +28,15 @@ function readStoredActiveChatId(): number | null {
   const parsed = Number(raw)
   return Number.isFinite(parsed) ? parsed : null
 }
+function mergeChatLists(prev: ChatSummary[], list: ChatSummary[]): ChatSummary[] {
+  if (prev.length === 0) return list
+  const prevById = new Map(prev.map((c) => [c.id, c]))
+  const serverIds = new Set(list.map((c) => c.id))
+  const merged = list.map((c) => ({ ...prevById.get(c.id), ...c }))
+  const localOnly = prev.filter((c) => !serverIds.has(c.id))
+  const next = [...localOnly, ...merged]
+  return JSON.stringify(next) === JSON.stringify(prev) ? prev : next
+}
 
 export function useChatManagement({ rawSources, setRawSources, setProcessingSources }: UseChatManagementOptions) {
   const [chats, setChats] = useState<ChatSummary[]>([])
@@ -91,25 +100,33 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
   const hasRestoredActiveChat = useRef(false)
 
   useEffect(() => {
-    const loadChats = async () => {
-      setIsLoadingChats(true)
+    let cancelled = false
+
+    // Fetch the chat list in interval when no response yet 
+    const syncChats = async (): Promise<boolean> => {
+      let list: ChatSummary[]
       try {
-        const list = await api.listChats()
-        setChats(list)
-        // Restore the last active chat after mount (not during render, to avoid an
-        // SSR/client hydration mismatch). Only restore it if it still exists.
+        list = await api.listChats()
+      } catch {
+        return false // backend not up yet / transient — the interval retries
+      }
+      if (cancelled) return true
+      setChats((prev) => mergeChatLists(prev, list))
+      if (!hasRestoredActiveChat.current) {
+        // Restore after mount (not during render, to avoid an SSR/client hydration
+        // mismatch). Only restore it if it still exists.
         setActiveChatId((prev) => {
           const candidate = prev ?? readStoredActiveChatId()
           return candidate !== null && list.some((c) => c.id === candidate) ? candidate : prev
         })
-      } catch (error) {
-        toast.error(`Could not load chats: ${error instanceof Error ? error.message : "Unknown error"}`)
-      } finally {
         hasRestoredActiveChat.current = true
-        setIsLoadingChats(false)
       }
+      return true
     }
-    void loadChats()
+
+    void syncChats().finally(() => { if (!cancelled) setIsLoadingChats(false) })
+    const interval = setInterval(() => { void syncChats() }, 5000)
+    return () => { cancelled = true; clearInterval(interval) }
   }, [])
 
   useEffect(() => {

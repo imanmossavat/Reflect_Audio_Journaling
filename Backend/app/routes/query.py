@@ -89,11 +89,13 @@ async def query(request: QueryRequest):
 
     ollama_state = check_ollama_state()
     if ollama_state == "not_installed":
+        logger.error("Query aborted: Ollama is not installed")
         raise HTTPException(
             status_code=503,
             detail="Ollama isn't installed on your machine. Install it from https://ollama.com, then try again.",
         )
     if ollama_state == "not_running":
+        logger.error("Query aborted: Ollama is not running")
         raise HTTPException(
             status_code=503,
             detail="Ollama isn't running on your machine. Start it and send the message again.",
@@ -106,6 +108,7 @@ async def query(request: QueryRequest):
     # environment, so a missing guard model blocks sending just like chat/embed.
     missing = [m for m in (embed_model, chat_model, safety_model) if not check_model_installed(m)]
     if missing:
+        logger.error("Query aborted: model(s) not installed: %s", ", ".join(missing))
         commands = " && ".join(f"ollama pull {m}" for m in missing)
         label = "model isn't" if len(missing) == 1 else "models aren't"
         raise HTTPException(
@@ -125,11 +128,13 @@ async def query(request: QueryRequest):
     except Exception as exc:
         kind = classify_ollama_error(exc)
         if kind == "not_running":
+            logger.error("Query failed: Ollama stopped mid-answer: %s", exc)
             raise HTTPException(
                 status_code=503,
                 detail="Ollama stopped while answering. Start it and send the message again.",
             ) from exc
         if kind == "model_missing":
+            logger.error("Query failed: required model went missing mid-answer: %s", exc)
             raise HTTPException(
                 status_code=503,
                 detail=f"A required Ollama model is missing. Run `ollama pull {_embed_model()}` and `ollama pull {_chat_model()}`, then try again.",
@@ -375,7 +380,7 @@ async def health():
                 media_type=r.headers.get("content-type", "text/plain"),
             )
     except Exception as e:
-        logger.warning(f"Ollama unreachable: {e}")
+        # Health probe; polled frequently and handled by the client. Not a logged failure.
         return JSONResponse(
             status_code=503,
             content={"status": "degraded", "ollama": "unreachable", "error": str(e)},

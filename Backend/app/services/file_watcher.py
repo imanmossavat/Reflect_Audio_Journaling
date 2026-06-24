@@ -7,6 +7,7 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
 from app.logging_config import logger
+from app.utils.unique_path import unique_path
 
 INBOX = Path(__file__).parent.parent.parent / "database" / "inbox"
 DONE = INBOX / "done"
@@ -47,7 +48,7 @@ def _process_file(path: Path):
             return
         _wait_stable(path)
         if not path.exists():
-            logger.warning(f"[inbox] {path.name} disappeared before processing")
+            # Recoverable: the capture was removed/moved before we got to it.
             return
         try:
             with path.open("rb") as f:
@@ -59,7 +60,9 @@ def _process_file(path: Path):
                 )
             resp.raise_for_status()
             DONE.mkdir(parents=True, exist_ok=True)
-            shutil.move(str(path), DONE / path.name)
+            # Inbox names are no longer globally unique (no timestamp prefix), so a
+            # same-named capture from an earlier session may already sit in done/.
+            shutil.move(str(path), str(unique_path(DONE, path.name)))
         except Exception as e:
             logger.exception(f"[inbox] failed to process {path.name}: {e}")
     finally:

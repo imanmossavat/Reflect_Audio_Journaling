@@ -5,14 +5,13 @@ export type SourceStatus =
   | "transcribing"
   | "chunking"
   | "indexing"
-  | "enriching"
   | "failed"
   | "failed_ollama_not_running"
   | "failed_ollama_not_installed"
   | "failed_ollama_model_missing"
   | string
 
-export const PROCESSING_STATUSES = new Set<SourceStatus>(["queued", "transcribing", "chunking", "indexing", "enriching"])
+export const PROCESSING_STATUSES = new Set<SourceStatus>(["queued", "transcribing", "chunking", "indexing"])
 
 export const OLLAMA_FAILURE_STATUSES = new Set<SourceStatus>([
   "failed_ollama_not_running",
@@ -25,7 +24,6 @@ export const PROCESSING_STATUS_LABELS: Record<string, string> = {
   transcribing: "Transcribing audio...",
   chunking: "Splitting into chunks...",
   indexing: "Building search index...",
-  enriching: "Summarizing & tagging...",
   failed: "Processing failed",
   failed_ollama_not_running: "Failed — Ollama is not running",
   failed_ollama_not_installed: "Failed — Ollama is not installed",
@@ -545,6 +543,9 @@ export const api = {
   regenerateSummary(sourceId: number) {
     return request<SourceRecord>(`/source/${sourceId}/summary/regenerate`, { method: "POST" }, 600000)
   },
+  previewSummary(sourceId: number) {
+    return request<{ summary: string }>(`/source/${sourceId}/summary/preview`, { method: "POST" }, 600000)
+  },
   query(question: string, top_k = 5) {
     return request<QueryResponse>("/query", {
       method: "POST",
@@ -579,6 +580,13 @@ export const api = {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name }),
+    })
+  },
+  confirmTags(sourceId: number, names: string[]) {
+    return request<SourceTag[]>(`/tags/${sourceId}/suggest/confirm`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ names }),
     })
   },
   removeTagFromSource(sourceId: number, tagId: number) {

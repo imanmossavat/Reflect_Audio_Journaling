@@ -51,45 +51,6 @@ def _set_status(source_id: int, status: str) -> None:
             sourceRepository.update_source_status(session, source, status)
 
 
-def _enrich_source(source_id: int) -> None:
-    """Structured-metadata enrichment: LLM summary + auto-extracted tags.
-
-    Runs after indexing so search is already functional. Best-effort and non-fatal: any
-    LLM hiccup is logged and swallowed so the source still reaches "processed". A null
-    summary / missing tags can be recomputed later from the source detail view.
-    """
-    from datetime import datetime
-    from app.services import summaryService, tagService
-    from app.prompts.summary_prompt import SUMMARY_PROMPT_VERSION
-    from app.services.settings_service import get_setting
-
-    with Session(engine) as session:
-        source = sourceRepository.get_source_by_id(session, source_id)
-        text = source.text if source else None
-    if not text or not text.strip():
-        return
-
-    try:
-        summary = summaryService.generate_summary(text)
-        if summary:
-            provenance = {
-                "model": get_setting("chat_model"),
-                "prompt_version": SUMMARY_PROMPT_VERSION,
-                "generated_at": datetime.utcnow().isoformat(),
-            }
-            with Session(engine) as session:
-                source = sourceRepository.get_source_by_id(session, source_id)
-                if source:
-                    sourceRepository.update_source_summary(session, source, summary, provenance)
-    except Exception as exc:
-        logger.warning(f"Summary generation failed for source {source_id}: {exc}")
-
-    try:
-        tagService.extract_and_store_tags(source_id, origin="llm", replace_existing=True)
-    except Exception as exc:
-        logger.warning(f"Auto-tagging failed for source {source_id}: {exc}")
-
-
 def _process_source_sync(source_id: int) -> None:
     """Full processing pipeline — safe to run in a thread pool.
     Each DB interaction uses its own short-lived session so SQLite is only
@@ -199,11 +160,9 @@ def _process_source_sync(source_id: int) -> None:
                 return
             raise
 
-        # Structured-metadata enrichment (summary + auto-tags). Non-fatal: the source is
-        # already indexed and searchable, so failures here don't fail the source.
-        _set_status(source_id, "enriching")
-        _enrich_source(source_id)
-
+        # Summaries and tags are no longer generated here — they are opt-in and
+        # user-curated from the "Enrich source" flow on the source detail page.
+        # The source is fully indexed and searchable at this point.
         _set_status(source_id, "processed")
 
     except Exception as exc:
@@ -216,6 +175,19 @@ async def _process_source_background(source_id: int) -> None:
 
 
 #Functions
+
+def _display_name(session: Session, filename: str | None) -> str | None:
+    """User-facing source name: the upload's basename without extension, deduped " (n)"."""
+    if not filename:
+        return filename
+    base = os.path.splitext(os.path.basename(filename))[0] or filename
+    name = base
+    index = 1
+    while sourceRepository.filename_exists(session, name):
+        name = f"{base} ({index})"
+        index += 1
+    return name
+
 
 def get_all_sources(session: Session):
     return sourceRepository.get_all_sources(session)
@@ -261,7 +233,7 @@ async def save_raw_source_file(session: Session, file: UploadFile):
 
     source = sourceRepository.create_source(
         session=session,
-        filename=file.filename,
+        filename=_display_name(session, file.filename),
         file_path=str(filepath),
         file_type=file_type,
         status="not processed",
@@ -308,7 +280,7 @@ async def save_processed_source_file(session: Session, file: UploadFile):
 
     return sourceRepository.create_source(
         session=session,
-        filename=file.filename,
+        filename=_display_name(session, file.filename),
         file_path=str(filepath),
         file_type=file_type,
         text=text,
@@ -399,7 +371,7 @@ async def delete_source(session: Session, source_id: int):
     try:
         get_chroma_collection().delete(where={"source_id": str(source_id)})
     except Exception as exc:
-        logger.warning(f"Chroma delete for source {source_id} failed: {exc}")
+        logger.error(f"Chroma delete for source {source_id} failed — vectors orphaned: {exc}")
     return {"ok": True}
 
 

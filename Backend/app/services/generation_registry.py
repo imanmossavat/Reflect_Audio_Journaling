@@ -159,11 +159,13 @@ async def _run(
     try:
         ollama_state = check_ollama_state()
         if ollama_state == "not_installed":
+            logger.error("Chat %s: cannot generate — Ollama is not installed", job.chat_id)
             job.error_detail = "Ollama isn't installed on your machine. Install it from https://ollama.com, then try again."
             job.status = "error"
             job.emit("error", detail=job.error_detail)
             return
         if ollama_state == "not_running":
+            logger.error("Chat %s: cannot generate — Ollama is not running", job.chat_id)
             job.error_detail = "Ollama isn't running on your machine. Start it and send the message again."
             job.status = "error"
             job.emit("error", detail=job.error_detail)
@@ -173,6 +175,7 @@ async def _run(
         chat_model = _chat_model()
         missing = [m for m in (embed_model, chat_model) if not check_model_installed(m)]
         if missing:
+            logger.error("Chat %s: cannot generate — model(s) not installed: %s", job.chat_id, ", ".join(missing))
             commands = " && ".join(f"ollama pull {m}" for m in missing)
             label = "model isn't" if len(missing) == 1 else "models aren't"
             job.error_detail = f"The required {label} installed yet. Run `{commands}` in your terminal, then try again."
@@ -185,6 +188,7 @@ async def _run(
         # error) telling the user how to install it — same in-thread treatment as a support card.
         safety_model = _safety_model()
         if not check_model_installed(safety_model):
+            logger.error("Chat %s: cannot generate — safety/guard model not installed: %s", job.chat_id, safety_model)
             job.status = "done"
             job.emit("guard_unavailable", model=safety_model, command=f"ollama pull {safety_model}")
             return
@@ -314,8 +318,10 @@ async def _run(
     except Exception as exc:
         kind = classify_ollama_error(exc)
         if kind == "not_running":
+            logger.error("Chat %s: Ollama stopped mid-generation: %s", job.chat_id, exc)
             detail = "Ollama stopped while answering. Start it and send the message again."
         elif kind == "model_missing":
+            logger.error("Chat %s: required model went missing mid-generation: %s", job.chat_id, exc)
             detail = f"A required Ollama model is missing. Run `ollama pull {_embed_model()}` and `ollama pull {_chat_model()}`, then try again."
         else:
             logger.exception(f"Query generation failed: {exc}")

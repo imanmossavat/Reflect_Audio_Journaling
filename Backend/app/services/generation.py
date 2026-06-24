@@ -76,10 +76,10 @@ def condense_question(history: list[dict[str, str]], question: str) -> str:
         )
         rewritten = ((response.get("message") or {}).get("content") or "").strip()
         if rewritten:
-            logger.info("condense %r -> %r", question[:80], rewritten[:80])
             return rewritten
-    except Exception as exc:
-        logger.warning(f"Query condensing failed, using raw question: {exc}")
+    except Exception:
+        # Recoverable: fall back to the raw question, so retrieval never breaks here.
+        pass
     return question
 
 

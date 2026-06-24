@@ -2,7 +2,6 @@ import asyncio
 import mimetypes
 import os
 import shutil
-from datetime import datetime
 from pathlib import Path
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, UploadFile, File, Form
@@ -13,6 +12,7 @@ from app.db import get_session
 from app.schemas.journalSchemas import SourcePatchRequest
 from app.services import sourceService
 from app.services.ollama_gate import generation_lock
+from app.utils.unique_path import unique_path
 
 router = APIRouter()
 
@@ -71,6 +71,24 @@ async def regenerate_source_summary(
     # off the event loop.
     async with generation_lock:
         return await asyncio.to_thread(sourceService.regenerate_summary, source_id)
+
+
+@router.post("/source/{source_id}/summary/preview", tags=["Source"], description="Generate a summary for review without persisting it.")
+async def preview_source_summary(
+    source_id: int,
+    session: Session = Depends(get_session),
+):
+    from app.services import summaryService
+
+    source = sourceService.get_source_by_id(session, source_id)
+    if not source:
+        raise HTTPException(status_code=404, detail="Source not found")
+    if not source.text or not source.text.strip():
+        raise HTTPException(status_code=422, detail="Source has no text to summarise yet.")
+    text = source.text
+    async with generation_lock:
+        summary = await asyncio.to_thread(summaryService.generate_summary, text)
+    return {"summary": summary}
 
 
 @router.post("/source/uploadFile/processed", tags=["Source"], description="Upload a source file. Returns immediately; transcription and indexing run in the background.")
@@ -170,7 +188,9 @@ async def drop_file_to_inbox(
     if extension not in ALLOWED_EXTENSIONS:
         raise HTTPException(status_code=400, detail="Unsupported file type.")
     INBOX.mkdir(parents=True, exist_ok=True)
-    dest = INBOX / f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{file.filename}"
+    # Keep the user's original name; the on-disk UUID is assigned later by the
+    # upload pipeline. Same-name captures get a Windows-style " (n)" suffix.
+    dest = unique_path(INBOX, file.filename or "upload")
     with dest.open("wb") as f:
         shutil.copyfileobj(file.file, f)
     return {"queued": True, "filename": dest.name}
@@ -181,10 +201,9 @@ async def drop_text_to_inbox(
     source_text: str = Form(...),
 ):
     INBOX.mkdir(parents=True, exist_ok=True)
-    filename = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_note.txt"
-    dest = INBOX / filename
+    dest = unique_path(INBOX, "note.txt")
     dest.write_text(source_text, encoding="utf-8")
-    return {"queued": True, "filename": filename}
+    return {"queued": True, "filename": dest.name}
 
 
 @router.get("/source/{source_id}/audio", tags=["Source"], description="Stream the audio file for an audio source.")

@@ -10,6 +10,7 @@ import { AlertTriangle, ArrowLeft, CalendarClock, CircleDot, FileAudio2, FileTex
 import { Input } from "@/components/ui/input"
 import { TopNav } from "@/components/top-nav"
 import { Markdown } from "@/components/markdown"
+import { EnrichSourceModal, type EnrichMode } from "@/components/home/enrich-source-modal"
 import { toast } from "sonner"
 import { api, type ChatMessageRecord, type SourceRecord, type SourceTag, type TranscriptSegment, PROCESSING_STATUSES, PROCESSING_STATUS_LABELS, OLLAMA_FAILURE_STATUSES, explainFailure } from "@/lib/api"
 
@@ -52,9 +53,7 @@ export default function SourceDetailPage() {
     const [titleValue, setTitleValue] = useState("")
     const [editingDate, setEditingDate] = useState(false)
     const [isRetrying, setIsRetrying] = useState(false)
-    const [isRegeneratingSummary, setIsRegeneratingSummary] = useState(false)
-    const [suggestions, setSuggestions] = useState<{ name: string; reason: string }[] | null>(null)
-    const [isSuggesting, setIsSuggesting] = useState(false)
+    const [enrichMode, setEnrichMode] = useState<EnrichMode | null>(null)
 
     const audioRef = useRef<HTMLAudioElement>(null)
     const activeSegmentRef = useRef<HTMLSpanElement>(null)
@@ -85,7 +84,6 @@ export default function SourceDetailPage() {
             setNewTagName("")
             setTagIdsBeingRemoved([])
             setChatMessages(null)
-            setSuggestions(null)
 
             try {
                 const loadedSource = await api.getSourceById(sourceId)
@@ -358,48 +356,6 @@ export default function SourceDetailPage() {
         }
     }
 
-    const handleRegenerateSummary = async () => {
-        if (!source || isRegeneratingSummary) return
-        setIsRegeneratingSummary(true)
-        try {
-            const updated = await api.regenerateSummary(source.id)
-            setSource(updated)
-            setSummaryText(updated.summary ?? "")
-            setSummaryHtml(updated.summary_html ?? "")
-        } catch (err) {
-            toast.error(`Could not regenerate summary: ${err instanceof Error ? err.message : "Unknown error"}`)
-        } finally {
-            setIsRegeneratingSummary(false)
-        }
-    }
-
-    const handleSuggestTags = async () => {
-        if (sourceId === null || isSuggesting) return
-        setIsSuggesting(true)
-        try {
-            const { suggestions: suggested } = await api.suggestTags(sourceId)
-            // Hide suggestions already attached so the list is actionable.
-            const attached = new Set(sourceTags.map((t) => t.name.toLowerCase()))
-            setSuggestions(suggested.filter((s) => !attached.has(s.name.toLowerCase())))
-        } catch (err) {
-            toast.error(`Could not suggest tags: ${err instanceof Error ? err.message : "Unknown error"}`)
-        } finally {
-            setIsSuggesting(false)
-        }
-    }
-
-    const handleAcceptSuggestion = async (name: string) => {
-        if (sourceId === null) return
-        const normalized = name.trim().toLowerCase()
-        if (!normalized || sourceTags.some((t) => t.name.toLowerCase() === normalized)) return
-        try {
-            const added = await api.addTagToSource(sourceId, normalized)
-            setSourceTags((current) => (current.some((t) => t.id === added.id) ? current : [...current, added]))
-            setSuggestions((current) => current?.filter((s) => s.name.toLowerCase() !== normalized) ?? null)
-        } catch (err) {
-            toast.error(`Could not add tag: ${err instanceof Error ? err.message : "Unknown error"}`)
-        }
-    }
 
     const isSourceInProgress = source ? PROCESSING_STATUSES.has(source.status) : false
     const failureInfo = source ? explainFailure(source.status) : null
@@ -522,23 +478,17 @@ export default function SourceDetailPage() {
                                     </h2>
                                     <button
                                         type="button"
-                                        onClick={() => void handleRegenerateSummary()}
-                                        disabled={isRegeneratingSummary || isSourceInProgress}
+                                        onClick={() => setEnrichMode("summary")}
+                                        disabled={isSourceInProgress}
                                         className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50"
                                     >
-                                        {isRegeneratingSummary ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
-                                        {isRegeneratingSummary ? "Generating..." : "Regenerate"}
+                                        <Sparkles className="h-3.5 w-3.5" />
+                                        {summaryText.trim() ? "Regenerate" : "Generate"}
                                     </button>
                                 </div>
-                                {source.status === "enriching" ? (
-                                    <p className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
-                                        <Loader2 className="h-3.5 w-3.5 animate-spin" /> Generating summary...
-                                    </p>
-                                ) : (
-                                    <div className="mt-3">
-                                        <EditorContent editor={summaryEditor} />
-                                    </div>
-                                )}
+                                <div className="mt-3">
+                                    <EditorContent editor={summaryEditor} />
+                                </div>
                             </div>
 
                             <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_280px]">
@@ -692,36 +642,14 @@ export default function SourceDetailPage() {
                                             <h2 className="text-sm font-semibold">Tags</h2>
                                             <button
                                                 type="button"
-                                                onClick={() => void handleSuggestTags()}
-                                                disabled={isSuggesting}
+                                                onClick={() => setEnrichMode("tags")}
+                                                disabled={isSourceInProgress}
                                                 className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-medium text-emerald-600 transition-colors hover:bg-emerald-50 disabled:opacity-50 dark:hover:bg-emerald-900/20"
                                             >
-                                                {isSuggesting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                                                <Sparkles className="h-3 w-3" />
                                                 Suggest
                                             </button>
                                         </div>
-
-                                        {suggestions && suggestions.length > 0 && (
-                                            <div className="mt-3 rounded-lg border border-dashed bg-muted/10 p-2.5">
-                                                <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Suggested — click to add</p>
-                                                <div className="mt-2 flex flex-wrap gap-1.5">
-                                                    {suggestions.map((s) => (
-                                                        <button
-                                                            key={s.name}
-                                                            type="button"
-                                                            title={s.reason}
-                                                            onClick={() => void handleAcceptSuggestion(s.name)}
-                                                            className="inline-flex items-center gap-1 rounded-full border border-emerald-300 bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 transition-colors hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300"
-                                                        >
-                                                            + {s.name}
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
-                                        {suggestions && suggestions.length === 0 && (
-                                            <p className="mt-3 text-xs text-muted-foreground">No new suggestions.</p>
-                                        )}
 
                                         <form
                                             className="mt-3"
@@ -784,6 +712,27 @@ export default function SourceDetailPage() {
                     )}
                 </section>
             </main>
+
+            <EnrichSourceModal
+                sourceId={sourceId}
+                mode={enrichMode}
+                sourceName={source?.filename ?? titleValue ?? undefined}
+                attachedTagNames={sourceTags.map((t) => t.name)}
+                onOpenChange={(open) => { if (!open) setEnrichMode(null) }}
+                onSummaryConfirmed={async (id) => {
+                    try {
+                        const updated = await api.getSourceById(id)
+                        setSource(updated)
+                        setSummaryText(updated.summary ?? "")
+                        setSummaryHtml(updated.summary_html ?? "")
+                    } catch { /* the modal already surfaced any error */ }
+                }}
+                onTagsConfirmed={async (id) => {
+                    try {
+                        setSourceTags(await api.getSourceTags(id))
+                    } catch { /* the modal already surfaced any error */ }
+                }}
+            />
         </div>
     )
 }

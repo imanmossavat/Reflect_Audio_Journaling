@@ -50,6 +50,9 @@ def get_latest_source(session: Session) -> Source:
 def get_unprocessed_sources_query():
     return select(Source).where(Source.status == "not processed")
 
+def filename_exists(session: Session, filename: str) -> bool:
+    return session.exec(select(Source.id).where(Source.filename == filename)).first() is not None
+
 def create_source(
     session: Session,
     *,

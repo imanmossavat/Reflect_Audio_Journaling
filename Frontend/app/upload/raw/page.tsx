@@ -102,7 +102,11 @@ export default function RawUploadPage() {
                 const baseMime = mimeType.split(";")[0]
                 const extension = baseMime.includes("ogg") ? ".ogg" : ".webm"
                 const audioBlob = new Blob(audioChunksRef.current, { type: baseMime })
-                const audioFile = new File([audioBlob], `recording-${Date.now()}${extension}`, { type: baseMime })
+                // Human-facing name; the backend strips the extension and dedupes
+                // same-day recordings as "... (1)". Long month/day avoids ":" which
+                // is illegal in filenames.
+                const recordedOn = new Date().toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" })
+                const audioFile = new File([audioBlob], `Voice recording of ${recordedOn}${extension}`, { type: baseMime })
 
                 setIsSaving(true)
                 api.dropFileToInbox(audioFile)
@@ -338,10 +342,7 @@ export default function RawUploadPage() {
 
                     {queued && (
                         <div className="mt-4 flex flex-wrap items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm dark:border-emerald-900/40 dark:bg-emerald-900/20">
-                            <span className="text-emerald-700 dark:text-emerald-300">Queued — transcription and indexing will run automatically.</span>
-                            <Link href="/" className="font-medium text-emerald-700 underline underline-offset-2 dark:text-emerald-300">
-                                Back to main page
-                            </Link>
+                            <span className="text-emerald-700 dark:text-emerald-300">Queued — transcription and indexing will run automatically on the device that runs the server.</span>
                         </div>
                     )}
                 </section>
