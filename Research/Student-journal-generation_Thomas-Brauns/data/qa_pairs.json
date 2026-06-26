@@ -1,0 +1,100 @@
+{
+  "qa_pairs": [
+    {
+      "question": "What task was planned for the childhood home, and what is Marcus related to this plan?",
+      "answer": "The task was to fix the leaky faucet. Marcus is related to getting the usual thing sorted out.",
+      "reasoning_type": "multi_hop",
+      "supporting_notes": [
+        "N_202401021941",
+        "N_202401081956"
+      ],
+      "required_hops": 2,
+      "difficulty": "easy",
+      "question_id": "q_0000"
+    },
+    {
+      "question": "Why hasn't Ethan checked the bank app today?",
+      "answer": "Ethan's mom called about family obligations, and he is still thinking about Tuesday, indicating he hasn't checked the bank app.",
+      "reasoning_type": "multi_hop",
+      "supporting_notes": [
+        "N_202401010900",
+        "N_202401061547"
+      ],
+      "required_hops": 2,
+      "difficulty": "easy",
+      "question_id": "q_0001"
+    },
+    {
+      "question": "What tasks did the person have to deal with on different days according to the notes?",
+      "answer": "On January 1, they received a call from Ethan's Mum about family obligations and didn't open the bank app. On January 2, they had to fix a leaky faucet at their Childhood Home and deal with Marcus. On January 5, they rescheduled a flight due to work and needed to rearrange their vacation planning.",
+      "reasoning_type": "temporal_reasoning",
+      "supporting_notes": [
+        "N_202401010900",
+        "N_202401021941",
+        "N_202401051709"
+      ],
+      "required_hops": 3,
+      "difficulty": "medium",
+      "question_id": "q_0002"
+    },
+    {
+      "question": "What has Ethan's mom been trying to get him to do between the first and last mention?",
+      "answer": "Ethan's mom called again, wanting him to try a new health app.",
+      "reasoning_type": "temporal_reasoning",
+      "supporting_notes": [
+        "N_202401021723",
+        "n_001",
+        "N_202401061547"
+      ],
+      "required_hops": 3,
+      "difficulty": "easy",
+      "question_id": "q_0003"
+    },
+    {
+      "question": "What task did the person mention booking for this weekend, and when was a team meeting supposed to be called about?",
+      "answer": "The person mentioned booking Ethan's home maintenance task for this weekend. They also sent a message about calling a team meeting, but it might be put off until the last minute.",
+      "reasoning_type": "temporal_reasoning",
+      "supporting_notes": [
+        "N_202401021430",
+        "N_202401031704",
+        "N_202401041337"
+      ],
+      "required_hops": 3,
+      "difficulty": "medium",
+      "question_id": "q_0004"
+    },
+    {
+      "question": "What is the exact date of Ethan's home maintenance task mentioned in the notes?",
+      "answer": "Cannot be determined from the notes.",
+      "reasoning_type": "unanswerable",
+      "supporting_notes": [
+        "N_202401041337"
+      ],
+      "required_hops": 1,
+      "difficulty": "easy",
+      "question_id": "q_0005"
+    },
+    {
+      "question": "Did the person renew their gym membership last month?",
+      "answer": "Cannot be determined from the notes.",
+      "reasoning_type": "unanswerable",
+      "supporting_notes": [
+        "n_001"
+      ],
+      "required_hops": 1,
+      "difficulty": "easy",
+      "question_id": "q_0006"
+    },
+    {
+      "question": "Is Ethan planning to change the meeting date or is it already rescheduled?",
+      "answer": "The notes do not provide enough information to determine whether Ethan has already changed the meeting date or if it is just a suggestion to reschedule.",
+      "reasoning_type": "unanswerable",
+      "supporting_notes": [
+        "N_202401071025"
+      ],
+      "required_hops": 1,
+      "difficulty": "easy",
+      "question_id": "q_0007"
+    }
+  ]
+}

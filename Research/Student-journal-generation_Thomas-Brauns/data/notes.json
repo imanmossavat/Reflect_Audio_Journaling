@@ -1,0 +1,288 @@
+{
+  "notes": [
+    {
+      "note_id": "N_202401010900",
+      "timestamp": "2024-01-01T09:00:00",
+      "note_type": "personal note",
+      "text": "just got a call from Ethan's Mum, same old thing with family obligations. didn't open the bank app again today... ugh.",
+      "entities": [
+        {
+          "id": "p_013"
+        }
+      ],
+      "tags": [],
+      "latent_facts": [
+        "user now knows they're avoiding thinking about home maintenance"
+      ],
+      "story_arc_id": "a_003",
+      "importance": 2,
+      "source_event_id": "E_202401010900"
+    },
+    {
+      "note_id": "N_202401021430",
+      "timestamp": "2024-01-02T14:30:00",
+      "note_type": "personal_note",
+      "text": "Ugh, the project is still dragging on. I just sent a message to... someone about calling a team meeting. Like last time, I'm sure they'll put it off until the last minute.",
+      "entities": [
+        {
+          "id": "p_002"
+        }
+      ],
+      "tags": [
+        "work",
+        "project"
+      ],
+      "latent_facts": [
+        "user now knows deadline moved — activates anxiety arc"
+      ],
+      "story_arc_id": "a_002",
+      "importance": "3",
+      "source_event_id": "E_202401021430"
+    },
+    {
+      "note_id": "N_202401021723",
+      "timestamp": "2024-01-02T17:23:28.285906",
+      "note_type": "Personal Note",
+      "text": "called mum today, like last time she's stressing about me neglecting my health again... can't remember if I already said thanks for the advice or not.",
+      "entities": [
+        {
+          "id": "p_013",
+          "type": "person"
+        }
+      ],
+      "tags": [
+        "family",
+        "health"
+      ],
+      "latent_facts": [
+        {
+          "state_transition": "anxiety_arc_activated"
+        }
+      ],
+      "story_arc_id": "a_001",
+      "importance": 4,
+      "source_event_id": "E_202401021723"
+    },
+    {
+      "note_id": "N_202401021941",
+      "timestamp": "2024-01-02T19:41:05.912575",
+      "note_type": "personal note",
+      "text": "Ugh, had to go back to that place again... Childhood Home. Fix the leaky faucet this time. Wasn't supposed to be a big deal but always is. Still gotta get the usual thing with Marcus sorted out.",
+      "entities": [
+        {
+          "id": "p_014",
+          "name": "Childhood Home"
+        }
+      ],
+      "tags": [],
+      "latent_facts": [
+        {
+          "fact_id": "L_F_202401021941",
+          "type": "event_state_transition",
+          "description": "user now knows the deadline for fixing the faucet is looming"
+        }
+      ],
+      "story_arc_id": "a_003",
+      "importance": 2,
+      "source_event_id": "E_202401021941"
+    },
+    {
+      "note_id": "N_202401031704",
+      "timestamp": "2024-01-03T17:04",
+      "note_type": "personal_note",
+      "text": "just booked flights to the work thing, think it was today. now I just need to... um...",
+      "entities": [
+        {
+          "id": "p_006",
+          "name": "Vacation Planning"
+        }
+      ],
+      "tags": [],
+      "latent_facts": [
+        "user's anxiety about meeting deadline has increased due to flight booking"
+      ],
+      "story_arc_id": "a_002",
+      "importance": 3,
+      "source_event_id": "E_202401031704"
+    },
+    {
+      "note_id": "n_001",
+      "timestamp": "2024-01-03T17:52:37.890009",
+      "note_type": "personal note",
+      "text": "Just tried to log in to the gym membership, still expired... think I might've had a conversation with someone about renewing it though? Definitely didn't open the bank app again to check on the payments... Ugh, this is just like last time.",
+      "entities": [
+        {
+          "id": "p_004",
+          "name": "Gym Membership"
+        }
+      ],
+      "tags": [],
+      "latent_facts": [
+        "user now knows the gym membership deadline moved — activates anxiety arc"
+      ],
+      "story_arc_id": "a_001",
+      "importance": 2,
+      "source_event_id": "E_202401031752"
+    },
+    {
+      "note_id": "N_202401041337",
+      "timestamp": "2024-01-04T13:37:31.861106",
+      "note_type": "personal note",
+      "text": "Think I booked something for this weekend... Ethan's home maintenance task, yeah? The one with the leaky faucet.",
+      "entities": [
+        {
+          "id": "p_005"
+        }
+      ],
+      "tags": [],
+      "latent_facts": [
+        "user now knows the scheduled deadline for home maintenance task — activates the procrastination arc"
+      ],
+      "story_arc_id": "a_002",
+      "importance": "2",
+      "source_event_id": "E_202401041337"
+    },
+    {
+      "note_id": "N_202401051709",
+      "timestamp": "2024-01-05T17:09:25.886227",
+      "note_type": "personal_note",
+      "text": "Ugh, I think it was Tuesday when Ethan told me about rescheduling the flight due to work... or was it yesterday? Anyway, now I have to deal with changing flights AGAIN. And of course, that means rearranging my whole itinerary for Vacation Planning.",
+      "entities": [
+        "p_006"
+      ],
+      "tags": [],
+      "latent_facts": [
+        {
+          "name": "rescheduling_vacation_flight",
+          "description": "user's vacation plans are now subject to change due to Ethan's work commitments"
+        }
+      ],
+      "story_arc_id": "a_003",
+      "importance": "3",
+      "source_event_id": "E_202401051709"
+    },
+    {
+      "note_id": "N_202401061547",
+      "timestamp": "2024-01-06T15:47:18.912575",
+      "note_type": "personal note",
+      "text": "Ethan's mom called again, wanted me to try this new health app thing...haven't looked at the bank app yet today (again?) and I know I should be getting ready for the meeting but I'm still thinking about Tuesday...",
+      "entities": [
+        {
+          "id": "p_013",
+          "name": "Ethan's Mother",
+          "type": "person"
+        }
+      ],
+      "tags": [],
+      "latent_facts": [
+        "user now feels overwhelmed by responsibilities",
+        "user is avoiding thinking about rent"
+      ],
+      "story_arc_id": "a_001",
+      "importance": 4,
+      "source_event_id": "E_202401061547"
+    },
+    {
+      "note_id": "N_202401071025",
+      "timestamp": "2024-01-07T10:25:31.861106",
+      "note_type": "personal note",
+      "text": "think I'm supposed to reschedule that meeting for next week, but honestly who knows, Ethan's always changing his mind... anyway, need to remind him about the deadline.",
+      "entities": [
+        {
+          "id": "p_002",
+          "name": "Tom",
+          "type": "person"
+        }
+      ],
+      "tags": [
+        "work",
+        "meeting"
+      ],
+      "latent_facts": [
+        "user now knows the deadline moved — activates the anxiety arc"
+      ],
+      "story_arc_id": "a_002",
+      "importance": 3,
+      "source_event_id": "E_202401071025"
+    },
+    {
+      "note_id": "N_202401081956",
+      "timestamp": "last night?",
+      "note_type": "personal note",
+      "text": "just got off the phone with... you know, about the childhood home. She called to check in on the repairs again. didn't really talk much about anything else. forgot to mention that... oh wait, what was I doing tonight?",
+      "entities": [
+        {
+          "id": "p_014",
+          "name": "Childhood Home"
+        }
+      ],
+      "tags": [],
+      "latent_facts": [
+        "user now knows about the home maintenance progress, but still uncertain about their role in it"
+      ],
+      "story_arc_id": "a_003",
+      "importance": "2",
+      "source_event_id": "E_202401081956"
+    },
+    {
+      "note_id": "N_202401091635",
+      "timestamp": "2024-01-09T16:35:00",
+      "note_type": "Personal Note",
+      "text": "just bought new gym clothes, renewing the membership like last time... think it was Tuesday I signed up again. still a bit anxious about it.",
+      "entities": [
+        {
+          "id": "p_004",
+          "name": "Gym Membership"
+        }
+      ],
+      "tags": [],
+      "latent_facts": [
+        {
+          "entity_id": "p_004",
+          "fact_type": "state transition",
+          "text": "membership renewed"
+        }
+      ],
+      "story_arc_id": "a_001",
+      "importance": 3,
+      "source_event_id": "E_202401091635"
+    },
+    {
+      "note_id": "N_202401101310",
+      "timestamp": "2024-01-10T13:10:59.861106",
+      "note_type": "personal_note",
+      "text": "Mom reminded me to visit the old place again, like last time it was for repairs. Still got a lot on my mind about... ",
+      "entities": [
+        {
+          "id": "p_014",
+          "name": "Childhood Home"
+        },
+        {
+          "id": "Ethan's Mother"
+        }
+      ],
+      "tags": [],
+      "latent_facts": [
+        {
+          "fact_id": "LF_202401101310",
+          "state_transition": {
+            "entity_id": "p_014",
+            "property_name": "visitation_status",
+            "new_value": "upcoming"
+          }
+        },
+        {
+          "fact_id": "LF_202401101310_2",
+          "state_transition": {
+            "entity_id": "Ethan's Mother",
+            "property_name": "communication_history",
+            "new_value": "reminder_sent"
+          }
+        }
+      ],
+      "story_arc_id": "a_003",
+      "importance": 2,
+      "source_event_id": "E_202401101310"
+    }
+  ]
+}

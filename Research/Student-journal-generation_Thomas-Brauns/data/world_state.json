@@ -1,0 +1,282 @@
+{
+  "user_profile": {
+    "user_id": "u_001",
+    "name": "Ethan Johnson",
+    "age": 35,
+    "occupation": "Software Developer",
+    "location": "San Francisco, CA",
+    "baseline_traits": [
+      "tech-savvy",
+      "creative",
+      "analytical"
+    ]
+  },
+  "entities": [
+    {
+      "id": "p_001",
+      "name": "Sarah",
+      "type": "person",
+      "domains": [
+        "relationships",
+        "social"
+      ],
+      "salience": "high",
+      "notes": "Long-time friend and occasional romantic partner."
+    },
+    {
+      "id": "p_002",
+      "name": "Tom",
+      "type": "person",
+      "domains": [
+        "work",
+        "family"
+      ],
+      "salience": "medium",
+      "notes": "Brother's wife, has a child in common with Ethan."
+    },
+    {
+      "id": "p_003",
+      "name": "Work",
+      "type": "project",
+      "domains": [
+        "work",
+        "finances"
+      ],
+      "salience": "high",
+      "notes": "Current software development project at work."
+    },
+    {
+      "id": "p_004",
+      "name": "Gym Membership",
+      "type": "object",
+      "domains": [
+        "health",
+        "hobbies"
+      ],
+      "salience": "low",
+      "notes": "Expired membership, still listed as a goal to renew."
+    },
+    {
+      "id": "p_005",
+      "name": "Home Maintenance",
+      "type": "project",
+      "domains": [
+        "home",
+        "logistics"
+      ],
+      "salience": "medium",
+      "notes": "Need to fix the leaky faucet but haven't gotten around to it."
+    },
+    {
+      "id": "p_006",
+      "name": "Vacation Planning",
+      "type": "project",
+      "domains": [
+        "travel",
+        "hobbies"
+      ],
+      "salience": "medium",
+      "notes": "Purchased flights but haven't packed or researched destination."
+    },
+    {
+      "id": "p_007",
+      "name": "Insurance Renewal",
+      "type": "project",
+      "domains": [
+        "finances",
+        "logistics"
+      ],
+      "salience": "high",
+      "notes": "Due to renew but haven't gotten around to it."
+    },
+    {
+      "id": "p_008",
+      "name": "Tech Gadgets",
+      "type": "project",
+      "domains": [
+        "hobbies",
+        "digital life"
+      ],
+      "salience": "low",
+      "notes": "Bought a new smartwatch but haven't set it up."
+    },
+    {
+      "id": "p_009",
+      "name": "Book Club",
+      "type": "organization",
+      "domains": [
+        "hobbies",
+        "social"
+      ],
+      "salience": "medium",
+      "notes": "Had a few meetings but hasn't been attending regularly."
+    },
+    {
+      "id": "p_010",
+      "name": "Online Courses",
+      "type": "project",
+      "domains": [
+        "hobbies",
+        "professional development"
+      ],
+      "salience": "medium",
+      "notes": "Started a couple courses but haven't completed any."
+    },
+    {
+      "id": "p_011",
+      "name": "Garden",
+      "type": "project",
+      "domains": [
+        "hobbies",
+        "home maintenance"
+      ],
+      "salience": "low",
+      "notes": "Started planting but hasn't maintained the garden consistently."
+    },
+    {
+      "id": "p_012",
+      "name": "Health App",
+      "type": "object",
+      "domains": [
+        "health",
+        "digital life"
+      ],
+      "salience": "medium",
+      "notes": "Installed a new fitness tracking app but haven't used it much."
+    },
+    {
+      "id": "p_013",
+      "name": "Ethan's Mother",
+      "type": "person",
+      "domains": [
+        "family",
+        "health"
+      ],
+      "salience": "high",
+      "notes": "Frequent calls, discussed health issues and family obligations."
+    },
+    {
+      "id": "p_014",
+      "name": "Childhood Home",
+      "type": "place",
+      "domains": [
+        "family",
+        "logistics"
+      ],
+      "salience": "low",
+      "notes": "Occasionally visits, mostly for nostalgia and repairs."
+    },
+    {
+      "id": "p_015",
+      "name": "Home Office",
+      "type": "project",
+      "domains": [
+        "work",
+        "home maintenance"
+      ],
+      "salience": "medium",
+      "notes": "Completed a few upgrades but hasn't finished setting up."
+    },
+    {
+      "id": "p_016",
+      "name": "Credit Card Debt",
+      "type": "project",
+      "domains": [
+        "finances",
+        "stress"
+      ],
+      "salience": "high",
+      "notes": "Making minimum payments but struggling with the balance."
+    }
+  ],
+  "story_arcs": [
+    {
+      "arc_id": "a_001",
+      "title": "Health and Fitness",
+      "status": "stalled",
+      "involved_entities": [
+        "Ethan's Mother",
+        "Sarah"
+      ],
+      "summary": "Ethan has been trying to improve his health but struggles with maintaining a routine."
+    },
+    {
+      "arc_id": "a_002",
+      "title": "Work Project",
+      "status": "active",
+      "involved_entities": [
+        "Work",
+        "Tom"
+      ],
+      "summary": "Ethan is working on a new software feature at work but feels the project is taking too much time."
+    },
+    {
+      "arc_id": "a_003",
+      "title": "Family Obligations",
+      "status": "resolved",
+      "involved_entities": [
+        "Ethan's Mother",
+        "Sarah"
+      ],
+      "summary": "Resolved issues with visiting the childhood home and organizing family events."
+    }
+  ],
+  "projects": [
+    {
+      "project_id": "prj_001",
+      "title": "New Home Office Setup",
+      "status": "paused",
+      "related_entities": [
+        "Home Office",
+        "Work"
+      ],
+      "notes": "Haven't had time to complete the setup despite starting a few weeks ago."
+    },
+    {
+      "project_id": "prj_002",
+      "title": "Online Course Completion",
+      "status": "abandoned",
+      "related_entities": [
+        "Online Courses",
+        "Professional Development"
+      ],
+      "notes": "Started courses but haven't found the time or motivation to finish them."
+    },
+    {
+      "project_id": "prj_003",
+      "title": "Home Maintenance",
+      "status": "active",
+      "related_entities": [
+        "Garden",
+        "Home Office"
+      ],
+      "notes": "Needs to complete a few more tasks but hasn't made much progress recently."
+    }
+  ],
+  "latent_facts": [
+    {
+      "fact_id": "lf_001",
+      "subject": "Sarah",
+      "relation": "romantic partner",
+      "object": "Ethan",
+      "arc_id": "a_001",
+      "confidence": "assumed"
+    },
+    {
+      "fact_id": "lf_002",
+      "subject": "Work",
+      "relation": "project leader",
+      "object": "Tom",
+      "arc_id": "a_002",
+      "confidence": "confirmed"
+    },
+    {
+      "fact_id": "lf_003",
+      "subject": "Ethan's Mother",
+      "relation": "health advisor",
+      "object": "Ethan",
+      "arc_id": "a_001",
+      "confidence": "assumed"
+    }
+  ]
+}
