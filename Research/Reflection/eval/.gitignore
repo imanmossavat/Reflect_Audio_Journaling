@@ -1,0 +1,4 @@
+# Per-run outputs are reproducible from cases.json + the git hash in config.json.
+runs/
+__pycache__/
+*.pyc

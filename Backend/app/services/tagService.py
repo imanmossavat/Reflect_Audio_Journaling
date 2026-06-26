@@ -51,7 +51,7 @@ def extract_and_store_tags(
 
 
 def _call_extraction_llm(prompt: str) -> str:
-    from app.services.settings_service import get_setting
+    from app.services.settings_service import chat_num_ctx, get_setting
     host = get_setting("ollama_host").rstrip("/")
     response = httpx.post(
         f"{host}/api/generate",
@@ -59,21 +59,25 @@ def _call_extraction_llm(prompt: str) -> str:
             "model": get_setting("chat_model"),
             "prompt": prompt,
             "stream": False,
-            "options": {"num_predict": 1024},
+            # Grammar-constrain the output to a valid tag array (Ollama structured outputs).
+            "format": tag_extraction_prompt.RESPONSE_FORMAT,
+            # num_predict is a finite circuit breaker far above the schema's worst case
+            # (~900 tokens) — only a degenerate loop hits it, surfaced by the check below.
+            "options": {"num_ctx": chat_num_ctx(), "num_predict": 4096, "temperature": 0},
             "think": False,
         },
         timeout=httpx.Timeout(connect=10.0, read=300.0, write=10.0, pool=10.0),
     )
     response.raise_for_status()
-    return response.json().get("response", "").strip()
+    data = response.json()
+    if data.get("done_reason") == "length":
+        raise ValueError("tag extraction output truncated (hit num_predict/num_ctx)")
+    return data.get("response", "").strip()
 
 
 def _parse_extraction_response(raw: str) -> list[dict]:
-    json_start = raw.find("[")
-    json_end = raw.rfind("]") + 1
-    if json_start == -1 or json_end <= json_start:
-        raise ValueError("No JSON array found in tag extraction response")
-    data = json.loads(raw[json_start:json_end])
+    # `format` guarantees a valid JSON array conforming to the schema, so parse directly.
+    data = json.loads(raw)
     return [
         {
             "name": str(item.get("name", "")).strip(),
@@ -119,7 +123,7 @@ def _build_prompt(source_text: str) -> str:
 
 
 def _call_llm(user_prompt: str) -> str:
-    from app.services.settings_service import get_setting
+    from app.services.settings_service import chat_num_ctx, get_setting
     host = get_setting("ollama_host").rstrip("/")
 
     response = httpx.post(
@@ -131,6 +135,8 @@ def _call_llm(user_prompt: str) -> str:
                 {"role": "system", "content": _SYSTEM_PROMPT},
                 {"role": "user",   "content": user_prompt},
             ],
+            # Same shared window so this call doesn't trigger a model reload.
+            "options": {"num_ctx": chat_num_ctx()},
         },
         timeout=httpx.Timeout(connect=10.0, read=300.0, write=10.0, pool=10.0),
     )

@@ -27,7 +27,7 @@ from app.services.rag import (
     serialize_retrieved_nodes,
     to_chat_messages,
 )
-from app.services.settings_service import get_setting
+from app.services.settings_service import chat_num_ctx, get_setting
 
 logger = logging_config.logger
 
@@ -259,6 +259,7 @@ async def _run(
                 messages=messages,
                 stream=True,
                 think=supports_thinking,
+                options={"num_ctx": chat_num_ctx()},
             ):
                 msg = chunk.get("message", {}) or {}
                 thinking_delta = msg.get("thinking") or ""

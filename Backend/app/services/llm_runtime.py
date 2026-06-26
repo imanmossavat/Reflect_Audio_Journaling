@@ -111,7 +111,7 @@ def _thinking_enabled() -> bool:
     return bool(get_setting("thinking_enabled"))
 
 
-_llamaindex_signature: tuple[str, str, str, bool] | None = None
+_llamaindex_signature: tuple[str, str, str, bool, int] | None = None
 
 
 def configure_llamaindex() -> None:
@@ -121,7 +121,10 @@ def configure_llamaindex() -> None:
     host = _ollama_base_url()
     # Only think when the toggle is on AND the model actually supports it.
     thinking = _thinking_enabled() and model_supports_thinking(llm)
-    signature = (embed, llm, host, thinking)
+    # Shared context window — llama_index maps context_window -> num_ctx, so this keeps the
+    # RAG/chat path on the same window as the direct Ollama calls (avoids model reloads).
+    num_ctx = int(get_setting("num_ctx"))
+    signature = (embed, llm, host, thinking, num_ctx)
     if _llamaindex_signature == signature:
         return
     Settings.embed_model = OllamaEmbedding(
@@ -134,6 +137,7 @@ def configure_llamaindex() -> None:
         request_timeout=6700.0,
         temperature=0.0,
         thinking=thinking,
+        context_window=num_ctx,
     )
     _llamaindex_signature = signature
 

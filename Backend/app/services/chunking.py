@@ -5,7 +5,7 @@ import spacy
 
 from typing import List
 
-from app.services.settings_service import get_setting
+from app.services.settings_service import chat_num_ctx, get_setting
 
 _SPACY_MODELS = {"en": "en_core_web_sm", "nl": "nl_core_news_sm"}
 _nlp_cache: dict[str, "spacy.language.Language"] = {}
@@ -45,6 +45,7 @@ Source:
         model=get_setting("chat_model"),
         messages=[{"role": "user", "content": prompt}],
         format="json",
+        options={"num_ctx": chat_num_ctx()},
     )
 
     content = response.get("message", {}).get("content", "")

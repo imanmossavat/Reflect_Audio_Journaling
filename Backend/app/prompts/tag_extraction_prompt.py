@@ -1,3 +1,19 @@
+# JSON Schema passed to Ollama's `format` parameter so the output is grammar-constrained
+# to a valid tag array — the structure below is enforced by the decoder, not requested.
+RESPONSE_FORMAT = {
+    "type": "array",
+    "items": {
+        "type": "object",
+        "properties": {
+            "name": {"type": "string"},
+            "summary": {"type": "string"},
+            "quotes": {"type": "array", "items": {"type": "string"}},
+        },
+        "required": ["name", "summary", "quotes"],
+    },
+}
+
+
 def build_prompt(journal_text: str) -> str:
     return f"""You are a text analysis assistant. A user has shared a personal journal entry.
 
@@ -14,9 +30,8 @@ CRITICAL RULES:
 - Every quote MUST be an exact substring of the original text (character-for-character match).
 - Do not paraphrase or modify quotes in any way.
 - Tags can overlap — the same sentence can belong to multiple tags if relevant.
-- Return ONLY a valid JSON array. No explanation, no markdown, no backticks.
 
-Example format:
+Example:
 [
   {{"name": "work stress", "summary": "Recurring pressure and deadlines at the workplace.", "quotes": ["the deadline was approaching fast", "I couldn't focus at work"]}},
   {{"name": "family time", "summary": "Moments spent with children and partner.", "quotes": ["we went to the park together", "my daughter asked me why", "dinner with the family"]}}

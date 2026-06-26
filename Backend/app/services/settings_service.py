@@ -12,6 +12,9 @@ _SETTINGS_PATH = _BACKEND_DIR / "data" / "settings.json"
 
 DEFAULTS: dict[str, Any] = {
     "chat_model": "gemma4:e4b",
+    # Shared context window for every chat_model call
+    # ~45-min transcript (~8k tokens in) + worst-case output (~4k) + prompt/buffer.
+    "num_ctx": 16384,
     "embed_model": "nomic-embed-text",
     "ollama_host": "http://localhost:11434",
     "device": "cpu",
@@ -24,8 +27,7 @@ DEFAULTS: dict[str, Any] = {
     "safety_model": "llama-guard3:1b",
 }
 
-# The safety guard is mandatory and can only be a Llama Guard model (any tag, e.g.
-# llama-guard3:1b or llama-guard3:8b). Without one installed, sending messages is blocked.
+# safety guard is mandatory, can only be Llama Guard model for now
 SAFETY_MODEL_BASE = "llama-guard3"
 
 ALLOWED_DEVICES = {"cpu", "cuda", "mps", "rocm"}
@@ -70,6 +72,11 @@ def get_setting(key: str) -> Any:
     return get_settings().get(key, DEFAULTS.get(key))
 
 
+def chat_num_ctx() -> int:
+    """Context window that EVERY call to ``chat_model`` must pass."""
+    return int(get_setting("num_ctx"))
+
+
 def _validate(patch: dict[str, Any]) -> dict[str, Any]:
     cleaned: dict[str, Any] = {}
     for key, value in patch.items():
@@ -93,6 +100,10 @@ def _validate(patch: dict[str, Any]) -> dict[str, Any]:
         elif key == "thinking_enabled":
             if not isinstance(value, bool):
                 raise ValueError(f"{key} must be a boolean")
+        elif key == "num_ctx":
+            # bool is a subclass of int, so reject it explicitly.
+            if not isinstance(value, int) or isinstance(value, bool) or value <= 0:
+                raise ValueError("num_ctx must be a positive integer")
         elif key == "safety_model":
             if not isinstance(value, str) or not value.strip():
                 raise ValueError("safety_model must be a non-empty string")

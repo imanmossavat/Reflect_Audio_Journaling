@@ -1,13 +1,7 @@
-"""LLM summary generation for a source/note.
-
-Mirrors the local-Ollama call pattern used by tag extraction. Synchronous so it can
-run inside the ingest pipeline's worker thread (`_process_source_sync`) and from the
-regenerate route via `asyncio.to_thread`.
-"""
 import httpx
 
 from app.prompts import summary_prompt
-from app.services.settings_service import get_setting
+from app.services.settings_service import chat_num_ctx, get_setting
 
 # Keep long entries from blowing the local model's context window.
 _MAX_INPUT_CHARS = 8000
@@ -28,7 +22,7 @@ def generate_summary(source_text: str) -> str:
             "model": get_setting("chat_model"),
             "prompt": prompt,
             "stream": False,
-            "options": {"num_predict": 256, "temperature": 0.0},
+            "options": {"num_ctx": chat_num_ctx(), "num_predict": 512, "temperature": 0.0},
             "think": False,
         },
         timeout=httpx.Timeout(connect=10.0, read=300.0, write=10.0, pool=10.0),

@@ -18,7 +18,7 @@ from app.services.rag import (
     serialize_retrieved_nodes,
     to_chat_messages,
 )
-from app.services.settings_service import get_setting
+from app.services.settings_service import chat_num_ctx, get_setting
 from app.services import chatService
 from app.services import generation_registry
 from app.services import reflectionService
@@ -321,7 +321,8 @@ async def generate_question(req: GenerateRequest):
             async with generation_lock:
                 client = AsyncClient(host=_ollama_host())
                 async for chunk in await client.chat(
-                    model=_chat_model(), messages=messages, stream=True, think=False
+                    model=_chat_model(), messages=messages, stream=True, think=False,
+                    options={"num_ctx": chat_num_ctx()},
                 ):
                     token = chunk.get("message", {}).get("content", "")
                     if token:
