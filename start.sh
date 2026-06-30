@@ -238,11 +238,11 @@ if command -v ffmpeg &>/dev/null; then
 fi
 
 echo "Running database migrations..."
-uv run alembic upgrade head
+uv run --extra "$TORCH_EXTRA" alembic upgrade head
 
 # 5. Start backend in background
 echo "Starting backend..."
-uv run python start_backend.py &
+uv run --extra "$TORCH_EXTRA" python start_backend.py &
 BACKEND_PID=$!
 
 # 6. Frontend deps + start
