@@ -81,11 +81,26 @@ def setup_logging():
         "sentence_transformers",
         "chromadb",
         "watchdog",
+        "multipart",            # per-chunk debug spam during file uploads
+        "fsevents",             # raw macOS kernel filesystem events from watchdog
+        "matplotlib",           # font/cache/platform debug on every transcription load
+        "torio",                # FFmpeg extension probe failures (harmless — we use subprocess ffmpeg)
+        "fsspec",               # local file-open traces from pyannote VAD model loading
+        "urllib3",              # HTTPS connection traces (HuggingFace, otel telemetry pings)
+        "lightning",            # Lightning checkpoint upgrade notices
     ):
         logging.getLogger(noisy).setLevel(logging.WARNING)
 
     warnings.filterwarnings("ignore", message=".*resume_download.*")
     warnings.filterwarnings("ignore", message=".*use_auth_token.*")
+    # torio/torchcodec probe every FFmpeg version on import and emit a UserWarning when
+    # none of the .dylib files load. The warning is harmless — transcription uses the
+    # system ffmpeg subprocess, not Python FFmpeg bindings.
+    warnings.filterwarnings("ignore", message=".*torchcodec.*")
+    warnings.filterwarnings("ignore", message=".*libtorchcodec.*")
+    warnings.filterwarnings("ignore", message=".*FFmpeg.*extension.*")
+    # pyannote wraps the torchcodec failure in its own UserWarning.
+    warnings.filterwarnings("ignore", message=".*torchcodec is not installed correctly.*")
 
     logging.getLogger("reflect").info(
         "Logging initialised — console level=%s, file=DEBUG, log_file=%s",

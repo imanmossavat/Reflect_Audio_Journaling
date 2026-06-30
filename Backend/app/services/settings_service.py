@@ -10,6 +10,20 @@ from app.logging_config import logger
 _BACKEND_DIR = Path(__file__).resolve().parents[2]
 _SETTINGS_PATH = _BACKEND_DIR / "data" / "settings.json"
 
+
+def _auto_detect_device() -> str:
+    """Return the best available compute device: cuda > mps > cpu."""
+    try:
+        import torch
+        if torch.cuda.is_available():
+            return "cuda"
+        if getattr(torch.backends, "mps", None) and torch.backends.mps.is_available():
+            return "mps"
+    except Exception:
+        pass
+    return "cpu"
+
+
 DEFAULTS: dict[str, Any] = {
     "chat_model": "gemma4:e4b",
     # Shared context window for every chat_model call
@@ -17,7 +31,7 @@ DEFAULTS: dict[str, Any] = {
     "num_ctx": 16384,
     "embed_model": "nomic-embed-text",
     "ollama_host": "http://localhost:11434",
-    "device": "cpu",
+    "device": _auto_detect_device(),
     "whisper_model": "base",
     "language": "en",
     "db_path": str((_BACKEND_DIR / "database" / "database.db").as_posix()),

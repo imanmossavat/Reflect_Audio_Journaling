@@ -96,6 +96,15 @@ LOG_LEVEL=DEBUG uv run python start_backend.py     # full trace (default)
 
 ---
 
+## 9. Log noise — multipart and fsevents silenced
+
+**Issue:** After enabling configurable logging, `multipart.multipart` (the Python multipart library used by FastAPI for file uploads) and `fsevents` (the macOS kernel event backend for watchdog) both logged at DEBUG by default. This produced hundreds of lines per file upload in the console, making it impossible to read the application's own log output.
+
+**Fix:**
+- `Backend/app/logging_config.py` — added `"multipart"` and `"fsevents"` to the list of silenced third-party libraries. Both are now capped at `WARNING` regardless of `LOG_LEVEL`.
+
+---
+
 ## What was not changed
 
 The following items from `ANALYSIS.md` were reviewed but not implemented in this session. They require more substantial design or architectural work:

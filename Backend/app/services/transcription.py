@@ -24,12 +24,17 @@ class TranscriptionManager:
         self.whisperx = self._load_whisperx()
 
         logger.info("[INIT] Loading ASR model...")
-        self.asr_model = self.whisperx.load_model(
-            self.model_size,
-            device=self.device,
-            compute_type=self.compute_type,
-            language=self.language,
-        )
+        if self.device == "mps":
+            # CTranslate2 (faster-whisper) does not support MPS.
+            # Use openai-whisper (PyTorch) which supports mps/cuda/cpu uniformly.
+            self._openai_model = self._load_openai_whisper()
+        else:
+            self.asr_model = self.whisperx.load_model(
+                self.model_size,
+                device=self.device,
+                compute_type=self.compute_type,
+                language=self.language,
+            )
 
         logger.info("[INIT] Loading alignment model...")
         self.alignment_model, self.align_metadata = self.whisperx.load_align_model(
@@ -47,7 +52,10 @@ class TranscriptionManager:
         logger.info(f"[TRANSCRIBE] Audio loaded shape={audio.shape} sr={self.sample_rate}")
 
         logger.info("[WHISPER] Running ASR transcription")
-        result = self.asr_model.transcribe(audio)
+        if self.device == "mps":
+            result = self._transcribe_openai_whisper(audio)
+        else:
+            result = self.asr_model.transcribe(audio)
 
         logger.info(f"[WHISPER] Done language={result.get('language')} segments={len(result.get('segments', []))}")
 
@@ -89,6 +97,27 @@ class TranscriptionManager:
             sentences=sentences,
             source="whisperx",
         )
+
+    def _load_openai_whisper(self):
+        logger.info(f"[INIT] Loading openai-whisper (MPS backend) model={self.model_size} device={self.device}")
+        try:
+            import whisper as _ow
+        except ImportError:
+            raise RuntimeError(
+                "openai-whisper is required for MPS transcription. "
+                "Run: uv add openai-whisper"
+            )
+        return _ow.load_model(self.model_size, device=self.device)
+
+    def _transcribe_openai_whisper(self, audio: np.ndarray) -> dict:
+        result = self._openai_model.transcribe(
+            audio,
+            language=self.language or None,
+            word_timestamps=True,
+            verbose=False,
+            fp16=(self.device != "cpu"),
+        )
+        return result
 
     @staticmethod
     def _load_whisperx():

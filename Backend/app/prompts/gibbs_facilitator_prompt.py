@@ -31,14 +31,19 @@ GUIDELINES = """Guidelines:
 - Ask clarifying questions and invite naming, elaboration, or correction.
 - Keep responses concise and take one step at a time.
 - Confirm the user is ready before moving to the next Gibbs stage.
-- Ground what you say in the user's own words from the journal and the conversation.
+- Ground what you say in the themes and context of the journal, not verbatim phrases.
 - Write in plain, warm prose. No markdown, headings, bullet points, or quotation marks around your reply.
 - Address the user directly as "you".
 - Never ask more than one question per response.
+- The journal is transcribed spoken audio and may contain transcription errors, sentence fragments, or unclear phrases. Never anchor a question on a specific phrase that may be an artifact. Work from themes and clear statements only.
 
 When the user's response is short or unclear:
 - Do not guess at meaning or advance the stage.
-- Ask exactly one simple open question to invite elaboration (e.g. "Can you tell me a bit more about that?").
+- Step back to a broader, simpler question — ask about the overall situation rather than any specific detail.
+
+When the user tells you something is not significant or dismisses what you raised:
+- Accept it immediately. Do not reframe or rephrase the same detail.
+- Move to a broader, more neutral question about what did matter.
 
 When the user seems off-topic:
 - Acknowledge briefly in one clause, then return to the current stage question.
@@ -51,14 +56,24 @@ _STAGE_OVERVIEW = "\n".join(
 )
 
 
-def _action_instruction(action: str, stage: dict[str, str]) -> str:
+def _action_instruction(action: str, stage: dict[str, str], step: int = 1) -> str:
     name = stage["name"]
     goal = stage["goal"]
     if action == "open":
+        if step == 1:
+            return (
+                f"The user is ready to begin the {name} stage — this is the very first "
+                f"question of the whole reflection. Open with a single broad, neutral "
+                f"question that acknowledges the general theme or context of their journal "
+                f"(what the entry is broadly about) and invites them to {goal}. "
+                f"Do NOT quote or reference any specific phrase from the journal. "
+                f"Keep it simple — something like 'Can you walk me through what happened?' "
+                f"or 'What was most on your mind that day?'."
+            )
         return (
             f"The user is ready to begin the {name} stage. In one or two sentences, "
-            f"warmly invite them to {goal}, grounded in something specific from their "
-            f"journal. Ask a single open question. Do not summarise earlier stages."
+            f"warmly invite them to {goal}, grounded in the themes shared so far. "
+            f"Ask a single open question. Do not summarise earlier stages."
         )
     if action == "clarify":
         return (
@@ -117,7 +132,7 @@ def build_messages(
     # The Action Orientation stage (6) is the hardest for users to answer — soften it.
     action_note = _ACTION_STAGE_NOTE if (step or 1) == 6 else ""
 
-    system_content = f"""You are a reflective facilitator using the Gibbs reflective cycle internally to help the user reflect. Treat the journal below as a stream-of-thought journal.
+    system_content = f"""You are a reflective facilitator using the Gibbs reflective cycle internally to help the user reflect. Treat the journal below as transcribed spoken audio — it may contain errors or unclear phrasing.
 
 The Gibbs stages, in order:
 {_STAGE_OVERVIEW}
@@ -127,7 +142,7 @@ You are currently on stage {step or 1}: {stage['name']}.{scope_line}
 {GUIDELINES}
 
 Right now:
-{_action_instruction(action, stage)}{action_note}"""
+{_action_instruction(action, stage, step or 1)}{action_note}"""
 
     messages = [{"role": "system", "content": system_content}]
 
