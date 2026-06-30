@@ -44,11 +44,10 @@ def setup_logging():
         "version": 1,
         "disable_existing_loggers": False,
         "loggers": {
-            # App loggers only emit ERROR and above (critical errors /
-            # unhandled exceptions). info/debug/warning calls are no-ops by
-            # design — see CLAUDE.md "Logging".
-            "":                  {"level": "ERROR", "propagate": False},
-            "reflect":           {"level": "ERROR", "propagate": False},
+            # App loggers run at INFO — normal flow/progress and errors are
+            # emitted to the console and logs/app.log. See CLAUDE.md "Logging".
+            "":                  {"level": "INFO", "propagate": False},
+            "reflect":           {"level": "INFO", "propagate": False},
             # uvicorn keeps INFO so server lifecycle/access stays visible.
             "uvicorn":           {"level": "INFO", "propagate": False},
             "uvicorn.access":    {"level": "INFO", "propagate": False},
