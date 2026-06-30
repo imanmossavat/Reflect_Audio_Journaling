@@ -14,7 +14,8 @@ DONE = INBOX / "done"
 SUPPORTED_EXT = {".wav", ".mp3", ".m4a", ".webm", ".ogg", ".txt", ".md"}
 
 _CERT_DIR = Path(__file__).parent.parent.parent.parent / "certs"
-_USE_TLS = (_CERT_DIR / "localhost+1.pem").exists() and (_CERT_DIR / "localhost+1-key.pem").exists()
+# Use the same filenames that start.sh generates with mkcert.
+_USE_TLS = (_CERT_DIR / "localhost.pem").exists() and (_CERT_DIR / "localhost-key.pem").exists()
 _UPLOAD_URL = f"{'https' if _USE_TLS else 'http'}://localhost:8000/source/uploadFile/processed"
 
 _inflight: set[str] = set()
@@ -41,15 +42,20 @@ def _process_file(path: Path):
     key = str(path.resolve())
     with _inflight_lock:
         if key in _inflight:
+            logger.debug(f"[inbox] skipping {path.name} — already in-flight")
             return
         _inflight.add(key)
     try:
         if path.suffix.lower() not in SUPPORTED_EXT:
+            logger.debug(f"[inbox] ignoring {path.name} — unsupported extension")
             return
+        logger.info(f"[inbox] detected {path.name} — waiting for file to stabilise")
         _wait_stable(path)
         if not path.exists():
             # Recoverable: the capture was removed/moved before we got to it.
+            logger.warning(f"[inbox] {path.name} disappeared before upload — skipping")
             return
+        logger.info(f"[inbox] uploading {path.name} → {_UPLOAD_URL} (TLS={_USE_TLS})")
         try:
             with path.open("rb") as f:
                 resp = httpx.post(
@@ -58,11 +64,14 @@ def _process_file(path: Path):
                     timeout=600,
                     verify=False,
                 )
+            logger.debug(f"[inbox] upload response status={resp.status_code} for {path.name}")
             resp.raise_for_status()
             DONE.mkdir(parents=True, exist_ok=True)
             # Inbox names are no longer globally unique (no timestamp prefix), so a
             # same-named capture from an earlier session may already sit in done/.
-            shutil.move(str(path), str(unique_path(DONE, path.name)))
+            dest = unique_path(DONE, path.name)
+            shutil.move(str(path), str(dest))
+            logger.info(f"[inbox] {path.name} processed and moved to done/")
         except Exception as e:
             logger.exception(f"[inbox] failed to process {path.name}: {e}")
     finally:

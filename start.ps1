@@ -95,7 +95,8 @@ $useTls = Test-Path $certFile
 # 4. Backend deps + DB migration
 Set-Location "$root\Backend"
 
-# Pick PyTorch wheels based on whether an NVIDIA GPU is reachable.
+# Pick PyTorch extra based on whether an NVIDIA GPU is reachable.
+# Both resolve to the same torch==2.8.* wheels; the extra name just documents intent.
 $torchExtra = "cpu"
 if (Get-Command nvidia-smi -ErrorAction SilentlyContinue) {
     try {

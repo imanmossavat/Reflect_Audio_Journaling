@@ -114,7 +114,7 @@ def test_retrieve_nodes_delegates(monkeypatch):
     calls = []
     monkeypatch.setattr(
         retrieval, "ranked_retrieve",
-        lambda question, top_k=5, session=None, modality=None: calls.append((question, top_k)) or ["x"],
+        lambda question, top_k=5, session=None, modality=None, tags=None: calls.append((question, top_k)) or ["x"],
     )
     assert retrieval.retrieve_nodes("q", top_k=7) == ["x"]
     assert calls == [("q", 7)]
@@ -129,7 +129,7 @@ def test_query_sources_uses_injected_retriever_and_llm(monkeypatch):
     result = generation.query_sources(
         "my question",
         top_k=4,
-        retrieve_fn=lambda question, top_k=5, modality=None: calls.append((question, top_k)) or [],
+        retrieve_fn=lambda question, top_k=5, modality=None, tags=None: calls.append((question, top_k)) or [],
         llm=fake_llm,
     )
 

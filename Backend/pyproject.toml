@@ -56,6 +56,16 @@ ml = [
     "torch==2.8.*",
     "torchaudio==2.8.*",
 ]
+# cpu and cuda are aliases for ml — uv resolves the right wheels automatically
+# based on the platform. Kept separate so start scripts can be explicit.
+cpu = [
+    "torch==2.8.*",
+    "torchaudio==2.8.*",
+]
+cuda = [
+    "torch==2.8.*",
+    "torchaudio==2.8.*",
+]
 
 dev = [
     "pytest==8.3.4",

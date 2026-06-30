@@ -24,6 +24,7 @@ from app.services import generation_registry
 from app.services import reflectionService
 from app.services import safety
 from app.services.ollama_gate import generation_lock, is_busy
+from app.services.thin_turn import is_thin_turn
 
 import httpx
 from ollama import AsyncClient
@@ -300,6 +301,18 @@ async def generate_question(req: GenerateRequest):
     action = action_for_mode.get(getattr(req.mode, "value", req.mode))
     if action is None:
         raise HTTPException(status_code=400, detail=f"Unknown mode: {req.mode}")
+
+    # If the last user answer in history is thin (very short / no information),
+    # force the facilitator to clarify rather than advance or open a new stage.
+    if action == "reply" and req.history:
+        last_answer = (req.history[-1].get("answer") or "").strip()
+        if is_thin_turn(last_answer):
+            logger.debug(
+                "[generate-question] thin turn detected (answer=%r) — forcing clarify action",
+                last_answer[:60],
+            )
+            action = "clarify"
+
     try:
         messages = gibbs_facilitator_prompt.build_messages(
             source_text,

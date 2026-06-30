@@ -210,8 +210,9 @@ fi
 # 4. Backend deps + DB migration
 cd "$ROOT/Backend"
 
-# Pick PyTorch wheels based on whether an NVIDIA GPU is reachable.
-TORCH_EXTRA="ml"
+# Pick PyTorch extra based on whether an NVIDIA GPU is reachable.
+# Both resolve to the same torch==2.8.* wheels; the extra name just documents intent.
+TORCH_EXTRA="cpu"
 if command -v nvidia-smi &>/dev/null && nvidia-smi &>/dev/null; then
     TORCH_EXTRA="cuda"
 fi
