@@ -14,7 +14,7 @@ DONE = INBOX / "done"
 SUPPORTED_EXT = {".wav", ".mp3", ".m4a", ".webm", ".ogg", ".txt", ".md"}
 
 _CERT_DIR = Path(__file__).parent.parent.parent.parent / "certs"
-_USE_TLS = (_CERT_DIR / "localhost+1.pem").exists() and (_CERT_DIR / "localhost+1-key.pem").exists()
+_USE_TLS = (_CERT_DIR / "localhost.pem").exists() and (_CERT_DIR / "localhost-key.pem").exists()
 _UPLOAD_URL = f"{'https' if _USE_TLS else 'http'}://localhost:8000/source/uploadFile/processed"
 
 _inflight: set[str] = set()
