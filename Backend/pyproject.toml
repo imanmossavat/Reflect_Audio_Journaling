@@ -2,28 +2,28 @@
 name = "reflect-backend"
 version = "0.1.0"
 requires-python = "==3.11.*"
+
 dependencies = [
     # Core ML / audio
-    # NOTE: torch / torchaudio are provided via the "cpu" or "cuda" extras
-    # below so we can swap PyTorch wheels based on whether an NVIDIA GPU is
-    # present. start.ps1 picks the extra automatically; if you run uv by
-    # hand, pass one of:  uv sync --extra cpu   |   uv sync --extra cuda
     "numpy>=2.1.0",
     "scikit-learn==1.7.2",
     "librosa==0.11.0",
     "transformers>=4.48.0",
     "whisperx==3.8.5",
     "sentence-transformers==5.1.2",
+
     # NLP
     "spacy==3.8.4",
     "nl-core-news-lg @ https://github.com/explosion/spacy-models/releases/download/nl_core_news_lg-3.8.0/nl_core_news_lg-3.8.0-py3-none-any.whl",
     "en-core-web-sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl",
+
     # LLM / RAG
     "ollama==0.6.1",
     "llama-index==0.14.18",
     "llama-index-llms-ollama==0.10.0",
     "llama-index-embeddings-ollama==0.9.0",
     "llama-index-vector-stores-chroma==0.5.5",
+
     # Web
     "fastapi==0.135.1",
     "uvicorn[standard]==0.42.0",
@@ -31,11 +31,14 @@ dependencies = [
     "pydantic-settings==2.13.1",
     "python-multipart==0.0.9",
     "httpx==0.27.2",
+
     # Database
     "sqlmodel==0.0.37",
     "alembic==1.18.4",
+
     # Vector DB
     "chromadb==1.5.5",
+
     # Misc
     "python-dotenv==1.1.1",
     "qrcode[pil]==8.2",
@@ -49,19 +52,11 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# CPU-only PyTorch (default fallback when no NVIDIA GPU is detected).
-cpu = [
+ml = [
     "torch==2.8.*",
     "torchaudio==2.8.*",
 ]
-# CUDA 12.8 PyTorch wheels (works with any NVIDIA driver >= 525,
-# which includes everything from RTX 20-series onwards).
-# Torch 2.8 ships cuDNN 9, which matches what ctranslate2 >= 4.5 (pulled
-# transitively by whisperx 3.8.x) expects — no extra cuDNN install needed.
-cuda = [
-    "torch==2.8.*",
-    "torchaudio==2.8.*",
-]
+
 dev = [
     "pytest==8.3.4",
     "pytest-mock==3.15.1",
@@ -70,35 +65,7 @@ dev = [
 
 [tool.uv]
 package = false
-# cpu and cuda extras pin the same versions to different indexes, so
-# they conflict by design — uv needs to know not to resolve both at once.
-conflicts = [
-  [{ extra = "cpu" }, { extra = "cuda" }],
-]
 
 [build-system]
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
-
-# Route torch/torchaudio to the right wheel index based on which extra
-# is active. On Linux the cpu extra uses the dedicated CPU index;
-# on Windows it falls back to PyPI (the +cpu variant has no win wheels).
-[tool.uv.sources]
-torch = [
-  { index = "pytorch-cpu", extra = "cpu", marker = "sys_platform == 'linux'" },
-  { index = "pytorch-cuda", extra = "cuda" },
-]
-torchaudio = [
-  { index = "pytorch-cpu", extra = "cpu", marker = "sys_platform == 'linux'" },
-  { index = "pytorch-cuda", extra = "cuda" },
-]
-
-[[tool.uv.index]]
-name = "pytorch-cpu"
-url = "https://download.pytorch.org/whl/cpu"
-explicit = true
-
-[[tool.uv.index]]
-name = "pytorch-cuda"
-url = "https://download.pytorch.org/whl/cu128"
-explicit = true

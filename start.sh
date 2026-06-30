@@ -211,7 +211,7 @@ fi
 cd "$ROOT/Backend"
 
 # Pick PyTorch wheels based on whether an NVIDIA GPU is reachable.
-TORCH_EXTRA="cpu"
+TORCH_EXTRA="ml"
 if command -v nvidia-smi &>/dev/null && nvidia-smi &>/dev/null; then
     TORCH_EXTRA="cuda"
 fi
