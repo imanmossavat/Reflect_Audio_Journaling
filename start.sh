@@ -246,11 +246,12 @@ uv run python start_backend.py &
 BACKEND_PID=$!
 
 # 6. Frontend deps + start
-cd "$ROOT/frontend"
-# Always run npm install — it's a fast no-op when the lockfile already matches,
-# and it ensures newly added deps are picked up on re-runs.
+cd "$ROOT/Frontend"
+# Use `npm ci` for a clean, reproducible install straight from the lockfile.
+# Unlike `npm install`, it never rewrites package-lock.json, so re-runs on a
+# machine with a different npm version won't leave the lockfile dirty in git.
 echo "Installing frontend dependencies..."
-npm install
+npm ci
 echo "Starting frontend..."
 if [ "$USE_TLS" = true ]; then
     npm run dev:tls &

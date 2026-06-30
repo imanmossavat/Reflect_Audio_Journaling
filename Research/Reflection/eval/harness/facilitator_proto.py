@@ -9,9 +9,6 @@ runs the full pipeline the plan describes:
               └─▶ hardened prompt ─▶ generate ─▶ output guard ─▶ (clean)
                                                             └─▶ repair once ─▶ (clean)
                                                                           └─▶ safe fallback
-
-Returns (text, trace) where trace.path ∈ {input_guard, clean, repaired, fallback} so the runner can
-record which layer produced each reply.
 """
 import guard
 from app.prompts import gibbs_facilitator_prompt

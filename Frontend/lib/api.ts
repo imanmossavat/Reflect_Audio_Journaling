@@ -6,6 +6,7 @@ export type SourceStatus =
   | "chunking"
   | "indexing"
   | "failed"
+  | "failed_no_speech"
   | "failed_ollama_not_running"
   | "failed_ollama_not_installed"
   | "failed_ollama_model_missing"
@@ -25,6 +26,7 @@ export const PROCESSING_STATUS_LABELS: Record<string, string> = {
   chunking: "Splitting into chunks...",
   indexing: "Building search index...",
   failed: "Processing failed",
+  failed_no_speech: "Failed — no speech detected",
   failed_ollama_not_running: "Failed — Ollama is not running",
   failed_ollama_not_installed: "Failed — Ollama is not installed",
   failed_ollama_model_missing: "Failed — embedding model missing",
@@ -59,6 +61,12 @@ export function explainFailure(status: SourceStatus): FailureExplanation | null 
         description:
           "Reflect needs this model to index your sources. Pull it once in a terminal, then click Retry.",
         command: `ollama pull ${EMBED_MODEL_NAME}`,
+      }
+    case "failed_no_speech":
+      return {
+        title: "No speech detected",
+        description:
+          "The audio loaded fine, but we couldn't find any spoken words to transcribe — the recording may be silent or empty. Check the audio (or try a different language / Whisper model in Settings), then click Retry.",
       }
     case "failed":
       return {

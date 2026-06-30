@@ -97,7 +97,7 @@ export function SourceListPanel({
   }, [rawSources, tagFilter, titleSearchTerm])
 
   const selectableSources = useMemo(
-    () => filteredSources.filter((s) => !PROCESSING_STATUSES.has(s.status) && s.status !== "failed" && !OLLAMA_FAILURE_STATUSES.has(s.status)),
+    () => filteredSources.filter((s) => !PROCESSING_STATUSES.has(s.status) && s.status !== "failed" && s.status !== "failed_no_speech" && !OLLAMA_FAILURE_STATUSES.has(s.status)),
     [filteredSources],
   )
   const allSelected = selectableSources.length > 0 && selectableSources.every((s) => s.included)
@@ -248,8 +248,9 @@ export function SourceListPanel({
           filteredSources.map((source, sourceIndex) => {
             const isInProgress = PROCESSING_STATUSES.has(source.status)
             const isFailed = source.status === "failed"
+            const isNoSpeech = source.status === "failed_no_speech"
             const isOllamaFailure = OLLAMA_FAILURE_STATUSES.has(source.status)
-            const isAnyFailure = isFailed || isOllamaFailure
+            const isAnyFailure = isFailed || isNoSpeech || isOllamaFailure
             return (
               <div
                 key={source.id}
@@ -372,10 +373,10 @@ export function SourceListPanel({
                               {retryingId === source.id ? "Retrying..." : "Retry"}
                             </button>
                           </div>
-                        ) : isFailed ? (
+                        ) : isFailed || isNoSpeech ? (
                           <div className="mt-0.5">
-                            <p className="text-xs text-red-500 font-medium">Processing failed</p>
-                            <p className="text-xs text-muted-foreground">Check the backend logs, then click Retry.</p>
+                            <p className="text-xs text-red-500 font-medium">{isNoSpeech ? "No speech detected" : "Processing failed"}</p>
+                            <p className="text-xs text-muted-foreground">{isNoSpeech ? "We couldn't find any speech in this recording." : "Check the backend logs, then click Retry."}</p>
                             <button
                               type="button"
                               onClick={() => void handleRetryClick(source.id)}

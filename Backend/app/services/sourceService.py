@@ -28,6 +28,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent / "database" / "uploads
 (BASE_DIR / "text").mkdir(parents=True, exist_ok=True)
 logger = logging_config.logger
 
+AUDIO_EXTENSIONS = {".wav", ".mp3", ".m4a", ".webm", ".ogg"}
+
 #Background processing
 
 def _check_ollama() -> str:
@@ -88,8 +90,11 @@ def _process_source_sync(source_id: int) -> None:
                 for s in transcript.sentences
             ]
             if not text or not text.strip():
+                # Audio decoded fine but Whisper found no spoken words (silent or
+                # empty recording). Distinct status so the UI can say so instead
+                # of a generic "Processing failed".
                 logger.error(f"Transcription produced no text for source {source_id}")
-                _set_status(source_id, "failed")
+                _set_status(source_id, "failed_no_speech")
                 return
             # Short-lived write to save transcript
             with Session(engine) as session:
@@ -211,7 +216,7 @@ async def save_raw_source_file(session: Session, file: UploadFile):
     ext = os.path.splitext(file.filename)[1].lower()
     content_type = file.content_type or ""
 
-    if content_type.startswith("audio/") or ext in [".wav", ".mp3", ".m4a"]:
+    if content_type.startswith("audio/") or ext in AUDIO_EXTENSIONS:
         file_type = "audio"
         subfolder = "audio"
     elif ext == ".md":
@@ -248,7 +253,7 @@ async def save_processed_source_file(session: Session, file: UploadFile):
     ext = os.path.splitext(file.filename)[1].lower()
     content_type = file.content_type or ""
 
-    if content_type.startswith("audio/") or ext in [".wav", ".mp3", ".m4a"]:
+    if content_type.startswith("audio/") or ext in AUDIO_EXTENSIONS:
         file_type = "audio"
         subfolder = "audio"
     elif ext == ".md":

@@ -1,10 +1,5 @@
 """Prompt templates for the RAG pipeline, plus a small named registry.
 
-Everything prompt-shaped lives here so an experiment can swap the prompt by name
-(`get_prompt("default")`) without touching retrieval or generation. The production
-code paths use the module-level constants directly; the eval harness selects a
-variant from `PROMPTS` via config.
-
 Variants
 --------
 - ``default``        — the current production prompt (SYSTEM_PROMPT + Q/A body). This is
@@ -61,19 +56,13 @@ Address the journal author as 'you' and 'your'. Never retell their entries in th
 first person"""
 
 
-# Per-turn body for the chat path (the final `user` message; rules live in
-# SYSTEM_PROMPT above). Framed as "the latest message" rather than "Question:/Answer:"
-# so greetings, statements, and corrections aren't forced into Q&A mode — the routing
-# in SYSTEM_PROMPT decides how to respond.
+# Per-turn b
 CONTEXT_QA_TEMPLATE = PromptTemplate("""Some of the author's journal entries that may be relevant are below (they may not relate to the message at all).
 ---------------------
 {context_str}
 ---------------------
 Latest message from the author: {query_str}""")
 
-# Single-string prompt for the stateless /query path (pure Q&A, no conversation):
-# Settings.llm.complete has no message roles, so rules + context + question are
-# combined into one prompt. Keeps the explicit Question/Answer framing for eval.
 _QA_BODY = """Context information from the journal is below.
 ---------------------
 {context_str}
@@ -84,9 +73,6 @@ Answer:"""
 TEXT_QA_TEMPLATE = PromptTemplate(SYSTEM_PROMPT + "\n\n" + _QA_BODY)
 
 
-# Previous prompt (pre-"prompt optimisation"): the aggressive refusal clause that pinned
-# stateful answer_accuracy at ~0.467. Kept registered so experiments can reproduce that
-# baseline without checking out old code.
 STRICT_REFUSAL_TEMPLATE = PromptTemplate("""
 Context information is below.
     ---------------------

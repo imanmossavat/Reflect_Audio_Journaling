@@ -151,10 +151,11 @@ Start-Process powershell -ArgumentList "-NoExit", "-Command", "Set-Location '$ro
 
 # 6. Frontend deps + start
 Set-Location "$root\frontend"
-# Always run npm install -- it's a fast no-op when the lockfile already matches,
-# and it ensures newly added deps are picked up on re-runs.
+# Use `npm ci` for a clean, reproducible install straight from the lockfile.
+# Unlike `npm install`, it never rewrites package-lock.json, so re-runs on a
+# machine with a different npm version won't leave the lockfile dirty in git.
 Write-Host "Installing frontend dependencies..."
-npm install
+npm ci
 Write-Host "Starting frontend..."
 $frontendScript = if ($useTls) { "npm run dev:tls" } else { "npm run dev" }
 Start-Process powershell -ArgumentList "-NoExit", "-Command", "Set-Location '$root\frontend'; $frontendScript"
