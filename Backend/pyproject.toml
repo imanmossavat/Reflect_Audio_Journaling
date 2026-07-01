@@ -53,12 +53,14 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+# ml is the CPU install, kept as an alias so Mac/Linux (no CUDA index needed)
+# can keep using it. cpu/cuda are the extras the start scripts pick between;
+# they must stay routed to different indexes below or "cuda" silently
+# resolves to the CPU wheel (see docs/ISSUES.md #1 and #9).
 ml = [
     "torch==2.8.*",
     "torchaudio==2.8.*",
 ]
-# cpu and cuda are aliases for ml — uv resolves the right wheels automatically
-# based on the platform. Kept separate so start scripts can be explicit.
 cpu = [
     "torch==2.8.*",
     "torchaudio==2.8.*",
@@ -76,6 +78,35 @@ dev = [
 
 [tool.uv]
 package = false
+# cpu and cuda both pin torch==2.8.* but must resolve from different indexes
+# (see [tool.uv.sources] below), so uv needs to know a single environment
+# can't satisfy both at once.
+conflicts = [
+    [
+        { extra = "cpu" },
+        { extra = "cuda" },
+    ],
+]
+
+[tool.uv.sources]
+torch = [
+    { index = "pytorch-cuda", extra = "cuda" },
+    { index = "pytorch-cpu", extra = "cpu" },
+]
+torchaudio = [
+    { index = "pytorch-cuda", extra = "cuda" },
+    { index = "pytorch-cpu", extra = "cpu" },
+]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[[tool.uv.index]]
+name = "pytorch-cuda"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
 
 [build-system]
 requires = ["setuptools"]

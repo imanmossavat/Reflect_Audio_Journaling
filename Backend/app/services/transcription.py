@@ -8,14 +8,24 @@ ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
 from app.schemas.journalSchemas import Transcript, Sentence, WordToken
 from app.config import settings
 from app.logging_config import logger
+from app.services.settings_service import device_available
 
 
 class TranscriptionManager:
 
     def __init__(self):
         self.device = settings.DEVICE
+        if not device_available(self.device):
+            # Guards against a stale settings.json (e.g. copied from another
+            # machine, or written before torch was reinstalled without CUDA
+            # support) claiming a device that no longer exists here.
+            logger.warning(
+                f"[INIT] Configured device={self.device!r} is not available on this "
+                "machine; falling back to cpu"
+            )
+            self.device = "cpu"
         self.model_size = settings.WHISPER_MODEL
-        self.compute_type = settings.COMPUTE_TYPE
+        self.compute_type = "float16" if self.device in {"cuda", "mps"} else "int8"
         self.sample_rate = getattr(settings, "SAMPLE_RATE", 16000) or 16000
         self.language = settings.LANGUAGE
 
