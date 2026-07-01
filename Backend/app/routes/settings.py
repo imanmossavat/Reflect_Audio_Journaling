@@ -75,8 +75,8 @@ async def list_devices() -> list[dict[str, Any]]:
         "id": "mps",
         "label": "MPS (Apple Silicon)",
         "available": mps_available,
-        "detail": None,
-        "supported_for_transcription": False,
+        "detail": "Uses openai-whisper (PyTorch) — model downloads to ~/.cache/whisper/ on first use",
+        "supported_for_transcription": True,
     })
     devices.append({
         "id": "rocm",

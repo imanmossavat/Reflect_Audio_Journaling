@@ -88,6 +88,7 @@ def setup_logging():
         "fsspec",               # local file-open traces from pyannote VAD model loading
         "urllib3",              # HTTPS connection traces (HuggingFace, otel telemetry pings)
         "lightning",            # Lightning checkpoint upgrade notices
+        "numba",                # JIT compilation traces from librosa (one-time, verbose)
     ):
         logging.getLogger(noisy).setLevel(logging.WARNING)
 

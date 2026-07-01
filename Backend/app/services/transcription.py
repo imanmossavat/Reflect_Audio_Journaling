@@ -99,7 +99,13 @@ class TranscriptionManager:
         )
 
     def _load_openai_whisper(self):
-        logger.info(f"[INIT] Loading openai-whisper (MPS backend) model={self.model_size} device={self.device}")
+        # Whisper's decoder builds sparse attention tensors. PyTorch's SparseMPS backend
+        # has no kernel for _sparse_coo_tensor_with_dims_and_tensors, so the decode step
+        # crashes on MPS regardless of PYTORCH_ENABLE_MPS_FALLBACK (that flag only covers
+        # the dense MPS key, not SparseMPS). Load ASR on CPU; the alignment step still
+        # runs on MPS via WhisperX's wav2vec2 model.
+        asr_device = "cpu" if self.device == "mps" else self.device
+        logger.info(f"[INIT] Loading openai-whisper model={self.model_size} asr_device={asr_device} (system_device={self.device})")
         try:
             import whisper as _ow
         except ImportError:
@@ -107,15 +113,17 @@ class TranscriptionManager:
                 "openai-whisper is required for MPS transcription. "
                 "Run: uv add openai-whisper"
             )
-        return _ow.load_model(self.model_size, device=self.device)
+        return _ow.load_model(self.model_size, device=asr_device)
 
     def _transcribe_openai_whisper(self, audio: np.ndarray) -> dict:
+        # ASR runs on CPU when system device is MPS (see _load_openai_whisper).
+        asr_device = "cpu" if self.device == "mps" else self.device
         result = self._openai_model.transcribe(
             audio,
             language=self.language or None,
             word_timestamps=True,
             verbose=False,
-            fp16=(self.device != "cpu"),
+            fp16=(asr_device == "cuda"),
         )
         return result
 
