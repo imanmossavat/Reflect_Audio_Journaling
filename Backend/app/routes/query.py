@@ -325,6 +325,8 @@ async def generate_question(req: GenerateRequest):
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+    chat_model = _chat_model()
+
     async def stream_ollama():
         try:
             parts: list[str] = []
@@ -334,7 +336,7 @@ async def generate_question(req: GenerateRequest):
             async with generation_lock:
                 client = AsyncClient(host=_ollama_host())
                 async for chunk in await client.chat(
-                    model=_chat_model(), messages=messages, stream=True, think=False,
+                    model=chat_model, messages=messages, stream=True, think=False,
                     options={"num_ctx": chat_num_ctx()},
                 ):
                     token = chunk.get("message", {}).get("content", "")
@@ -349,7 +351,7 @@ async def generate_question(req: GenerateRequest):
             if verdict.flagged:
                 yield f"data: {json.dumps({'fallback': verdict.kind or 'support'})}\n\n"
             else:
-                yield f"data: {json.dumps({'text': text})}\n\n"
+                yield f"data: {json.dumps({'text': text, 'model': chat_model})}\n\n"
             yield "data: [DONE]\n\n"
         except Exception as e:
             logger.error(f"Ollama streaming error: {e}")

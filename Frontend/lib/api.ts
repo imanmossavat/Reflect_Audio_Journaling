@@ -753,13 +753,14 @@ export const api = {
       // withheld until the output guard clears it).
       onProgress: (chars: number) => void
       // Terminal: the guarded question (`text`) or, if the guard tripped, a `fallbackKind`.
-      onDone: (result: { text: string | null; fallbackKind: SafetyKind | null }) => void
+      onDone: (result: { text: string | null; model: string | null; fallbackKind: SafetyKind | null }) => void
       onError: (error: Error) => void
     }
   ) {
     const controller = new AbortController()
     const run = async () => {
       let resultText: string | null = null
+      let resultModel: string | null = null
       let fallbackKind: SafetyKind | null = null
       try {
         const response = await fetch(`${getBackendBaseUrl()}/generate-question`, {
@@ -787,7 +788,7 @@ export const api = {
             const data = trimmed.slice(5).trim()
             if (!data) continue
             if (data === "[DONE]") return true
-            let parsed: { progress?: number; text?: string; fallback?: string; error?: string }
+            let parsed: { progress?: number; text?: string; model?: string; fallback?: string; error?: string }
             try {
               parsed = JSON.parse(data)
             } catch {
@@ -796,12 +797,13 @@ export const api = {
             if (parsed.error) throw new Error(parsed.error)
             if (typeof parsed.progress === "number") handlers.onProgress(parsed.progress)
             if (typeof parsed.text === "string") resultText = parsed.text
+            if (typeof parsed.model === "string") resultModel = parsed.model
             if (parsed.fallback) fallbackKind = parsed.fallback as SafetyKind
           }
           return false
         }
 
-        const done = () => handlers.onDone({ text: resultText, fallbackKind })
+        const done = () => handlers.onDone({ text: resultText, model: resultModel, fallbackKind })
 
         while (true) {
           const { value, done: streamDone } = await reader.read()

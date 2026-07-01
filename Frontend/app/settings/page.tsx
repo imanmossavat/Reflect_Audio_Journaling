@@ -31,12 +31,14 @@ import {
   type SpacyModelEntry,
 } from "@/lib/api"
 
-const WHISPER_MODELS: { value: AppWhisperModel; label: string }[] = [
-  { value: "tiny", label: "tiny — fastest, lowest accuracy" },
-  { value: "base", label: "base — small + decent (default)" },
-  { value: "small", label: "small — balanced" },
-  { value: "medium", label: "medium — slower, better" },
-  { value: "large-v3", label: "large-v3 — best, slowest" },
+// `size` is the approximate model download; `memory` the RAM/VRAM it needs to run.
+// Figures are the well-known Whisper model sizes — a rough guide, not exact.
+const WHISPER_MODELS: { value: AppWhisperModel; label: string; size: string; memory: string }[] = [
+  { value: "tiny", label: "tiny — fastest, lowest accuracy", size: "75 MB", memory: "1 GB" },
+  { value: "base", label: "base — small + decent (default)", size: "145 MB", memory: "1 GB" },
+  { value: "small", label: "small — balanced", size: "500 MB", memory: "2 GB" },
+  { value: "medium", label: "medium — slower, better", size: "1.5 GB", memory: "5 GB" },
+  { value: "large-v3", label: "large-v3 — best, slowest", size: "3 GB", memory: "10 GB" },
 ]
 
 const LANGUAGES: { value: AppLanguage; label: string }[] = [
@@ -315,7 +317,7 @@ export default function SettingsPage() {
                   <SelectContent>
                     {WHISPER_MODELS.map((m) => (
                       <SelectItem key={m.value} value={m.value}>
-                        {m.label}
+                        {m.label} ({m.size} disk, ~{m.memory} memory)
                       </SelectItem>
                     ))}
                   </SelectContent>

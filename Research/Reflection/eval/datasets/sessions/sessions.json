@@ -1,0 +1,52 @@
+{
+  "sessions": [
+    {
+      "id": "S1_charity_app",
+      "journal_text": "Notes from the group project this term. Mobile app for a local charity. Four of us. I did the backend. It was a stressful but kind of rewarding few weeks.",
+      "goal": null,
+      "scope_items": [],
+      "turns": [
+        {
+          "user": "Last month my team of four built a mobile app for a local charity. I was the backend developer.",
+          "assistant": "Thanks for setting the scene. When you picture those weeks, what moment stands out most?"
+        },
+        {
+          "user": "We were behind schedule almost the whole time and scrambling near the deadline.",
+          "assistant": "Can you say a bit more about a moment when that scrambling was clearest?"
+        },
+        {
+          "user": "The night before the demo we found the login was completely broken and stayed up fixing it.",
+          "assistant": "That sounds like a vivid night. Would you like to move on to how those weeks felt for you?"
+        },
+        {
+          "user": "yes",
+          "assistant": "Okay. Thinking back over that stretch, what feelings come up as you remember it?"
+        },
+        {
+          "user": "Honestly I felt anxious most of the time, and then a bit proud right at the end.",
+          "assistant": "What was happening around you when that pride showed up?"
+        },
+        {
+          "user": "When the demo finally worked and the people from the charity looked genuinely happy.",
+          "assistant": "Would you like to look next at what went well and what was harder?"
+        },
+        {
+          "user": "sure",
+          "assistant": "When you weigh it up, what worked, and what felt difficult or unsatisfying?"
+        },
+        {
+          "user": "The teamwork went really well, but our planning was weak and the testing was difficult to keep up with.",
+          "assistant": "That's a clear contrast. Shall we look at why those things turned out the way they did?"
+        },
+        {
+          "user": "ready",
+          "assistant": "What do you think was behind the planning being weak?"
+        },
+        {
+          "user": "We rushed into coding because we were excited, so we never really agreed on who owned what.",
+          "assistant": "That connection makes sense. Is there more you'd want to add there?"
+        }
+      ]
+    }
+  ]
+}

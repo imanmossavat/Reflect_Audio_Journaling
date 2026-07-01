@@ -14,6 +14,7 @@ import {
   File as FileIcon,
   MessageCircle,
   Sparkles,
+  Check,
 } from "lucide-react"
 import { OnboardingModal } from "@/components/onboarding-modal"
 import Tour, { buildTourSteps } from "@/components/Tour"
@@ -32,7 +33,7 @@ import { NoteEditor } from "@/components/home/note-editor"
 import { GraphStage } from "@/components/home/graph-stage"
 import { StageHeader } from "@/components/home/stage-header"
 import { api, type AppSettings, type OllamaModelEntry } from "@/lib/api"
-import { GIBBS_STEP_COUNT } from "@/lib/gibbs"
+import { GIBBS_STEP_COUNT, getGibbsStep } from "@/lib/gibbs"
 import { useSourceManagement } from "@/hooks/useSourceManagement"
 import { useChatManagement } from "@/hooks/useChatManagement"
 import { useSidebarResize } from "@/hooks/useSidebarResize"
@@ -363,6 +364,8 @@ export default function HomePage() {
               onCommitRename={chats.handleCommitRename}
               onCancelRename={() => chats.setRenamingChatId(null)}
               onDeleteChat={chats.handleDeleteChat}
+              onPromoteChat={(id) => void chats.handlePromoteChat(id)}
+              isPromotingChat={chats.isPromotingChat}
             />
           )}
 
@@ -430,16 +433,17 @@ export default function HomePage() {
                 setInputValue={chats.setInputValue}
                 onSubmitText={chats.handleSubmitText}
                 isAssistantThinking={chats.isAssistantThinking}
-                gibbsActive={chats.gibbsActive}
-                chatMode={chats.chatMode}
-                onChangeChatMode={chats.setChatMode}
-                activeChatId={chats.activeChatId}
-                activeChatSourceId={chats.activeChatSourceId}
-                activeChatLinkedSourceStatus={chats.activeChatLinkedSourceStatus}
-                isLinkedSourceProcessing={chats.isLinkedSourceProcessing}
-                isPromotingChat={chats.isPromotingChat}
+                reflectionActive={chats.gibbsActive && !chats.gibbsComplete}
+                gibbsGenerating={chats.gibbsGenerating}
+                isLastStep={chats.gibbsStep >= GIBBS_STEP_COUNT}
+                nextStageLabel={
+                  chats.gibbsStep >= GIBBS_STEP_COUNT ? null : getGibbsStep(chats.gibbsStep + 1).label
+                }
+                onReflect={chats.submitReflection}
+                onAsk={chats.submitQuestion}
+                onContinue={chats.continueStage}
+                onClarify={() => void chats.askClarifying()}
                 activeChatMessages={chats.activeChatMessages}
-                onPromoteChat={chats.handlePromoteChat}
                 includedSourcesCount={sources.includedSources.length}
                 chatModel={appSettings?.chat_model ?? null}
                 installedModels={installedModels}
@@ -486,10 +490,10 @@ export default function HomePage() {
               <button
                 onClick={sidebar.openRight}
                 aria-label="Open guided reflection"
-                title={chats.gibbsSetup ? "Guided reflection · setup" : `Guided reflection · step ${chats.gibbsStep} of ${GIBBS_STEP_COUNT}`}
-                className="flex h-8 w-8 items-center justify-center rounded-md bg-emerald-600/10 font-mono text-[10px] font-medium tabular-nums text-emerald-600 hover:bg-emerald-600/20 transition-colors"
+                title={chats.gibbsComplete ? "Guided reflection · complete" : "Guided reflection"}
+                className="flex h-8 w-8 items-center justify-center rounded-md bg-emerald-600/10 text-emerald-600 hover:bg-emerald-600/20 transition-colors"
               >
-                {chats.gibbsSetup ? "·" : chats.gibbsComplete ? "✓" : `${chats.gibbsStep}/${GIBBS_STEP_COUNT}`}
+                {chats.gibbsComplete ? <Check className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
               </button>
             )}
             <div className="my-1 h-px w-6 bg-border" />
@@ -542,8 +546,6 @@ export default function HomePage() {
               goal={chats.gibbsGoal}
               includedCount={sources.includedSources.length}
               isPromotingChat={chats.isPromotingChat}
-              onAdvance={() => void chats.advanceGibbsStep()}
-              onClarify={() => void chats.askClarifying()}
               onEnd={chats.exitReflection}
               onSelectStep={(step) => void chats.handleSelectGibbsStep(step)}
               onSaveToSources={() => void chats.handlePromoteChat()}

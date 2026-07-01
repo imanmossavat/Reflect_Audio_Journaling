@@ -1,8 +1,7 @@
 "use client"
 
 import { useEffect, useRef } from "react"
-import { Send, Upload, RotateCw, PenLine, Search } from "lucide-react"
-import { PROCESSING_STATUS_LABELS } from "@/lib/api"
+import { Send, PenLine, Search, ChevronRight, CheckCircle2, RotateCcw } from "lucide-react"
 import type { ChatMessageRecord, OllamaModelEntry } from "@/lib/api"
 import {
   Select,
@@ -27,19 +26,18 @@ interface ChatInputProps {
   setInputValue: (v: string) => void
   onSubmitText: (e: React.FormEvent) => Promise<void>
   isAssistantThinking: boolean
-  // reflect/ask mode (toggle shown only during a guided reflection)
-  gibbsActive: boolean
-  chatMode: "reflect" | "ask"
-  onChangeChatMode: (mode: "reflect" | "ask") => void
-  // promote-to-source controls
-  activeChatId: number | null
-  activeChatSourceId: number | null
-  activeChatLinkedSourceStatus: string | null
-  isLinkedSourceProcessing: boolean
-  isPromotingChat: boolean
-  activeChatMessages: ChatMessageRecord[]
-  onPromoteChat: () => Promise<void>
+  // Three send levers, shown during a guided reflection: Reflect (answer, stay),
+  // Ask sources (RAG), and Continue (record answer + advance to the next stage).
+  reflectionActive: boolean
+  gibbsGenerating: boolean
+  isLastStep: boolean
+  nextStageLabel: string | null
+  onReflect: () => void
+  onAsk: () => void
+  onContinue: () => void
+  onClarify: () => void
   // toolbar
+  activeChatMessages: ChatMessageRecord[]
   includedSourcesCount: number
   chatModel: string | null
   installedModels: OllamaModelEntry[]
@@ -53,16 +51,15 @@ export function ChatInput({
   setInputValue,
   onSubmitText,
   isAssistantThinking,
-  gibbsActive,
-  chatMode,
-  onChangeChatMode,
-  activeChatId,
-  activeChatSourceId,
-  activeChatLinkedSourceStatus,
-  isLinkedSourceProcessing,
-  isPromotingChat,
+  reflectionActive,
+  gibbsGenerating,
+  isLastStep,
+  nextStageLabel,
+  onReflect,
+  onAsk,
+  onContinue,
+  onClarify,
   activeChatMessages,
-  onPromoteChat,
   includedSourcesCount,
   chatModel,
   installedModels,
@@ -74,38 +71,13 @@ export function ChatInput({
   // Example prompts are a starting nudge — only show them on an empty chat, and
   // hide them once the first message has been sent.
   const showPrompts = inputValue.trim().length === 0 && activeChatMessages.length === 0
-  const reflectMode = gibbsActive && chatMode === "reflect"
-  const placeholder = reflectMode
-    ? "Write your reflection…"
-    : gibbsActive
-      ? "Ask about your sources…"
-      : "Write a message..."
-  const promoteDisabled = isPromotingChat || isLinkedSourceProcessing || activeChatMessages.length === 0
-  const promoteLabel = (() => {
-    if (activeChatSourceId === null) return isPromotingChat ? "Promoting..." : "Promote to source"
-    if (isLinkedSourceProcessing) return PROCESSING_STATUS_LABELS[activeChatLinkedSourceStatus ?? ""] ?? "Processing..."
-    return isPromotingChat ? "Updating source..." : "Update source"
-  })()
-  const PromoteIcon = activeChatSourceId === null ? Upload : RotateCw
-  const promoteIconSpin = activeChatSourceId !== null && isLinkedSourceProcessing
+  const hasText = inputValue.trim().length > 0
+  const placeholder = reflectionActive ? "Write your reflection…" : "Write a message..."
   const maxHeightPx = LINE_HEIGHT_PX * MAX_TEXTAREA_ROWS + TEXTAREA_VERTICAL_PADDING_PX
   const modelInList = chatModel ? installedModels.some((m) => m.name === chatModel) : false
-
-  // The promote/update button is rendered in one of two spots depending on mode:
-  // top-right above the prompts outside a reflection, or inline with the
-  // reflect/ask toggle during one. Build it once so both placements stay in sync.
-  const promoteButton =
-    activeChatId !== null ? (
-      <button
-        type="button"
-        onClick={() => void onPromoteChat()}
-        disabled={promoteDisabled}
-        className="h-7 px-2.5 inline-flex items-center gap-1.5 text-xs font-medium rounded-md border border-border bg-background hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors shrink-0"
-      >
-        <PromoteIcon className={`h-3 w-3 ${promoteIconSpin ? "animate-spin" : ""}`} />
-        {promoteLabel}
-      </button>
-    ) : null
+  // The three send levers share one look so none reads as higher-ranked than the others.
+  const leverClass =
+    "h-8 inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 text-xs font-medium text-foreground hover:bg-muted hover:border-emerald-500/50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
 
   useEffect(() => {
     const el = textareaRef.current
@@ -118,56 +90,31 @@ export function ChatInput({
   return (
     <div data-tour="chat" className="bg-background p-4">
       <div className="max-w-2xl mx-auto">
-        {/* Top row: example prompts, plus the promote button when not reflecting.
-            During a reflection the promote button moves down to the toggle row. */}
-        {(showPrompts || (!gibbsActive && promoteButton)) && (
-          <div className="flex items-end gap-3 mb-3">
-            {showPrompts && (
-              <div className="flex flex-col gap-2 items-start flex-1 min-w-0">
-                {EXAMPLE_PROMPTS.map((prompt) => (
-                  <button
-                    key={prompt}
-                    type="button"
-                    onClick={() => setInputValue(prompt)}
-                    className="text-xs px-3 py-2 rounded-lg border border-border bg-muted/30 hover:border-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors text-left text-muted-foreground hover:text-foreground max-w-full"
-                  >
-                    {prompt}
-                  </button>
-                ))}
-              </div>
-            )}
-            {!gibbsActive && promoteButton && <div className="ml-auto shrink-0">{promoteButton}</div>}
+        {showPrompts && (
+          <div className="mb-3 flex flex-col gap-2 items-start">
+            {EXAMPLE_PROMPTS.map((prompt) => (
+              <button
+                key={prompt}
+                type="button"
+                onClick={() => setInputValue(prompt)}
+                className="text-xs px-3 py-2 rounded-lg border border-border bg-muted/30 hover:border-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors text-left text-muted-foreground hover:text-foreground max-w-full"
+              >
+                {prompt}
+              </button>
+            ))}
           </div>
         )}
-        {gibbsActive && (
-          <div className="mb-2 flex items-center gap-2">
-            <div className="inline-flex rounded-lg border bg-muted/30 p-0.5 text-xs font-medium">
-              <button
-                type="button"
-                onClick={() => onChangeChatMode("reflect")}
-                className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 transition-colors ${
-                  chatMode === "reflect"
-                    ? "bg-emerald-600 text-white"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <PenLine className="h-3.5 w-3.5" />
-                Reflect
-              </button>
-              <button
-                type="button"
-                onClick={() => onChangeChatMode("ask")}
-                className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 transition-colors ${
-                  chatMode === "ask"
-                    ? "bg-emerald-600 text-white"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <Search className="h-3.5 w-3.5" />
-                Ask sources
-              </button>
-            </div>
-            {promoteButton && <div className="ml-auto shrink-0">{promoteButton}</div>}
+        {reflectionActive && (
+          <div className="mb-2 flex justify-end">
+            <button
+              type="button"
+              onClick={onClarify}
+              disabled={gibbsGenerating}
+              className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+              Ask another question
+            </button>
           </div>
         )}
         <form
@@ -190,7 +137,7 @@ export function ChatInput({
             className="w-full px-3 py-2.5 bg-background resize-none focus:outline-none block overflow-y-auto"
           />
           <div className="flex items-center gap-2 px-2 pb-2 pt-1">
-            <div className="ml-auto flex items-center gap-2">
+            <div className="flex items-center gap-2 min-w-0">
               {isOllamaReachable && installedModels.length > 0 ? (
                 <Select
                   value={chatModel ?? undefined}
@@ -203,7 +150,7 @@ export function ChatInput({
                   >
                     <SelectValue placeholder="model" />
                   </SelectTrigger>
-                  <SelectContent align="end">
+                  <SelectContent align="start">
                     {installedModels.map((m) => (
                       <SelectItem key={m.name} value={m.name} className="text-xs">
                         {m.name}
@@ -228,15 +175,67 @@ export function ChatInput({
               >
                 {includedSourcesCount} source{includedSourcesCount === 1 ? "" : "s"}
               </span>
+            </div>
 
-              <button
-                type="submit"
-                disabled={!inputValue.trim() || isAssistantThinking}
-                aria-label="Send message"
-                className="p-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 disabled:bg-muted disabled:text-muted-foreground text-white transition-colors"
-              >
-                <Send className="h-3.5 w-3.5" />
-              </button>
+            <div className="ml-auto flex items-center gap-1.5 shrink-0">
+              {reflectionActive ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={onAsk}
+                    disabled={!hasText || isAssistantThinking}
+                    title="Send this as a question to your sources"
+                    className={leverClass}
+                  >
+                    <Search className="h-3.5 w-3.5 text-emerald-600" />
+                    Ask sources
+                  </button>
+                  <button
+                    type="button"
+                    onClick={onReflect}
+                    disabled={!hasText || isAssistantThinking}
+                    title="Save this as your answer for the current stage"
+                    className={leverClass}
+                  >
+                    <PenLine className="h-3.5 w-3.5 text-emerald-600" />
+                    Answer
+                  </button>
+                  <button
+                    type="button"
+                    onClick={onContinue}
+                    disabled={gibbsGenerating}
+                    title={
+                      isLastStep
+                        ? "Save your answer and finish the reflection"
+                        : nextStageLabel
+                          ? `Save your answer and continue to ${nextStageLabel}`
+                          : "Save your answer and continue"
+                    }
+                    className={leverClass}
+                  >
+                    {isLastStep ? (
+                      <>
+                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                        Answer &amp; finish
+                      </>
+                    ) : (
+                      <>
+                        <ChevronRight className="h-3.5 w-3.5 text-emerald-600" />
+                        Answer &amp; next
+                      </>
+                    )}
+                  </button>
+                </>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={!hasText || isAssistantThinking}
+                  aria-label="Send message"
+                  className="p-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 disabled:bg-muted disabled:text-muted-foreground text-white transition-colors"
+                >
+                  <Send className="h-3.5 w-3.5" />
+                </button>
+              )}
             </div>
           </div>
         </form>

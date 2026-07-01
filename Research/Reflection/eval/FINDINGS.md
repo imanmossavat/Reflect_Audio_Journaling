@@ -15,6 +15,116 @@ Read alongside `README.md` (taxonomy + how to run). The dataset is `facilitator`
 
 ---
 
+## 2026-07-01 — Phase 2 fixes: Description gate loosened + confirmation word-boundary; session now walks 3 stages
+
+**Change 1 (Description deadlock):** `check_stage_completion("Description")` now needs `>=2 facts +
+(domain OR project_type)` instead of domain AND project_type AND stakeholder AND 2 facts. Dropped the
+all-three-structured-fields requirement that a small model can't reliably satisfy.
+
+**Change 2 (early false-advance):** the re-run after change 1 exposed a worse bug — stages advanced on
+turns 3 and 6, NOT the confirm turns. `check_advance_confirmation` did raw substring matching, so "ok"
+matched inside "br**ok**en" (t3) and "lo**ok**ed" (t6) and advanced with no real confirmation. Fixed to
+whole-word matching for single-token signals (substring still used for multi-word phrases like "move
+on"). Same trap would hit "sure"⊂"ensure", "ready"⊂"already".
+
+**Run:** `run_session.py --temperature 0`, gemma4:e4b, S1 (10 turns). Now **Description → Feelings →
+Evaluation**, advancing only on turns 4 ("yes") / 7 ("sure"); turn 9 ("ready") correctly held. 7 facts,
+0 extraction failures, gibbs-order intact. Tests: test_state 22/22, test_turn 5/5 (added confirmation
+regressions for broken/looked/already).
+
+**New finding — keyword gates share the Description fragility, milder.** Evaluation held at turn 9 for a
+brittle reason: it has 2 facts and the negatives match ("weak"/"difficult") but the positive keyword
+"went well" doesn't match fact-006's "went **really** well" (adverb insertion breaks the substring). So
+the gate is correct-by-accident. Keyword-list whack-a-mole is the wrong fix.
+
+**Residual (logged, not fixed):** whole-word confirmation still treats "sure" in "not sure"/"make sure"
+as consent (uncertainty read as agreement); multi-word substring still risks "move on" ⊂ "remove one".
+Both rare, both real.
+
+**Next (decide, don't guess):** (a) make stage gates robust generally — e.g. gate on fact-count + let
+the extraction model set a per-stage "covered" flag we sanity-check, rather than growing keyword lists;
+(b) extend the session dataset so all 6 stages are reachable (S1 runs out of turns at Evaluation) + add
+a thin/off-topic/resistance session; (c) add an LLM judge over `facts` for the emotion-labeling axis.
+
+---
+
+## 2026-06-30 — Phase 2: extraction call + session-replay eval; first run deadlocks at Description
+
+**Change (sandbox only):** wired the second LLM call and built multi-turn session replay.
+`harness/extraction_prompt.py` (turn → JSON ExtractionDelta, ollama format="json"),
+`harness/turn.py` (`ingest_turn` = prepare → thin/extract/merge → maybe_advance, with `chat`
+injected so it's testable without Ollama; + `play_session`), `harness/test_turn.py` (5/5, fake chat,
+no Ollama), `datasets/sessions/sessions.json` (one scripted 10-turn session, scripted facilitator
+replies so the single variable is extraction), `harness/run_session.py` (real runner → per-turn
+state snapshots + deterministic drift report). Generation is scripted for now — switching generation
+to consume state (instead of replaying history) is a later step; here we isolate extraction + merge.
+
+**Run:** `run_session.py --temperature 0`, model `gemma4:e4b`, session `S1_charity_app` (10 turns).
+
+**Result — the session never left Description.** 7 facts, 0 extraction failures, gibbs-order intact,
+but `current_stage` stuck on Description the whole session; the turn-4/7/9 confirmations ("yes"/
+"sure"/"ready") had nothing to confirm. Final context: `project_type` and `timeline` filled,
+**`domain=null`, `stakeholders=[]`**.
+
+**Finding — the Description gate is a single point of deadlock.** `check_stage_completion("Description")`
+needs domain AND project_type AND >=1 stakeholder AND >=2 facts — the only stage that depends on THREE
+structured-context fields, i.e. the least reliable thing to ask a small model for. gemma4:e4b missed
+domain + stakeholders (both present in the text: "software/mobile app", "team of four"), so the stage
+never became ready and the whole reflection stalled in stage 1; later feelings/evaluation answers piled
+up mis-stranded (fact-004 was correctly tagged Feelings but counts toward nothing while stuck). The
+other stages gate on fact-count + a keyword and are far more robust. This is exactly the drift class a
+single-turn eval cannot see.
+
+**Next (one change, then re-run):** options — (a) make the Description gate robust like the others
+(e.g. >=2 facts + at least one context anchor, drop the all-three-fields requirement); (b) strengthen
+the extraction prompt to reliably fill domain/stakeholders before touching the gate; (c) add a
+`turns_in_stage` deadlock escape so no stage can trap a session. Leaning (a) — the gate's stated job is
+to block premature advance, not to demand perfect structured extraction. Then add an LLM judge over
+`facts` for the emotion-labeling axis, and a thin/off-topic/resistance session to probe graceful turns.
+
+---
+
+## 2026-06-30 — Stateful facilitator core: deterministic state layer + 22 unit tests (no LLM)
+
+**Change (sandbox only, ZERO Backend edits):** started the move from the current *stateless*
+facilitator (`/generate-question` replays the whole `history` into the prompt every turn — the
+"use the model as memory" anti-pattern) toward the stateful design in the chatbot/graceful-turns
+docs. Built the deterministic spine as `harness/state.py`: `SessionState`/`ExtractionDelta` Pydantic
+models, `apply_delta` merge rules (append-only facts + substring dedup, conservative context/goal
+merge that never blanks a set field, question resolve-not-delete), code-side gates
+(`check_stage_completion`, `check_advance_confirmation`, `is_thin_turn`, `retrieval_needed`),
+`parse_extraction_response` (fence-strip + validate → None on any failure, no retry), and the
+thin/extraction-failure handlers. No model calls — pure data transformation. Tests: `harness/test_state.py`
+(22 cases, self-running `python harness/test_state.py` or pytest).
+
+**Run:** `python harness/test_state.py` → **22/22 pass** (pydantic 2.12.5, py 3.11.15). Includes a
+scripted six-stage session walk and a lock-step assert that `state.STAGE_NAMES` equals
+`gibbs_facilitator_prompt.STAGES` (passed → no drift from production stage names).
+
+**Two source-doc inconsistencies resolved in code (deliberate):**
+- **`stage_ready` ownership** — docs contradict themselves (code-owned in Part 9/11 vs.
+  model-owned via `delta.stage_ready` in graceful `apply_delta`). Made **code authoritative**:
+  `apply_delta` recomputes `stage_ready` via `check_stage_completion` after merging the turn's facts
+  and ignores the model's value. Test `test_stage_ready_is_code_authoritative_not_model` pins it.
+- **The confirm turn is a thin turn** — a bare "yes" trips the thin-turn gate, so extraction (and the
+  docs' in-`apply_delta` transition) never runs → the stage would never advance on confirmation.
+  Moved the gated transition into its own `maybe_advance`, run on both thin and full turns.
+  `test_full_session_walks_all_stages_with_confirmation` advances on a thin "yes";
+  `test_early_yes_cannot_skip_a_stage` proves an early "yes" still can't skip.
+
+**Finding:** the reliability-critical merge/gate logic — the part a corrupt write poisons a whole
+session through — is correct and locked by tests, with zero Ollama dependency. The deterministic
+foundation every later phase wraps the two LLM calls around is in place.
+
+**Next:** Phase 2 — wire the extraction call and extend the harness from single-turn to **session
+replay** (scripted multi-turn transcripts asserting on resulting *state*: stages advance only on
+criteria+confirm, no emotion-labels in `facts`, graceful extraction-failure), which is the only thing
+that can surface state drift. Then compose generation with the existing guard, and (Phase 4) decide
+the storage substrate (versioned JSON per the docs vs. a session table fitting the SQLModel + async
+backend) and port behind `/generate-question`.
+
+---
+
 ## 2026-06-26 — Stage-1 guard pipeline prototype: PROMPT_LEAK 4 → 0 (guard on vs off)
 
 **Change (sandbox only, ZERO Backend edits):** built the guard pipeline as a harness prototype —
