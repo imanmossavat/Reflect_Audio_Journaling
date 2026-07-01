@@ -10,6 +10,53 @@ from app.logging_config import logger
 _BACKEND_DIR = Path(__file__).resolve().parents[2]
 _SETTINGS_PATH = _BACKEND_DIR / "data" / "settings.json"
 
+
+def _auto_detect_device() -> str:
+    """Return the best available compute device: cuda > mps > cpu."""
+    try:
+        import torch
+        if torch.cuda.is_available():
+            return "cuda"
+        if getattr(torch.backends, "mps", None) and torch.backends.mps.is_available():
+            return "mps"
+    except Exception:
+        pass
+    return "cpu"
+
+
+def device_available(device: str) -> bool:
+    """Check whether a device id is actually usable on this machine right now.
+
+    Distinct from the DEFAULTS-time auto-detect: this re-checks against the
+    current torch install, so a stale settings.json (e.g. copied from another
+    machine, or written before a venv was reinstalled with a CPU-only torch
+    build) doesn't silently claim an unusable device.
+    """
+    if device == "cpu":
+        return True
+    try:
+        import torch
+    except Exception:
+        return False
+    if device == "cuda":
+        try:
+            return bool(torch.cuda.is_available())
+        except Exception:
+            return False
+    if device == "mps":
+        try:
+            return bool(getattr(torch.backends, "mps", None) and torch.backends.mps.is_available())
+        except Exception:
+            return False
+    if device == "rocm":
+        try:
+            hip = getattr(torch.version, "hip", None)
+            return bool(hip and torch.cuda.is_available())
+        except Exception:
+            return False
+    return False
+
+
 DEFAULTS: dict[str, Any] = {
     "chat_model": "gemma4:e4b",
     # Shared context window for every chat_model call
@@ -17,7 +64,7 @@ DEFAULTS: dict[str, Any] = {
     "num_ctx": 16384,
     "embed_model": "nomic-embed-text",
     "ollama_host": "http://localhost:11434",
-    "device": "cpu",
+    "device": _auto_detect_device(),
     "whisper_model": "base",
     "language": "en",
     "db_path": str((_BACKEND_DIR / "database" / "database.db").as_posix()),
@@ -85,6 +132,8 @@ def _validate(patch: dict[str, Any]) -> dict[str, Any]:
         if key == "device":
             if value not in ALLOWED_DEVICES:
                 raise ValueError(f"device must be one of {sorted(ALLOWED_DEVICES)}")
+            if not device_available(value):
+                raise ValueError(f"device '{value}' is not available on this machine")
         elif key == "whisper_model":
             if value not in ALLOWED_WHISPER_MODELS:
                 raise ValueError(f"whisper_model must be one of {sorted(ALLOWED_WHISPER_MODELS)}")

@@ -86,9 +86,10 @@ async def _classify(messages: list[dict]) -> SafetyVerdict:
     # branch is a backstop for the journaling-only flows (no preflight); there we degrade
     # gracefully rather than break journaling.
     if not await asyncio.to_thread(check_model_installed, model):
-        logger.warning("safety model %r not installed; skipping guardrail", model)
+        logger.warning("[safety] model %r not installed — guardrail skipped", model)
         return _SAFE
     try:
+        logger.debug("[safety] classifying with model=%r, %d message(s)", model, len(messages))
         client = AsyncClient(host=_ollama_host())
         resp = await client.chat(
             model=model,
@@ -98,12 +99,29 @@ async def _classify(messages: list[dict]) -> SafetyVerdict:
             options={"temperature": 0.0},
         )
         raw = (resp.get("message", {}) or {}).get("content", "") or ""
-    except Exception as exc:  # fail open — a guard error must never block journaling
-        logger.warning("safety check failed (fail-open): %s", exc)
+        logger.debug("[safety] raw verdict: %r", raw)
+    except asyncio.TimeoutError:
+        # Guard service is reachable but timed out on this specific message.
+        # Fail open so journaling continues; log at ERROR because timeouts are unexpected.
+        logger.error("[safety] classify timed out (fail-open) — message passed without guard check")
+        return _SAFE
+    except ConnectionError as exc:
+        # Ollama not reachable at all — treat as service unavailable, fail open.
+        logger.warning("[safety] service unreachable (fail-open): %s", exc)
+        return _SAFE
+    except Exception as exc:
+        # Unexpected error on a per-message call — fail open but log at ERROR
+        # so it shows up clearly in the log file for debugging.
+        logger.error("[safety] unexpected error during classify (fail-open): %s", exc, exc_info=True)
         return _SAFE
     is_unsafe, categories = _parse(raw)
     kind = _kind_for(categories) if is_unsafe else None
-    return SafetyVerdict(flagged=kind is not None, kind=kind, categories=categories, raw=raw.strip())
+    verdict = SafetyVerdict(flagged=kind is not None, kind=kind, categories=categories, raw=raw.strip())
+    if verdict.flagged:
+        logger.warning("[safety] flagged — kind=%r categories=%s", kind, categories)
+    else:
+        logger.debug("[safety] verdict: safe")
+    return verdict
 
 
 async def classify_user_text(text: str) -> SafetyVerdict:

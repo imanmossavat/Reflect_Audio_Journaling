@@ -16,8 +16,9 @@ class _Settings:
 
     @property
     def COMPUTE_TYPE(self) -> str:
-        # CTranslate2 supports int8 on CPU; use float16 on CUDA for speed.
-        return "float16" if self.DEVICE == "cuda" else "int8"
+        # CTranslate2 (faster-whisper) supports int8 on CPU, float16 on CUDA.
+        # MPS uses openai-whisper (PyTorch) instead of CTranslate2; float16 there too.
+        return "float16" if self.DEVICE in {"cuda", "mps"} else "int8"
 
     SAMPLE_RATE = 16000
 

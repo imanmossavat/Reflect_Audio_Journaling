@@ -224,9 +224,19 @@ def delete_source(session: Session, source_id: int) -> bool:
     return True
 
 
-def update_source_transcript(session: Session, source: Source, text: str, segments: list) -> Source:
+def update_source_transcript(
+    session: Session, source: Source, text: str, segments: list, provenance: Optional[dict] = None
+) -> Source:
+    """Persist the transcript and merge its provenance into derived_meta.
+
+    Reassigns derived_meta to a new dict so SQLAlchemy detects the JSON change.
+    """
     source.text = text
     source.transcript_segments = segments
+    if provenance is not None:
+        meta = dict(source.derived_meta or {})
+        meta["transcript"] = provenance
+        source.derived_meta = meta
     source.edited_at = datetime.utcnow()
 
     session.add(source)

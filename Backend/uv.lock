@@ -4,13 +4,12 @@ requires-python = "==3.11.*"
 resolution-markers = [
     "sys_platform == 'win32' and extra != 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda'",
     "sys_platform == 'emscripten' and extra != 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda'",
-    "(platform_machine != 'aarch64' and sys_platform == 'linux' and extra != 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (platform_python_implementation != 'CPython' and sys_platform == 'linux' and extra != 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32' and extra != 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')",
-    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux' and extra != 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda'",
-    "(platform_machine != 'aarch64' and sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda') or (platform_python_implementation != 'CPython' and sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda')",
-    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda'",
+    "sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda'",
     "sys_platform == 'win32' and extra == 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda'",
     "sys_platform == 'emscripten' and extra == 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda'",
-    "sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32' and extra == 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda'",
+    "(platform_machine != 'aarch64' and sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda') or (platform_python_implementation != 'CPython' and sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32' and extra == 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda')",
+    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda'",
+    "sys_platform == 'darwin' and extra == 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda'",
     "sys_platform == 'win32' and extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda'",
     "sys_platform == 'emscripten' and extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda'",
     "sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda'",
@@ -151,8 +150,9 @@ version = "0.4.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "numpy" },
-    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform != 'linux' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda')" },
-    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'darwin' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda')" },
+    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform != 'darwin' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
     { name = "torch", version = "2.8.0+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" }, marker = "extra == 'extra-15-reflect-backend-cuda'" },
     { name = "typing-extensions" },
 ]
@@ -290,7 +290,7 @@ name = "build"
 version = "1.5.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "colorama", marker = "(os_name == 'nt' and platform_machine != 'aarch64' and extra != 'extra-15-reflect-backend-cpu') or (os_name == 'nt' and platform_python_implementation != 'CPython' and extra != 'extra-15-reflect-backend-cpu') or (os_name == 'nt' and sys_platform != 'linux') or (os_name != 'nt' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (os_name == 'nt' and extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda') or (sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "colorama", marker = "(os_name == 'nt' and platform_machine != 'aarch64' and sys_platform == 'linux') or (os_name == 'nt' and platform_python_implementation != 'CPython' and sys_platform == 'linux') or (os_name == 'nt' and sys_platform != 'darwin' and sys_platform != 'linux') or (os_name == 'nt' and sys_platform == 'darwin' and extra != 'extra-15-reflect-backend-cpu') or (os_name == 'nt' and sys_platform == 'linux' and extra != 'extra-15-reflect-backend-cpu') or (os_name != 'nt' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (sys_platform == 'darwin' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
     { name = "packaging" },
     { name = "pyproject-hooks" },
 ]
@@ -1133,8 +1133,9 @@ name = "julius"
 version = "0.2.7"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform != 'linux' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda')" },
-    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'darwin' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda')" },
+    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform != 'darwin' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
     { name = "torch", version = "2.8.0+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" }, marker = "extra == 'extra-15-reflect-backend-cuda'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/a1/19/c9e1596b5572c786b93428d0904280e964c930fae7e6c9368ed9e1b63922/julius-0.2.7.tar.gz", hash = "sha256:3c0f5f5306d7d6016fcc95196b274cae6f07e2c9596eed314e4e7641554fbb08", size = 59640, upload-time = "2022-09-19T16:13:34.2Z" }
@@ -1431,8 +1432,9 @@ dependencies = [
     { name = "packaging" },
     { name = "pytorch-lightning" },
     { name = "pyyaml" },
-    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform != 'linux' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda')" },
-    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'darwin' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda')" },
+    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform != 'darwin' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
     { name = "torch", version = "2.8.0+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" }, marker = "extra == 'extra-15-reflect-backend-cuda'" },
     { name = "torchmetrics" },
     { name = "tqdm" },
@@ -1816,6 +1818,15 @@ wheels = [
 ]
 
 [[package]]
+name = "more-itertools"
+version = "11.1.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/de/1d/f4da6f02cdffe04d6362210b807146a26044c88d839208aec273bb0d9184/more_itertools-11.1.0.tar.gz", hash = "sha256:48e8f4d9e7e5878571ecf6f2b4e57634f93cd474cc8cfbd2376f2d11b396e30d", size = 145772, upload-time = "2026-05-22T14:14:29.909Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e8/3d/1087453384dbde46a8c7f9356eead2c58be8a7bf156bca40243377c85715/more_itertools-11.1.0-py3-none-any.whl", hash = "sha256:4b65538ae22f6fed0ce4874efd317463a7489796a0939fa66824dd542125a192", size = 72226, upload-time = "2026-05-22T14:14:28.824Z" },
+]
+
+[[package]]
 name = "mpmath"
 version = "1.3.0"
 source = { registry = "https://pypi.org/simple" }
@@ -2038,7 +2049,7 @@ name = "nvidia-cudnn-cu12"
 version = "9.10.2.21"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "nvidia-cublas-cu12", marker = "(platform_machine != 'aarch64' and sys_platform == 'linux' and extra != 'extra-15-reflect-backend-cpu') or (platform_python_implementation != 'CPython' and sys_platform == 'linux' and extra != 'extra-15-reflect-backend-cpu') or (sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32' and extra != 'extra-15-reflect-backend-cpu') or (sys_platform == 'linux' and extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "nvidia-cublas-cu12" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/fa/41/e79269ce215c857c935fd86bcfe91a451a584dfc27f1e068f568b9ad1ab7/nvidia_cudnn_cu12-9.10.2.21-py3-none-manylinux_2_27_aarch64.whl", hash = "sha256:c9132cc3f8958447b4910a1720036d9eff5928cc3179b0a51fb6d167c6cc87d8", size = 705026878, upload-time = "2025-06-06T21:52:51.348Z" },
@@ -2051,7 +2062,7 @@ name = "nvidia-cufft-cu12"
 version = "11.3.3.83"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "nvidia-nvjitlink-cu12", marker = "(platform_machine != 'aarch64' and sys_platform == 'linux' and extra != 'extra-15-reflect-backend-cpu') or (platform_python_implementation != 'CPython' and sys_platform == 'linux' and extra != 'extra-15-reflect-backend-cpu') or (sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32' and extra != 'extra-15-reflect-backend-cpu') or (sys_platform == 'linux' and extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "nvidia-nvjitlink-cu12" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/60/bc/7771846d3a0272026c416fbb7e5f4c1f146d6d80704534d0b187dd6f4800/nvidia_cufft_cu12-11.3.3.83-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:848ef7224d6305cdb2a4df928759dca7b1201874787083b6e7550dd6765ce69a", size = 193109211, upload-time = "2025-03-07T01:44:56.873Z" },
@@ -2083,9 +2094,9 @@ name = "nvidia-cusolver-cu12"
 version = "11.7.3.90"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "nvidia-cublas-cu12", marker = "(platform_machine != 'aarch64' and sys_platform == 'linux' and extra != 'extra-15-reflect-backend-cpu') or (platform_python_implementation != 'CPython' and sys_platform == 'linux' and extra != 'extra-15-reflect-backend-cpu') or (sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32' and extra != 'extra-15-reflect-backend-cpu') or (sys_platform == 'linux' and extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
-    { name = "nvidia-cusparse-cu12", marker = "(platform_machine != 'aarch64' and sys_platform == 'linux' and extra != 'extra-15-reflect-backend-cpu') or (platform_python_implementation != 'CPython' and sys_platform == 'linux' and extra != 'extra-15-reflect-backend-cpu') or (sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32' and extra != 'extra-15-reflect-backend-cpu') or (sys_platform == 'linux' and extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
-    { name = "nvidia-nvjitlink-cu12", marker = "(platform_machine != 'aarch64' and sys_platform == 'linux' and extra != 'extra-15-reflect-backend-cpu') or (platform_python_implementation != 'CPython' and sys_platform == 'linux' and extra != 'extra-15-reflect-backend-cpu') or (sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32' and extra != 'extra-15-reflect-backend-cpu') or (sys_platform == 'linux' and extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "nvidia-cublas-cu12" },
+    { name = "nvidia-cusparse-cu12" },
+    { name = "nvidia-nvjitlink-cu12" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/c8/32/f7cd6ce8a7690544d084ea21c26e910a97e077c9b7f07bf5de623ee19981/nvidia_cusolver_cu12-11.7.3.90-py3-none-manylinux_2_27_aarch64.whl", hash = "sha256:db9ed69dbef9715071232caa9b69c52ac7de3a95773c2db65bdba85916e4e5c0", size = 267229841, upload-time = "2025-03-07T01:46:54.356Z" },
@@ -2098,7 +2109,7 @@ name = "nvidia-cusparse-cu12"
 version = "12.5.8.93"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "nvidia-nvjitlink-cu12", marker = "(platform_machine != 'aarch64' and sys_platform == 'linux' and extra != 'extra-15-reflect-backend-cpu') or (platform_python_implementation != 'CPython' and sys_platform == 'linux' and extra != 'extra-15-reflect-backend-cpu') or (sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32' and extra != 'extra-15-reflect-backend-cpu') or (sys_platform == 'linux' and extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "nvidia-nvjitlink-cu12" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/bc/f7/cd777c4109681367721b00a106f491e0d0d15cfa1fd59672ce580ce42a97/nvidia_cusparse_cu12-12.5.8.93-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:9b6c161cb130be1a07a27ea6923df8141f3c295852f4b260c65f18f3e0a091dc", size = 288117129, upload-time = "2025-03-07T01:47:40.407Z" },
@@ -2216,6 +2227,24 @@ sdist = { url = "https://files.pythonhosted.org/packages/f4/a1/4d5e84cf51720fc15
 wheels = [
     { url = "https://files.pythonhosted.org/packages/9d/1c/5d43735b2553baae2a5e899dcbcd0670a86930d993184d72ca909bf11c9b/openai-2.36.0-py3-none-any.whl", hash = "sha256:143f6194b548dbc2c921af1f1b03b9f14c85fed8a75b5b516f5bcc11a2a50c63", size = 1302361, upload-time = "2026-05-07T17:33:15.063Z" },
 ]
+
+[[package]]
+name = "openai-whisper"
+version = "20250625"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "more-itertools" },
+    { name = "numba" },
+    { name = "numpy" },
+    { name = "tiktoken" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'darwin' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda')" },
+    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform != 'darwin' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "torch", version = "2.8.0+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" }, marker = "extra == 'extra-15-reflect-backend-cuda'" },
+    { name = "tqdm" },
+    { name = "triton", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux') or (platform_machine != 'x86_64' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or sys_platform == 'linux2' or (sys_platform != 'linux' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/35/8e/d36f8880bcf18ec026a55807d02fe4c7357da9f25aebd92f85178000c0dc/openai_whisper-20250625.tar.gz", hash = "sha256:37a91a3921809d9f44748ffc73c0a55c9f366c85a3ef5c2ae0cc09540432eb96", size = 803191, upload-time = "2025-06-26T01:06:13.34Z" }
 
 [[package]]
 name = "opentelemetry-api"
@@ -2576,13 +2605,14 @@ dependencies = [
     { name = "pytorch-metric-learning" },
     { name = "rich" },
     { name = "safetensors" },
-    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform != 'linux' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda')" },
-    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'darwin' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda')" },
+    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform != 'darwin' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
     { name = "torch", version = "2.8.0+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" }, marker = "extra == 'extra-15-reflect-backend-cuda'" },
     { name = "torch-audiomentations" },
-    { name = "torchaudio", version = "2.8.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (platform_machine != 'aarch64' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (platform_python_implementation != 'CPython' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (sys_platform != 'linux' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
-    { name = "torchaudio", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform != 'linux' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda')" },
-    { name = "torchaudio", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (platform_machine != 'aarch64' and sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (platform_python_implementation != 'CPython' and sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (sys_platform != 'linux' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "torchaudio", version = "2.8.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (platform_machine != 'aarch64' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (platform_python_implementation != 'CPython' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (sys_platform == 'darwin' and extra == 'extra-15-reflect-backend-cpu') or (sys_platform != 'linux' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "torchaudio", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda')" },
+    { name = "torchaudio", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(platform_machine != 'aarch64' and sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (platform_python_implementation != 'CPython' and sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-15-reflect-backend-cpu') or (sys_platform == 'darwin' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
     { name = "torchaudio", version = "2.8.0+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" }, marker = "extra == 'extra-15-reflect-backend-cuda'" },
     { name = "torchcodec" },
     { name = "torchmetrics" },
@@ -2908,8 +2938,9 @@ dependencies = [
     { name = "lightning-utilities" },
     { name = "packaging" },
     { name = "pyyaml" },
-    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform != 'linux' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda')" },
-    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'darwin' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda')" },
+    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform != 'darwin' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
     { name = "torch", version = "2.8.0+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" }, marker = "extra == 'extra-15-reflect-backend-cuda'" },
     { name = "torchmetrics" },
     { name = "tqdm" },
@@ -2927,8 +2958,9 @@ source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "numpy" },
     { name = "scikit-learn" },
-    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform != 'linux' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda')" },
-    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'darwin' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda')" },
+    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform != 'darwin' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
     { name = "torch", version = "2.8.0+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" }, marker = "extra == 'extra-15-reflect-backend-cuda'" },
     { name = "tqdm" },
 ]
@@ -3059,6 +3091,7 @@ dependencies = [
     { name = "nl-core-news-lg" },
     { name = "numpy" },
     { name = "ollama" },
+    { name = "openai-whisper" },
     { name = "pydantic" },
     { name = "pydantic-settings" },
     { name = "python-dotenv" },
@@ -3080,11 +3113,10 @@ dependencies = [
 
 [package.optional-dependencies]
 cpu = [
-    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform != 'linux' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
-    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
-    { name = "torchaudio", version = "2.8.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (platform_machine != 'aarch64' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (platform_python_implementation != 'CPython' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (sys_platform != 'linux' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
-    { name = "torchaudio", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform != 'linux' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
-    { name = "torchaudio", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (platform_machine != 'aarch64' and sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (platform_python_implementation != 'CPython' and sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (sys_platform != 'linux' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'darwin' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform != 'darwin' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "torchaudio", version = "2.8.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (platform_machine != 'aarch64' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (platform_python_implementation != 'CPython' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (sys_platform == 'darwin' and extra == 'extra-15-reflect-backend-cpu') or (sys_platform != 'linux' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "torchaudio", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(platform_machine != 'aarch64' and sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (platform_python_implementation != 'CPython' and sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-15-reflect-backend-cpu') or (sys_platform == 'darwin' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
 ]
 cuda = [
     { name = "torch", version = "2.8.0+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" } },
@@ -3094,6 +3126,16 @@ dev = [
     { name = "pytest" },
     { name = "pytest-asyncio" },
     { name = "pytest-mock" },
+]
+ml = [
+    { name = "torch", version = "2.8.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'darwin' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda')" },
+    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform != 'darwin' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "torch", version = "2.8.0+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" }, marker = "extra == 'extra-15-reflect-backend-cuda'" },
+    { name = "torchaudio", version = "2.8.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (platform_machine != 'aarch64' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (platform_python_implementation != 'CPython' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (sys_platform == 'darwin' and extra == 'extra-15-reflect-backend-cpu') or (sys_platform != 'linux' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "torchaudio", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda')" },
+    { name = "torchaudio", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(platform_machine != 'aarch64' and sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (platform_python_implementation != 'CPython' and sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-15-reflect-backend-cpu') or (sys_platform == 'darwin' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "torchaudio", version = "2.8.0+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" }, marker = "extra == 'extra-15-reflect-backend-cuda'" },
 ]
 
 [package.metadata]
@@ -3113,6 +3155,7 @@ requires-dist = [
     { name = "nl-core-news-lg", url = "https://github.com/explosion/spacy-models/releases/download/nl_core_news_lg-3.8.0/nl_core_news_lg-3.8.0-py3-none-any.whl" },
     { name = "numpy", specifier = ">=2.1.0" },
     { name = "ollama", specifier = "==0.6.1" },
+    { name = "openai-whisper", specifier = ">=20231117" },
     { name = "pydantic", specifier = "==2.12.5" },
     { name = "pydantic-settings", specifier = "==2.13.1" },
     { name = "pytest", marker = "extra == 'dev'", specifier = "==8.3.4" },
@@ -3129,18 +3172,18 @@ requires-dist = [
     { name = "spacy", specifier = "==3.8.4" },
     { name = "sqlmodel", specifier = "==0.0.37" },
     { name = "strip-markdown", specifier = "==1.3" },
-    { name = "torch", marker = "sys_platform == 'linux' and extra == 'cpu'", specifier = "==2.8.*", index = "https://download.pytorch.org/whl/cpu", conflict = { package = "reflect-backend", extra = "cpu" } },
-    { name = "torch", marker = "sys_platform != 'linux' and extra == 'cpu'", specifier = "==2.8.*" },
+    { name = "torch", marker = "extra == 'cpu'", specifier = "==2.8.*", index = "https://download.pytorch.org/whl/cpu", conflict = { package = "reflect-backend", extra = "cpu" } },
     { name = "torch", marker = "extra == 'cuda'", specifier = "==2.8.*", index = "https://download.pytorch.org/whl/cu128", conflict = { package = "reflect-backend", extra = "cuda" } },
-    { name = "torchaudio", marker = "sys_platform == 'linux' and extra == 'cpu'", specifier = "==2.8.*", index = "https://download.pytorch.org/whl/cpu", conflict = { package = "reflect-backend", extra = "cpu" } },
-    { name = "torchaudio", marker = "sys_platform != 'linux' and extra == 'cpu'", specifier = "==2.8.*" },
+    { name = "torch", marker = "extra == 'ml'", specifier = "==2.8.*" },
+    { name = "torchaudio", marker = "extra == 'cpu'", specifier = "==2.8.*", index = "https://download.pytorch.org/whl/cpu", conflict = { package = "reflect-backend", extra = "cpu" } },
     { name = "torchaudio", marker = "extra == 'cuda'", specifier = "==2.8.*", index = "https://download.pytorch.org/whl/cu128", conflict = { package = "reflect-backend", extra = "cuda" } },
+    { name = "torchaudio", marker = "extra == 'ml'", specifier = "==2.8.*" },
     { name = "transformers", specifier = ">=4.48.0" },
     { name = "uvicorn", extras = ["standard"], specifier = "==0.42.0" },
     { name = "watchdog", specifier = ">=6.0" },
     { name = "whisperx", specifier = "==3.8.5" },
 ]
-provides-extras = ["cpu", "cuda", "dev"]
+provides-extras = ["ml", "cpu", "cuda", "dev"]
 
 [[package]]
 name = "regex"
@@ -3342,8 +3385,9 @@ dependencies = [
     { name = "pillow" },
     { name = "scikit-learn" },
     { name = "scipy" },
-    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform != 'linux' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda')" },
-    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'darwin' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda')" },
+    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform != 'darwin' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
     { name = "torch", version = "2.8.0+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" }, marker = "extra == 'extra-15-reflect-backend-cuda'" },
     { name = "tqdm" },
     { name = "transformers" },
@@ -3711,20 +3755,36 @@ wheels = [
 [[package]]
 name = "torch"
 version = "2.8.0"
-source = { registry = "https://pypi.org/simple" }
+source = { registry = "https://download.pytorch.org/whl/cpu" }
 resolution-markers = [
-    "sys_platform == 'win32' and extra == 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda'",
-    "sys_platform == 'emscripten' and extra == 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda'",
-    "sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32' and extra == 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda'",
-    "sys_platform == 'win32' and extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda'",
-    "sys_platform == 'emscripten' and extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda'",
-    "sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda'",
+    "sys_platform == 'darwin'",
 ]
 dependencies = [
-    { name = "filelock", marker = "(sys_platform != 'linux' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda')" },
-    { name = "fsspec", marker = "(sys_platform != 'linux' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda')" },
-    { name = "jinja2", marker = "(sys_platform != 'linux' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda')" },
-    { name = "networkx", marker = "(sys_platform != 'linux' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda')" },
+    { name = "filelock", marker = "(sys_platform == 'darwin' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "fsspec", marker = "(sys_platform == 'darwin' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "jinja2", marker = "(sys_platform == 'darwin' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "networkx", marker = "(sys_platform == 'darwin' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "sympy", marker = "(sys_platform == 'darwin' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "typing-extensions", marker = "(sys_platform == 'darwin' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+]
+wheels = [
+    { url = "https://download-r2.pytorch.org/whl/cpu/torch-2.8.0-cp311-none-macosx_11_0_arm64.whl", hash = "sha256:3d05017d19bc99741288e458888283a44b0ee881d53f05f72f8b1cfea8998122", upload-time = "2025-10-01T23:35:48Z" },
+]
+
+[[package]]
+name = "torch"
+version = "2.8.0"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "sys_platform == 'win32'",
+    "sys_platform == 'emscripten'",
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
+]
+dependencies = [
+    { name = "filelock", marker = "(extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda')" },
+    { name = "fsspec", marker = "(extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda')" },
+    { name = "jinja2", marker = "(extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda')" },
+    { name = "networkx", marker = "(extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda')" },
     { name = "nvidia-cublas-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
     { name = "nvidia-cuda-cupti-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
     { name = "nvidia-cuda-nvrtc-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
@@ -3739,9 +3799,9 @@ dependencies = [
     { name = "nvidia-nccl-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
     { name = "nvidia-nvjitlink-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
     { name = "nvidia-nvtx-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
-    { name = "sympy", marker = "(sys_platform != 'linux' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda')" },
+    { name = "sympy", marker = "(extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda')" },
     { name = "triton", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
-    { name = "typing-extensions", marker = "(sys_platform != 'linux' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda')" },
+    { name = "typing-extensions", marker = "(extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda')" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/8f/c4/3e7a3887eba14e815e614db70b3b529112d1513d9dae6f4d43e373360b7f/torch-2.8.0-cp311-cp311-manylinux_2_28_aarch64.whl", hash = "sha256:220a06fd7af8b653c35d359dfe1aaf32f65aa85befa342629f716acb134b9710", size = 102073391, upload-time = "2025-08-06T14:53:20.937Z" },
@@ -3755,16 +3815,18 @@ name = "torch"
 version = "2.8.0+cpu"
 source = { registry = "https://download.pytorch.org/whl/cpu" }
 resolution-markers = [
-    "(platform_machine != 'aarch64' and sys_platform == 'linux') or (platform_python_implementation != 'CPython' and sys_platform == 'linux')",
+    "sys_platform == 'win32'",
+    "sys_platform == 'emscripten'",
+    "(platform_machine != 'aarch64' and sys_platform == 'linux') or (platform_python_implementation != 'CPython' and sys_platform == 'linux') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
     "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux'",
 ]
 dependencies = [
-    { name = "filelock", marker = "(sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
-    { name = "fsspec", marker = "(sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
-    { name = "jinja2", marker = "(sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
-    { name = "networkx", marker = "(sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
-    { name = "sympy", marker = "(sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
-    { name = "typing-extensions", marker = "(sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "filelock", marker = "(sys_platform != 'darwin' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "fsspec", marker = "(sys_platform != 'darwin' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "jinja2", marker = "(sys_platform != 'darwin' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "networkx", marker = "(sys_platform != 'darwin' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "sympy", marker = "(sys_platform != 'darwin' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "typing-extensions", marker = "(sys_platform != 'darwin' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
 ]
 wheels = [
     { url = "https://download-r2.pytorch.org/whl/cpu/torch-2.8.0%2Bcpu-cp311-cp311-linux_s390x.whl", hash = "sha256:2bfc013dd6efdc8f8223a0241d3529af9f315dffefb53ffa3bf14d3f10127da6", upload-time = "2025-10-01T23:33:07Z" },
@@ -3781,8 +3843,7 @@ source = { registry = "https://download.pytorch.org/whl/cu128" }
 resolution-markers = [
     "sys_platform == 'win32'",
     "sys_platform == 'emscripten'",
-    "(platform_machine != 'aarch64' and sys_platform == 'linux') or (platform_python_implementation != 'CPython' and sys_platform == 'linux') or (sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
-    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux'",
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 dependencies = [
     { name = "filelock", marker = "extra == 'extra-15-reflect-backend-cuda'" },
@@ -3818,13 +3879,14 @@ version = "0.12.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "julius" },
-    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform != 'linux' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda')" },
-    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'darwin' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda')" },
+    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform != 'darwin' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
     { name = "torch", version = "2.8.0+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" }, marker = "extra == 'extra-15-reflect-backend-cuda'" },
     { name = "torch-pitch-shift" },
-    { name = "torchaudio", version = "2.8.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (platform_machine != 'aarch64' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (platform_python_implementation != 'CPython' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (sys_platform != 'linux' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
-    { name = "torchaudio", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform != 'linux' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda')" },
-    { name = "torchaudio", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (platform_machine != 'aarch64' and sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (platform_python_implementation != 'CPython' and sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (sys_platform != 'linux' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "torchaudio", version = "2.8.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (platform_machine != 'aarch64' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (platform_python_implementation != 'CPython' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (sys_platform == 'darwin' and extra == 'extra-15-reflect-backend-cpu') or (sys_platform != 'linux' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "torchaudio", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda')" },
+    { name = "torchaudio", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(platform_machine != 'aarch64' and sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (platform_python_implementation != 'CPython' and sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-15-reflect-backend-cpu') or (sys_platform == 'darwin' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
     { name = "torchaudio", version = "2.8.0+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" }, marker = "extra == 'extra-15-reflect-backend-cuda'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/31/8d/2f8fd7e34c75f5ee8de4310c3bd3f22270acd44d1f809e2fe7c12fbf35f8/torch_audiomentations-0.12.0.tar.gz", hash = "sha256:b02d4c5eb86376986a53eb405cca5e34f370ea9284411237508e720c529f7888", size = 52094, upload-time = "2025-01-15T09:07:01.071Z" }
@@ -3839,12 +3901,13 @@ source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "packaging" },
     { name = "primepy" },
-    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform != 'linux' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda')" },
-    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'darwin' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda')" },
+    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform != 'darwin' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
     { name = "torch", version = "2.8.0+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" }, marker = "extra == 'extra-15-reflect-backend-cuda'" },
-    { name = "torchaudio", version = "2.8.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (platform_machine != 'aarch64' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (platform_python_implementation != 'CPython' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (sys_platform != 'linux' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
-    { name = "torchaudio", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform != 'linux' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda')" },
-    { name = "torchaudio", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (platform_machine != 'aarch64' and sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (platform_python_implementation != 'CPython' and sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (sys_platform != 'linux' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "torchaudio", version = "2.8.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (platform_machine != 'aarch64' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (platform_python_implementation != 'CPython' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (sys_platform == 'darwin' and extra == 'extra-15-reflect-backend-cpu') or (sys_platform != 'linux' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "torchaudio", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda')" },
+    { name = "torchaudio", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(platform_machine != 'aarch64' and sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (platform_python_implementation != 'CPython' and sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-15-reflect-backend-cpu') or (sys_platform == 'darwin' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
     { name = "torchaudio", version = "2.8.0+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" }, marker = "extra == 'extra-15-reflect-backend-cuda'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/79/a6/722a832bca75d5079f6731e005b3d0c2eec7c6c6863d030620952d143d57/torch_pitch_shift-1.2.5.tar.gz", hash = "sha256:6e1c7531f08d0f407a4c55e5ff8385a41355c5c5d27ab7fa08632e51defbd0ed", size = 4725, upload-time = "2024-09-25T19:10:12.922Z" }
@@ -3858,8 +3921,10 @@ version = "2.8.0"
 source = { registry = "https://download.pytorch.org/whl/cpu" }
 resolution-markers = [
     "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux'",
+    "sys_platform == 'darwin'",
 ]
 dependencies = [
+    { name = "torch", version = "2.8.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'darwin' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
     { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (platform_machine != 'aarch64' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (platform_python_implementation != 'CPython' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (sys_platform != 'linux' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
 ]
 wheels = [
@@ -3872,15 +3937,12 @@ name = "torchaudio"
 version = "2.8.0"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "sys_platform == 'win32' and extra == 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda'",
-    "sys_platform == 'emscripten' and extra == 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda'",
-    "sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32' and extra == 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda'",
-    "sys_platform == 'win32' and extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda'",
-    "sys_platform == 'emscripten' and extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda'",
-    "sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda'",
+    "sys_platform == 'win32'",
+    "sys_platform == 'emscripten'",
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 dependencies = [
-    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform != 'linux' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda')" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda')" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/dd/bf/6b01ef3defb8d0a772c863588711e9b2b011c27d6b37c1b9d15a359c8442/torchaudio-2.8.0-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:c9276857d241c6de257af765c0f51fc011af38cb725401495121b280913007cf", size = 1859094, upload-time = "2025-08-06T14:58:35.078Z" },
@@ -3894,10 +3956,12 @@ name = "torchaudio"
 version = "2.8.0+cpu"
 source = { registry = "https://download.pytorch.org/whl/cpu" }
 resolution-markers = [
-    "(platform_machine != 'aarch64' and sys_platform == 'linux') or (platform_python_implementation != 'CPython' and sys_platform == 'linux')",
+    "sys_platform == 'win32'",
+    "sys_platform == 'emscripten'",
+    "(platform_machine != 'aarch64' and sys_platform == 'linux') or (platform_python_implementation != 'CPython' and sys_platform == 'linux') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
 ]
 dependencies = [
-    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (platform_machine != 'aarch64' and sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (platform_python_implementation != 'CPython' and sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (sys_platform != 'linux' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(platform_machine != 'aarch64' and sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (platform_python_implementation != 'CPython' and sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-15-reflect-backend-cpu') or (sys_platform == 'darwin' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
 ]
 wheels = [
     { url = "https://download-r2.pytorch.org/whl/cpu/torchaudio-2.8.0%2Bcpu-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:e54bd7fc9472019308097d99102df9acee22aa2451ae808d27840bc874320292", upload-time = "2025-08-05T20:12:02Z" },
@@ -3911,8 +3975,7 @@ source = { registry = "https://download.pytorch.org/whl/cu128" }
 resolution-markers = [
     "sys_platform == 'win32'",
     "sys_platform == 'emscripten'",
-    "(platform_machine != 'aarch64' and sys_platform == 'linux') or (platform_python_implementation != 'CPython' and sys_platform == 'linux') or (sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
-    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux'",
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 dependencies = [
     { name = "torch", version = "2.8.0+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" }, marker = "extra == 'extra-15-reflect-backend-cuda'" },
@@ -3940,8 +4003,9 @@ dependencies = [
     { name = "lightning-utilities" },
     { name = "numpy" },
     { name = "packaging" },
-    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform != 'linux' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda')" },
-    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'darwin' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda')" },
+    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform != 'darwin' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
     { name = "torch", version = "2.8.0+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" }, marker = "extra == 'extra-15-reflect-backend-cuda'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/81/34/39b8b749333db56c0585d7a11fa62a283c087bb1dfc897d69fb8cedbefb1/torchmetrics-1.9.0.tar.gz", hash = "sha256:a488609948600df52d3db4fcdab02e62aab2a85ef34da67037dc3e65b8512faa", size = 581765, upload-time = "2026-03-09T17:41:22.443Z" }
@@ -3956,8 +4020,9 @@ source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "numpy" },
     { name = "pillow" },
-    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform != 'linux' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda')" },
-    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'darwin' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda')" },
+    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform != 'darwin' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
     { name = "torch", version = "2.8.0+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" }, marker = "extra == 'extra-15-reflect-backend-cuda'" },
 ]
 wheels = [
@@ -4005,7 +4070,7 @@ name = "triton"
 version = "3.4.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "setuptools", marker = "(platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (platform_machine != 'aarch64' and sys_platform == 'linux') or (platform_python_implementation != 'CPython' and sys_platform == 'linux') or (sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32' and extra != 'extra-15-reflect-backend-cpu') or (sys_platform != 'linux' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (sys_platform == 'emscripten' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (sys_platform == 'win32' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (sys_platform == 'linux' and extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda')" },
+    { name = "setuptools" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/7d/39/43325b3b651d50187e591eefa22e236b2981afcebaefd4f2fc0ea99df191/triton-3.4.0-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:7b70f5e6a41e52e48cfc087436c8a28c17ff98db369447bcaff3b887a3ab4467", size = 155531138, upload-time = "2025-07-30T19:58:29.908Z" },
@@ -4283,12 +4348,13 @@ dependencies = [
     { name = "omegaconf" },
     { name = "pandas" },
     { name = "pyannote-audio" },
-    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform != 'linux' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda')" },
-    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'darwin' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda')" },
+    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform != 'darwin' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
     { name = "torch", version = "2.8.0+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" }, marker = "extra == 'extra-15-reflect-backend-cuda'" },
-    { name = "torchaudio", version = "2.8.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (platform_machine != 'aarch64' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (platform_python_implementation != 'CPython' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (sys_platform != 'linux' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
-    { name = "torchaudio", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform != 'linux' and extra == 'extra-15-reflect-backend-cpu') or (extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda')" },
-    { name = "torchaudio", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (platform_machine != 'aarch64' and sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (platform_python_implementation != 'CPython' and sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (sys_platform != 'linux' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "torchaudio", version = "2.8.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (platform_machine != 'aarch64' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (platform_python_implementation != 'CPython' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (sys_platform == 'darwin' and extra == 'extra-15-reflect-backend-cpu') or (sys_platform != 'linux' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
+    { name = "torchaudio", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (extra != 'extra-15-reflect-backend-cpu' and extra != 'extra-15-reflect-backend-cuda')" },
+    { name = "torchaudio", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(platform_machine != 'aarch64' and sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (platform_python_implementation != 'CPython' and sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu') or (sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-15-reflect-backend-cpu') or (sys_platform == 'darwin' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or (sys_platform == 'linux' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
     { name = "torchaudio", version = "2.8.0+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" }, marker = "extra == 'extra-15-reflect-backend-cuda'" },
     { name = "torchcodec", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux') or (platform_machine != 'x86_64' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda') or sys_platform == 'darwin' or sys_platform == 'win32' or (sys_platform != 'linux' and extra == 'extra-15-reflect-backend-cpu' and extra == 'extra-15-reflect-backend-cuda')" },
     { name = "torchvision" },

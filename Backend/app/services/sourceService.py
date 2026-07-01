@@ -58,30 +58,35 @@ def _process_source_sync(source_id: int) -> None:
     Each DB interaction uses its own short-lived session so SQLite is only
     locked for milliseconds, never for the duration of transcription / LLM calls.
     """
+    logger.info(f"[process] starting pipeline for source {source_id}")
+
     #Read initial source state
     with Session(engine) as session:
         source = sourceRepository.get_source_by_id(session, source_id)
         if not source:
-            logger.error(f"Background task: source {source_id} not found")
+            logger.error(f"[process] source {source_id} not found in DB — aborting")
             return
         file_type = source.file_type
         file_path = source.file_path
         text = source.text
         created_at = source.created_at
 
+    logger.debug(f"[process] source {source_id}: file_type={file_type}, has_text={bool(text)}, file_path={file_path}")
+
     try:
         #Transcribe
         if file_type == "audio" and not text:
             _set_status(source_id, "transcribing")
             if not file_path:
-                logger.error(f"No file path for audio source {source_id}")
+                logger.error(f"[process] source {source_id}: no file_path for audio source")
                 _set_status(source_id, "failed")
                 return
+            logger.info(f"[process] source {source_id}: starting transcription path={file_path}")
             recording = SimpleRecording(path=file_path, id=str(source_id))
             try:
                 transcript = TranscriptionManager().transcribe(recording)
             except NotImplementedError as exc:
-                logger.error(f"Transcription unavailable for source {source_id}: {exc}")
+                logger.error(f"[process] source {source_id}: transcription unavailable: {exc}")
                 _set_status(source_id, "failed")
                 return
             text = transcript.text
@@ -89,11 +94,15 @@ def _process_source_sync(source_id: int) -> None:
                 {"text": s.text, "start_s": s.start_s, "end_s": s.end_s}
                 for s in transcript.sentences
             ]
+            logger.debug(
+                f"[process] source {source_id}: transcription done "
+                f"text_len={len(text or '')} segments={len(segments)}"
+            )
             if not text or not text.strip():
                 # Audio decoded fine but Whisper found no spoken words (silent or
                 # empty recording). Distinct status so the UI can say so instead
                 # of a generic "Processing failed".
-                logger.error(f"Transcription produced no text for source {source_id}")
+                logger.error(f"[process] source {source_id}: transcription produced no text (silent audio?)")
                 _set_status(source_id, "failed_no_speech")
                 return
             # Short-lived write to save transcript
@@ -101,21 +110,24 @@ def _process_source_sync(source_id: int) -> None:
                 source_obj = sourceRepository.get_source_by_id(session, source_id)
                 if not source_obj:
                     return
-                sourceRepository.update_source_transcript(session, source_obj, text, segments)
+                sourceRepository.update_source_transcript(session, source_obj, text, segments, transcript.meta)
+            logger.info(f"[process] source {source_id}: transcript saved")
 
         if not text or not text.strip():
-            logger.error(f"No text to process for source {source_id}")
+            logger.error(f"[process] source {source_id}: no text available after transcription step")
             _set_status(source_id, "failed")
             return
 
         #Chunk
         _set_status(source_id, "chunking")
         text_to_chunk = strip_markdown.strip_markdown(text) if file_type == "markdown" else text
+        logger.debug(f"[process] source {source_id}: chunking text_len={len(text_to_chunk)}")
         chunks = chunk_text(text_to_chunk, source_id)
         if not chunks:
-            logger.error(f"No chunks generated for source {source_id}")
+            logger.error(f"[process] source {source_id}: chunk_text returned no chunks")
             _set_status(source_id, "failed")
             return
+        logger.debug(f"[process] source {source_id}: {len(chunks)} chunk(s) produced")
 
         # On retry, prior chunks may exist from a failed run — delete them so we
         # don't duplicate rows when we re-create below.
@@ -165,10 +177,19 @@ def _process_source_sync(source_id: int) -> None:
                 return
             raise
 
-        # Summaries and tags are no longer generated here — they are opt-in and
-        # user-curated from the "Enrich source" flow on the source detail page.
-        # The source is fully indexed and searchable at this point.
         _set_status(source_id, "processed")
+        logger.info(f"[process] source {source_id} fully indexed — generating summary")
+
+        # Auto-generate summary after successful indexing.
+        # Failure here is non-fatal: the source is already indexed and searchable.
+        try:
+            regenerate_summary(source_id)
+            logger.info(f"[process] summary generated for source {source_id}")
+        except Exception as summary_exc:
+            logger.warning(
+                f"[process] summary generation failed for source {source_id} "
+                f"(non-fatal, source still searchable): {summary_exc}"
+            )
 
     except Exception as exc:
         logger.exception(f"Background processing failed for source {source_id}: {exc}")
@@ -333,7 +354,7 @@ async def transcribe_source(session: Session, source_id: int):
     except NotImplementedError as exc:
         raise HTTPException(status_code=501, detail=str(exc)) from exc
 
-    return sourceRepository.update_source_transcript(session, source, transcript_text, segments)
+    return sourceRepository.update_source_transcript(session, source, transcript_text, segments, transcript.meta)
 
 
 async def update_source(

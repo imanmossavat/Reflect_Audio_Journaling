@@ -205,6 +205,10 @@ async def _run(
             return
 
         supports_thinking = bool(get_setting("thinking_enabled")) and model_supports_thinking(chat_model)
+        logger.debug(
+            "Chat %s: starting generation model=%s thinking=%s top_k=%s",
+            job.chat_id, chat_model, supports_thinking, top_k,
+        )
 
         # Load prior conversation.
         with Session(engine) as session:
@@ -212,14 +216,17 @@ async def _run(
         if history and history[-1]["role"] == "user":
             history = history[:-1]
         history = history[-MAX_HISTORY_MESSAGES:]
+        logger.debug("Chat %s: loaded %d history message(s)", job.chat_id, len(history))
 
         job.emit("stage", name="searching")
-        # Conversation-aware retrieval: rewrite follow-ups into a standalone query so embeddings match the real topic. 
+        # Conversation-aware retrieval: rewrite follow-ups into a standalone query so embeddings match the real topic.
         search_query = await asyncio.to_thread(condense_question, history, question)
+        logger.debug("Chat %s: condensed query: %r → %r", job.chat_id, question, search_query)
         nodes = await asyncio.to_thread(retrieve_nodes, search_query, top_k=top_k, modality=modality, tags=tags)
         sources_payload = serialize_retrieved_nodes(nodes)
         logger.info(
-            "retrieved %d chunk(s) | original=%r | search_query=%r:\n%s",
+            "Chat %s: retrieved %d chunk(s) | original=%r | search_query=%r:\n%s",
+            job.chat_id,
             len(sources_payload),
             question,
             search_query,
@@ -290,10 +297,15 @@ async def _run(
 
         answer_text = "".join(answer_parts).strip() or "(empty response)"
         thinking_text = "".join(thinking_parts).strip() or None
+        logger.debug(
+            "Chat %s: generation complete — answer_len=%d thinking_len=%d",
+            job.chat_id, len(answer_text), len(thinking_text or ""),
+        )
 
         # Output guardrail: screen the AI's reply before it is ever revealed. If it trips a
         # category (e.g. jailbroken into harmful advice), swap in a support card instead of
         # showing — and persisting — the text.
+        logger.debug("Chat %s: running output safety check", job.chat_id)
         out_verdict = await safety.classify_ai_text(question, answer_text)
         if out_verdict.flagged:
             job.status = "done"
