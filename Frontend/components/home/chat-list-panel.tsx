@@ -1,7 +1,7 @@
 "use client"
 
-import { EllipsisVerticalIcon, Loader2, Pencil, Plus, MessageSquare, Trash2 } from "lucide-react"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { EllipsisVerticalIcon, Loader2, Pencil, Plus, MessageSquare, RotateCw, Trash2, Upload } from "lucide-react"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Skeleton } from "@/components/ui/skeleton"
 import type { ChatSummary } from "@/lib/api"
 import { formatListTimestamp } from "@/lib/utils"
@@ -20,6 +20,8 @@ interface ChatListPanelProps {
   onCommitRename: (id: number) => Promise<void>
   onCancelRename: () => void
   onDeleteChat: (chat: ChatSummary, e: React.MouseEvent) => Promise<void>
+  onPromoteChat: (chatId: number) => void
+  isPromotingChat: boolean
 }
 
 export function ChatListPanel({
@@ -36,6 +38,8 @@ export function ChatListPanel({
   onCommitRename,
   onCancelRename,
   onDeleteChat,
+  onPromoteChat,
+  isPromotingChat,
 }: ChatListPanelProps) {
   return (
     <>
@@ -122,7 +126,19 @@ export function ChatListPanel({
                         <EllipsisVerticalIcon className="h-3.5 w-3.5" />
                       </button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-36">
+                    <DropdownMenuContent align="end" className="w-44">
+                      <DropdownMenuItem
+                        onSelect={() => onPromoteChat(chat.id)}
+                        disabled={isPromotingChat}
+                        className="gap-2"
+                      >
+                        {chat.source_id === null ? (
+                          <Upload className="h-3.5 w-3.5" />
+                        ) : (
+                          <RotateCw className="h-3.5 w-3.5" />
+                        )}
+                        {chat.source_id === null ? "Promote to source" : "Update source"}
+                      </DropdownMenuItem>
                       <DropdownMenuItem
                         onSelect={(e) => onStartRenameChat(chat, e as unknown as React.MouseEvent)}
                         className="gap-2"
@@ -130,6 +146,7 @@ export function ChatListPanel({
                         <Pencil className="h-3.5 w-3.5" />
                         Rename
                       </DropdownMenuItem>
+                      <DropdownMenuSeparator />
                       <DropdownMenuItem
                         onSelect={(e) => void onDeleteChat(chat, e as unknown as React.MouseEvent)}
                         className="gap-2 text-destructive focus:text-destructive"

@@ -83,10 +83,6 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
   // Once the final stage is finished the cycle enters a "complete" wrap-up phase
   // (still active, so the right panel shows the summary instead of step controls).
   const [gibbsComplete, setGibbsComplete] = useState(false)
-  // How a typed message is handled. "reflect" = a (silent) answer to the current
-  // Gibbs step; "ask" = a RAG "context question" grounded in the user's sources.
-  // Outside a reflection the chat is always in "ask" mode.
-  const [chatMode, setChatMode] = useState<"reflect" | "ask">("ask")
   // A distress signal surfaced for the chat on screen. Ephemeral (never persisted), shown
   // as a dismissible support card; cleared whenever the active chat changes.
   const [supportCard, setSupportCard] = useState<{ kind: SafetyKind } | null>(null)
@@ -164,7 +160,6 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
           setGibbsGoal(detail.reflection_goal ?? detail.reflection_scope?.topic ?? "")
           setGibbsScopeItems(detail.reflection_scope?.items ?? [])
           setGibbsStep(Math.min(Math.max(...steps), GIBBS_STEP_COUNT))
-          setChatMode("reflect")
         }
       } catch (error) {
         toast.error(`Could not load chat: ${error instanceof Error ? error.message : "Unknown error"}`)
@@ -214,18 +209,21 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
     }
   }
 
-  const handleSubmitText = async (e: React.FormEvent) => {
-    e.preventDefault()
+  // Send the box as one turn. "reflect" tags it with the current Gibbs stage and keeps
+  // the facilitator silent (one answer per question); "ask" runs it as a RAG context
+  // question grounded in the sources. Returns the persisted answer so callers that also
+  // advance the stage (Continue) can hand the facilitator fresh history.
+  const submitText = async (intent: "reflect" | "ask"): Promise<ChatMessageRecord | null> => {
     const trimmed = inputValue.trim()
-    if (!trimmed || isAssistantThinking) return
+    if (!trimmed || isAssistantThinking) return null
     setInputValue("")
     let chatId: number
+    let created: ChatMessageRecord | null = null
     try {
       chatId = await ensureActiveChat()
-      // A reflection answer only when actively reflecting AND in "reflect" mode;
-      // otherwise the message is a normal RAG "context question".
-      const asReflection = gibbsActive && chatMode === "reflect"
-      await persistMessage(chatId, {
+      // A reflection answer only when actively reflecting; otherwise it's a RAG question.
+      const asReflection = gibbsActive && intent === "reflect"
+      created = await persistMessage(chatId, {
         role: "answer",
         text: trimmed,
         // Tag reflection answers with their stage so the chat can group them.
@@ -240,16 +238,23 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
           })
           .catch(() => {})
         // The facilitator stays silent after a reflection answer — one answer per
-        // question. The user advances the stage or hits "Ask another question".
-        return
+        // question. The user advances the stage or asks another question.
+        return created
       }
     } catch (error) {
       toast.error(`Could not save message: ${error instanceof Error ? error.message : "Unknown error"}`)
-      return
+      return null
     }
     // Hand off to the provider: it runs the answer server-side (so it survives leaving
     // the page) and streams it back. Completion is handled by the onComplete effect.
     generation.startTextGeneration(chatId, trimmed)
+    return created
+  }
+
+  // Form submit / Enter: reflect while a cycle is running, otherwise ask the sources.
+  const handleSubmitText = async (e: React.FormEvent) => {
+    e.preventDefault()
+    await submitText(gibbsActive && !gibbsComplete ? "reflect" : "ask")
   }
 
   // When a query generation finishes, fold its answer into the on-screen chat (if it's
@@ -291,8 +296,12 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
 
   // Build the conversation so far as Q&A pairs to give the facilitator context for
   // its next question.
-  const buildGibbsHistory = (): Array<Record<string, unknown>> => {
-    const msgs: Array<Pick<ChatMessageRecord, "role" | "text">> = activeChatMessages
+  // `extra` lets a caller include just-persisted messages that React state hasn't
+  // committed yet (e.g. the answer submitted by Continue before advancing the stage).
+  const buildGibbsHistory = (extra?: ChatMessageRecord[]): Array<Record<string, unknown>> => {
+    const msgs: Array<Pick<ChatMessageRecord, "role" | "text">> = extra
+      ? [...activeChatMessages, ...extra]
+      : activeChatMessages
     const pairs: Array<{ question?: string; answer?: string }> = []
     let pending: { question?: string; answer?: string } | null = null
     for (const m of msgs) {
@@ -345,7 +354,7 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
           onProgress: (chars) => {
             setStreamingAssistant((prev) => (prev ? { ...prev, progressChars: chars } : prev))
           },
-          onDone: async ({ text, fallbackKind }) => {
+          onDone: async ({ text, model, fallbackKind }) => {
             try {
               if (fallbackKind) {
                 // The facilitator's question was blocked by the output guard — offer support
@@ -354,8 +363,9 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
               } else if (text) {
                 // persistMessage guards the on-screen append by chat id; the message
                 // is always saved server-side even if the user switched chats. Tag the
-                // facilitator's question with the stage it belongs to.
-                await persistMessage(chatId, { role: "question", text, gibbs_step: step })
+                // facilitator's question with the stage it belongs to, and record the
+                // model that generated it (shown as "generated by:" like a plain chat).
+                await persistMessage(chatId, { role: "question", text, model, gibbs_step: step })
               }
             } finally {
               setStreamingAssistant(null)
@@ -376,7 +386,11 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
     })
   }
 
-  const generateGibbsQuestion = async (targetStep: number, mode: "deep_dive" | "clarifying" = "deep_dive") => {
+  const generateGibbsQuestion = async (
+    targetStep: number,
+    mode: "deep_dive" | "clarifying" = "deep_dive",
+    extraHistory?: ChatMessageRecord[],
+  ) => {
     let chatId: number
     try {
       chatId = await ensureActiveChat()
@@ -384,7 +398,7 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
       toast.error(`Could not start reflection: ${error instanceof Error ? error.message : "Unknown error"}`)
       return
     }
-    await streamFacilitator(chatId, mode, targetStep, buildGibbsHistory())
+    await streamFacilitator(chatId, mode, targetStep, buildGibbsHistory(extraHistory))
   }
 
   // Starting a reflection no longer fires a question. It opens the setup phase, where
@@ -405,7 +419,6 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
     setGibbsStep(1)
     setGibbsGoal("")
     setGibbsScopeItems([])
-    setChatMode("reflect")
   }
 
   // Group the included sources into topics so the user can pick a theme without naming
@@ -456,7 +469,7 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
     await generateGibbsQuestion(1, "deep_dive")
   }
 
-  const advanceGibbsStep = async () => {
+  const advanceGibbsStep = async (extraAnswer?: ChatMessageRecord) => {
     if (gibbsGenerating) return
     if (gibbsStep >= GIBBS_STEP_COUNT) {
       // Final stage finished — enter the wrap-up phase (panel stays open).
@@ -465,7 +478,20 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
     }
     const next = gibbsStep + 1
     setGibbsStep(next)
-    await generateGibbsQuestion(next, "deep_dive")
+    await generateGibbsQuestion(next, "deep_dive", extraAnswer ? [extraAnswer] : undefined)
+  }
+
+  // The "Continue" lever: record whatever is in the box as this stage's reflection, then
+  // move to the next stage (or finish). An empty box just advances.
+  const continueStage = async () => {
+    if (gibbsGenerating) return
+    if (inputValue.trim()) {
+      const created = await submitText("reflect")
+      if (!created) return
+      await advanceGibbsStep(created)
+    } else {
+      await advanceGibbsStep()
+    }
   }
 
   // After the wrap-up, start a brand-new cycle in a fresh chat.
@@ -492,7 +518,6 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
     setGibbsSetup(false)
     setGibbsGoal("")
     setGibbsScopeItems([])
-    setChatMode("ask")
   }
 
   const handleSelectChat = (chatId: number) => {
@@ -531,8 +556,8 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
     }
   }
 
-  const handleDeleteChat = async (chat: ChatSummary, event: React.MouseEvent) => {
-    event.stopPropagation()
+  const handleDeleteChat = async (chat: ChatSummary, event?: React.MouseEvent) => {
+    event?.stopPropagation()
     const warning = chat.source_id
       ? `Delete "${chat.title}"? The promoted source will remain in your sources.`
       : `Delete "${chat.title}"? This cannot be undone.`
@@ -546,18 +571,22 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
     }
   }
 
-  const handlePromoteChat = async () => {
-    if (activeChatId === null || isPromotingChat) return
+  // Promote/update a specific chat (defaults to the active one). Whether it creates a
+  // new source or re-indexes an existing one is decided by that chat's source_id.
+  const handlePromoteChat = async (chatId?: number) => {
+    const id = chatId ?? activeChatId
+    if (id === null || isPromotingChat) return
+    const sourceId = chats.find((c) => c.id === id)?.source_id ?? null
     setIsPromotingChat(true)
     try {
-      if (activeChatSourceId === null) {
-        const result = await api.promoteChat(activeChatId)
-        setChats((prev) => prev.map((c) => (c.id === activeChatId ? { ...c, source_id: result.source.id } : c)))
+      if (sourceId === null) {
+        const result = await api.promoteChat(id)
+        setChats((prev) => prev.map((c) => (c.id === id ? { ...c, source_id: result.source.id } : c)))
         setRawSources((prev) => [mapBackendSource(result.source), ...prev])
         setProcessingSources((prev) => new Set([...prev, result.source.id]))
         toast("Chat promoted — indexing in background.")
       } else {
-        const updated = await api.reindexChat(activeChatId)
+        const updated = await api.reindexChat(id)
         setRawSources((prev) => prev.map((s) => (Number(s.id) === updated.id ? { ...s, status: updated.status } : s)))
         setProcessingSources((prev) => new Set([...prev, updated.id]))
         toast("Updating chat content...")
@@ -589,12 +618,14 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
     activeChat, activeChatSourceId, activeChatLinkedSourceStatus, isLinkedSourceProcessing,
     handleSelectChat, handleStartRenameChat, handleStartRenameActiveChat, handleCommitRename, handleDeleteChat,
     handlePromoteChat, handleSubmitText,
+    submitReflection: () => void submitText("reflect"),
+    submitQuestion: () => void submitText("ask"),
+    continueStage,
     resetChatState,
     supportCard, dismissSupportCard,
     guardNotice, dismissGuardNotice,
     gibbsActive, gibbsStep, gibbsGenerating, gibbsComplete, gibbsSetup, gibbsGoal, setGibbsGoal,
     gibbsScopeItems, setGibbsScopeItems, groupReflectionTopics,
     startReflection, beginReflection, advanceGibbsStep, askClarifying, exitReflection, handleSelectGibbsStep, beginNewCycle,
-    chatMode, setChatMode,
   }
 }

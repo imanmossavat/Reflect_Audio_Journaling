@@ -1,10 +1,8 @@
 "use client"
 
 import {
-  ArrowRight,
   BookmarkPlus,
   Check,
-  CheckCircle2,
   FileText,
   Loader2,
   PanelRightClose,
@@ -29,8 +27,6 @@ interface GibbsPanelProps {
   includedCount: number
   /** Whether the active chat is being promoted to a source. */
   isPromotingChat: boolean
-  onAdvance: () => void
-  onClarify: () => void
   onEnd: () => void
   onSelectStep: (step: number) => void
   onSaveToSources: () => void
@@ -72,21 +68,15 @@ function SegmentedRing({ step, complete }: { step: number; complete: boolean }) 
           )
         })}
       </svg>
-      <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
+      <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-center">
         {complete ? (
           <span className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-600 text-white">
             <Check className="h-7 w-7" />
           </span>
         ) : (
-          <>
-            <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-emerald-600">
-              {getGibbsStep(step).label.split(" ")[0]}
-            </span>
-            <span className="text-4xl font-semibold leading-none text-foreground tabular-nums">{pad(step)}</span>
-            <span className="mt-1 font-mono text-[10px] tracking-[0.16em] text-muted-foreground">
-              of {pad(GIBBS_STEP_COUNT)}
-            </span>
-          </>
+          <span className="max-w-[110px] px-2 text-lg font-semibold leading-tight text-emerald-600">
+            {getGibbsStep(step).label}
+          </span>
         )}
       </div>
     </div>
@@ -101,18 +91,12 @@ export function GibbsPanel({
   goal,
   includedCount,
   isPromotingChat,
-  onAdvance,
-  onClarify,
   onEnd,
   onSelectStep,
   onSaveToSources,
   onBeginNewCycle,
   onCollapse,
 }: GibbsPanelProps) {
-  const current = getGibbsStep(step)
-  const isLastStep = step >= GIBBS_STEP_COUNT
-  const nextLabel = isLastStep ? null : getGibbsStep(step + 1).label
-
   return (
     <div className="flex h-full flex-col bg-muted/10">
       {/* Header */}
@@ -122,14 +106,8 @@ export function GibbsPanel({
           {setup ? (
             <span className="font-mono text-[11px] tracking-[0.16em] text-emerald-600">setup</span>
           ) : complete ? (
-            <span className="font-mono text-[11px] tracking-[0.16em] text-emerald-600">
-              {pad(GIBBS_STEP_COUNT)} / {pad(GIBBS_STEP_COUNT)} ✓
-            </span>
-          ) : (
-            <span className="font-mono text-[11px] tracking-[0.16em] text-muted-foreground/70">
-              {pad(step)} / {pad(GIBBS_STEP_COUNT)}
-            </span>
-          )}
+            <span className="font-mono text-[11px] tracking-[0.16em] text-emerald-600">complete ✓</span>
+          ) : null}
         </div>
         <button
           onClick={onCollapse}
@@ -152,45 +130,6 @@ export function GibbsPanel({
       ) : (
         <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar px-4 py-5">
           <SegmentedRing step={step} complete={false} />
-
-          {/* Focus block */}
-          <div className="mt-5">
-            <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-emerald-600">
-              {current.label} · now
-            </div>
-            <p className="mt-2 text-base font-medium leading-snug text-foreground">
-              Reflecting on {current.blurb}.
-            </p>
-            <p className="mt-1.5 text-xs text-muted-foreground">
-              Reply in the chat in your own words — take your time.
-            </p>
-          </div>
-
-          {/* Actions — kept above the step list so they stay reachable without scrolling */}
-          <div className="mt-6 flex flex-col gap-2">
-            <button
-              onClick={onAdvance}
-              disabled={generating}
-              className="flex items-center justify-center gap-2 rounded-full bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {generating ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : isLastStep ? (
-                <CheckCircle2 className="h-4 w-4" />
-              ) : (
-                <ArrowRight className="h-4 w-4" />
-              )}
-              {isLastStep ? "Finish reflection" : `Continue to ${nextLabel}`}
-            </button>
-            <button
-              onClick={onClarify}
-              disabled={generating}
-              className="flex items-center justify-center gap-2 rounded-full border border-emerald-600/40 bg-emerald-600/10 px-4 py-2 text-sm font-medium text-emerald-700 transition-colors hover:bg-emerald-600/20 hover:border-emerald-600/60 dark:text-emerald-400 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <RotateCcw className="h-3.5 w-3.5" />
-              Ask another question
-            </button>
-          </div>
 
           {/* Step list */}
           <div className="mt-6 flex flex-col gap-0.5">

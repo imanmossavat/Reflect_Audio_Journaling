@@ -6,7 +6,7 @@ import { useParams } from "next/navigation"
 import { EditorContent, useEditor } from "@tiptap/react"
 import StarterKit from "@tiptap/starter-kit"
 import { Placeholder } from "@tiptap/extensions"
-import { AlertTriangle, ArrowLeft, CalendarClock, CircleDot, FileAudio2, FileText, Loader2, MessageSquare, Pencil, RefreshCw, Sparkles, X } from "lucide-react"
+import { AlertTriangle, ArrowLeft, CalendarClock, Check, CircleDot, Copy, FileAudio2, FileText, Loader2, MessageSquare, Pencil, RefreshCw, Sparkles, X } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { TopNav } from "@/components/top-nav"
 import { Markdown } from "@/components/markdown"
@@ -32,6 +32,34 @@ const getStatusClassName = (status: string) => {
 
 // Backend serializes naive UTC datetimes without a timezone marker; force UTC interpretation.
 const parseBackendDate = (s: string) => new Date(/[zZ]|[+-]\d{2}:?\d{2}$/.test(s) ? s : `${s}Z`)
+
+// Small copy-to-clipboard button used in the source panel headers. Shows a brief
+// "Copied" confirmation; disabled when there's nothing to copy.
+function CopyTextButton({ text }: { text: string }) {
+    const [copied, setCopied] = useState(false)
+    const disabled = !text.trim()
+    const handleCopy = async () => {
+        try {
+            await navigator.clipboard.writeText(text)
+            setCopied(true)
+            setTimeout(() => setCopied(false), 1500)
+        } catch {
+            toast.error("Could not copy to clipboard")
+        }
+    }
+    return (
+        <button
+            type="button"
+            onClick={() => void handleCopy()}
+            disabled={disabled}
+            title={disabled ? "Nothing to copy" : copied ? "Copied" : "Copy"}
+            aria-label="Copy text"
+            className="inline-flex items-center justify-center rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50"
+        >
+            {copied ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
+        </button>
+    )
+}
 
 export default function SourceDetailPage() {
     const params = useParams<{ id: string }>()
@@ -476,15 +504,18 @@ export default function SourceDetailPage() {
                                         <Sparkles className="h-3.5 w-3.5 text-emerald-600" />
                                         Summary
                                     </h2>
-                                    <button
-                                        type="button"
-                                        onClick={() => setEnrichMode("summary")}
-                                        disabled={isSourceInProgress}
-                                        className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50"
-                                    >
-                                        <Sparkles className="h-3.5 w-3.5" />
-                                        {summaryText.trim() ? "Regenerate" : "Generate"}
-                                    </button>
+                                    <div className="flex items-center gap-1">
+                                        <CopyTextButton text={summaryText} />
+                                        <button
+                                            type="button"
+                                            onClick={() => setEnrichMode("summary")}
+                                            disabled={isSourceInProgress}
+                                            className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50"
+                                        >
+                                            <Sparkles className="h-3.5 w-3.5" />
+                                            {summaryText.trim() ? "Regenerate" : "Generate"}
+                                        </button>
+                                    </div>
                                 </div>
                                 <div className="mt-3">
                                     <EditorContent editor={summaryEditor} />
@@ -493,8 +524,15 @@ export default function SourceDetailPage() {
 
                             <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_280px]">
                                 <div className="rounded-xl border bg-background p-4 sm:p-5">
+                                    <div className="flex items-center justify-between gap-2">
+                                        <h2 className="flex items-center gap-1.5 text-sm font-semibold">
+                                            <FileText className="h-3.5 w-3.5 text-emerald-600" />
+                                            {isChat ? "Conversation" : isAudio ? "Transcript" : "Text"}
+                                        </h2>
+                                        <CopyTextButton text={sourceText} />
+                                    </div>
                                     {isAudio && source && (
-                                        <div className="sticky top-14 z-10 -mx-4 sm:-mx-5 -mt-4 sm:-mt-5 px-4 sm:px-5 pt-4 sm:pt-5 pb-2 bg-background/95 backdrop-blur-sm rounded-t-xl">
+                                        <div className="sticky top-14 z-10 -mx-4 sm:-mx-5 mt-3 px-4 sm:px-5 pt-2 pb-2 bg-background/95 backdrop-blur-sm">
                                             <audio
                                                 ref={audioRef}
                                                 src={api.getSourceAudioUrl(source.id)}
