@@ -54,10 +54,20 @@ before this. Reversible via `alembic downgrade` per-revision if needed.
   deletion, but that harness is the explicitly-out-of-scope stage-gated
   dead end from Step 0, not something this rebuild maintains.
 
+## Live-tested — found and fixed 4 bugs (docs/ISSUES.md #18-#21)
+
+Ran live against real Ollama for the first time. Found: a checkbox-tick race
+in the setup wizard (#18), a false-positive safety-card trigger from Llama
+Guard's S6 category (#19), and — via self-review pattern-matching against
+#18/#19, not live-reproduced — a 3-layer "Update failure discards an
+already-successful Ask reply" bug spanning `reflectionLoop.run_update`,
+the `/generate-question` route, and `generation_registry`'s post-RAG Update
+hook (#20). All four fixed, with regression tests except the route-level
+half of #20 (no TestClient precedent in this repo). #21 is a related,
+unconfirmed watch item, not fixed — see ISSUES.md for why.
+
 ## Not done yet
 
-- **Not yet run live** — still no manual `/run` walkthrough against real
-  Ollama. Everything is unit/repository-tested with mocked model calls.
 - **Backfill not actually executed** — only `--dry-run`. Running it for
   real hits live Ollama embedding calls for ~567 units; left for you to
   trigger when ready rather than run unprompted.

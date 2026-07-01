@@ -120,6 +120,27 @@ def test_run_update_keeps_prior_state_on_malformed_json(monkeypatch):
     assert logged["raw"] == "not json at all"
 
 
+def test_run_update_keeps_prior_state_on_unexpected_model_call_failure(monkeypatch):
+    """Regression: ollama.chat itself erroring (e.g. connection dropped mid-call)
+    used to propagate uncaught out of run_update — silently discarding an
+    already-generated Ask reply several layers up. Must degrade exactly like a
+    malformed-JSON response: keep prior state, never raise."""
+    def boom(**kwargs):
+        raise ConnectionError("ollama unreachable")
+
+    monkeypatch.setattr(ollama, "chat", boom)
+    logged = {}
+    monkeypatch.setattr(loop, "log_extraction_failure", lambda msg, raw: logged.update(msg=msg, raw=raw))
+
+    state = _state(gist_text="prior gist", open_thread_text="prior open thread")
+    new_gist, new_open_thread, focus_shift = run_update(state, "hello", "reply", [])
+
+    assert new_gist == state.gist
+    assert new_open_thread == state.open_thread
+    assert focus_shift is None
+    assert "ollama unreachable" in logged["raw"]
+
+
 def test_run_update_keeps_prior_state_on_schema_violation(monkeypatch):
     # missing required "settled" key in open_thread
     invalid_shape = json.dumps({"gist": {"text": "x", "citations": []}, "open_thread": {"next": "y"}})

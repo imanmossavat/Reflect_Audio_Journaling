@@ -214,22 +214,32 @@ def run_update(
     resolve_hint: bool = False,
     chat_model: str | None = None,
 ) -> tuple[Gist, OpenThread, str | None]:
-    """Runs the extraction call. On parse/validation failure, keeps the
-    prior gist/open_thread unchanged and logs — never raises (§6/§10)."""
+    """Runs the extraction call. Never raises (§6/§10) — on parse/validation
+    failure, or any other failure (e.g. the model call itself erroring —
+    §6 only explicitly names JSON/validation failures, but the same "keep
+    prior state, Ask's reply still goes through" rule has to extend to any
+    Update failure, not just a malformed response, or a caller several
+    layers up ends up discarding an already-generated Ask reply over an
+    Update-only problem), keeps the prior gist/open_thread unchanged and
+    logs."""
     messages = build_update_messages(
         state.gist.text, state.open_thread.text, student_message, facilitator_reply, retrieved,
         resolve_hint=resolve_hint,
     )
     model = chat_model or get_setting("chat_model")
-    response = ollama.chat(
-        model=model, messages=messages, format="json", options={"num_ctx": chat_num_ctx()}
-    )
-    raw = response.get("message", {}).get("content") or ""
     try:
+        response = ollama.chat(
+            model=model, messages=messages, format="json", options={"num_ctx": chat_num_ctx()}
+        )
+        raw = response.get("message", {}).get("content") or ""
         result = _parse_update_response(raw)
     except (json.JSONDecodeError, ValidationError) as exc:
         logger.warning("[reflectionLoop] Update parse/validation failed: %s", exc)
         log_extraction_failure(student_message, raw)
+        return state.gist, state.open_thread, None
+    except Exception as exc:
+        logger.error("[reflectionLoop] Update call failed unexpectedly: %s", exc, exc_info=True)
+        log_extraction_failure(student_message, str(exc))
         return state.gist, state.open_thread, None
 
     new_open_thread = OpenThread(text=result.open_thread.next, source_ref=result.open_thread.source_ref)

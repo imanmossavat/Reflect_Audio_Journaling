@@ -151,6 +151,56 @@ async def _evict_later(chat_id: int) -> None:
         _jobs.pop(chat_id, None)
 
 
+async def _update_reflection_state_after_rag_turn(
+    chat_id: int,
+    reflection_state,
+    question: str,
+    answer_text: str,
+    sources_payload: list[dict] | None,
+    chat_model: str,
+) -> None:
+    """The "Ask sources" mid-conversation detour feeds back into the same
+    continuity mechanism as any other turn (Design Doc §1) — via an explicit
+    Update call, replacing the old implicit role-matching history leak this
+    detour used to rely on.
+
+    Best-effort and isolated on purpose: by the time this runs, the RAG
+    answer is already saved and about to be reported to the user as done.
+    Document B's own rule for Update ("keep prior state, Ask's reply still
+    goes through") only covers JSON/validation failures inside
+    `run_update` itself — an unexpected exception here (e.g. Ollama
+    hiccupping mid-call) must not propagate and turn an already-successful
+    turn into a reported failure.
+    """
+    try:
+        retrieved_units = [
+            reflectionLoop.SourceUnit(
+                source_id=str(s.get("source_id") or ""),
+                unit_id=str(s.get("chunk_id") or "full"),
+                text=s.get("text") or "",
+            )
+            for s in (sources_payload or [])
+            if s.get("text")
+        ]
+        async with generation_lock:
+            new_gist, new_open_thread, _ = await asyncio.to_thread(
+                reflectionLoop.run_update,
+                reflection_state, question, answer_text, retrieved_units,
+                chat_model=chat_model,
+            )
+        reflection_state = reflection_state.model_copy(
+            update={"gist": new_gist, "open_thread": new_open_thread}
+        )
+        with Session(engine) as session:
+            reflectionStateService.save_state(session, chat_id, reflection_state)
+    except Exception as update_exc:
+        logger.error(
+            "Chat %s: reflection Update after an 'Ask sources' turn failed "
+            "(answer already saved, Gist/Open Thread left unchanged): %s",
+            chat_id, update_exc, exc_info=True,
+        )
+
+
 async def _run(
     job: GenerationJob,
     question: str,
@@ -334,26 +384,9 @@ async def _run(
             reflection_state = reflectionStateService.load_state(session, job.chat_id)
 
         if reflection_state is not None:
-            retrieved_units = [
-                reflectionLoop.SourceUnit(
-                    source_id=str(s.get("source_id") or ""),
-                    unit_id=str(s.get("chunk_id") or "full"),
-                    text=s.get("text") or "",
-                )
-                for s in (sources_payload or [])
-                if s.get("text")
-            ]
-            async with generation_lock:
-                new_gist, new_open_thread, _ = await asyncio.to_thread(
-                    reflectionLoop.run_update,
-                    reflection_state, question, answer_text, retrieved_units,
-                    chat_model=chat_model,
-                )
-            reflection_state = reflection_state.model_copy(
-                update={"gist": new_gist, "open_thread": new_open_thread}
+            await _update_reflection_state_after_rag_turn(
+                job.chat_id, reflection_state, question, answer_text, sources_payload, chat_model,
             )
-            with Session(engine) as session:
-                reflectionStateService.save_state(session, job.chat_id, reflection_state)
 
         job.message_id = snapshot["id"]
         job.status = "done"

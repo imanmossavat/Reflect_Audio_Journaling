@@ -25,12 +25,20 @@ from app.services.settings_service import get_setting
 logger = logging_config.logger
 
 # MLCommons / Llama Guard 3 hazard codes → the care pathway we respond with.
-# S1 Violent Crimes, S2 Non-Violent Crimes, S6 Specialized Advice, S11 Suicide & Self-Harm.
+# S1 Violent Crimes, S2 Non-Violent Crimes, S11 Suicide & Self-Harm.
+#
+# S6 (Specialized Advice) was previously mapped to "support" too, and has been
+# removed (docs/ISSUES.md #19): it flags content resembling unqualified
+# professional advice (medical/legal/financial) — a misinformation/liability
+# category, not a wellbeing signal. In practice it false-positived on ordinary
+# planning/strategy conversation (career plans, project roadmaps) with a small
+# 1B guard model, surfacing the "reach out" support card on completely benign
+# exchanges. Keep only categories that actually correlate with the user's
+# emotional state, not the topic being discussed.
 CATEGORY_TO_KIND: dict[str, str] = {
     "S11": "self_harm",
     "S1": "support",
     "S2": "support",
-    "S6": "support",
 }
 # When several categories fire, the more urgent kind wins.
 KIND_PRIORITY: list[str] = ["self_harm", "support"]

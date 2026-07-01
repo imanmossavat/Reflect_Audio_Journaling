@@ -1,16 +1,16 @@
 # REFLECT — Codebase Issues Found During Review
 
-> Originally produced 2026-06-30. **Updated 2026-07-01** after a full day of
-> changes (torch extras fix, device-availability validation, Chroma
-> orphaned-vector fix, transcript provenance, repository-level DB tests, and
-> a fresh audit of the tag system — see `docs/TAGS.md`,
-> `docs/DB_TESTING_PROPOSAL.md`, `docs/SESSION_HANDOFF.md`). Every item below
-> was re-checked against the code as it stands now, not carried over blindly.
-> Issue numbers are load-bearing: `#1`, `#9`, `#12`, `#15`, and `#17` are
-> referenced directly in code comments and test `xfail` reasons
-> (`Backend/pyproject.toml`, `Backend/tests/repositories/*`,
-> `Backend/tests/test_pyproject_torch_sources.py`) — don't renumber without
-> updating those references too.
+> Originally produced 2026-06-30, updated 2026-07-01 (torch extras fix,
+> device-availability validation, Chroma orphaned-vector fix, transcript
+> provenance, repository-level DB tests, tag-system audit — see
+> `docs/TAGS.md`, `docs/DB_TESTING_PROPOSAL.md`) and again later the same
+> day (#18-#21, found live-testing the rebuilt reflection flow — see
+> `docs/SESSION_HANDOFF.md`). Every item below was re-checked against the
+> code as it stands now, not carried over blindly. Issue numbers are
+> load-bearing: `#1`, `#9`, `#12`, `#15`, and `#17` are referenced directly
+> in code comments and test `xfail` reasons (`Backend/pyproject.toml`,
+> `Backend/tests/repositories/*`, `Backend/tests/test_pyproject_torch_sources.py`)
+> — don't renumber without updating those references too.
 
 ---
 
@@ -318,6 +318,120 @@ get treated as a surprise later.
 
 ---
 
+## New — found live-testing the rebuilt reflection flow (2026-07-01)
+
+### 18. `startReflection` deselect-all raced against the sources panel opening — Fixed
+
+**File**: `Frontend/hooks/useChatManagement.ts` (`startReflection`), triggered
+from `Frontend/app/page.tsx:397-400`
+
+Clicking "Start reflection" opened the sources sidebar (`sidebar.openRight()`)
+synchronously, in the same click handler that fired `chats.startReflection()`
+async. That function only ran its "deselect every source" reset *after*
+`await ensureActiveChat()` resolved (a real network call, `POST /chats`, when
+no chat was active yet). If a user ticked a source checkbox while that
+request was still pending, the tick landed, then the delayed reset silently
+reverted it — visible as "tick, then immediate untick, then it works a moment
+later" once the pending call finished. Reproduced live; heavy background
+polling (three independent poll loops, see #21) widened the window enough to
+make it easy to hit.
+
+**Fix**: moved the `setRawSources` deselect-all to run synchronously, before
+the `await`, closing the race window entirely. `gibbsActive`/`gibbsSetup`
+etc. still wait for `ensureActiveChat()` to succeed, unchanged, so a failed
+chat-creation still leaves the wizard closed exactly as before.
+
+Searched for the same shape elsewhere (open UI, then an async function later
+resets state a user might touch in the meantime) — no other confirmed
+instance; see #21 for one unconfirmed, lower-confidence candidate.
+
+### 19. Llama Guard's S6 ("Specialized Advice") false-positived the support card onto ordinary conversation — Fixed
+
+**File**: `Backend/app/services/safety.py` (`CATEGORY_TO_KIND`)
+
+`S6` was mapped to the same "support" wellbeing kind as `S1`/`S2`, alongside
+`S11` → `self_harm`. Reproduced live: a RAG answer discussing career
+strategy and next steps ("what specific actions... feel most critical")
+tripped `S6` on the 1B guard model and surfaced the "It's okay to reach
+out... de Luisterlijn" card on completely benign planning conversation.
+Looking at the taxonomy, this isn't really a mapping-severity problem (the
+`support` card is already a deliberately softer tier than `self_harm`, not
+identical to it — see `Frontend/components/home/crisis-support-card.tsx`) —
+it's a category-relevance problem: S6 flags content resembling
+unqualified professional advice (medical/legal/financial), a
+misinformation/liability signal, not a wellbeing one. Nothing about "this
+looks like specialized advice" correlates with the user's emotional state,
+so it was always going to false-positive on ordinary goal/strategy talk.
+
+**Fix**: removed `"S6": "support"` from `CATEGORY_TO_KIND`. Only `S1`, `S2`,
+`S11` remain — the categories that actually plausibly correlate with
+distress. Regression tests: `Backend/tests/services/test_safety.py`.
+
+### 20. Reflection-state persistence failures could discard an already-successful reply — Fixed, three call sites
+
+**Files**: `Backend/app/services/reflectionLoop.py` (`run_update`),
+`Backend/app/routes/query.py` (`generate_question`),
+`Backend/app/services/generation_registry.py` (`_update_reflection_state_after_rag_turn`)
+
+Found by tracing #19's investigation forward, not live-reproduced — a
+self-review pattern-match against the same "silent failure that should have
+been contained" class as the units-hook bug fixed earlier the same day (see
+`docs/SESSION_HANDOFF.md`). Three layers of the same bug, root to
+outermost:
+
+1. `reflectionLoop.run_update` guarded JSON/validation failures from the
+   Update call but not the `ollama.chat(...)` call itself — a connection
+   drop or timeout there propagated uncaught, discarding whatever `run_ask`
+   had *already* generated several layers up (`run_turn`/`run_reflect_only`
+   call `run_update` with no try/except of their own).
+2. `/generate-question`'s route persisted `reflection_state` inside the same
+   `try` block as the reply generation — a save failure after a successful
+   reply reported the whole turn as errored instead of just logging the lost
+   Gist/Open Thread update.
+3. `generation_registry`'s post-"Ask sources" Update hook had the same
+   shape: a failure there could report an already-saved RAG answer as
+   failed.
+
+All three violate the same explicit design rule (Contract §6/§10: Update
+failures must never block Ask's reply). Only #1 was literally named in the
+contract's failure table (JSON/validation only); the same rule has to extend
+to *any* Update failure, or a caller several layers up ends up discarding
+real, already-generated work over an Update-only problem.
+
+**Fix**: widened `run_update`'s catch to any exception (still keeps prior
+state, still logs, still never raises); wrapped the route's `save_state`
+call and the registry's whole Update hook each in their own isolated
+try/except that logs and continues rather than failing the turn. Regression
+tests: `test_reflection_loop.py::test_run_update_keeps_prior_state_on_unexpected_model_call_failure`,
+`test_generation_registry.py` (new file, 3 tests). The route-level fix has
+no dedicated test — this repo has no route-level (TestClient) test
+precedent yet, same gap noted for the route itself in the original plan.
+
+### 21. Three independent frontend poll loops hit the backend simultaneously; one merge path is an unconfirmed watch item
+
+**Files**: `Frontend/hooks/useChatManagement.ts` (`GET /chats`, 5000ms,
+always running), `Frontend/hooks/useSourceManagement.ts` (`GET
+/sources?since_id=N`, 5000ms, always running; a second `processingSources`
+poll, 2500ms, only while any source is non-terminal)
+
+Not a confirmed bug on its own — flagging because it's what widened #18's
+race window enough to make it easy to hit live, and because Phase 3's new
+units-computation step (`sourceService.py`, see `docs/SESSION_HANDOFF.md`)
+adds real wall-clock time to the `"chunking"` status, keeping sources
+non-terminal (and the 2500ms poll running) slightly longer than before.
+Investigated the `processingSources` poll's merge logic for the same
+clobber shape as #18: it does **not** clobber `included` (confirmed — only
+`status`/`content` fields are touched), but it does unconditionally
+overwrite a source's `content` from the server whenever the poll response
+carries text. No live UI path that edits `content` while a source is still
+processing was found, so this is a plausible-shape, unconfirmed risk, not a
+reproduced bug — recorded so it isn't lost, not treated as fixed or urgent.
+
+**Fix**: none applied — no reproducible bug to fix. Worth a second look if
+an in-flight-source content editor is ever added.
+
+---
+
 ## Summary table
 
 | # | Severity | Status | Issue | File(s) |
@@ -339,3 +453,7 @@ get treated as a surprise later.
 | 15 | Minor | Open (pinned, no fix decided) | Confirmed LLM tag indistinguishable from manual | `routes/tags.py`, `repositories/tagRepository.py` |
 | 16 | Minor | **Fixed** (this doc pass) | `HANDOVER.md` pipeline/testing sections were stale | `docs/HANDOVER.md` |
 | 17 | Minor | Open (confirmed, harmless on SQLite today) | Schema/migration drift on 4 columns | `database/models.py`, `migrations/versions/` |
+| 18 | Moderate | **Fixed** | Checkbox tick raced against `startReflection`'s deselect-all reset | `hooks/useChatManagement.ts`, `app/page.tsx` |
+| 19 | Moderate | **Fixed** | Llama Guard S6 false-positived the support card on ordinary conversation | `services/safety.py` |
+| 20 | Moderate | **Fixed** | Update failures could discard an already-successful reply (3 call sites) | `services/reflectionLoop.py`, `routes/query.py`, `services/generation_registry.py` |
+| 21 | Minor | Open (unconfirmed, no repro) | Three poll loops; one merge path's `content` overwrite is an unconfirmed watch item | `hooks/useChatManagement.ts`, `hooks/useSourceManagement.ts` |

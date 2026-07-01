@@ -325,8 +325,19 @@ async def generate_question(req: GenerateRequest):
                         resolve_hint=resolve_hint, chat_model=chat_model,
                     )
 
-            with Session(engine) as save_session:
-                reflectionStateService.save_state(save_session, req.chat_id, result.state)
+            # Isolated on purpose: `result.reply` was already generated successfully
+            # by this point. A persistence failure here must be logged, not allowed
+            # to discard that reply and report the whole turn as errored (the same
+            # fix applied to generation_registry's post-RAG Update hook).
+            try:
+                with Session(engine) as save_session:
+                    reflectionStateService.save_state(save_session, req.chat_id, result.state)
+            except Exception as save_exc:
+                logger.error(
+                    "Chat %s: failed to persist reflection_state after a successful "
+                    "reply (reply still shown, Gist/Open Thread update lost): %s",
+                    req.chat_id, save_exc, exc_info=True,
+                )
 
             if result.reply:
                 yield f"data: {json.dumps({'progress': len(result.reply)})}\n\n"
