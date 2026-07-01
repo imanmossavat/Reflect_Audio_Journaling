@@ -249,10 +249,12 @@ export interface AppendChatMessagePayload {
   gibbs_step?: number | null
 }
 
-type GenerateQuestionMode = "clarifying" | "deep_dive" | "reply"
+type GenerateQuestionMode = "clarifying" | "deep_dive" | "reply" | "reflect"
 
 export interface GenerateQuestionRequest {
   mode: GenerateQuestionMode
+  // Identifies the reflection_state row this turn reads/writes (Document B §2).
+  chat_id: number
   step?: number
   focus_tag?: string
   focus_tag_summary?: string

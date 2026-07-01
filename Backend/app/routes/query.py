@@ -18,29 +18,29 @@ from app.services.rag import (
     serialize_retrieved_nodes,
     to_chat_messages,
 )
-from app.services.settings_service import chat_num_ctx, get_setting
+from app.services.settings_service import get_setting
 from app.services import chatService
 from app.services import generation_registry
+from app.services import reflectionLoop
 from app.services import reflectionService
+from app.services import reflectionStateService
 from app.services import safety
 from app.services.ollama_gate import generation_lock, is_busy
-from app.services.thin_turn import is_thin_turn
 
 import httpx
-from ollama import AsyncClient
 from fastapi import APIRouter, HTTPException, Response
 from fastapi.responses import JSONResponse, StreamingResponse
 from sqlmodel import Session
 
 from app import logging_config
 from app.db import engine, get_latest_source
-from app.prompts import gibbs_facilitator_prompt
 from app.repositories import chatRepository
 from app.services import tagService
 from app.schemas.journalSchemas import (
     ExtractedTagSchema,
     ExtractedTagsResponse,
     GenerateRequest,
+    Mode,
     QueryResponse,
     SaveAnswerRequest,
 )
@@ -284,81 +284,68 @@ async def extract_tags(source_id: int) -> ExtractedTagsResponse:
 
 @router.post("/generate-question", tags=["Query"])
 async def generate_question(req: GenerateRequest):
-    if req.journal_text and req.journal_text.strip():
-        # Frontend supplies the journal context (e.g. the user's included sources +
-        # conversation), so reflection questions aren't tied to only the latest entry.
-        source_text = req.journal_text
-    else:
-        with Session(engine) as session:
+    """The reflection turn loop (Document B §4), behind the same four-lever
+    request shape the frontend already sends. `step`/`goal`/`scope_items` are
+    accepted for backward compatibility but no longer drive the turn — see
+    reflectionStateService (Focus persists from the chat's reflection_goal)
+    and reflectionLoop (retrieve -> Ask -> thin-turn gate -> Update)."""
+    with Session(engine) as session:
+        chat = chatRepository.get_chat_by_id(session, req.chat_id)
+        if not chat:
+            raise HTTPException(status_code=404, detail="Chat not found")
+
+        if req.journal_text and req.journal_text.strip():
+            # Frontend supplies the journal context (the user's included sources), so
+            # reflection questions aren't tied to only the latest entry.
+            included_sources = [{"source_id": str(req.chat_id), "text": req.journal_text}]
+        else:
             source = get_latest_source(session)
-            source_text = source.text if source else ""
-
-    # The Gibbs reflection is a conversational facilitator. Each frontend action maps to
-    # a facilitator "action": opening a stage, clarifying within it, or replying to a
-    # typed answer. (focus_tag is unused for now — reflection is grounded in the included
-    # sources passed as journal_text.)
-    action_for_mode = {"deep_dive": "open", "clarifying": "clarify", "reply": "reply"}
-    action = action_for_mode.get(getattr(req.mode, "value", req.mode))
-    if action is None:
-        raise HTTPException(status_code=400, detail=f"Unknown mode: {req.mode}")
-
-    # If the last user answer in history is thin (very short / no information),
-    # force the facilitator to clarify rather than advance or open a new stage.
-    if action == "reply" and req.history:
-        last_answer = (req.history[-1].get("answer") or "").strip()
-        if is_thin_turn(last_answer):
-            logger.debug(
-                "[generate-question] thin turn detected (answer=%r) — forcing clarify action",
-                last_answer[:60],
+            included_sources = (
+                [{"source_id": str(source.id), "text": source.text}] if source and source.text else []
             )
-            action = "clarify"
 
-    try:
-        messages = gibbs_facilitator_prompt.build_messages(
-            source_text,
-            action=action,
-            step=int(req.step) if req.step is not None else None,
-            history=req.history,
-            goal=req.goal,
-            scope_items=req.scope_items,
-        )
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        state = reflectionStateService.ensure_state(session, chat, included_sources)
 
+    student_message = (req.history[-1].get("answer") or "").strip() if req.history else ""
     chat_model = _chat_model()
 
-    async def stream_ollama():
+    async def stream_reflection_turn():
         try:
-            parts: list[str] = []
-            answer_len = 0
-            emitted_chars = 0
-            # stream only a character count so the UI can animate a skeleton
             async with generation_lock:
-                client = AsyncClient(host=_ollama_host())
-                async for chunk in await client.chat(
-                    model=chat_model, messages=messages, stream=True, think=False,
-                    options={"num_ctx": chat_num_ctx()},
-                ):
-                    token = chunk.get("message", {}).get("content", "")
-                    if token:
-                        parts.append(token)
-                        answer_len += len(token)
-                        if answer_len - emitted_chars >= 20:
-                            emitted_chars = answer_len
-                            yield f"data: {json.dumps({'progress': answer_len})}\n\n"
-            text = "".join(parts).strip()
-            verdict = await safety.classify_ai_text(source_text, text)
-            if verdict.flagged:
-                yield f"data: {json.dumps({'fallback': verdict.kind or 'support'})}\n\n"
+                if req.mode == Mode.reflect:
+                    result = await asyncio.to_thread(
+                        reflectionLoop.run_reflect_only,
+                        state, student_message, included_sources, chat_model=chat_model,
+                    )
+                else:
+                    resolve_hint = req.mode == Mode.deep_dive
+                    result = await asyncio.to_thread(
+                        reflectionLoop.run_turn,
+                        state, student_message, included_sources,
+                        resolve_hint=resolve_hint, chat_model=chat_model,
+                    )
+
+            with Session(engine) as save_session:
+                reflectionStateService.save_state(save_session, req.chat_id, result.state)
+
+            if result.reply:
+                yield f"data: {json.dumps({'progress': len(result.reply)})}\n\n"
+                verdict = await safety.classify_ai_text(req.journal_text or "", result.reply)
+                if verdict.flagged:
+                    yield f"data: {json.dumps({'fallback': verdict.kind or 'support'})}\n\n"
+                else:
+                    yield f"data: {json.dumps({'text': result.reply, 'model': chat_model})}\n\n"
             else:
-                yield f"data: {json.dumps({'text': text, 'model': chat_model})}\n\n"
+                # The "Answer" lever (mode=reflect) and a thin-turn both produce no
+                # facilitator reply by design — not an error.
+                yield f"data: {json.dumps({'model': chat_model})}\n\n"
             yield "data: [DONE]\n\n"
         except Exception as e:
-            logger.error(f"Ollama streaming error: {e}")
+            logger.error(f"Reflection turn error: {e}")
             yield f"data: {json.dumps({'error': str(e)})}\n\n"
             yield "data: [DONE]\n\n"
 
-    return StreamingResponse(stream_ollama(), media_type="text/event-stream")
+    return StreamingResponse(stream_reflection_turn(), media_type="text/event-stream")
 
 
 @router.post("/save-answer", tags=["Query"])

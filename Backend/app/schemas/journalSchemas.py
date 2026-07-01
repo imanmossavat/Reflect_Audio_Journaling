@@ -10,6 +10,9 @@ class Mode(str, Enum):
     deep_dive = "deep_dive"
     # Conversational facilitator responding to a user's typed answer within a stage.
     reply = "reply"
+    # "Answer" lever: record the message and update Gist/Open Thread, no facilitator
+    # reply generated. See Backend/app/services/reflectionLoop.run_reflect_only.
+    reflect = "reflect"
 
 
 class StepN(int, Enum):
@@ -29,14 +32,20 @@ class ExtractedTagSchema(BaseModel):
 
 class GenerateRequest(BaseModel):
     mode: Mode
+    # chat_id identifies the reflection_state row (Document B §2) this turn reads/writes.
+    # Required — every structured-reflection turn belongs to exactly one chat.
+    chat_id: int
+    # `step` is accepted for backward compatibility with the existing frontend payload
+    # but is no longer used as a gating mechanism (Document B §9) — Focus/Gist/Open
+    # Thread, not a stage counter, drive the turn now.
     step: StepN | None = None
     focus_tag: str | None = None
     focus_tag_summary: str | None = None
     history: list[dict] | None = None
     journal_text: str | None = None
-    # The user's stated focus/topic for the whole reflection, set on the setup screen.
+    # Accepted for backward compatibility; unused — Focus now comes from the chat's
+    # already-persisted reflection_goal (see reflectionStateService.ensure_state).
     goal: str | None = None
-    # Supporting excerpts that define the chosen topic, so the facilitator stays scoped.
     scope_items: list[str] | None = None
 
 

@@ -57,13 +57,30 @@ def build_update_messages(
     student_message: str,
     facilitator_reply: str,
     retrieved_units: list,
+    *,
+    resolve_hint: bool = False,
 ) -> list[dict]:
-    """Assemble the Update (extraction) prompt per Document B §6."""
+    """Assemble the Update (extraction) prompt per Document B §6.
+
+    `resolve_hint` reflects the "Answer & next/finish" lever: the student
+    explicitly signaled they're ready to move on. This is fed into the
+    prompt as context, not as a code-level override — `settled` is still
+    entirely the model's own judgment call, per §6's "no numeric threshold"
+    rule; a UI confirmation is a strong signal for that judgment, not a
+    bypass of it.
+    """
     prior_gist_block = prior_gist_text.strip() if prior_gist_text and prior_gist_text.strip() else "(none yet)"
     prior_open_thread_block = (
         prior_open_thread_text.strip()
         if prior_open_thread_text and prior_open_thread_text.strip()
         else "(none yet)"
+    )
+    confirmation_note = (
+        "\nThe student just explicitly indicated they're ready to move on from this "
+        "line of inquiry — weigh that seriously when deciding whether it's settled, "
+        "but still use your own judgment; it isn't an automatic yes."
+        if resolve_hint
+        else ""
     )
 
     system_content = f"""Prior Gist (light orientation only):
@@ -74,7 +91,7 @@ Prior Open Thread (light orientation only):
 
 The exchange that just happened:
 Student: {student_message}
-Facilitator: {facilitator_reply}
+Facilitator: {facilitator_reply}{confirmation_note}
 
 Source units the facilitator was given this turn:
 {_units_block(retrieved_units)}

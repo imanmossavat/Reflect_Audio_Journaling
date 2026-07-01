@@ -11,6 +11,8 @@ from app import logging_config
 from app.db import engine
 from app.repositories import chatRepository
 from app.services import chatService
+from app.services import reflectionLoop
+from app.services import reflectionStateService
 from app.services import safety
 from app.services.ollama_gate import generation_lock, is_busy
 from app.services.rag import (
@@ -324,6 +326,34 @@ async def _run(
                 thinking=thinking_text,
                 sources=sources_payload or None,
             )
+            # If this chat is already in the structured reflection flow (has a
+            # reflection_state row), the "Ask sources" mid-conversation detour feeds
+            # back into the same continuity mechanism as any other turn (Design Doc
+            # §1) — via an explicit Update call now, replacing the old implicit
+            # role-matching history leak this same detour used to rely on.
+            reflection_state = reflectionStateService.load_state(session, job.chat_id)
+
+        if reflection_state is not None:
+            retrieved_units = [
+                reflectionLoop.SourceUnit(
+                    source_id=str(s.get("source_id") or ""),
+                    unit_id=str(s.get("chunk_id") or "full"),
+                    text=s.get("text") or "",
+                )
+                for s in (sources_payload or [])
+                if s.get("text")
+            ]
+            async with generation_lock:
+                new_gist, new_open_thread, _ = await asyncio.to_thread(
+                    reflectionLoop.run_update,
+                    reflection_state, question, answer_text, retrieved_units,
+                    chat_model=chat_model,
+                )
+            reflection_state = reflection_state.model_copy(
+                update={"gist": new_gist, "open_thread": new_open_thread}
+            )
+            with Session(engine) as session:
+                reflectionStateService.save_state(session, job.chat_id, reflection_state)
 
         job.message_id = snapshot["id"]
         job.status = "done"

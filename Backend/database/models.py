@@ -189,3 +189,22 @@ class ChatMessage(SQLModel, table=True):
 
     # Relationships
     chat: Optional[Chat] = Relationship(back_populates="messages")
+
+
+class ReflectionState(SQLModel, table=True):
+    """Document A/B's turn-loop state (Design Doc §6, Contract §2). One row per
+    qualifying chat_id, upserted on every Update — not versioned, not a history log.
+    Only created for chats in the structured reflection flow; a RAG-only chat never
+    gets a row here."""
+    __tablename__ = "reflection_state"
+
+    chat_id: int = Field(foreign_key="chat.id", primary_key=True)
+    # [{"source_id": str, "unit_id": str, "text": str}, ...] — selected this session.
+    sources: list = Field(default_factory=list, sa_column=Column(JSON))
+    # {"value": str, "set_by": "student", "set_at_turn": int}
+    focus: dict = Field(default_factory=dict, sa_column=Column(JSON))
+    # {"text": str, "citations": [{"source_id": str, "unit_id": str}, ...]}
+    gist: dict = Field(default_factory=dict, sa_column=Column(JSON))
+    # {"text": str | None, "source_ref": {"source_id": str, "unit_id": str} | None}
+    open_thread: dict = Field(default_factory=dict, sa_column=Column(JSON))
+    updated_at: datetime = Field(default_factory=datetime.utcnow)

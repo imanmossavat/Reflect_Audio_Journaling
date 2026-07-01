@@ -1,10 +1,14 @@
 """The retrieve -> Ask -> Update turn loop, Document B §4-§7.
 
-Phase 2a scope (per docs/lexical-spinning-kahn.md plan): built and testable
-against an in-memory `ReflectionState` and a whole-source retrieval stub —
-no `reflection_state` DB table, no route, no guard wired in yet. Those are
-Phase 2b/2c. The `retrieve()` signature is the seam Phase 3 swaps behind
-(de-risking seam #1 in the plan) — callers here never change.
+Phase 2a built this against an in-memory `ReflectionState` and a
+whole-source retrieval stub, with the guard unwired (per
+docs/lexical-spinning-kahn.md). Phase 2b wires in: the guard on every Ask
+call, and a `resolve_hint` the "Answer & next"/"finish" lever can set to
+feed the student's explicit confirmation into Update's judgment on whether
+to settle the Open Thread — a hint, not a code-level override; Document B
+§6 is explicit that "settled" stays a model judgment call, not a threshold.
+The `retrieve()` signature is still the seam Phase 3 swaps behind
+(de-risking seam #1) — callers here never change.
 """
 from __future__ import annotations
 
@@ -18,6 +22,7 @@ from app import logging_config
 from app.logging_config import LOGS_DIR
 from app.prompts.reflection_ask_prompt import build_ask_messages
 from app.prompts.reflection_update_prompt import build_update_messages
+from app.services import reflection_guard
 from app.services.settings_service import chat_num_ctx, get_setting
 from app.services.thin_turn import is_thin_turn
 
@@ -125,6 +130,11 @@ def retrieve(
 
 # ---- Ask -----------------------------------------------------------------
 
+def _call_ask_model(messages: list[dict], model: str) -> str:
+    response = ollama.chat(model=model, messages=messages, options={"num_ctx": chat_num_ctx()})
+    return (response.get("message", {}).get("content") or "").strip()
+
+
 def run_ask(
     state: ReflectionState,
     student_message: str | None,
@@ -133,6 +143,20 @@ def run_ask(
     is_session_start: bool,
     chat_model: str | None = None,
 ) -> str:
+    """Ask (generation), guarded: an obvious injection attempt short-circuits
+    to a fixed redirect before any model call; a reply that leaks scaffolding,
+    breaks format, or asks more than one question gets one repair attempt,
+    then a fixed fallback if it still violates (Phase 2b, guard ported from
+    the eval harness — see reflection_guard.py)."""
+    model = chat_model or get_setting("chat_model")
+    has_context = bool(retrieved) or bool(state.gist.text)
+
+    if student_message:
+        intent = reflection_guard.injection_intent(student_message)
+        if intent:
+            logger.info("[reflectionLoop] input guard tripped (%s) — short-circuiting", intent)
+            return reflection_guard.injection_redirect(has_context=has_context)
+
     messages = build_ask_messages(
         state.focus.value,
         state.gist.text,
@@ -141,9 +165,22 @@ def run_ask(
         student_message,
         is_session_start=is_session_start,
     )
-    model = chat_model or get_setting("chat_model")
-    response = ollama.chat(model=model, messages=messages, options={"num_ctx": chat_num_ctx()})
-    return (response.get("message", {}).get("content") or "").strip()
+    reply = _call_ask_model(messages, model)
+
+    violations = reflection_guard.output_violations(reply, student_message or "")
+    if violations:
+        logger.info("[reflectionLoop] output guard violations, repairing once: %s", violations)
+        repaired_messages = reflection_guard.repair_messages(messages, reply, violations)
+        reply = _call_ask_model(repaired_messages, model)
+        violations = reflection_guard.output_violations(reply, student_message or "")
+        if violations:
+            logger.warning(
+                "[reflectionLoop] output guard violations persisted after repair, falling back: %s",
+                violations,
+            )
+            reply = reflection_guard.safe_fallback(has_context=has_context)
+
+    return reply
 
 
 # ---- Update ----------------------------------------------------------------
@@ -177,12 +214,14 @@ def run_update(
     facilitator_reply: str,
     retrieved: list[SourceUnit],
     *,
+    resolve_hint: bool = False,
     chat_model: str | None = None,
 ) -> tuple[Gist, OpenThread, str | None]:
     """Runs the extraction call. On parse/validation failure, keeps the
     prior gist/open_thread unchanged and logs — never raises (§6/§10)."""
     messages = build_update_messages(
-        state.gist.text, state.open_thread.text, student_message, facilitator_reply, retrieved
+        state.gist.text, state.open_thread.text, student_message, facilitator_reply, retrieved,
+        resolve_hint=resolve_hint,
     )
     model = chat_model or get_setting("chat_model")
     response = ollama.chat(
@@ -207,9 +246,13 @@ def run_turn(
     student_message: str,
     included_sources: list[dict],
     *,
+    resolve_hint: bool = False,
     chat_model: str | None = None,
 ) -> TurnResult:
-    """Document B §4's loop: retrieve -> Ask -> thin-turn gate -> Update."""
+    """Document B §4's loop: retrieve -> Ask -> thin-turn gate -> Update.
+
+    `resolve_hint` — see `run_update` — is set when the caller fired via the
+    "Answer & next/finish" lever."""
     is_session_start = not state.gist.text and state.open_thread.text is None
     units = whole_source_units(included_sources)
     query_text = (
@@ -225,9 +268,41 @@ def run_turn(
         return TurnResult(reply=reply, state=state, retrieved=retrieved, updated=False)
 
     new_gist, new_open_thread, focus_shift = run_update(
-        state, student_message, reply, retrieved, chat_model=chat_model
+        state, student_message, reply, retrieved, resolve_hint=resolve_hint, chat_model=chat_model
     )
     new_state = state.model_copy(update={"gist": new_gist, "open_thread": new_open_thread})
     return TurnResult(
         reply=reply, state=new_state, retrieved=retrieved, updated=True, focus_shift_suggested=focus_shift
+    )
+
+
+_NO_REPLY_PLACEHOLDER = (
+    "(no facilitator reply — the student recorded an answer without prompting a new question)"
+)
+
+
+def run_reflect_only(
+    state: ReflectionState,
+    student_message: str,
+    included_sources: list[dict],
+    *,
+    chat_model: str | None = None,
+) -> TurnResult:
+    """The "Answer" lever (onReflect): record the message and run Update only
+    — no Ask call, no guard, no facilitator reply shown. Document B's Update
+    prompt still expects "the exchange that just happened"; a fixed
+    placeholder stands in for the missing facilitator turn."""
+    units = whole_source_units(included_sources)
+    query_text = f"{state.open_thread.text or state.focus.value} {student_message}"
+    retrieved = retrieve(query_text, state.chat_id, units)
+
+    if is_thin_turn(student_message):
+        return TurnResult(reply="", state=state, retrieved=retrieved, updated=False)
+
+    new_gist, new_open_thread, focus_shift = run_update(
+        state, student_message, _NO_REPLY_PLACEHOLDER, retrieved, chat_model=chat_model
+    )
+    new_state = state.model_copy(update={"gist": new_gist, "open_thread": new_open_thread})
+    return TurnResult(
+        reply="", state=new_state, retrieved=retrieved, updated=True, focus_shift_suggested=focus_shift
     )

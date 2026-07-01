@@ -237,6 +237,25 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
             if (v.flagged && v.kind && activeChatIdRef.current === chatId) setSupportCard({ kind: v.kind })
           })
           .catch(() => {})
+        // The facilitator stays silent (no question is asked or shown), but the answer
+        // still needs to reach Gist/Open Thread so the next question stays grounded in
+        // it. Fire mode "reflect" in the background — it updates server-side state and
+        // returns no text, so failures are logged, not surfaced to the user.
+        void api.streamGeneratedQuestion(
+          {
+            mode: "reflect",
+            chat_id: chatId,
+            step: gibbsStep,
+            journal_text: buildJournalText() || undefined,
+            history: buildGibbsHistory(created ? [created] : undefined),
+            goal: gibbsGoal.trim() || undefined,
+          },
+          {
+            onProgress: () => {},
+            onDone: () => {},
+            onError: (error) => console.warn("[reflect-only update] failed:", error),
+          }
+        )
         // The facilitator stays silent after a reflection answer — one answer per
         // question. The user advances the stage or asks another question.
         return created
@@ -321,6 +340,16 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
     return pairs.slice(-8)
   }
 
+  // Ground the facilitator in the user's included sources (mirrors AI Search). Shared
+  // by the streamed facilitator calls and the silent "Answer" (reflect-only) call.
+  const buildJournalText = (): string =>
+    rawSources
+      .filter((s) => s.included)
+      .map((s) => s.content)
+      .filter(Boolean)
+      .join("\n")
+      .slice(0, 2000)
+
   // Shared streaming runner for the conversational Gibbs facilitator. The facilitator's
   // reply is persisted as a "question" (assistant) message so it renders on the AI side.
   const streamFacilitator = async (
@@ -329,13 +358,7 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
     step: number,
     history: Array<Record<string, unknown>>
   ) => {
-    // Ground the facilitator in the user's included sources (mirrors AI Search).
-    const journalText = rawSources
-      .filter((s) => s.included)
-      .map((s) => s.content)
-      .filter(Boolean)
-      .join("\n")
-      .slice(0, 2000)
+    const journalText = buildJournalText()
 
     setGibbsGenerating(true)
     setStreamingChatId(chatId)
@@ -344,6 +367,7 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
       api.streamGeneratedQuestion(
         {
           mode,
+          chat_id: chatId,
           step,
           journal_text: journalText || undefined,
           history,

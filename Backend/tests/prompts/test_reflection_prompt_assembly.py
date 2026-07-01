@@ -54,3 +54,12 @@ def test_update_prompt_has_no_stage_or_step_language():
     content = messages[0]["content"].lower()
     assert "stage" not in content
     assert "step" not in content
+
+
+def test_update_prompt_includes_confirmation_note_only_when_resolve_hint_set():
+    without_hint = build_update_messages("", None, "hi", "hello", [])[0]["content"]
+    with_hint = build_update_messages("", None, "hi", "hello", [], resolve_hint=True)[0]["content"]
+    assert "ready to move on" not in without_hint.lower()
+    assert "ready to move on" in with_hint.lower()
+    # It's still framed as a judgment call, not an override.
+    assert "own judgment" in with_hint.lower()
