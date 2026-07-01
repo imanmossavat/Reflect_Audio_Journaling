@@ -130,10 +130,18 @@ def _process_source_sync(source_id: int) -> None:
         logger.debug(f"[process] source {source_id}: {len(chunks)} chunk(s) produced")
 
         # On retry, prior chunks may exist from a failed run — delete them so we
-        # don't duplicate rows when we re-create below.
+        # don't duplicate rows when we re-create below. New chunks get new
+        # autoincrementing IDs, so the old vectors must be explicitly removed
+        # from Chroma too, or they linger under the same source_id pointing at
+        # stale text (see chatService.reindex_chat for the same pattern).
         from app.repositories.chatRepository import delete_chunks_for_source
         with Session(engine) as session:
-            delete_chunks_for_source(session, source_id)
+            deleted = delete_chunks_for_source(session, source_id)
+        if deleted:
+            try:
+                get_chroma_collection().delete(where={"source_id": str(source_id)})
+            except Exception as exc:
+                logger.error(f"Chroma delete for source {source_id} failed — vectors orphaned: {exc}")
 
         # Short-lived write to persist chunks
         with Session(engine) as session:
