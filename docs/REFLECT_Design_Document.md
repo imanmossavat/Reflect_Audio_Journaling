@@ -246,6 +246,16 @@ material over time. This needs to be weighed against source bloat: not
 every reflection is worth keeping as a standalone source, and this tradeoff
 is tracked as a research question in §12.
 
+
+### 6.3 Gist visibility and cross-session memory
+
+Gist is rebuilt fresh every session — nothing carries forward silently between sessions, and there is no persistent AI-authored profile of the student anywhere in the system. Cross-session continuity only ever happens through something the student can see and chose to bring back in (e.g. a past reflection promoted to a source), never through a silently-carried-forward summary.
+
+Gist is never shown ambiently or persistently while the student is writing. It's available on request, anchored to its citations, framed as a draft — not shown by default, not hidden on principle.
+
+There is no direct "edit the Gist" feature. Correction happens one level down: the student accepts or rejects individual claims (§6.1's provenance mechanism), and since Gist is always rebuilt fresh from currently-valid claims, rejecting a claim automatically fixes the Gist next time it regenerates. Correction by removing a bad ingredient, not by editing the finished paragraph.
+
+
 ### Mapping theory to mechanism
 
 | Theory | Implication for design | Where it shows up in this build |
@@ -352,6 +362,8 @@ specific document as never included in RAG or reflection, always included,
 or included by default rules. This is a separate control from verification
 — a fully verified document could still be marked never-include. Recorded
 as a principle; the actual controls are later work.
+
+**OPEN — review before solidifying into a source.** When a reflection is promoted into a new source, what exactly gets saved is still undecided: the raw conversation, or an AI-written synthesis of it. This matters because an AI summary becoming a *permanent, citable source* is where the mirror-effect risk gets real stakes — no longer a draft glanced at and forgotten. Whatever gets saved, the student should see and be able to edit it before it solidifies, the same way claims are confirmed elsewhere — not a new mechanism, the same one applied at a bigger moment.
 
 ## 11. Critical design questions — a standing self-check
 
