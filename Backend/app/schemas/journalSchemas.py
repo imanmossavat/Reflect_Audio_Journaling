@@ -86,6 +86,9 @@ class Transcript:
     words: list[WordToken] = field(default_factory=list)
     sentences: list[Sentence] = field(default_factory=list)
     source: str = "whisperx"
+    # Provenance: model/device/OS/timing for this transcription run, e.g.
+    # {"model": "medium", "device": "cuda", "os": ..., "duration_s": ..., "finished_at": ...}.
+    meta: dict = field(default_factory=dict)
 
 class QuerySource(BaseModel):
     source_id: str | None = None

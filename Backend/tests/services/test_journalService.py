@@ -220,7 +220,7 @@ async def test_transcribe_source_happy_path(mocker):
     sentence = SimpleNamespace(text="hello", start_s=0.0, end_s=1.0)
     transcriber = mocker.Mock()
     transcriber.transcribe.return_value = SimpleNamespace(
-        text="transcribed text", sentences=[sentence]
+        text="transcribed text", sentences=[sentence], meta={"model": "base"}
     )
     mocker.patch.object(sourceService, "TranscriptionManager", return_value=transcriber)
 
@@ -234,6 +234,7 @@ async def test_transcribe_source_happy_path(mocker):
     update_mock.assert_called_once_with(
         session, source, "transcribed text",
         [{"text": "hello", "start_s": 0.0, "end_s": 1.0}],
+        {"model": "base"},
     )
 
 

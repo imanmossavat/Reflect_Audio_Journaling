@@ -1,7 +1,10 @@
+import platform
 import subprocess
 import os
+import time
 import numpy as np
 import imageio_ffmpeg
+from datetime import datetime, timezone
 
 ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
 
@@ -57,6 +60,9 @@ class TranscriptionManager:
     def transcribe(self, recording):
         logger.info(f"[TRANSCRIBE] Start recording_id={recording.id} path={recording.path}")
 
+        started_at = datetime.now(timezone.utc)
+        start_perf = time.perf_counter()
+
         audio = self._load_audio_ffmpeg(recording.path, sr=self.sample_rate)
 
         logger.info(f"[TRANSCRIBE] Audio loaded shape={audio.shape} sr={self.sample_rate}")
@@ -95,10 +101,26 @@ class TranscriptionManager:
         words = self._extract_words(result_aligned)
         sentences = self._extract_sentences(result_aligned, recording.id)
 
+        duration_s = round(time.perf_counter() - start_perf, 3)
+        finished_at = datetime.now(timezone.utc)
+
         logger.info(
             f"[TRANSCRIBE] Finished recording_id={recording.id} "
-            f"text_len={len(text)} words={len(words)} sentences={len(sentences)}"
+            f"text_len={len(text)} words={len(words)} sentences={len(sentences)} duration_s={duration_s}"
         )
+
+        meta = {
+            "model": self.model_size,
+            "engine": "openai-whisper" if self.device == "mps" else "whisperx",
+            "device": self.device,
+            "compute_type": self.compute_type,
+            "language_configured": self.language,
+            "language_detected": result.get("language"),
+            "os": platform.platform(),
+            "started_at": started_at.isoformat(),
+            "finished_at": finished_at.isoformat(),
+            "duration_s": duration_s,
+        }
 
         return Transcript(
             recording_id=recording.id,
@@ -106,6 +128,7 @@ class TranscriptionManager:
             words=words,
             sentences=sentences,
             source="whisperx",
+            meta=meta,
         )
 
     def _load_openai_whisper(self):

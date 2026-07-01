@@ -110,7 +110,7 @@ def _process_source_sync(source_id: int) -> None:
                 source_obj = sourceRepository.get_source_by_id(session, source_id)
                 if not source_obj:
                     return
-                sourceRepository.update_source_transcript(session, source_obj, text, segments)
+                sourceRepository.update_source_transcript(session, source_obj, text, segments, transcript.meta)
             logger.info(f"[process] source {source_id}: transcript saved")
 
         if not text or not text.strip():
@@ -354,7 +354,7 @@ async def transcribe_source(session: Session, source_id: int):
     except NotImplementedError as exc:
         raise HTTPException(status_code=501, detail=str(exc)) from exc
 
-    return sourceRepository.update_source_transcript(session, source, transcript_text, segments)
+    return sourceRepository.update_source_transcript(session, source, transcript_text, segments, transcript.meta)
 
 
 async def update_source(
