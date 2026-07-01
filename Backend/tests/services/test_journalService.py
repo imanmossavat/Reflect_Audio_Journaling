@@ -249,6 +249,91 @@ async def test_transcribe_source_not_found(mocker):
     assert exc_info.value.status_code == 404
 
 
+# ---------------------------------------------------------------------------
+# _process_source_sync — Chroma cleanup on reprocess
+#
+# Regression test for the stale-vector bug: reprocessing a source deleted the
+# old SQL Chunk rows but left the matching Chroma vectors behind under the
+# same source_id, pointing at now-outdated text. The fix mirrors
+# chatService.reindex_chat's existing correct pattern. This test exists to
+# fail loudly if that second delete call is ever removed, not for general
+# pipeline coverage.
+# ---------------------------------------------------------------------------
+
+def test_process_source_sync_deletes_chroma_vectors_when_reprocessing(mocker):
+    source_id = 42
+    fake_source = SimpleNamespace(
+        id=source_id, file_type="text", file_path=None,
+        text="existing source text, already present so transcription is skipped",
+        created_at=None,
+    )
+
+    # Every `with Session(engine) as session:` block in _process_source_sync
+    # gets the same tolerant mock session; none of the calls made against it
+    # need to succeed meaningfully for this test's assertion.
+    mocker.patch.object(sourceService, "Session")
+
+    mocker.patch.object(sourceService.sourceRepository, "get_source_by_id", return_value=fake_source)
+    mocker.patch.object(sourceService, "chunk_text", return_value=[{"text": "a chunk of text"}])
+    mocker.patch.object(
+        sourceService.sourceRepository, "create_chunks",
+        return_value=[SimpleNamespace(id=999)],
+    )
+
+    # This is the function whose non-zero return value must trigger the
+    # Chroma cleanup. Patched at its source since _process_source_sync
+    # imports it locally (`from app.repositories.chatRepository import
+    # delete_chunks_for_source`) inside the function body.
+    delete_chunks_mock = mocker.patch(
+        "app.repositories.chatRepository.delete_chunks_for_source", return_value=2
+    )
+
+    mocker.patch.object(sourceService, "_check_ollama", return_value="ok")
+    mocker.patch.object(sourceService, "check_model_installed", return_value=True)
+    mocker.patch.object(sourceService, "index_chunks")
+    mocker.patch.object(sourceService, "regenerate_summary")
+
+    fake_collection = mocker.Mock()
+    mocker.patch.object(sourceService, "get_chroma_collection", return_value=fake_collection)
+
+    sourceService._process_source_sync(source_id)
+
+    delete_chunks_mock.assert_called_once_with(mocker.ANY, source_id)
+    fake_collection.delete.assert_called_once_with(where={"source_id": str(source_id)})
+
+
+def test_process_source_sync_skips_chroma_delete_when_no_chunks_existed(mocker):
+    """No prior chunks (e.g. first-time processing) -> nothing to clean up,
+    so the Chroma delete call must not fire (matches chatService.reindex_chat's
+    `if deleted:` guard)."""
+    source_id = 43
+    fake_source = SimpleNamespace(
+        id=source_id, file_type="text", file_path=None,
+        text="brand new source, never processed before",
+        created_at=None,
+    )
+
+    mocker.patch.object(sourceService, "Session")
+    mocker.patch.object(sourceService.sourceRepository, "get_source_by_id", return_value=fake_source)
+    mocker.patch.object(sourceService, "chunk_text", return_value=[{"text": "a chunk of text"}])
+    mocker.patch.object(
+        sourceService.sourceRepository, "create_chunks",
+        return_value=[SimpleNamespace(id=1000)],
+    )
+    mocker.patch("app.repositories.chatRepository.delete_chunks_for_source", return_value=0)
+    mocker.patch.object(sourceService, "_check_ollama", return_value="ok")
+    mocker.patch.object(sourceService, "check_model_installed", return_value=True)
+    mocker.patch.object(sourceService, "index_chunks")
+    mocker.patch.object(sourceService, "regenerate_summary")
+
+    fake_collection = mocker.Mock()
+    mocker.patch.object(sourceService, "get_chroma_collection", return_value=fake_collection)
+
+    sourceService._process_source_sync(source_id)
+
+    fake_collection.delete.assert_not_called()
+
+
 @pytest.mark.asyncio
 async def test_transcribe_source_wrong_type(mocker):
     session = mocker.Mock()
