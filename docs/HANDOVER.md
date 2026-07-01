@@ -1,7 +1,7 @@
 # REFLECT — Developer Handover Document
 
 > **Scope**: Backend (`Backend/app/**`, `Backend/database/models.py`, `Backend/start_backend.py`), startup scripts, `Backend/pyproject.toml`, Frontend (`Frontend/app/**`, `Frontend/components/**` excluding shadcn/ui stock, `Frontend/hooks/**`, `Frontend/lib/**`, `Frontend/context/**`), and `Backend/tests/**`.
-> **Date produced**: 2026-06-30
+> **Date produced**: 2026-06-30. **Updated 2026-07-01** — torch extras/device-availability fix, Chroma orphaned-vector fix, transcript provenance metadata, repository-level DB tests, and corrections to this doc's pipeline diagram and testing section (see `docs/ISSUES.md` #16 and `docs/SESSION_HANDOFF.md` for the full account of what changed today). For the tag system specifically, `docs/TAGS.md` is now the authoritative deep-dive — §5.11 below is kept short and defers to it.
 
 ---
 
@@ -155,21 +155,32 @@ A new audio or text source goes through this pipeline (orchestrated in `sourceSe
 
 ```
 Upload → save file to disk → set status "queued"
-  → (if audio + no text) Transcribe (WhisperX) → set status "transcribing" → update transcript
+  → (if audio + no text) Transcribe (WhisperX) → set status "transcribing" → update transcript (+ provenance)
   → Chunk (spaCy / day-split / LLM fallback) → set status "chunking"
+  → (on reprocess) delete old SQL Chunk rows AND matching Chroma vectors for this source_id
   → Index (LlamaIndex → ChromaDB embed via nomic-embed-text) → set status "indexing"
-  → set status "processed" → extract+store tags (LLM) → generate summary (LLM)
+  → set status "processed" → generate summary (LLM, non-fatal on failure)
 ```
+
+Tag extraction is **not** part of this automatic pipeline — `sourceService._process_source_sync` never imports `tagService`. See §5.11 and `docs/ISSUES.md` #11: the richer tag-extraction pipeline (`/extract-tags`) exists but is only reachable by calling the API directly; the UI only ever uses the separate suggest/confirm flow.
 
 **SQLite concurrency note**: Each DB write in the pipeline opens and immediately closes its own short-lived session. This avoids holding the SQLite write lock during the long transcription and LLM calls.
 
+**Reprocess/re-edit note**: When chunks are recreated (e.g. re-editing a source's text), the old SQL `Chunk` rows are deleted and their Chroma vectors are explicitly deleted too (`get_chroma_collection().delete(where={"source_id": ...})`) before the new ones are indexed. Until 2026-07-01 the Chroma side of this delete didn't happen, leaving stale, still-searchable embeddings behind (fixed; see `docs/ISSUES.md`, "Fixed since 2026-06-30").
+
 ### 5.3 Transcription (`services/transcription.py`)
 
-`TranscriptionManager` is instantiated once at startup and held in memory. It is heavy (~1.5 GB):
+**Correction (2026-07-01): `TranscriptionManager` is not a singleton.** Both call sites (`sourceService._process_source_sync` and one other in `sourceService.py`) construct `TranscriptionManager()` fresh per transcription — there's no module-level instance, `lru_cache`, or other memoization. Each construction is heavy (~1.5 GB):
 - Loads WhisperX ASR model (Whisper backbone, configurable: tiny/base/small/medium/large-v3).
 - Loads a language-specific alignment model (pyannote-audio).
 
+Practical effect: **every** transcription pays the model-load cost (~10–30 s depending on hardware), not just the first — see the correction to §12 item 3 below. On the plus side, this is also why `device`/`whisper_model`/`language` settings changes take effect immediately on the next transcription (each construction re-reads current settings via `config.py`'s `_Settings` properties, which call `get_setting()` live) — no restart or `on_change` listener needed for that path specifically. See `docs/ISSUES.md` #8 for the nuance (device is now validated per construction; model/language are read but not separately validated).
+
+**Device validation (added 2026-07-01)**: `__init__` reads `settings.DEVICE` and validates it against real hardware via `settings_service.device_available()` (checks `torch.cuda.is_available()` / `torch.backends.mps.is_available()` / ROCm-HIP as appropriate). If the configured device isn't actually available on this machine (e.g. a `settings.json` copied from another machine, or a stale `cuda` setting surviving a torch reinstall), it falls back to `cpu` with a logged warning instead of crashing. `model_size` and `language` are still read once at construction and not revalidated or refreshed on settings changes (see `docs/ISSUES.md` #8).
+
 Pipeline: `ffmpeg` (via `imageio_ffmpeg`) decodes audio to 16kHz mono int16 PCM → numpy float32 → WhisperX ASR → WhisperX alignment → extracts `words` (timestamps) and `sentences` (segments). If the detected language differs from the pre-loaded alignment model's language, it hot-swaps the alignment model.
+
+**Provenance metadata**: each transcription now records `{model, device, os, timing, ...}` into `Source.derived_meta["transcript"]` via `update_source_transcript(..., provenance=...)`, the same pattern already used for summaries (`derived_meta["summary"]`). Writing one artifact's provenance is merged into the existing dict, not a clobbering overwrite — see `docs/DB_TESTING_PROPOSAL.md` and `Backend/tests/repositories/test_source_provenance.py`. Note: this stamp goes stale on a manual edit — see `docs/ISSUES.md` #12.
 
 ### 5.4 Chunking (`services/chunking.py`)
 
@@ -258,8 +269,10 @@ The mobile upload page (`/upload/raw`) and the drag-to-inbox endpoint (`/source/
 
 ### 5.11 Tag system (`services/tagService.py`, `repositories/tagRepository.py`)
 
-- `extract_and_store_tags()`: calls LLM with grammar-constrained JSON (3–6 tags, verbatim quotes) → clears existing `origin="llm"` tags → upserts new ones. **User tags are never touched.**
-- `suggest_tags_via_llm()`: lighter chat-API variant returning `[{name, reason}]` for the user to confirm.
+**See `docs/TAGS.md` for the full audit** (data model, both generation pipelines, API surface, RAG influence, open decisions). Short version:
+
+- Two independent LLM tag-generation paths exist. **Path A** — `extract_and_store_tags()` via `POST /extract-tags` — is the richer one (3–6 tags with summary + verbatim quotes, grammar-constrained JSON) but has **no UI entry point and isn't part of the automatic ingest pipeline** (see `docs/ISSUES.md` #11). **Path B** — `suggest_tags_via_llm()` → suggest/confirm flow in the Enrich Source Modal — is the one actually used; confirmed suggestions are persisted as `origin="user"`, indistinguishable from a hand-typed tag (`docs/ISSUES.md` #15).
+- `clear_llm_tags_for_source()` only removes `origin="llm"` junction rows, so Path A recomputation (if ever wired up) would still preserve user tags — but in practice almost nothing in real data is `origin="llm"`, since Path A is unused.
 - `get_or_create_tag()`: normalises to lowercase; uses flush (not commit) for batch-safe upsert.
 
 ### 5.12 Summary generation (`services/summaryService.py`, `prompts/summary_prompt.py`)
@@ -413,22 +426,46 @@ Tests live in `Backend/tests/`. Run with:
 
 ```bash
 cd Backend
-uv run --extra dev pytest
+uv run --extra dev --extra ml pytest -q
 ```
+
+Current result: **121 passed, 2 xfailed** (the 2 xfails are intentional — see below, not failures to chase).
 
 ### Test files and status
 
 | File | Status | Notes |
 |---|---|---|
-| `tests/services/test_journalService.py` | **Stale** | Tests reflect an older API. `index_chunks` is called with `journal_id` key (current uses `source_id`). `update_source_text` no longer exists as a public function. `process_source` behaviour changed (now just queues; background task handles processing). These tests will fail against current code. |
+| `tests/services/test_journalService.py` | Up to date | Rewritten 2026-07 against the current `sourceService` API (was previously stale — see `docs/ISSUES.md` #2). Includes reprocess-path coverage for the Chroma orphaned-vector fix. |
 | `tests/services/test_rag_retrieval.py` | Up to date | Monkeypatches `retrieval` module directly (correct after `rag.py` refactor). Tests temporal filter, backfill, non-temporal skip, top_k slicing, identity reranker injection. |
 | `tests/services/test_ranking.py` | Up to date | Tests `recency_decay`, `combined_score`, `score_candidates` with parametrized cases. |
 | `tests/services/test_reranker.py` | Up to date | Stubs `_model()` to avoid downloading weights. Tests empty input and score pass-through. |
 | `tests/services/test_temporal.py` | Up to date | Comprehensive parametrized tests for all temporal phrase types. Fixed `NOW=2026-06-03 12:00`. |
+| `tests/services/test_thin_turn.py` | Up to date | 21 cases for `is_thin_turn` (thin vs. non-thin follow-ups). |
+| `tests/services/test_settings_service.py` | Up to date | Covers `device_available()`/`best_available_device()` and settings validation. |
+| `tests/services/test_transcription.py` | Up to date | Covers `TranscriptionManager`'s device-availability fallback. |
+| `tests/repositories/test_source_provenance.py` | Up to date, 2 intentional xfails | `derived_meta` merge-safety tests, plus 2 `xfail(strict=True)` tests pinning the confirmed bug in `docs/ISSUES.md` #12 (manual edits don't refresh the provenance stamp). `strict=True` means these become hard failures the moment someone fixes #12 — don't "fix" them by loosening the assertion. |
+| `tests/repositories/test_tag_provenance.py` | Up to date | `origin` defaulting, `clear_llm_tags_for_source` filter safety, and a pinned (non-xfail) test recording `docs/ISSUES.md` #15. |
+| `tests/repositories/test_migration_drift.py` | Up to date | Round-trips against a *real*, Alembic-migrated schema (not `create_all()`) to catch model/migration drift — see `docs/ISSUES.md` #17 and `docs/DB_TESTING_PROPOSAL.md`. |
+| `tests/test_pyproject_torch_sources.py` | Up to date | Regression guard for `docs/ISSUES.md` #1/#9 (cpu/cuda torch extras must route to different indexes). |
 | `tests/utils/test_filename_dates.py` | Up to date | Year-first, dmy/mdy format, no-silent-swap, no-date parametrized cases. |
 | `tests/utils/test_unique_path.py` | Up to date | No collision, single, double collision, basename-only (path traversal) cases. |
 
 `conftest.py` adds `Backend/` to `sys.path` so imports work without installing the package.
+
+### Repository-level DB tests (new, 2026-07-01)
+
+`Backend/tests/repositories/` is the first repository-level (as opposed to
+mocked-repository) DB test infrastructure in this codebase. Two fixtures in
+`tests/repositories/conftest.py`:
+
+- **`session`** — fast, in-memory SQLite via SQLModel's `create_all()`. Used
+  for repository *logic* (merge safety, filters).
+- **`migrated_session`** — runs the real Alembic migration chain against a
+  throwaway on-disk file. Catches drift between what a migration actually
+  produced and what the current ORM model expects — something `create_all()`
+  structurally can't catch, since it builds the schema from the models
+  directly. See `docs/DB_TESTING_PROPOSAL.md` for the full reasoning and
+  `docs/ISSUES.md` #17 for the drift it already found.
 
 ---
 
@@ -449,21 +486,21 @@ Several files in `Backend/app/prompts/` are no longer used in the production flo
 
 ## 12. Things to watch out for
 
-1. **`test_journalService.py` is stale.** Running it will fail. The tests reference `update_source_text`, `process_source` (old sync behaviour), and `index_chunks(journal_id=...)`. These need to be rewritten against the current `sourceService` API before you can trust CI.
+1. ~~`test_journalService.py` is stale.~~ **Fixed 2026-07-01** — rewritten against the current `sourceService` API. See `docs/ISSUES.md` #2.
 
-2. **`ChatMessage.role` naming is inverted.** `"question"` means the AI/facilitator spoke; `"answer"` means the human spoke. This is a historical naming accident. `generation.py`'s `to_chat_messages()` maps `"answer"` → `role: "user"` and `"question"` → `role: "assistant"` when building the Ollama context window.
+2. **`ChatMessage.role` naming is inverted.** `"question"` means the AI/facilitator spoke; `"answer"` means the human spoke. This is a historical naming accident. `generation.py`'s `to_chat_messages()` maps `"answer"` → `role: "user"` and `"question"` → `role: "assistant"` when building the Ollama context window. Still open — `docs/ISSUES.md` #4.
 
-3. **WhisperX loads on first transcription request**, not at import time (despite `TranscriptionManager.__init__` loading models). The manager itself is only instantiated when the first transcription is needed. This means the first audio upload will have a noticeable delay while models load (~10–30 s depending on hardware).
+3. **`TranscriptionManager` is instantiated fresh on every transcription, not once at startup.** (Corrected 2026-07-01 — this doc previously said it was a singleton instantiated once and held in memory; it isn't. See §5.3.) Every audio upload pays the ~10–30 s model-load cost, not just the first. Whether this is worth caching (weighed against staying responsive to live settings changes — see item 7 below) hasn't been decided; flagging so nobody "fixes" the reload cost without noticing it's also how settings changes propagate.
 
-4. **ChromaDB collection name is hardcoded** as `"source_chunks"` in `chroma.py`. If you need to reset the vector store, delete `Backend/database/chroma/` entirely and re-process all sources.
+4. **ChromaDB collection name is hardcoded** as `"source_chunks"` in `chroma.py`. If you need to reset the vector store, delete `Backend/database/chroma/` entirely and re-process all sources. Still open — `docs/ISSUES.md` #10.
 
-5. **The `rag.py` facade's `__getattr__`** provides dynamic `OLLAMA_BASE_URL`, `EMBED_MODEL`, `LLM_MODEL` attributes for backward compatibility. If you add a new attribute to any of the sub-modules and expect it to be accessible via `from app.services.rag import X`, add it to `rag.py`'s explicit re-exports or the `__getattr__` fallback.
+5. **The `rag.py` facade's `__getattr__`** provides dynamic `OLLAMA_BASE_URL`, `EMBED_MODEL`, `LLM_MODEL` attributes for backward compatibility. If you add a new attribute to any of the sub-modules and expect it to be accessible via `from app.services.rag import X`, add it to `rag.py`'s explicit re-exports or the `__getattr__` fallback. Still open — `docs/ISSUES.md` #7.
 
-6. **Alembic migrations are in `Backend/migrations/versions/`**. Never edit a migration that has already been applied. If you change `models.py`, generate a new migration with `uv run alembic revision --autogenerate -m "description"` and review it before committing.
+6. **Alembic migrations are in `Backend/migrations/versions/`**. Never edit a migration that has already been applied. If you change `models.py`, generate a new migration with `uv run alembic revision --autogenerate -m "description"` and review it before committing. Note: `alembic check` currently reports drift on 4 columns (harmless on SQLite today) — see `docs/ISSUES.md` #17 before assuming a clean `alembic check` run.
 
-7. **Settings are not reloaded on the fly for Whisper/spaCy.** Changing the Whisper model or language in Settings takes effect on the next transcription (the `TranscriptionManager` is re-instantiated lazily when settings change, because `config.py` reads from `settings_service` which calls `on_change()` listeners).
+7. **Settings changes take effect on the next transcription, not "on the fly" mid-transcription.** Because `TranscriptionManager()` is constructed fresh per call (see §5.3 and item 3 above), `device`/`whisper_model`/`language` are re-read from current settings every time — there's no stale-cache-until-restart problem for these, despite that being this doc's previous (incorrect) claim about an `on_change`-listener mechanism. Device is additionally validated against real hardware at each construction (`device_available()`); model/language are read but not separately validated. See `docs/ISSUES.md` #8.
 
-8. **`pyproject.toml` has no `cuda` extra** — the Windows script uses `--extra cpu` and the Mac/Linux script uses `--extra ml` for CPU. The `cuda` name used in `start.sh` (`TORCH_EXTRA="cuda"`) when an NVIDIA GPU is detected maps to the `cuda` extra which is **not currently defined** in `pyproject.toml` (only `ml` and `dev` are). This means CUDA builds on Mac/Linux currently fall back to the `ml` (CPU torch) extra. Worth fixing if GPU support is a priority.
+8. ~~`pyproject.toml` has no `cuda` extra.~~ **Fixed 2026-07-01** — `cpu`/`cuda` extras now exist and route to distinct PyTorch indexes via `[tool.uv.sources]`, with a `conflicts` declaration preventing a single resolve from silently picking one over the other. See `docs/ISSUES.md` #1/#9.
 
 ---
 

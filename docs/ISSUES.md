@@ -1,240 +1,341 @@
 # REFLECT — Codebase Issues Found During Review
 
-> Produced: 2026-06-30. Based on a full read of Backend/app/**, Backend/database/models.py,
-> Backend/start_backend.py, start.sh, start.ps1, Backend/pyproject.toml,
-> Frontend/app/**, Frontend/components/** (excluding shadcn/ui stock),
-> Frontend/hooks/**, Frontend/lib/**, Frontend/context/**, Backend/tests/**.
+> Originally produced 2026-06-30. **Updated 2026-07-01** after a full day of
+> changes (torch extras fix, device-availability validation, Chroma
+> orphaned-vector fix, transcript provenance, repository-level DB tests, and
+> a fresh audit of the tag system — see `docs/TAGS.md`,
+> `docs/DB_TESTING_PROPOSAL.md`, `docs/SESSION_HANDOFF.md`). Every item below
+> was re-checked against the code as it stands now, not carried over blindly.
+> Issue numbers are load-bearing: `#1`, `#9`, `#12`, `#15`, and `#17` are
+> referenced directly in code comments and test `xfail` reasons
+> (`Backend/pyproject.toml`, `Backend/tests/repositories/*`,
+> `Backend/tests/test_pyproject_torch_sources.py`) — don't renumber without
+> updating those references too.
 
 ---
 
-## Critical — breaks functionality
+## Fixed since 2026-06-30
 
-### 1. `--extra cuda` and `--extra cpu` do not exist in `pyproject.toml`
+### 1. `--extra cuda` / `--extra cpu` — now routed to real, distinct indexes
 
 **Files**: `start.sh`, `start.ps1`, `Backend/pyproject.toml`
 
-`pyproject.toml` defines only two optional extras: `ml` (CPU torch) and `dev`.
+`pyproject.toml` now defines `cpu` and `cuda` as real optional-dependency
+extras (plus `ml`, kept as the CPU alias Mac/Linux already used), each
+routed to a distinct PyTorch wheel index via `[tool.uv.sources]`, and
+declared mutually exclusive via `[tool.uv].conflicts` so a single resolve
+can't silently satisfy one extra with the other's wheel. `start.sh` and
+`start.ps1` both pick `cpu`/`cuda` consistently (no more `ml`/`cpu` mismatch
+between the two scripts).
 
-`start.sh` defaults to `--extra ml` (correct for CPU Mac/Linux) but switches to
-`--extra cuda` when `nvidia-smi` is found:
+`Backend/tests/test_pyproject_torch_sources.py` guards the regression this
+used to cause (both extras pinning `torch==2.8.*` with no index routing, so
+`uv sync --extra cuda` silently installed the CPU wheel) — it asserts the
+two extras map to different index names and that the `cuda` index URL
+contains a CUDA tag (e.g. `cu128`).
 
-```bash
-TORCH_EXTRA="ml"
-if command -v nvidia-smi &>/dev/null && nvidia-smi &>/dev/null; then
-    TORCH_EXTRA="cuda"   # <-- this extra does not exist
-fi
-uv sync --extra "$TORCH_EXTRA"
-```
-
-`start.ps1` defaults to `--extra cpu` (not `--extra ml`) for all non-GPU Windows machines:
-
-```powershell
-$torchExtra = "cpu"    # <-- this extra does not exist
-```
-
-Result: GPU users on Mac/Linux and all Windows users get a broken or CPU-only install
-with no clear error message. The only path that currently works is Mac/Linux without a GPU.
-
-**Fix**: Add a `cuda` extra to `pyproject.toml` with CUDA-built torch wheels and the
-appropriate `--index-url`. Align `start.ps1`'s CPU path to use `--extra ml`.
-
-Note: even after adding the extra, plain `torch==2.8.*` resolves to CPU wheels from PyPI.
-CUDA wheels require an index URL such as `https://download.pytorch.org/whl/cu121`. This
-must be configured in `[tool.uv.sources]` or passed explicitly (see issue 9 below).
-
----
-
-### 2. `test_journalService.py` is stale and will fail
+### 2. `test_journalService.py` — rewritten, no longer stale
 
 **File**: `Backend/tests/services/test_journalService.py`
 
-This test file reflects a significantly older version of the codebase. Running `pytest`
-right now will produce failures from it. Concrete problems:
+Previously mocked a removed API (`update_source_text`, old synchronous
+`process_source`, `index_chunks(journal_id=...)`). Rewritten against the
+current `sourceService` API. Full suite is now **121 passed, 2 xfailed**
+(`uv run --extra dev --extra ml pytest -q` from `Backend/`) — the 2 xfails
+are the intentional, documented ones in issue #12 below, not failures.
 
-- `index_chunks` is called with a `journal_id` keyword argument; the current function
-  does not accept that key (it uses `source_id`).
-- Tests mock `update_source_text`, which no longer exists as a public function
-  (replaced by `update_source`).
-- `test_transcribe_source_happy_path` mocks `update_source_text`, but the current code
-  calls `update_source_transcript` and also stores transcript segments.
-- `test_process_source_*` tests call `process_source` expecting the old synchronous
-  pipeline. The current flow only queues and returns immediately — the actual processing
-  happens in a background thread and cannot be tested this way.
-
-The other test files (`test_rag_retrieval.py`, `test_ranking.py`, `test_reranker.py`,
-`test_temporal.py`, `test_filename_dates.py`, `test_unique_path.py`) are up to date.
-
-**Fix**: Rewrite `test_journalService.py` against the current `sourceService` API.
-
----
-
-## Moderate — works but silently wrong or a maintainability trap
-
-### 3. `ColoredFormatter` is dead code — logs are never colored
+### 3. `ColoredFormatter` dead code — removed
 
 **File**: `Backend/app/logging_config.py`
 
-A `ColoredFormatter` class is defined and a handler using it is created, but that handler
-is never attached to any logger or referenced in `dictConfig`. The two local variables
-go out of scope immediately. `dictConfig` then creates its own plain `StreamHandler`
-called `"console"` with the default formatter.
+The file has been rewritten entirely: `LOG_LEVEL` env var controls console
+verbosity, file logging always captures `DEBUG`, and a long list of noisy
+third-party loggers (`httpx`, `torch`, `chromadb`, `multipart`, `fsevents`,
+`matplotlib`, `torio`, `fsspec`, `urllib3`, `lightning`, `numba`, …) is
+capped at `WARNING`. No dangling, unregistered handler remains.
 
-```python
-# setup_logging() creates these, then never uses them:
-console_handler = logging.StreamHandler(sys.stdout)
-console_handler.setFormatter(ColoredFormatter())   # dangling — never registered
-file_handler = logging.FileHandler(LOG_FILE, ...)  # dangling — never registered
+### 9. CUDA PyTorch index URL — configured
 
-# dictConfig creates its OWN plain handlers instead:
-logging.config.dictConfig({
-    "handlers": {
-        "console": {"formatter": "default", ...},  # no color
-        "file":    {"formatter": "default", ...},
-    },
-    "root": {"handlers": ["console", "file"]},
-})
-```
+**File**: `Backend/pyproject.toml`
 
-Result: all logs are plain. `ColoredFormatter` is wasted code.
+Same fix as #1: `[tool.uv.sources]` now points the `cuda` extra at a
+CUDA-tagged PyTorch index (distinct from the `cpu`/`ml` extras' index), so
+`torch==2.8.*` actually resolves to a CUDA wheel when `--extra cuda` is
+used.
 
-**Fix**: Either pass `console_handler` into `dictConfig` using the `"()"` factory key, or
-remove `ColoredFormatter` entirely. Do not try to add the handler manually after
-`dictConfig` runs, as that can produce duplicate output.
+### Bonus (not in the original list): orphaned Chroma vectors on reprocess
+
+**File**: `Backend/app/services/sourceService.py` (`_process_source_sync`)
+
+Reprocessing an edited source deleted its SQL `Chunk` rows but never
+deleted the matching ChromaDB vectors, leaving stale, still-searchable
+embeddings behind (the same class of bug already avoided in
+`chatService.reindex_chat`). Fixed today by deleting the matching Chroma
+vectors (`where={"source_id": ...}`) whenever SQL chunks are deleted before
+a re-chunk/re-index. No dedicated regression test file, but covered
+indirectly by `tests/services/test_journalService.py`'s reprocess cases
+(confirmed by reverting the fix locally and observing the tests fail).
 
 ---
+
+## Still open
 
 ### 4. `ChatMessage.role` naming is inverted
 
 **Files**: `Backend/database/models.py`, `Backend/app/services/generation.py`
 
-In the `ChatMessage` table, `role = "question"` means the **AI/facilitator** spoke, and
-`role = "answer"` means the **human** spoke. This is the opposite of what any new
-developer would expect.
+`role = "question"` means the **AI/facilitator** spoke; `role = "answer"`
+means the **human** spoke — the opposite of what a new developer would
+expect. Silently corrected in `generation.py`'s `to_chat_messages()`
+(`"answer"` → `role: "user"`, `"question"` → `role: "assistant"`). Anyone
+touching `ChatMessage.role` directly without knowing this will get it
+backwards.
 
-The mismatch is silently corrected in `generation.py`'s `to_chat_messages()`:
-
-```python
-# "answer" (human turn) → role: "user"
-# "question" (AI turn)  → role: "assistant"
-```
-
-Any new code that touches `ChatMessage.role` without knowing this convention will get
-it backwards.
-
-**Fix**: A migration to rename to `"user"` / `"assistant"` (or `"human"` / `"ai"`)
-would remove the trap permanently. Alternatively, add a prominent comment on the `role`
-field in `models.py`.
-
----
+**Fix**: a migration renaming to `"user"`/`"assistant"`, or at minimum a
+prominent comment on the field in `models.py`.
 
 ### 5. `start.ps1` uses lowercase `frontend` path — directory is `Frontend`
 
-**File**: `start.ps1` line 153
+**File**: `start.ps1` (both `Set-Location "$root\frontend"` occurrences)
 
-```powershell
-Set-Location "$root\frontend"   # lowercase f
-```
+Still present. Works today only because Windows paths are case-insensitive;
+inconsistent with the rest of the script and would break on a case-sensitive
+filesystem.
 
-The actual directory is `Frontend/` (capital F). Windows is case-insensitive so this
-works today, but it would break on any case-sensitive filesystem and is inconsistent
-with the rest of the script.
+**Fix**: change both occurrences to `"$root\Frontend"`.
 
-**Fix**: Change to `"$root\Frontend"`.
-
----
-
-## Minor / design concerns
-
-### 6. `ragas`, `rapidfuzz`, and `strip-markdown` listed as production dependencies but unused in production code
+### 6. `ragas` and `rapidfuzz` are unused production dependencies
 
 **File**: `Backend/pyproject.toml`
 
-These three packages are in the main `dependencies` block (installed for every user),
-but none of them are imported anywhere in `Backend/app/`:
+`strip-markdown` has since become a real dependency — `sourceService.py`
+now calls `strip_markdown.strip_markdown(text)` for markdown sources before
+chunking, so it's no longer dead. `ragas==0.4.3` and `rapidfuzz==3.14.5`
+remain in the main `dependencies` block but are still not imported anywhere
+in `Backend/app/`; `ragas` is only relevant to `Research/`.
 
-- `ragas==0.4.3` — evaluation framework, likely only needed in `Research/`.
-- `rapidfuzz==3.14.5` — fuzzy string matching, not imported in any service.
-- `strip-markdown==1.3` — not imported in any service.
-
-They add install time and unnecessary supply-chain surface area.
-
-**Fix**: Move them to a `dev` or `eval` optional extra.
-
----
+**Fix**: move `ragas` and `rapidfuzz` to a `dev`/`eval` optional extra.
 
 ### 7. `rag.py` re-export facade is fragile
 
 **File**: `Backend/app/services/rag.py`
 
-`rag.py` re-exports symbols from four sub-modules via explicit imports plus a
-`__getattr__` fallback for dynamic attribute lookup. If a new attribute is added to a
-sub-module and accessed via `from app.services.rag import X`, `__getattr__` will either
-return `None` silently or raise a generic `AttributeError` with no hint about the real
+Unchanged. Re-exports symbols from four sub-modules via explicit imports
+plus a `__getattr__` fallback. A new attribute added to a sub-module and
+accessed via `from app.services.rag import X` either returns `None`
+silently or raises a generic `AttributeError` with no hint about the real
 module.
 
-**Fix**: Either replace `rag.py` with explicit `from .retrieval import *`-style
-re-exports so missing symbols fail loudly at import time, or update callers to import
-directly from the real modules (`retrieval`, `generation`, etc.) and remove the facade.
+**Fix**: explicit `from .retrieval import *`-style re-exports so missing
+symbols fail loudly, or migrate callers to import from the real modules and
+drop the facade.
 
----
-
-### 8. `TranscriptionManager` captures settings at init — changes do not take effect until restart
+### 8. `TranscriptionManager` still caches `model`/`language` at init
 
 **File**: `Backend/app/services/transcription.py`
 
-`TranscriptionManager.__init__` reads `settings.DEVICE`, `settings.WHISPER_MODEL`,
-`settings.LANGUAGE`, and `settings.COMPUTE_TYPE` into instance attributes at
-construction time. If the user changes the Whisper model or language in Settings, the
-manager continues using the old values until the backend is restarted.
+Partially addressed today, not fully: `__init__` now validates the
+configured **device** against real hardware (`device_available()`, see the
+device-detection note in #14) and falls back to `cpu` with a logged warning
+instead of silently using an impossible device. It still reads
+`settings.WHISPER_MODEL` and `settings.LANGUAGE` once at construction time,
+so changing the Whisper model or language in Settings has no effect until
+the manager is re-instantiated (next process restart, or lazily on the
+first transcription after a code path that recreates it — not guaranteed
+today).
 
-**Fix**: Either re-instantiate `TranscriptionManager` when relevant settings change
-(register an `on_change` listener in `settings_service`), or read from `settings.*`
-dynamically inside `transcribe()` instead of caching at init.
-
----
-
-### 9. No CUDA PyTorch index URL configured
-
-**File**: `Backend/pyproject.toml`
-
-Even if a `cuda` optional extra is added (see issue 1), installing `torch==2.8.*`
-without an explicit index URL resolves to CPU-only wheels from PyPI. CUDA wheels must
-come from PyTorch's own index, e.g.:
-
-```
-https://download.pytorch.org/whl/cu121
-```
-
-This needs to be set in `[tool.uv.sources]` or passed as `--index-url` in the startup
-scripts alongside `--extra cuda`.
-
----
+**Fix**: register an `on_change` listener in `settings_service` to
+re-instantiate (or refresh) the manager when these settings change.
 
 ### 10. ChromaDB collection name is hardcoded with no versioning
 
-**File**: `Backend/app/services/chroma.py`
+**File**: `Backend/app/services/chroma.py` (`COLLECTION_NAME = "source_chunks"`)
 
-The vector collection is always named `"source_chunks"`. If the embedding model changes
-or the chunking strategy is updated (invalidating existing vectors), there is no
-migration path — you have to delete `Backend/database/chroma/` entirely and reprocess
-every source from scratch.
+Unchanged. If the embedding model or chunking strategy changes in a way
+that invalidates existing vectors, there's no migration path — you have to
+delete `Backend/database/chroma/` and reprocess every source.
 
-**Fix**: Include the embed model name or a version tag in the collection name (e.g.
-`"source_chunks_v2"`) so old and new vectors can coexist during a transition.
+**Fix**: include the embed model name or a version tag in the collection
+name (e.g. `"source_chunks_v2"`) so old and new vectors can coexist during a
+transition.
+
+---
+
+## New — found during today's (2026-07-01) tag-system and provenance audit
+
+### 11. Path A tag extraction (`/extract-tags`) is dead from the user's perspective
+
+**Files**: `Backend/app/routes/query.py`, `Backend/app/services/tagService.py`,
+`Frontend/lib/api.ts`
+
+There are two independent LLM tag-generation pipelines (full detail in
+`docs/TAGS.md` §2):
+
+- **Path A** — `extract_and_store_tags()`, reachable only via
+  `POST /extract-tags`. Richer output (`{name, summary, quotes}` with
+  verbatim substrings, built for highlighting that nothing currently uses).
+  `Frontend/lib/api.ts`'s `extractTags()` client function exists but is
+  called from **zero** components (confirmed by grepping the whole
+  `Frontend/` tree). `sourceService._process_source_sync` never imports
+  `tagService`, so it's not part of automatic ingest either — the
+  `HANDOVER.md` pipeline diagram's old "→ extract+store tags (LLM)" step
+  does not actually happen automatically; only summary generation is
+  automatic.
+- **Path B** — `suggest_tags_via_llm()` → suggest/confirm flow, the one
+  actually wired into the UI (Enrich Source Modal).
+
+Net effect: almost nothing in real usage ends up `origin="llm"` in the
+database — that value exists in the schema for a pipeline nothing calls.
+
+**Fix**: wire Path A into the UI (e.g. a "deep extract" action) or remove it
+as dead code; either way, stop maintaining two divergent tag-generation
+prompts if only one will ever run.
+
+### 12. Manual edits never refresh the `derived_meta` provenance stamp
+
+**Files**: `Backend/app/repositories/sourceRepository.py` (`update_source_fields`),
+`Backend/tests/repositories/test_source_provenance.py`
+
+Editing a source's summary or transcript text through the normal
+manual-edit path (`update_source_fields`, used by the PATCH endpoint) never
+touches `derived_meta`. The stamp keeps asserting the original AI generation
+(model, prompt version, timestamp) as if the text were never touched by a
+human. Confirmed real and pinned by two `xfail(strict=True)` tests in
+`test_source_provenance.py` — `strict=True` means they'll flip to a hard
+failure (forcing a test update alongside the fix) the moment someone
+addresses this, rather than silently passing.
+
+This is the concrete, already-reproduced instance of the gap that the
+in-progress provenance retrofit (Document A §6.1 / Document B, see
+`docs/SESSION_HANDOFF.md`) is meant to close — not a new report about that
+future work, but a pinned test of today's actual behavior.
+
+**Fix**: not yet decided — depends on the provenance model shape Document B
+adopts (clear the stamp, flag it stale, or replace it) — see
+`docs/SESSION_HANDOFF.md`'s "active thread" section before starting.
+
+### 13. At least half a dozen `Frontend/lib/api.ts` client functions are unused
+
+**File**: `Frontend/lib/api.ts`
+
+Grepped every exported `api.*` method against the rest of `Frontend/` (app,
+components, hooks, context). Confirmed zero call sites outside `api.ts`
+itself for: `getUnprocessedSources`, `getSourceChunks`, `saveAnswer`,
+`transcribeSource`, `extractTags` (see #11). There may be more not yet
+checked — this list is a confirmed floor, not an exhaustive count.
+
+**Fix**: either wire these up (some, like `transcribeSource`, may reflect an
+intended-but-unbuilt retry-transcription UI) or delete them along with any
+now-unused backend routes/schemas they were the sole client of.
+
+### 14. Device-availability detection is implemented three separate times
+
+**Files**: `start.sh`, `start.ps1`, `Backend/app/services/settings_service.py`,
+`Backend/app/routes/settings.py`
+
+Three independent implementations of "is this compute device actually
+available on this machine," none sharing code:
+
+1. **Shell** (`start.sh`/`start.ps1`) — `nvidia-smi` presence/exit-code
+   check, used only to pick the `--extra cpu`/`cuda` uv sync flag at
+   startup.
+2. **`settings_service.py`** — `device_available()` / `best_available_device()`,
+   using `torch.cuda.is_available()` / `torch.backends.mps.is_available()` /
+   a ROCm/HIP check. Used to validate a configured device before
+   `TranscriptionManager` uses it (today's fix, see #8).
+3. **`routes/settings.py`** (`/settings/devices`) — its own, separately
+   written `torch.cuda.is_available()`/mps/ROCm checks to populate the
+   device dropdown in Settings.
+
+These can drift (e.g. one gains ROCm detail and another doesn't) since none
+call the others.
+
+**Fix**: have `routes/settings.py` call `settings_service`'s device-detection
+functions instead of reimplementing them; the shell-level `nvidia-smi` check
+is a separate concern (picking a uv extra before Python even runs) and can
+stay separate, but should at minimum be commented as intentionally
+independent so it isn't "fixed" into a false consolidation.
+
+### 15. A confirmed LLM tag suggestion is indistinguishable from a manual tag
+
+**Files**: `Backend/app/routes/tags.py` (`confirm_suggested_tags`),
+`Backend/app/repositories/tagRepository.py`
+
+`confirm_suggested_tags` calls `add_tag_to_source` with no `origin=`
+argument, so a user-approved LLM suggestion is persisted with
+`origin="user"` — identical to a hand-typed tag. Pinned (not `xfail`, since
+there's no confirmed "correct" shape to assert toward yet) by
+`test_tag_provenance.py::test_confirmed_llm_suggestion_is_indistinguishable_from_a_manual_tag`.
+Practically: this history is already unrecoverable — there's no timestamp
+on `SourceTag` and no logging in the tag write path, so a future fix can
+only classify tags written after it ships, not backfill today's data
+honestly.
+
+**Fix**: part of the same provenance retrofit as #12 — likely a third
+`origin` value (e.g. `"llm_confirmed"`) going forward, with no way to
+recover history for existing rows.
+
+### 16. `docs/HANDOVER.md`'s testing section and pipeline diagram were stale
+
+**File**: `docs/HANDOVER.md` (fixed as part of today's doc pass — see the
+`docs/HANDOVER.md` diff)
+
+Two independent staleness bugs in the handover doc itself, found while
+cross-checking it against current code: (a) §5.2's pipeline diagram listed
+automatic tag extraction as a real step, which #11 shows is not true; (b)
+§10's testing table pre-dated `test_thin_turn.py`, `test_settings_service.py`,
+`test_transcription.py`, the whole `Backend/tests/repositories/` directory,
+and `test_pyproject_torch_sources.py`, and still described
+`test_journalService.py` as stale after it had been rewritten (#2). Both
+fixed in this pass. Flagging as its own issue because it's a recurring
+failure mode worth watching for, not a one-off: **the handover doc drifts
+from the code faster than it gets re-read** — worth a habit of updating it
+in the same commit as the pipeline/test changes it describes, not as a
+separate later pass.
+
+### 17. Confirmed schema/migration drift on four columns
+
+**Files**: `Backend/database/models.py`, `Backend/migrations/versions/`
+
+`uv run alembic check` fails today, reporting `modify_type` operations on
+`chat_message.thinking`, `source.text_html`, `source.summary`, and
+`source.summary_html` — hand-written migrations declared these `sa.Text()`,
+but the SQLModel classes declare bare `str`, which SQLModel maps to
+`AutoString()` (effectively `VARCHAR` with no length). Confirmed
+independently by running `alembic check` directly (not just trusting the
+test), and by `test_migration_drift.py`, which round-trips long strings
+through a real Alembic-migrated schema to prove the drift is harmless on
+SQLite today (TEXT and unbounded VARCHAR are storage-identical there) —
+but it's exactly the kind of drift a future migration (e.g. the provenance
+retrofit's) could turn into a real bug if it changes column types without
+matching the model.
+
+**Fix**: not urgent given today's harmless-on-SQLite finding, but should be
+reconciled — either regenerate the affected migrations to declare
+`AutoString()`/unbounded `VARCHAR` to match the models, or accept the drift
+explicitly with a comment in `models.py` so `alembic check` failures don't
+get treated as a surprise later.
 
 ---
 
 ## Summary table
 
-| # | Severity  | Issue                                                        | File(s)                                              |
-|---|-----------|--------------------------------------------------------------|------------------------------------------------------|
-| 1 | Critical  | `--extra cuda` / `--extra cpu` missing from pyproject.toml  | `start.sh`, `start.ps1`, `pyproject.toml`            |
-| 2 | Critical  | `test_journalService.py` stale — tests will fail             | `tests/services/test_journalService.py`              |
-| 3 | Moderate  | `ColoredFormatter` handler created but never registered      | `app/logging_config.py`                              |
-| 4 | Moderate  | `ChatMessage.role` naming inverted (question=AI, answer=human) | `database/models.py`, `services/generation.py`     |
-| 5 | Moderate  | `start.ps1` uses lowercase `frontend` path                   | `start.ps1:153`                                      |
-| 6 | Minor     | `ragas`, `rapidfuzz`, `strip-markdown` as unused prod deps   | `pyproject.toml`                                     |
-| 7 | Minor     | `rag.py` `__getattr__` facade is fragile                     | `services/rag.py`                                    |
-| 8 | Minor     | TranscriptionManager caches settings at init                 | `services/transcription.py`                          |
-| 9 | Minor     | No CUDA torch index URL configured                           | `pyproject.toml`                                     |
-| 10| Minor     | ChromaDB collection name hardcoded, no versioning            | `services/chroma.py`                                 |
+| # | Severity | Status | Issue | File(s) |
+|---|---|---|---|---|
+| 1 | Critical | **Fixed** | `--extra cuda`/`cpu` now routed to real indexes | `start.sh`, `start.ps1`, `pyproject.toml` |
+| 2 | Critical | **Fixed** | `test_journalService.py` rewritten | `tests/services/test_journalService.py` |
+| 3 | Moderate | **Fixed** | `ColoredFormatter` dead code removed | `app/logging_config.py` |
+| 4 | Moderate | Open | `ChatMessage.role` naming inverted | `database/models.py`, `services/generation.py` |
+| 5 | Moderate | Open | `start.ps1` lowercase `frontend` path | `start.ps1` |
+| 6 | Minor | Partially fixed | `ragas`/`rapidfuzz` still unused (`strip-markdown` now used) | `pyproject.toml` |
+| 7 | Minor | Open | `rag.py` `__getattr__` facade is fragile | `services/rag.py` |
+| 8 | Minor | Partially fixed | Device now validated; model/language still cached at init | `services/transcription.py` |
+| 9 | Critical | **Fixed** | CUDA torch index URL now configured | `pyproject.toml` |
+| 10 | Minor | Open | ChromaDB collection name hardcoded, no versioning | `services/chroma.py` |
+| 11 | Moderate | Open | Path A tag extraction (`/extract-tags`) unused by UI | `routes/query.py`, `services/tagService.py`, `lib/api.ts` |
+| 12 | Moderate | Open (pinned by xfail) | Manual edits don't refresh `derived_meta` provenance | `repositories/sourceRepository.py` |
+| 13 | Minor | Open | ≥6 unused `Frontend/lib/api.ts` client functions | `lib/api.ts` |
+| 14 | Minor | Open | Device-availability detection implemented 3× | `start.sh`, `start.ps1`, `settings_service.py`, `routes/settings.py` |
+| 15 | Minor | Open (pinned, no fix decided) | Confirmed LLM tag indistinguishable from manual | `routes/tags.py`, `repositories/tagRepository.py` |
+| 16 | Minor | **Fixed** (this doc pass) | `HANDOVER.md` pipeline/testing sections were stale | `docs/HANDOVER.md` |
+| 17 | Minor | Open (confirmed, harmless on SQLite today) | Schema/migration drift on 4 columns | `database/models.py`, `migrations/versions/` |
