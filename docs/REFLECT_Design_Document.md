@@ -363,6 +363,30 @@ or included by default rules. This is a separate control from verification
 — a fully verified document could still be marked never-include. Recorded
 as a principle; the actual controls are later work.
 
+**OPEN / DEFERRED — Provenance-scoped quoting and per-unit source
+selection.** §5's preference for quote-anchored questions over fully open
+ones assumed source text is clean enough to quote safely; it isn't always
+— a unit's provenance label (§6.1), not its medium (audio vs. typed), is
+what actually determines whether quoting it is safe. A **Direct**, verified
+unit is safe to quote even from a noisy transcript; an **AI-derived,
+unvalidated** unit is unsafe to quote even from clean typed text, because
+quoting lends it unearned authority. Resolving this requires source
+selection at finer granularity than today's whole-document toggle — the
+student filtering and including material by provenance label at the
+unit level, not just picking whole documents in or out. Recorded as an
+open design issue; not resolved here.
+
+**OPEN / DEFERRED — Out-of-order stage navigation within the soft Gibbs
+cycle.** A student may want to revisit an earlier stage, add or revise
+something there, then ask the system for a question in a different stage
+entirely. An LLM isn't mechanically limited to a linear walk through
+stages the way code-level gating was — a prompt could plausibly say "here
+is what's known per stage, the student just revised stage 2, these are the
+sources, now ask a question about stage 4." Gist (or a per-stage variant of
+it) is a plausible carrier for the "what's known so far" part. This is an
+early idea, not a design — recorded so it isn't lost, not scoped further
+here.
+
 **OPEN — review before solidifying into a source.** When a reflection is promoted into a new source, what exactly gets saved is still undecided: the raw conversation, or an AI-written synthesis of it. This matters because an AI summary becoming a *permanent, citable source* is where the mirror-effect risk gets real stakes — no longer a draft glanced at and forgotten. Whatever gets saved, the student should see and be able to edit it before it solidifies, the same way claims are confirmed elsewhere — not a new mechanism, the same one applied at a bigger moment.
 
 ## 11. Critical design questions — a standing self-check
@@ -373,6 +397,13 @@ Re-run this against whatever gets built, not just once at the start:
 - Dual-process theory — am I failing to trigger deeper reasoning?
 - Cognitive Load Theory — am I overloading working memory with unnecessary
   UI complexity or interaction steps?
+- Context/state growth — does this decision keep per-turn cost and context
+  size bounded, or does it let something (replayed history, an
+  accumulating list, a growing log) grow unboundedly across a session
+  instead of staying bounded the way Gist is meant to? Check every new
+  mechanism against this before building it, not after — if it doesn't
+  respect this, that's a reason to come back to design, not to ship it
+  anyway and note it as a known cost.
 
 ## 12. Research questions to track after building
 
