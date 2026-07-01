@@ -100,6 +100,38 @@ this live row.
 
 ---
 
+## 2.1 Provenance and verification (Source) — implemented
+
+Document A §6.1/§6.2's provenance model, shipped in schema:
+
+```python
+class Source(SQLModel, table=True):
+    ...
+    provenance: str  # "direct" | "ai_derived_validated" | "ai_derived_unvalidated"
+                      # default "direct" — matches Document A §6.1's three labels
+    verified: bool    # default False — every source starts unverified at
+                      # ingestion (§6.2), regardless of provenance
+```
+
+Plain string column, validated in Python, no DB enum/CHECK — the same style
+`SourceTag.origin` already uses in this codebase, not a new pattern.
+
+**Scope of this addition — schema and ingestion default only.** It does
+not yet:
+- Apply provenance at the Source-unit/claim level (§6.1 describes
+  per-unit/per-claim labeling; unit-level addressing doesn't exist in the
+  schema yet — see the turn-loop `SourceUnit` type in §2, which is a
+  separate, not-yet-implemented piece of work).
+- Reconcile with `SourceTag.origin` (two-valued, tag-only, pre-existing)
+  or `Source.derived_meta` (generation metadata — model/prompt-version/
+  timestamp — not a trust label). Whether these fold into `provenance` or
+  stay separate, parallel concepts is an open decision, not resolved here.
+- Wire `verified` into any exclusion behavior (§6.2 says unverified
+  material is excluded from reflection/RAG by default) — that's consumer-
+  side work against this flag, not part of adding the flag itself.
+
+---
+
 ## 3. Session initialization (turn 1 has no prior state)
 
 At session creation, before any message is sent:

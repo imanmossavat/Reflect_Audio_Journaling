@@ -46,6 +46,14 @@ class Source(SQLModel, table=True):
     # {"summary": {"model": ..., "prompt_version": ..., "generated_at": ...}, "tags": {...}}.
     # Kept as JSON so new artifacts (entities, etc.) can be added without a migration.
     derived_meta: Optional[dict] = Field(default=None, sa_column=Column(JSON))
+    # Provenance (Design Doc §6.1): "direct" (student's own words, unmodified),
+    # "ai_derived_validated" (AI-proposed, student-confirmed), or
+    # "ai_derived_unvalidated" (AI-proposed, unconfirmed). Plain string, validated
+    # in Python — same style as SourceTag.origin, no DB enum/CHECK.
+    provenance: str = Field(max_length=30, default="direct")
+    # Verification gate (Design Doc §6.2): every source starts unverified at
+    # ingestion regardless of provenance; the student reviews and verifies it.
+    verified: bool = Field(default=False)
     status: str = Field(max_length=255, default="not processed")
     created_at: datetime = Field(default_factory=datetime.utcnow)
     edited_at: datetime = Field(default_factory=datetime.utcnow)
