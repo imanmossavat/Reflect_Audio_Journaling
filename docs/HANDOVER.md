@@ -383,6 +383,31 @@ beginNewCycle() → resetChatState() → startReflection()
 
 When loading a chat that has Gibbs messages (tagged with `gibbs_step`), the hook restores the Gibbs state from the message history and resumes at the furthest stage reached.
 
+### The three input-area levers, and which are "in the flow"
+
+The input box during an active reflection offers three actions. Only two of them are
+part of the Ask/Update turn loop; the third is a deliberate side-channel:
+
+- **Continue** (`continueStage()` → `advanceGibbsStep()`) — the "next step" lever.
+  Records whatever's in the box as this stage's answer (if non-empty), advances
+  `gibbsStep`, and asks the next question via `generateGibbsQuestion(next, "deep_dive")`.
+  In the flow.
+- **Get more questions** (`askClarifying()`) — re-calls `generateGibbsQuestion(currentStep,
+  "clarifying")` without advancing the stage: same `/generate-question` →
+  `reflectionLoop.run_turn` backend path, just re-asking at the same step. In the flow.
+- **Ask sources** (`submitText("ask")` → `/query-stream`) — **not** part of the Ask/Update
+  loop. It hits the older, general-purpose RAG chat path (`generation_registry.py`'s
+  `SYSTEM_PROMPT` + chunk-level retrieval — see "Prompts for RAG vs chat" below), not the
+  reflection facilitator's prompt/persona (`reflection_ask_prompt.py`) or Phase 3's
+  per-unit retrieval. It's reachable mid-reflection on purpose — the user can step outside
+  the guided flow to ask a factual question grounded in their journal — but the reply
+  reads in a different "voice" than the facilitator and won't carry
+  `{{source_id:unit_id}}` citations. It only reaches Gist/Open Thread indirectly, via a
+  best-effort Update call fired after the RAG reply
+  (`_update_reflection_state_after_rag_turn` in `generation_registry.py`). This dual-path
+  behavior is intentional — don't "fix" it by merging the two personas/retrieval paths
+  without a deliberate design decision to do so.
+
 ### API client (`lib/api.ts`)
 
 All backend calls go through `api.*` functions in `Frontend/lib/api.ts`. Key design points:
