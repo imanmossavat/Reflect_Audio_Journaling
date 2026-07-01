@@ -83,6 +83,70 @@ def index_chunks(chunks: list[dict]):
     VectorStoreIndex(nodes, storage_context=storage_context)
 
 
+# ---- Per-unit addressing (Contract §8) -------------------------------------------------
+# A different granularity from chunks above: units exist to be individually citable
+# (Design Doc §6/Contract §5's `{{source_id:unit_id}}` token), not to be an optimal
+# retrieval window. Indexed into the *same* Chroma collection chunks use — no second
+# vector store — separated at query time by the "kind": "unit" metadata tag, since
+# existing chunk nodes never carry that key.
+
+def _unit_metadata(source_id: str, unit_id: str) -> dict[str, Any]:
+    return {"source_id": str(source_id), "unit_id": unit_id, "kind": "unit"}
+
+
+def index_units(source_id: str, units: list[dict]):
+    """units: [{"unit_id": str, "text": str}, ...] — see app/services/units.py."""
+    configure_llamaindex()
+    collection = get_chroma_collection()
+    vector_store = ChromaVectorStore(chroma_collection=collection)
+    storage_context = StorageContext.from_defaults(vector_store=vector_store)
+
+    nodes = [
+        TextNode(
+            text=u["text"],
+            id_=f"unit-{source_id}-{u['unit_id']}",
+            metadata=_unit_metadata(source_id, u["unit_id"]),
+        )
+        for u in units
+        if u.get("text")
+    ]
+    if nodes:
+        VectorStoreIndex(nodes, storage_context=storage_context)
+
+
+def retrieve_units(query: str, source_ids: list[str], top_k: int = 5) -> list[Any]:
+    """Contract §4/§8's RETRIEVE step: per-unit similarity search hard-scoped to the
+    reflection session's included sources. Scoped via a `source_id` MetadataFilter,
+    not by stamping `chat_id` into vector metadata — a unit's embedding is intrinsic
+    to its source, not to any one chat that happens to include it, and this mirrors
+    the same hard-filter pattern `ranked_retrieve`'s tag scope already uses (also the
+    reasoning Design Doc §6 applies to provenance filtering: resolve to a source_id
+    set in app code, pass it as a hard Chroma filter)."""
+    configure_llamaindex()
+    if not source_ids:
+        return []
+    index = _get_index()
+    filters = MetadataFilters(filters=[
+        MetadataFilter(key="kind", value="unit", operator=FilterOperator.EQ),
+        MetadataFilter(key="source_id", value=[str(s) for s in source_ids], operator=FilterOperator.IN),
+    ])
+    return index.as_retriever(similarity_top_k=top_k, filters=filters).retrieve(query)
+
+
+def serialize_unit_nodes(nodes: list[Any]) -> list[dict[str, str]]:
+    """[{"source_id", "unit_id", "text"}, ...] — the shape reflectionLoop.SourceUnit needs."""
+    out = []
+    for n in nodes or []:
+        node = n.node if hasattr(n, "node") else n
+        metadata = node.metadata or {}
+        out.append({
+            "source_id": str(metadata.get("source_id", "")),
+            "unit_id": str(metadata.get("unit_id", "")),
+            "text": node.get_content() or "",
+        })
+    return out
+
+
 def ranked_retrieve(
     question: str,
     top_k: int = 5,

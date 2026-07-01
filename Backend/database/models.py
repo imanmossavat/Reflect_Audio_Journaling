@@ -54,6 +54,11 @@ class Source(SQLModel, table=True):
     # Verification gate (Design Doc §6.2): every source starts unverified at
     # ingestion regardless of provenance; the student reviews and verifies it.
     verified: bool = Field(default=False)
+    # Stable, citation-friendly addressing (Contract §8): [{"unit_id": str, "text": str}, ...].
+    # Paragraph-boundary units for typed entries, transcript-segment units for audio —
+    # a different granularity from Chunk (semantic chunking for whole-document RAG
+    # search); computed at ingest alongside chunking, see app/services/units.py.
+    units: Optional[list] = Field(default=None, sa_column=Column(JSON))
     status: str = Field(max_length=255, default="not processed")
     created_at: datetime = Field(default_factory=datetime.utcnow)
     edited_at: datetime = Field(default_factory=datetime.utcnow)

@@ -362,38 +362,54 @@ asks a follow-up, and the next turn captures it.
 
 ---
 
-## 8. Persistence and retrieval infrastructure
+## 8. Persistence and retrieval infrastructure — implemented (Phase 3)
 
 - **`reflection_state` table** — one row per qualifying `chat_id` as defined
-  in §2. Upsert on every Update. Reuse the chat/session identifier already
-  in the system; do not introduce a parallel `session_id`.
-- **Source chunking** — new work, not a refactor of existing code:
+  in §2. Upsert on every Update. Reuses the chat/session identifier already
+  in the system, no parallel `session_id`.
+- **Source units (`app/services/units.py`, `Source.units` JSON column)**:
   - Typed entries: split on paragraph (blank-line) boundaries at ingest
-    time, assign sequential ids (`src1-p3`).
-  - Audio entries: reuse existing WhisperX alignment segments as the unit
-    boundaries — this is exposing IDs that already exist, not deriving new
-    ones.
-  - Store as a `units` JSON column on the existing source row (derived data
-    tied 1:1 to the source — does not need its own relational identity).
-- **Citation rendering** — new frontend work: parse the `{{source_id:unit_id}}`
-  token (§5) out of streamed text and render it as a link back to that
-  unit's location in the source viewer.
-- **Retrieval — corrected, this is new infrastructure, not reuse.** The
-  existing ChromaDB setup indexes one embedding per whole source, used by
-  the separate RAG path. The RETRIEVE step in §4 needs one embedding **per
-  unit** so it can return SourceUnit-level matches, not whole-document
-  matches. Concretely:
-  - For newly ingested sources, compute one embedding per unit at the same
-    pass that does the chunking above — this is additional work in that
-    pass, not a second pipeline.
-  - For sources already indexed under the old whole-source scheme, this
-    requires a one-time backfill job (re-chunk + re-embed existing sources)
-    before unit-level retrieval will work for them. Scope this explicitly
-    as a migration task, not an assumed side effect of shipping the chunker.
-  - Vector metadata per embedding: `{source_id, unit_id, chat_id}`.
+    time, `unit_id`s `p0`, `p1`, ... (list index, not `src1-p3` — see the
+    module docstring for why: a stable id, not a claim of semantic
+    meaning).
+  - Audio entries: `unit_id`s `s0`, `s1`, ... over `Source.transcript_segments`.
+    Correction from the original plan here: those segments are persisted
+    as `{text, start_s, end_s}` with no carried-over WhisperX id, so "reuse
+    existing IDs" wasn't literally available — the list index is the
+    closest stable proxy actually in the data, and holds because that list
+    is written once and never reordered.
+  - Computed at ingest, in the same pass as chunking
+    (`sourceService._process_source_sync`), not a second pipeline.
+- **Citation rendering** — still open frontend work: parse the
+  `{{source_id:unit_id}}` token (§5) out of streamed text and render it as
+  a link back to that unit's location in the source viewer.
+- **Retrieval — correction: this was reuse, not new infrastructure.** The
+  original plan assumed the existing ChromaDB setup indexed one embedding
+  per whole source. It doesn't — `retrieval.py`'s `ranked_retrieve` was
+  already a mature, chunk-level pipeline (embedding, reranking, temporal +
+  tag filtering) via `chunking.py`/`Chunk` rows. What was actually missing
+  was the *unit* addressing scheme (stable, citable ids), not the
+  retrieval mechanism. Implementation (`index_units`/`retrieve_units` in
+  `retrieval.py`):
+  - Units are embedded into the **same** Chroma collection chunks already
+    use (`get_chroma_collection`/`ChromaVectorStore`) — no second vector
+    store — separated from chunk nodes at query time via a `"kind": "unit"`
+    metadata tag chunk nodes never carry.
+  - One-time backfill for already-ingested sources:
+    `scripts/backfill_source_units.py` (idempotent, `--dry-run` supported).
+  - **Vector metadata correction: `{source_id, unit_id}`, deliberately
+    not `chat_id`.** A unit's embedding is intrinsic to its source, not to
+    any one chat that happens to include it — stamping `chat_id` into the
+    embedding would mean re-embedding the same text per chat. Scoping
+    instead uses a hard `source_id IN (...)` `MetadataFilter` at query
+    time, mirroring the pattern `ranked_retrieve`'s tag scope already
+    uses, and the same reasoning Design Doc §6 applies to provenance
+    filtering (resolve to a source_id set in app code, filter Chroma hard).
   - Query: embed `open_thread.text + new message` (or Focus + message on
-    turn 1), retrieve top 3–5 units, enforce the 250-token combined cap
-    from §5 before injection.
+    turn 1), retrieve top 5 units via `retrieve_units`, enforce the
+    250-token combined cap from §5 in `reflectionLoop.retrieve` before
+    injection. Zero results (e.g. a source not yet backfilled) is handled
+    per §10's failure table, not treated as an error.
 
 ---
 

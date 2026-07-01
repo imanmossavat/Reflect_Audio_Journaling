@@ -1,14 +1,13 @@
 """The retrieve -> Ask -> Update turn loop, Document B §4-§7.
 
 Phase 2a built this against an in-memory `ReflectionState` and a
-whole-source retrieval stub, with the guard unwired (per
-docs/lexical-spinning-kahn.md). Phase 2b wires in: the guard on every Ask
+whole-source retrieval stub. Phase 2b wired in: the guard on every Ask
 call, and a `resolve_hint` the "Answer & next"/"finish" lever can set to
 feed the student's explicit confirmation into Update's judgment on whether
 to settle the Open Thread — a hint, not a code-level override; Document B
 §6 is explicit that "settled" stays a model judgment call, not a threshold.
-The `retrieve()` signature is still the seam Phase 3 swaps behind
-(de-risking seam #1) — callers here never change.
+Phase 3 swapped `retrieve()`'s stub for real per-unit similarity search
+(de-risking seam #1) — Ask/Update never changed across that swap.
 """
 from __future__ import annotations
 
@@ -23,6 +22,7 @@ from app.logging_config import LOGS_DIR
 from app.prompts.reflection_ask_prompt import build_ask_messages
 from app.prompts.reflection_update_prompt import build_update_messages
 from app.services import reflection_guard
+from app.services import retrieval
 from app.services.settings_service import chat_num_ctx, get_setting
 from app.services.thin_turn import is_thin_turn
 
@@ -90,40 +90,37 @@ class TurnResult(BaseModel):
     focus_shift_suggested: str | None = None
 
 
-# ---- Retrieval (de-risking seam #1 — Phase 2a stub, Phase 3 swaps this) -
-
-def whole_source_units(sources: list[dict]) -> list[SourceUnit]:
-    """Build one SourceUnit per included source from its whole text.
-    Stand-in for real per-unit chunking (Document B §8), which doesn't
-    exist yet — `unit_id` is always "full" until Phase 3."""
-    return [
-        SourceUnit(source_id=str(s["source_id"]), unit_id="full", text=s.get("text") or "")
-        for s in sources
-        if s.get("text")
-    ]
-
+# ---- Retrieval (de-risking seam #1 — real per-unit search as of Phase 3) --
 
 def retrieve(
     query: str,
     chat_id: str,
-    units: list[SourceUnit],
+    source_ids: list[str],
     token_budget: int = 250,
 ) -> list[SourceUnit]:
-    """Phase 2a retrieval stand-in: caps combined unit text to ~token_budget
-    tokens (approximated as 4 chars/token), no similarity search. `query`
-    and `chat_id` are accepted now, unused, so Phase 3's real per-unit
-    embedding retrieval can drop in behind this exact signature without
-    touching any caller."""
-    del query, chat_id  # unused in the stub; kept for interface parity with Phase 3
+    """Contract §4's RETRIEVE step: real per-unit similarity search
+    (`retrieval.retrieve_units`), hard-scoped to `source_ids` (the
+    reflection session's included sources), capped to ~token_budget tokens
+    (approximated as 4 chars/token) combined (§5's budget table).
+
+    `chat_id` isn't used for Chroma scoping — see `retrieve_units`'s
+    docstring for why — kept in this signature for interface stability.
+    Zero results (e.g. a source ingested before Phase 3, not yet
+    backfilled) isn't an error: Ask proceeds on Focus/Gist/Open Thread
+    alone, per Contract §10's failure-handling table."""
+    del chat_id
+    nodes = retrieval.retrieve_units(query, source_ids, top_k=5)
+    serialized = retrieval.serialize_unit_nodes(nodes)
+
     budget_chars = token_budget * 4
     capped: list[SourceUnit] = []
     used = 0
-    for unit in units:
+    for item in serialized:
         remaining = budget_chars - used
         if remaining <= 0:
             break
-        text = unit.text if len(unit.text) <= remaining else unit.text[:remaining]
-        capped.append(SourceUnit(source_id=unit.source_id, unit_id=unit.unit_id, text=text))
+        text = item["text"] if len(item["text"]) <= remaining else item["text"][:remaining]
+        capped.append(SourceUnit(source_id=item["source_id"], unit_id=item["unit_id"], text=text))
         used += len(text)
     return capped
 
@@ -254,13 +251,13 @@ def run_turn(
     `resolve_hint` — see `run_update` — is set when the caller fired via the
     "Answer & next/finish" lever."""
     is_session_start = not state.gist.text and state.open_thread.text is None
-    units = whole_source_units(included_sources)
+    source_ids = [str(s["source_id"]) for s in included_sources if s.get("source_id") is not None]
     query_text = (
         f"{state.focus.value} {student_message}"
         if is_session_start
         else f"{state.open_thread.text or ''} {student_message}"
     )
-    retrieved = retrieve(query_text, state.chat_id, units)
+    retrieved = retrieve(query_text, state.chat_id, source_ids)
 
     reply = run_ask(state, student_message, retrieved, is_session_start=is_session_start, chat_model=chat_model)
 
@@ -292,9 +289,9 @@ def run_reflect_only(
     — no Ask call, no guard, no facilitator reply shown. Document B's Update
     prompt still expects "the exchange that just happened"; a fixed
     placeholder stands in for the missing facilitator turn."""
-    units = whole_source_units(included_sources)
+    source_ids = [str(s["source_id"]) for s in included_sources if s.get("source_id") is not None]
     query_text = f"{state.open_thread.text or state.focus.value} {student_message}"
-    retrieved = retrieve(query_text, state.chat_id, units)
+    retrieved = retrieve(query_text, state.chat_id, source_ids)
 
     if is_thin_turn(student_message):
         return TurnResult(reply="", state=state, retrieved=retrieved, updated=False)

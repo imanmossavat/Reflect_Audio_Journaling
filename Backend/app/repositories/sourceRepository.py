@@ -172,6 +172,15 @@ def update_source_text(session: Session, source: Source, text: str) -> Source:
     return source
 
 
+def update_source_units(session: Session, source: Source, units: list[dict]) -> Source:
+    """Contract §8's per-unit addressing — computed at ingest, see app/services/units.py."""
+    source.units = units
+    session.add(source)
+    session.commit()
+    session.refresh(source)
+    return source
+
+
 def update_source_fields(
     session: Session,
     source: Source,

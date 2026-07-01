@@ -8,11 +8,12 @@ from pydantic import BaseModel
 class Mode(str, Enum):
     clarifying = "clarifying"
     deep_dive = "deep_dive"
-    # Conversational facilitator responding to a user's typed answer within a stage.
-    reply = "reply"
     # "Answer" lever: record the message and update Gist/Open Thread, no facilitator
     # reply generated. See Backend/app/services/reflectionLoop.run_reflect_only.
     reflect = "reflect"
+    # "reply" (the old stage-facilitator's reply-to-a-typed-answer mode) removed —
+    # confirmed dead (the frontend's GenerateQuestionMode type never sent it) and
+    # behaviorally identical to "clarifying" in the pre-removal code anyway.
 
 
 class StepN(int, Enum):

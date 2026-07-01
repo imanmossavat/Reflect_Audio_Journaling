@@ -15,8 +15,10 @@ from app.repositories import sourceRepository
 from app.services.chroma import get_chroma_collection
 from app.services.chunking import chunk_text
 from app.services.rag import check_model_installed, classify_ollama_error, index_chunks
+from app.services.retrieval import index_units
 from app.services.transcription import TranscriptionManager
 from app.services.settings_service import get_setting
+from app.services.units import compute_units
 from app.utils.filename_dates import parse_datetime_from_filename
 from app.utils.html_text import html_to_text
 from app.utils.markdown_html import markdown_to_html
@@ -158,6 +160,19 @@ def _process_source_sync(source_id: int) -> None:
                 for c in db_chunks
             ]
 
+        # Units (Contract §8): paragraph-boundary for typed entries, transcript-segment
+        # for audio — a different granularity from the chunks above, computed once here
+        # alongside chunking, not a second pipeline. Re-read transcript_segments from the
+        # DB rather than the local `segments` var above, since that var is only set on
+        # the fresh-transcription path — an already-transcribed or typed source needs
+        # its persisted value.
+        with Session(engine) as session:
+            source_obj = sourceRepository.get_source_by_id(session, source_id)
+            transcript_segments = getattr(source_obj, "transcript_segments", None)
+            units = compute_units(text, transcript_segments)
+            if source_obj is not None:
+                sourceRepository.update_source_units(session, source_obj, units)
+
         #Vector index (ChromaDB)
         ollama_state = _check_ollama()
         if ollama_state != "ok":
@@ -173,6 +188,7 @@ def _process_source_sync(source_id: int) -> None:
         _set_status(source_id, "indexing")
         try:
             index_chunks(chunk_dicts)
+            index_units(str(source_id), units)
         except Exception as index_exc:
             kind = classify_ollama_error(index_exc)
             if kind == "model_missing":

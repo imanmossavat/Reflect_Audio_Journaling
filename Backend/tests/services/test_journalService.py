@@ -265,7 +265,7 @@ def test_process_source_sync_deletes_chroma_vectors_when_reprocessing(mocker):
     fake_source = SimpleNamespace(
         id=source_id, file_type="text", file_path=None,
         text="existing source text, already present so transcription is skipped",
-        created_at=None,
+        created_at=None, transcript_segments=None,
     )
 
     # Every `with Session(engine) as session:` block in _process_source_sync
@@ -277,7 +277,7 @@ def test_process_source_sync_deletes_chroma_vectors_when_reprocessing(mocker):
     mocker.patch.object(sourceService, "chunk_text", return_value=[{"text": "a chunk of text"}])
     mocker.patch.object(
         sourceService.sourceRepository, "create_chunks",
-        return_value=[SimpleNamespace(id=999)],
+        return_value=[SimpleNamespace(id=999, chunk_text="a chunk of text")],
     )
 
     # This is the function whose non-zero return value must trigger the
@@ -291,6 +291,9 @@ def test_process_source_sync_deletes_chroma_vectors_when_reprocessing(mocker):
     mocker.patch.object(sourceService, "_check_ollama", return_value="ok")
     mocker.patch.object(sourceService, "check_model_installed", return_value=True)
     mocker.patch.object(sourceService, "index_chunks")
+    update_units_mock = mocker.patch.object(sourceService.sourceRepository, "update_source_units")
+    index_units_mock = mocker.patch.object(sourceService, "index_units")
+    update_status_mock = mocker.patch.object(sourceService.sourceRepository, "update_source_status")
     mocker.patch.object(sourceService, "regenerate_summary")
 
     fake_collection = mocker.Mock()
@@ -300,6 +303,15 @@ def test_process_source_sync_deletes_chroma_vectors_when_reprocessing(mocker):
 
     delete_chunks_mock.assert_called_once_with(mocker.ANY, source_id)
     fake_collection.delete.assert_called_once_with(where={"source_id": str(source_id)})
+    update_units_mock.assert_called_once()
+    index_units_mock.assert_called_once_with(str(source_id), mocker.ANY)
+    # Confirms the pipeline actually reached the end rather than silently failing
+    # partway through (_process_source_sync's outer except swallows exceptions and
+    # would otherwise leave this reprocessing-cleanup assertion looking green while
+    # the rest of the pipeline quietly broke).
+    statuses = [c.args[-1] for c in update_status_mock.call_args_list]
+    assert "processed" in statuses
+    assert not any(s.startswith("failed") for s in statuses)
 
 
 def test_process_source_sync_skips_chroma_delete_when_no_chunks_existed(mocker):
@@ -310,7 +322,7 @@ def test_process_source_sync_skips_chroma_delete_when_no_chunks_existed(mocker):
     fake_source = SimpleNamespace(
         id=source_id, file_type="text", file_path=None,
         text="brand new source, never processed before",
-        created_at=None,
+        created_at=None, transcript_segments=None,
     )
 
     mocker.patch.object(sourceService, "Session")
@@ -318,12 +330,14 @@ def test_process_source_sync_skips_chroma_delete_when_no_chunks_existed(mocker):
     mocker.patch.object(sourceService, "chunk_text", return_value=[{"text": "a chunk of text"}])
     mocker.patch.object(
         sourceService.sourceRepository, "create_chunks",
-        return_value=[SimpleNamespace(id=1000)],
+        return_value=[SimpleNamespace(id=1000, chunk_text="a chunk of text")],
     )
     mocker.patch("app.repositories.chatRepository.delete_chunks_for_source", return_value=0)
     mocker.patch.object(sourceService, "_check_ollama", return_value="ok")
     mocker.patch.object(sourceService, "check_model_installed", return_value=True)
     mocker.patch.object(sourceService, "index_chunks")
+    mocker.patch.object(sourceService.sourceRepository, "update_source_units")
+    mocker.patch.object(sourceService, "index_units")
     mocker.patch.object(sourceService, "regenerate_summary")
 
     fake_collection = mocker.Mock()
