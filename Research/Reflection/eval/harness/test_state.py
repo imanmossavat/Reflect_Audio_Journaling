@@ -1,5 +1,4 @@
 """Tests for state.py. No Ollama. Run: python harness/test_state.py  (or pytest)."""
-import state
 from state import (
     ContextUpdate,
     ExtractionDelta,
@@ -68,18 +67,23 @@ def test_check_advance_confirmation():
     assert check_advance_confirmation("sure, go ahead")
     assert not check_advance_confirmation("no not yet")
     assert not check_advance_confirmation("I felt anxious about it")
+    # signal token buried inside an ordinary word must NOT confirm
+    assert not check_advance_confirmation("the login was completely broken")     # "ok" in broken
+    assert not check_advance_confirmation("the charity looked genuinely happy")  # "ok" in looked
+    assert not check_advance_confirmation("we had already finished")             # "ready" in already
 
 
-def test_description_completion_requires_context_and_two_facts():
+def test_description_completion_two_facts_plus_one_context_anchor():
     s = new_session()
     assert not check_stage_completion(s)
-    s.context.domain = "software"
-    s.context.project_type = "mobile app"
-    s.context.stakeholders = ["teammates"]
     s.facts.append(Fact(id="fact-001", stage="Description", text="we built an app", turn=1))
-    assert not check_stage_completion(s)
     s.facts.append(Fact(id="fact-002", stage="Description", text="four people", turn=1))
-    assert check_stage_completion(s)
+    assert not check_stage_completion(s)          # 2 facts but no context anchor yet
+    s.context.project_type = "mobile app"
+    assert check_stage_completion(s)              # one anchor is enough; stakeholders not required
+    s.context.project_type = None
+    s.context.domain = "software"
+    assert check_stage_completion(s)              # domain alone also works
 
 
 def test_feelings_completion_needs_emotional_keyword():

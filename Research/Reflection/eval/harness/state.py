@@ -3,6 +3,7 @@ no LLM calls — the session schema, extraction-delta validation, stage gates, a
 from __future__ import annotations
 
 import json
+import re
 import uuid
 from datetime import datetime, timezone
 from typing import Optional
@@ -193,8 +194,11 @@ def is_thin_turn(user_message: str) -> bool:
 
 
 def check_advance_confirmation(user_message: str) -> bool:
+    # Whole-word match for single tokens; raw substring false-fires ("ok" in "broken",
+    # "sure" in "ensure", "ready" in "already"). Multi-word phrases match as substrings.
     cleaned = (user_message or "").strip().lower().rstrip(".,!?")
-    return any(signal in cleaned for signal in ADVANCE_SIGNALS)
+    words = set(re.findall(r"[a-z']+", cleaned))
+    return any(sig in cleaned if " " in sig else sig in words for sig in ADVANCE_SIGNALS)
 
 
 def check_stage_completion(state: SessionState) -> bool:
@@ -204,12 +208,8 @@ def check_stage_completion(state: SessionState) -> bool:
     facts_text = " ".join(f.text.lower() for f in facts)
 
     if stage == "Description":
-        return (
-            state.context.domain is not None
-            and state.context.project_type is not None
-            and len(state.context.stakeholders) >= 1
-            and len(facts) >= 2
-        )
+        return len(facts) >= 2 and (state.context.domain is not None
+                                    or state.context.project_type is not None)
     if stage == "Feelings":
         return len(facts) >= 1 and any(kw in facts_text for kw in STAGE_KEYWORDS["Feelings"])
     if stage == "Evaluation":

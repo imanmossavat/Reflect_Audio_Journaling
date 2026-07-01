@@ -15,6 +15,39 @@ Read alongside `README.md` (taxonomy + how to run). The dataset is `facilitator`
 
 ---
 
+## 2026-07-01 — Phase 2 fixes: Description gate loosened + confirmation word-boundary; session now walks 3 stages
+
+**Change 1 (Description deadlock):** `check_stage_completion("Description")` now needs `>=2 facts +
+(domain OR project_type)` instead of domain AND project_type AND stakeholder AND 2 facts. Dropped the
+all-three-structured-fields requirement that a small model can't reliably satisfy.
+
+**Change 2 (early false-advance):** the re-run after change 1 exposed a worse bug — stages advanced on
+turns 3 and 6, NOT the confirm turns. `check_advance_confirmation` did raw substring matching, so "ok"
+matched inside "br**ok**en" (t3) and "lo**ok**ed" (t6) and advanced with no real confirmation. Fixed to
+whole-word matching for single-token signals (substring still used for multi-word phrases like "move
+on"). Same trap would hit "sure"⊂"ensure", "ready"⊂"already".
+
+**Run:** `run_session.py --temperature 0`, gemma4:e4b, S1 (10 turns). Now **Description → Feelings →
+Evaluation**, advancing only on turns 4 ("yes") / 7 ("sure"); turn 9 ("ready") correctly held. 7 facts,
+0 extraction failures, gibbs-order intact. Tests: test_state 22/22, test_turn 5/5 (added confirmation
+regressions for broken/looked/already).
+
+**New finding — keyword gates share the Description fragility, milder.** Evaluation held at turn 9 for a
+brittle reason: it has 2 facts and the negatives match ("weak"/"difficult") but the positive keyword
+"went well" doesn't match fact-006's "went **really** well" (adverb insertion breaks the substring). So
+the gate is correct-by-accident. Keyword-list whack-a-mole is the wrong fix.
+
+**Residual (logged, not fixed):** whole-word confirmation still treats "sure" in "not sure"/"make sure"
+as consent (uncertainty read as agreement); multi-word substring still risks "move on" ⊂ "remove one".
+Both rare, both real.
+
+**Next (decide, don't guess):** (a) make stage gates robust generally — e.g. gate on fact-count + let
+the extraction model set a per-stage "covered" flag we sanity-check, rather than growing keyword lists;
+(b) extend the session dataset so all 6 stages are reachable (S1 runs out of turns at Evaluation) + add
+a thin/off-topic/resistance session; (c) add an LLM judge over `facts` for the emotion-labeling axis.
+
+---
+
 ## 2026-06-30 — Phase 2: extraction call + session-replay eval; first run deadlocks at Description
 
 **Change (sandbox only):** wired the second LLM call and built multi-turn session replay.
