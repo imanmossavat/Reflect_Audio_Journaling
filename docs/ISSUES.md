@@ -521,6 +521,41 @@ cleanly.
 
 ---
 
+## New — found reviewing Focus provenance against Doc A §6 (2026-07-02)
+
+### 24. Focus silently defaults to AI-picked text via one-click "Skip setup" — violates Doc A §6
+
+**Files**: `Backend/app/services/reflectionStateService.py` (`ensure_state`),
+`Frontend/components/home/reflection-setup.tsx` (`ReflectionSetup`, "Skip
+setup" button)
+
+Doc A §6's core-objects table is explicit: Focus is "Set by the student; the
+AI may suggest a change, never applies one itself." `ensure_state` does not
+honor that — when `chat.reflection_goal` is empty or blank, it silently
+falls back to the hardcoded string `"reflect on this entry"` and persists it
+as `Focus(value=focus_value, set_at_turn=0)` with no distinct
+AI-vs-student provenance marker (`set_by` is unconditionally `"student"`,
+per the function's own docstring).
+
+This path is trivially reachable, not just a theoretical empty-string edge
+case: `ReflectionSetup`'s first-stage "Skip setup" button
+(`reflection-setup.tsx:88-97`) calls `onChangeGoal("")` then jumps straight
+to the "ready" stage — one click, zero goal text required, and `onBegin()`
+proceeds into a turn that goes through `ensure_state` with an empty
+`reflection_goal`. The same blank-then-default path is also reachable via
+the topic stage's own `onSkip` (line ~119-120), and via any code path where
+`chat.reflection_goal` is `None`/whitespace-only when the first turn runs.
+
+**Fix**: not yet decided — likely either (a) block reflection start until a
+non-empty Focus is set (remove/relabel "Skip setup" so it can't produce an
+empty goal), or (b) keep the one-click skip but mark the resulting Focus
+with an AI/system provenance label distinct from student-set, consistent
+with the three-tier provenance scheme in §6.1. Either way, the current
+silent-default-as-if-student-wrote-it behavior is the part that violates
+the doc.
+
+---
+
 ## Summary table
 
 | # | Severity | Status | Issue | File(s) |
@@ -548,3 +583,4 @@ cleanly.
 | 21 | Minor | Open (unconfirmed, no repro) | Three poll loops; one merge path's `content` overwrite is an unconfirmed watch item | `hooks/useChatManagement.ts`, `hooks/useSourceManagement.ts` |
 | 22 | Minor | **Fixed** | Same poll loops flooded uvicorn access logs with noise; also polled while tabs were backgrounded | `app/logging_config.py`, `hooks/useChatManagement.ts`, `hooks/useSourceManagement.ts` |
 | 23 | Moderate | Open (needs live verification) | `start.sh` port-8000 auto-recovery only fixture-tested, not verified against a real leftover backend | `start.sh` |
+| 24 | Moderate | Open (fix not decided) | Focus silently defaults to AI-picked text via one-click "Skip setup" — violates Doc A §6 | `services/reflectionStateService.py`, `components/home/reflection-setup.tsx` |

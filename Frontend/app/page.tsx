@@ -439,10 +439,9 @@ export default function HomePage() {
                 nextStageLabel={
                   chats.gibbsStep >= GIBBS_STEP_COUNT ? null : getGibbsStep(chats.gibbsStep + 1).label
                 }
-                onReflect={chats.submitReflection}
+                onReflect={() => void chats.askNextQuestion()}
                 onAsk={chats.submitQuestion}
                 onContinue={chats.continueStage}
-                onClarify={() => void chats.askClarifying()}
                 activeChatMessages={chats.activeChatMessages}
                 includedSourcesCount={sources.includedSources.length}
                 chatModel={appSettings?.chat_model ?? null}

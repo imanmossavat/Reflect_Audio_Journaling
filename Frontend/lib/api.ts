@@ -129,6 +129,15 @@ export interface QuerySource {
   text: string
 }
 
+/** A source unit a reflection reply's {{source_id:unit_id}} citation tokens can
+ * reference — sent alongside the reply text by /generate-question, session-scoped only
+ * (not persisted). See streamGeneratedQuestion. */
+export interface GeneratedQuestionUnit {
+  source_id: string
+  unit_id: string
+  text: string
+}
+
 export interface QueryResponse {
   question: string
   answer: string
@@ -758,7 +767,14 @@ export const api = {
       // withheld until the output guard clears it).
       onProgress: (chars: number) => void
       // Terminal: the guarded question (`text`) or, if the guard tripped, a `fallbackKind`.
-      onDone: (result: { text: string | null; model: string | null; fallbackKind: SafetyKind | null }) => void
+      // `units` backs the reply's inline {{source_id:unit_id}} citation tokens — null
+      // when there's no reply (fallback / no-reply modes) or none were retrieved.
+      onDone: (result: {
+        text: string | null
+        model: string | null
+        fallbackKind: SafetyKind | null
+        units: GeneratedQuestionUnit[] | null
+      }) => void
       onError: (error: Error) => void
     }
   ) {
@@ -767,6 +783,7 @@ export const api = {
       let resultText: string | null = null
       let resultModel: string | null = null
       let fallbackKind: SafetyKind | null = null
+      let resultUnits: GeneratedQuestionUnit[] | null = null
       try {
         const response = await fetch(`${getBackendBaseUrl()}/generate-question`, {
           method: "POST",
@@ -793,7 +810,14 @@ export const api = {
             const data = trimmed.slice(5).trim()
             if (!data) continue
             if (data === "[DONE]") return true
-            let parsed: { progress?: number; text?: string; model?: string; fallback?: string; error?: string }
+            let parsed: {
+              progress?: number
+              text?: string
+              model?: string
+              fallback?: string
+              error?: string
+              units?: GeneratedQuestionUnit[]
+            }
             try {
               parsed = JSON.parse(data)
             } catch {
@@ -804,11 +828,13 @@ export const api = {
             if (typeof parsed.text === "string") resultText = parsed.text
             if (typeof parsed.model === "string") resultModel = parsed.model
             if (parsed.fallback) fallbackKind = parsed.fallback as SafetyKind
+            if (Array.isArray(parsed.units)) resultUnits = parsed.units
           }
           return false
         }
 
-        const done = () => handlers.onDone({ text: resultText, model: resultModel, fallbackKind })
+        const done = () =>
+          handlers.onDone({ text: resultText, model: resultModel, fallbackKind, units: resultUnits })
 
         while (true) {
           const { value, done: streamDone } = await reader.read()

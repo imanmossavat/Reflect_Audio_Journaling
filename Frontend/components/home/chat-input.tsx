@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef } from "react"
-import { Send, PenLine, Search, ChevronRight, CheckCircle2, RotateCcw } from "lucide-react"
+import { Send, PenLine, Search, ChevronRight, CheckCircle2 } from "lucide-react"
 import type { ChatMessageRecord, OllamaModelEntry } from "@/lib/api"
 import {
   Select,
@@ -26,8 +26,10 @@ interface ChatInputProps {
   setInputValue: (v: string) => void
   onSubmitText: (e: React.FormEvent) => Promise<void>
   isAssistantThinking: boolean
-  // Three send levers, shown during a guided reflection: Reflect (answer, stay),
-  // Ask sources (RAG), and Continue (record answer + advance to the next stage).
+  // Three send levers, shown during a guided reflection: "Ask my notes" (RAG),
+  // "Next question" (record the answer if any, then ask a follow-up at the same
+  // stage — works with or without typed text), and "Next Gibbs stage" (record the
+  // answer if any, then advance).
   reflectionActive: boolean
   gibbsGenerating: boolean
   isLastStep: boolean
@@ -35,7 +37,6 @@ interface ChatInputProps {
   onReflect: () => void
   onAsk: () => void
   onContinue: () => void
-  onClarify: () => void
   // toolbar
   activeChatMessages: ChatMessageRecord[]
   includedSourcesCount: number
@@ -58,7 +59,6 @@ export function ChatInput({
   onReflect,
   onAsk,
   onContinue,
-  onClarify,
   activeChatMessages,
   includedSourcesCount,
   chatModel,
@@ -104,19 +104,6 @@ export function ChatInput({
             ))}
           </div>
         )}
-        {reflectionActive && (
-          <div className="mb-2 flex justify-end">
-            <button
-              type="button"
-              onClick={onClarify}
-              disabled={gibbsGenerating}
-              className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            >
-              <RotateCcw className="h-3.5 w-3.5" />
-              Ask another question
-            </button>
-          </div>
-        )}
         <form
           onSubmit={onSubmitText}
           className="rounded-xl border bg-background focus-within:ring-2 focus-within:ring-emerald-500/20 focus-within:border-emerald-500 overflow-hidden"
@@ -126,7 +113,12 @@ export function ChatInput({
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
+              // During an active reflection, Enter must not silently pick a lever on the
+              // user's behalf (it used to fire the same silent path as "Answer" — see
+              // docs/REFLECTION_FLOW.md). Fall through to the textarea's native
+              // behavior (insert a newline) instead; all three levers require an
+              // explicit click. Outside a reflection, Enter still submits as before.
+              if (e.key === "Enter" && !e.shiftKey && !reflectionActive) {
                 e.preventDefault()
                 void onSubmitText(e as unknown as React.FormEvent)
               }
@@ -188,17 +180,17 @@ export function ChatInput({
                     className={leverClass}
                   >
                     <Search className="h-3.5 w-3.5 text-emerald-600" />
-                    Ask sources
+                    Ask my notes
                   </button>
                   <button
                     type="button"
                     onClick={onReflect}
-                    disabled={!hasText || isAssistantThinking}
-                    title="Save this as your answer for the current stage"
+                    disabled={gibbsGenerating}
+                    title="Save your answer (if any), then ask a follow-up on this stage"
                     className={leverClass}
                   >
                     <PenLine className="h-3.5 w-3.5 text-emerald-600" />
-                    Answer
+                    Next question
                   </button>
                   <button
                     type="button"
@@ -214,16 +206,11 @@ export function ChatInput({
                     className={leverClass}
                   >
                     {isLastStep ? (
-                      <>
-                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
-                        Answer &amp; finish
-                      </>
+                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
                     ) : (
-                      <>
-                        <ChevronRight className="h-3.5 w-3.5 text-emerald-600" />
-                        Answer &amp; next
-                      </>
+                      <ChevronRight className="h-3.5 w-3.5 text-emerald-600" />
                     )}
+                    Next Gibbs stage
                   </button>
                 </>
               ) : (

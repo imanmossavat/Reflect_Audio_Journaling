@@ -355,7 +355,14 @@ async def generate_question(req: GenerateRequest):
                 if verdict.flagged:
                     yield f"data: {json.dumps({'fallback': verdict.kind or 'support'})}\n\n"
                 else:
-                    yield f"data: {json.dumps({'text': result.reply, 'model': chat_model})}\n\n"
+                    # Units the reply's {{source_id:unit_id}} tokens (Document B §5) can
+                    # reference — sent alongside the reply so the frontend can resolve them
+                    # to citation text without a second round trip. Session-scoped only:
+                    # not persisted to reflection_state or ChatMessage, so citations in a
+                    # reloaded chat's history won't resolve — an accepted tradeoff, not an
+                    # oversight (see the frontend rendering code for the fallback).
+                    units_payload = [u.model_dump() for u in result.retrieved]
+                    yield f"data: {json.dumps({'text': result.reply, 'model': chat_model, 'units': units_payload})}\n\n"
             else:
                 # The "Answer" lever (mode=reflect) and a thin-turn both produce no
                 # facilitator reply by design — not an error.

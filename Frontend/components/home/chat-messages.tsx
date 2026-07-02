@@ -10,6 +10,26 @@ import { getGibbsStep } from "@/lib/gibbs"
 import { CrisisSupportCard } from "@/components/home/crisis-support-card"
 import { GuardUnavailableCard } from "@/components/home/guard-unavailable-card"
 
+// A reflection reply's inline citation token (Document B §5), e.g. {{1:p0}}.
+const CITATION_TOKEN = /\{\{([\w-]+):([\w-]+)\}\}/g
+
+/** Rewrite literal {{source_id:unit_id}} tokens into markdown links Markdown's `a`
+ * override recognizes and renders as a citation marker instead of raw braces. */
+function withCitationLinks(text: string): string {
+  return text.replace(CITATION_TOKEN, (_match, sourceId, unitId) => `[·](cite:${sourceId}:${unitId})`)
+}
+
+/** `source_id:unit_id` -> unit text, built from a message's `sources` (repurposed here
+ * to carry the retrieved SourceUnits behind a reflection reply's citations — see
+ * useChatManagement's streamFacilitator). `chunk_id` holds `unit_id` in this context. */
+function buildCitationMap(sources: QuerySource[] | null): Record<string, string> {
+  const map: Record<string, string> = {}
+  for (const s of sources ?? []) {
+    if (s.source_id != null && s.chunk_id != null) map[`${s.source_id}:${s.chunk_id}`] = s.text
+  }
+  return map
+}
+
 /** Divider marking where a thread section begins: a Gibbs stage, or a RAG "context" block. */
 function GroupHeader({ step }: { step: number | null }) {
   const label =
@@ -172,7 +192,9 @@ export function ChatMessages({ activeChatMessages, isLoadingActiveChat, streamin
                         </div>
                       </details>
                     )}
-                    <Markdown className="text-[15px]">{message.text}</Markdown>
+                    <Markdown className="text-[15px]" citations={buildCitationMap(message.sources)}>
+                      {withCitationLinks(message.text)}
+                    </Markdown>
                     {message.sources && message.sources.length > 0 && (
                       <SourceChips sources={message.sources} sourceNameById={sourceNameById} />
                     )}
