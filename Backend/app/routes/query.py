@@ -294,11 +294,21 @@ async def generate_question(req: GenerateRequest):
         if not chat:
             raise HTTPException(status_code=404, detail="Chat not found")
 
-        if req.journal_text and req.journal_text.strip():
-            # Frontend supplies the journal context (the user's included sources), so
-            # reflection questions aren't tied to only the latest entry.
-            included_sources = [{"source_id": str(req.chat_id), "text": req.journal_text}]
+        if req.source_ids:
+            # Frontend supplies the real ids behind journal_text (the user's included
+            # sources), so retrieve_units' source_id filter has something to match —
+            # journal_text itself is just an opaque concatenated blob with no ids in it.
+            included_sources = [
+                {"source_id": str(sid), "text": req.journal_text or ""} for sid in req.source_ids
+            ]
         else:
+            # Backward-compat path for callers that send journal_text without
+            # source_ids (older frontend build, direct API call), or send neither.
+            # There is no real source_id recoverable from a concatenated text blob, so
+            # fall back to the latest source rather than fabricating one from chat_id —
+            # a fake source_id (str(chat_id), the previous behavior here) never matches
+            # any indexed unit's real source_id and silently yields zero retrieval
+            # every turn.
             source = get_latest_source(session)
             included_sources = (
                 [{"source_id": str(source.id), "text": source.text}] if source and source.text else []

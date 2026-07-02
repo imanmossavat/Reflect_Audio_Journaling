@@ -1,6 +1,6 @@
 # Bump when the wording below changes so derived_meta records which version produced
 # a stored summary (lets a later pass recompute only stale summaries).
-SUMMARY_PROMPT_VERSION = "v1"
+SUMMARY_PROMPT_VERSION = "v2"
 
 
 def build_prompt(journal_text: str) -> str:
@@ -13,6 +13,10 @@ Rules:
 - Factual and neutral: describe what the entry is about. Do NOT interpret emotions,
   judge, advise, or add anything not present in the text.
 - Write in the third person ("The entry describes...").
+- The entry's author writes in first person ("I"). When converting to third person,
+  refer to the author as "the writer" — never by the name of anyone the author merely
+  mentions in the text. Names that appear inside the entry refer to other people,
+  distinct from the author, unless the entry says otherwise.
 - Respond with the summary text only — no preamble, no markdown, no quotes.
 
 Journal entry:

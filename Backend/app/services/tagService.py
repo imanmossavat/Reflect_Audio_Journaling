@@ -52,27 +52,41 @@ def extract_and_store_tags(
 
 def _call_extraction_llm(prompt: str) -> str:
     from app.services.settings_service import chat_num_ctx, get_setting
+    from app.services.llm_runtime import model_supports_thinking
+    from app.utils.strip_thinking import strip_thinking
+
     host = get_setting("ollama_host").rstrip("/")
+    chat_model = get_setting("chat_model")
+    # /api/chat, not /api/generate — see summaryService.generate_summary for why: a
+    # reasoning model's <think> block reliably lands in the separate `message.thinking`
+    # field here instead of leaking inline into `message.content`. `think` is only sent
+    # when the model has the capability (mirrors generation_registry.py's
+    # model_supports_thinking gate); extraction never wants visible reasoning.
+    payload = {
+        "model": chat_model,
+        "messages": [{"role": "user", "content": prompt}],
+        "stream": False,
+        # Grammar-constrain the output to a valid tag array (Ollama structured outputs).
+        "format": tag_extraction_prompt.RESPONSE_FORMAT,
+        # num_predict is a finite circuit breaker far above the schema's worst case
+        # (~900 tokens) — only a degenerate loop hits it, surfaced by the check below.
+        "options": {"num_ctx": chat_num_ctx(), "num_predict": 4096, "temperature": 0},
+    }
+    if model_supports_thinking(chat_model):
+        payload["think"] = False
     response = httpx.post(
-        f"{host}/api/generate",
-        json={
-            "model": get_setting("chat_model"),
-            "prompt": prompt,
-            "stream": False,
-            # Grammar-constrain the output to a valid tag array (Ollama structured outputs).
-            "format": tag_extraction_prompt.RESPONSE_FORMAT,
-            # num_predict is a finite circuit breaker far above the schema's worst case
-            # (~900 tokens) — only a degenerate loop hits it, surfaced by the check below.
-            "options": {"num_ctx": chat_num_ctx(), "num_predict": 4096, "temperature": 0},
-            "think": False,
-        },
+        f"{host}/api/chat",
+        json=payload,
         timeout=httpx.Timeout(connect=10.0, read=300.0, write=10.0, pool=10.0),
     )
     response.raise_for_status()
     data = response.json()
     if data.get("done_reason") == "length":
         raise ValueError("tag extraction output truncated (hit num_predict/num_ctx)")
-    return data.get("response", "").strip()
+    content = data.get("message", {}).get("content", "")
+    # Defensive backstop: strip a leaked <think>...</think> block even if the `think`
+    # flag above wasn't honored for this model/Ollama version.
+    return strip_thinking(content).strip()
 
 
 def _parse_extraction_response(raw: str) -> list[dict]:

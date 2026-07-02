@@ -48,6 +48,10 @@ class GenerateRequest(BaseModel):
     # already-persisted reflection_goal (see reflectionStateService.ensure_state).
     goal: str | None = None
     scope_items: list[str] | None = None
+    # The real Source ids backing journal_text (the frontend's included-sources
+    # selection). Required for retrieve_units' source_id filter to match anything —
+    # journal_text alone is an opaque concatenated blob with no addressable ids in it.
+    source_ids: list[int] | None = None
 
 
 class ExtractedTagsResponse(BaseModel):

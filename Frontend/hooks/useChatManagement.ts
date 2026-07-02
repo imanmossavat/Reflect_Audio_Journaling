@@ -262,6 +262,7 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
             chat_id: chatId,
             step: gibbsStep,
             journal_text: buildJournalText() || undefined,
+            source_ids: buildIncludedSourceIds(),
             history: buildGibbsHistory(created ? [created] : undefined),
             goal: gibbsGoal.trim() || undefined,
           },
@@ -365,6 +366,12 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
       .join("\n")
       .slice(0, 2000)
 
+  // The real Source ids behind buildJournalText()'s concatenated blob — the backend
+  // needs these to scope retrieve_units' source_id filter; journal_text alone has no
+  // addressable ids in it.
+  const buildIncludedSourceIds = (): number[] =>
+    rawSources.filter((s) => s.included).map((s) => Number(s.id)).filter(Number.isFinite)
+
   // Shared streaming runner for the conversational Gibbs facilitator. The facilitator's
   // reply is persisted as a "question" (assistant) message so it renders on the AI side.
   const streamFacilitator = async (
@@ -385,6 +392,7 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
           chat_id: chatId,
           step,
           journal_text: journalText || undefined,
+          source_ids: buildIncludedSourceIds(),
           history,
           goal: gibbsGoal.trim() || undefined,
           scope_items: gibbsScopeItems.length ? gibbsScopeItems : undefined,

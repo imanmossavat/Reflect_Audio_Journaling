@@ -262,6 +262,9 @@ export interface GenerateQuestionRequest {
   journal_text?: string
   goal?: string
   scope_items?: string[]
+  // Real Source ids behind journal_text — required for the backend's retrieve_units
+  // source_id filter to match anything (journal_text alone has no ids in it).
+  source_ids?: number[]
 }
 
 export type AppDevice = "cpu" | "cuda" | "mps" | "rocm"
