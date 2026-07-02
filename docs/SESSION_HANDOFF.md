@@ -5,10 +5,14 @@
 machine, not in the repo) for full design detail; this file is the status
 snapshot.
 
-**Working tree: not yet committed.** Phases 0/2a/2b landed in commits
-`8cd5f3c`/`b718aed`/`1f1a223` (plus `20e58e7`, a handoff-doc-only commit).
-Phase 3 + 4's changes (below) are on disk, uncommitted — not committed
-automatically this round, unlike earlier phases.
+**Working tree: mostly committed, one batch outstanding.** Phases 0/2a/2b
+landed in commits `8cd5f3c`/`b718aed`/`1f1a223` (plus `20e58e7`, a
+handoff-doc-only commit). Phase 3 + 4 landed in `41916d3`. The live-test
+bugfixes (#18-#21, below) landed in `b2fd6b3`. The 2026-07-02 follow-up
+(below) landed in `b87a39e` (docs) and `028701b` (prompt). The
+2026-07-02 documentation-governance pass (further below) is **not yet
+committed** — 7 new root files plus 3 local `CLAUDE.md` files, all
+currently untracked.
 
 **The real local dev database (`Backend/database/database.db`) was
 migrated to head this session** (`alembic upgrade head`, applying
@@ -66,6 +70,88 @@ hook (#20). All four fixed, with regression tests except the route-level
 half of #20 (no TestClient precedent in this repo). #21 is a related,
 unconfirmed watch item, not fixed — see ISSUES.md for why.
 
+## Follow-up (2026-07-02) — Ask Sources confusion mid-flow
+
+Live use surfaced a case that looked like a bug: using "Ask sources" in the
+middle of a reflection produced a reply in a visibly different voice, with
+no citations, plus a chain-of-thought (shown in the "Thoughts" panel) that
+reasoned its way out of grounding on the journal at all. Two distinct
+things came out of digging into it, one doc-only and one a real fix:
+
+- **Doc gap, not a bug**: "Ask sources" is deliberately a side-channel, not
+  part of the Ask/Update turn loop — it hits the older general RAG chat
+  path (`generation_registry.py`'s `SYSTEM_PROMPT` + chunk-level
+  retrieval), not the reflection facilitator's prompt/persona or Phase 3's
+  per-unit retrieval. That was true by design but undocumented anywhere.
+  Now written up in `docs/HANDOVER.md` under "The three input-area levers,
+  and which are 'in the flow'" (commit `b87a39e`).
+- **Real fix**: the leaked chain-of-thought showed the model bucketing a
+  reflective personal question ("what boundary should I set for my
+  future") under `SYSTEM_PROMPT`'s small-talk/meta-request branch, which
+  let it skip grounding *and* the explicit refusal line, defaulting to
+  generic coaching instead. Tightened that branch in
+  `Backend/app/services/prompt.py` to scope it to literal small talk only,
+  and made reflective/open-ended personal questions route into the
+  grounding rules explicitly (commit `028701b`).
+  - **Not yet done**: this `SYSTEM_PROMPT` is the same one the
+    `Research/RAG/eval` harness tuned to lift stateful answer accuracy
+    0.467 → 0.667 by cutting false refusals (see that harness's
+    `FINDINGS.md`). This change pushes the opposite direction (more
+    grounding attempts, less silent bypass) and hasn't been re-evaluated
+    against that harness yet — do that before treating it as settled.
+
+## Follow-up (2026-07-02, cont'd) — Repository Operating System / documentation governance layer
+
+Separate from the reflection-flow rebuild above: a full pass at making the
+system's implicit invariants and fragile areas explicit and (eventually)
+enforceable, done through iterative review rather than code changes. No
+production code touched in this pass — docs and root-level files only.
+
+- **`CLAUDE.md`** (root) rewritten twice: first as a descriptive
+  architecture/testing/invariants writeup (verified against the running
+  code — caught `docs/HANDOVER.md` still describing the deleted
+  `gibbs_facilitator_prompt.py` flow as current), then rewritten again
+  into its current terse, constraint-only form once the doc's purpose
+  shifted from "explain the system" to "bind future changes." The
+  descriptive content from the first pass isn't lost — it's what informed
+  every file below, it's just not restated in any of them (each file
+  points back to Design Doc/Contract/this handoff for "why").
+- **`INVARIANTS.md`** — 12 numbered invariants (R1-R12) covering
+  concurrency, SSE lifecycle, ingestion consistency, provenance, and
+  route-level coverage, each with a detection strategy, priority, and
+  current test status. Two flagged P0 and fully untested: R1
+  (`reflection_state` has no per-chat lock — two overlapping requests on
+  the same `chat_id`, which the app's own LAN/mobile-upload support makes
+  a real scenario, can silently lose an update) and R11 (zero
+  `TestClient`/route-level tests exist anywhere in the repo — this is
+  literally how #18-#21 above were actually found, live rather than by a
+  test).
+- **`DO_NOT_TOUCH.md`** — explicit forbidden-refactor list (don't merge
+  RAG/reflection personas, don't fail-closed the safety guard, don't
+  re-add stage gating, don't collapse the ingestion session-per-step
+  pattern, etc.), each tied to a concrete prior incident or a deliberate,
+  already-made tradeoff rather than default caution.
+- **`ENFORCEMENT_MAP.md`**, **`TEST_STRATEGY.md`**, **`RUNTIME_GUARDS.md`**
+  — a detection-mechanism map, an 8-test P0 blueprint, and 7 lightweight
+  runtime-assertion proposals respectively. **All three are proposals,
+  not implementations** — no test code and no runtime assertions were
+  actually written this session.
+- **`CHANGE_IMPACT_RULE.md`** — a 3-question pre-change self-check meant
+  to bind future Claude sessions specifically, for the six highest-risk
+  areas (reflection loop, ingestion, `generation_registry`, SSE,
+  `reflection_state` schema, retrieval).
+- **`HUMAN_PROCESS.md`** — the explicit, deliberately blunt admission that
+  none of the above actually enforces anything yet: with `TEST_STRATEGY.md`
+  and `RUNTIME_GUARDS.md` unimplemented, every P0 invariant in
+  `INVARIANTS.md` can be violated today by an ordinary change and ship
+  with zero warning. This file is the only layer that's binding right
+  now, and only insofar as someone actually follows its short
+  before/after change-justification format.
+- **Local `CLAUDE.md` files** added at `Backend/app/services/`,
+  `Frontend/hooks/`, and `Backend/database/` — layer-specific invariants
+  and "what gets gotten wrong here" notes, deliberately not repeating the
+  root file's content.
+
 ## Not done yet
 
 - **Backfill not actually executed** — only `--dry-run`. Running it for
@@ -73,6 +159,20 @@ unconfirmed watch item, not fixed — see ISSUES.md for why.
   trigger when ready rather than run unprompted.
 - Citation rendering (frontend: parse `{{source_id:unit_id}}`, link to the
   source viewer) is still open, per §8.
+- **Re-run `Research/RAG/eval`'s `stateful` harness** against the
+  2026-07-02 `SYSTEM_PROMPT` change (see follow-up section above) to check
+  for an answer-accuracy regression.
+- **The new documentation-governance files are not committed yet** (see
+  status note at top) — 7 root files + 3 local `CLAUDE.md` files, all
+  untracked.
+- **None of `TEST_STRATEGY.md`'s 8 P0 tests or `RUNTIME_GUARDS.md`'s 7
+  runtime assertions have been implemented.** They're blueprints. The
+  highest-value next step flagged by `ENFORCEMENT_MAP.md` is that R1
+  (`reflection_state` race), R6 (ingestion session-splitting), and R8
+  (provenance staleness) are all rated *impossible to detect today*
+  because no write-provenance/state-transition logging exists anywhere —
+  adding that logging convention once would upgrade all three at once,
+  before writing any test.
 
 ## Known deliberate simplification (unchanged from Phase 2b)
 
