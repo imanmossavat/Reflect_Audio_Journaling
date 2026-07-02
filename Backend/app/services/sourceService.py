@@ -391,6 +391,7 @@ async def update_source(
     summary_html: str | None = None,
     filename: str | None = None,
     created_at_str: str | None = None,
+    origin_source_id: int | None = None,
 ):
     source = sourceRepository.get_source_by_id(session, source_id)
     if not source:
@@ -407,7 +408,8 @@ async def update_source(
     return sourceRepository.update_source_fields(
         session, source, text=text, text_html=text_html,
         summary=summary, summary_html=summary_html,
-        filename=filename, created_at_str=created_at_str, status=new_status
+        filename=filename, created_at_str=created_at_str, status=new_status,
+        origin_source_id=origin_source_id
     )
 
 

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { EditorContent, useEditor } from "@tiptap/react"
 import StarterKit from "@tiptap/starter-kit"
 import { Placeholder } from "@tiptap/extensions"
@@ -12,7 +12,7 @@ import { TopNav } from "@/components/top-nav"
 import { Markdown } from "@/components/markdown"
 import { EnrichSourceModal, type EnrichMode } from "@/components/home/enrich-source-modal"
 import { toast } from "sonner"
-import { api, type ChatMessageRecord, type SourceRecord, type SourceTag, type TranscriptSegment, PROCESSING_STATUSES, PROCESSING_STATUS_LABELS, OLLAMA_FAILURE_STATUSES, explainFailure } from "@/lib/api"
+import { api, duplicateSourceAsNote, type ChatMessageRecord, type SourceRecord, type SourceTag, type TranscriptSegment, PROCESSING_STATUSES, PROCESSING_STATUS_LABELS, OLLAMA_FAILURE_STATUSES, explainFailure } from "@/lib/api"
 
 const getSourceKind = (source: SourceRecord) => {
     const fileType = (source.file_type ?? "").toLowerCase()
@@ -63,7 +63,10 @@ function CopyTextButton({ text }: { text: string }) {
 
 export default function SourceDetailPage() {
     const params = useParams<{ id: string }>()
+    const router = useRouter()
     const [source, setSource] = useState<SourceRecord | null>(null)
+    const [isDuplicating, setIsDuplicating] = useState(false)
+    const [originName, setOriginName] = useState<string | null>(null)
     const [sourceText, setSourceText] = useState("")
     // Rich HTML for the editor; falls back to plain text for legacy/audio sources.
     const [sourceHtml, setSourceHtml] = useState("")
@@ -154,6 +157,17 @@ export default function SourceDetailPage() {
             .catch(() => { /* non-critical */ })
         return () => { cancelled = true }
     }, [source?.id, source?.status])
+
+    // Resolve the name of the source this note was duplicated from, for the lineage link.
+    useEffect(() => {
+        const originId = source?.origin_source_id
+        if (!originId) { setOriginName(null); return }
+        let cancelled = false
+        api.getSourceById(originId)
+            .then((o) => { if (!cancelled) setOriginName(o.filename || `source #${originId}`) })
+            .catch(() => { if (!cancelled) setOriginName(null) })
+        return () => { cancelled = true }
+    }, [source?.origin_source_id])
 
     const transcriptEditor = useEditor({
         extensions: [
@@ -385,6 +399,20 @@ export default function SourceDetailPage() {
     }
 
 
+    const handleDuplicateAsNote = async () => {
+        if (!source || isDuplicating) return
+        setIsDuplicating(true)
+        try {
+            const created = await duplicateSourceAsNote(source.id, titleValue || source.filename || undefined)
+            toast.success("Note created — opening it now.")
+            router.push(`/sources/${created.id}`)
+        } catch (err) {
+            toast.error(`Could not duplicate as note: ${err instanceof Error ? err.message : "Unknown error"}`)
+        } finally {
+            setIsDuplicating(false)
+        }
+    }
+
     const isSourceInProgress = source ? PROCESSING_STATUSES.has(source.status) : false
     const failureInfo = source ? explainFailure(source.status) : null
     const isOllamaFailure = source ? OLLAMA_FAILURE_STATUSES.has(source.status) : false
@@ -403,13 +431,27 @@ export default function SourceDetailPage() {
             <TopNav activePath="/" />
 
             <main className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6">
-                <Link
-                    href="/"
-                    className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                    <ArrowLeft className="h-4 w-4" />
-                    Back to sources
-                </Link>
+                <div className="flex items-center justify-between gap-2">
+                    <Link
+                        href="/"
+                        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                        <ArrowLeft className="h-4 w-4" />
+                        Back to sources
+                    </Link>
+                    {source && (
+                        <button
+                            type="button"
+                            onClick={() => void handleDuplicateAsNote()}
+                            disabled={isDuplicating || isSourceInProgress || !!failureInfo}
+                            title="Create a fully-editable text note from this source's content"
+                            className="inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50"
+                        >
+                            {isDuplicating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Copy className="h-3.5 w-3.5" />}
+                            Duplicate as Note
+                        </button>
+                    )}
+                </div>
 
                 <section className="mt-4 rounded-2xl border bg-card p-5 shadow-sm sm:p-6">
                     {isLoading ? (
@@ -456,6 +498,18 @@ export default function SourceDetailPage() {
                                         </>
                                     )}
                                 </div>
+                                {source.origin_source_id && (
+                                    <div className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+                                        <Copy className="h-3 w-3" />
+                                        Duplicated from{" "}
+                                        <Link
+                                            href={`/sources/${source.origin_source_id}`}
+                                            className="text-emerald-600 hover:underline"
+                                        >
+                                            {originName ?? `source #${source.origin_source_id}`}
+                                        </Link>
+                                    </div>
+                                )}
                             </div>
 
                             {failureInfo && (

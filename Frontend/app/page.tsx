@@ -45,6 +45,11 @@ const tourSeenStorageKey = "reflect.tour.seen"
 
 type Stage = "chat" | "note" | "graph"
 
+// Experiment (demo — may revert): guided reflection is the default and only chat
+// surface. The standalone free-form RAG chat is retired; RAG still powers "Ask
+// sources" inside a reflection. Set to false to restore the classic chat.
+const REFLECTION_FIRST = true
+
 export default function HomePage() {
   const [leftTab, setLeftTab] = useState<LeftTab>("sources")
   const [stage, setStage] = useState<Stage>("chat")
@@ -149,6 +154,17 @@ export default function HomePage() {
 
   const hasIncludedSources = sources.includedSources.length > 0
 
+  const startReflectionFlow = () => {
+    setLeftTab("sources")
+    sidebar.openRight()
+    void chats.startReflection()
+  }
+
+  // Show the reflection input only while a cycle is in progress; otherwise invite the
+  // user to start one. With the flag off, the classic free-form chat input is shown.
+  const showReflectionInput = !REFLECTION_FIRST || (chats.gibbsActive && !chats.gibbsComplete)
+  const showReflectionStartPane = REFLECTION_FIRST && !chats.gibbsActive
+
   // id -> display name, so RAG answers can render readable source chips.
   const sourceNameById = useMemo(() => {
     const map: Record<string, string> = {}
@@ -157,6 +173,11 @@ export default function HomePage() {
   }, [sources.rawSources])
 
   const handleNewChat = () => {
+    if (REFLECTION_FIRST) {
+      chats.resetChatState()
+      startReflectionFlow()
+      return
+    }
     chats.resetChatState()
     setLeftTab("chats")
   }
@@ -347,6 +368,7 @@ export default function HomePage() {
                 onDeleteSource={sources.handleDeleteSource}
                 onRenameSource={sources.handleRenameSource}
                 onRetryProcessing={sources.handleRetryProcessing}
+                onDuplicateAsNote={sources.handleDuplicateAsNote}
               />
             </>
           ) : (
@@ -392,14 +414,9 @@ export default function HomePage() {
               onCancelRenameTitle={() => chats.setRenamingChatId(null)}
             />
           )}
-          <ReflectionBanner
-            active={chats.gibbsActive}
-            onStart={() => {
-              setLeftTab("sources")
-              sidebar.openRight()
-              void chats.startReflection()
-            }}
-          />
+          {!REFLECTION_FIRST && (
+            <ReflectionBanner active={chats.gibbsActive} onStart={startReflectionFlow} />
+          )}
           {chats.gibbsSetup ? (
             <ReflectionSetup
               includedSourceNames={sources.includedSources.map((s) => s.name)}
@@ -428,29 +445,51 @@ export default function HomePage() {
                 onDismissGuardNotice={chats.dismissGuardNotice}
                 language={appSettings?.language}
               />
-              <ChatInput
-                inputValue={chats.inputValue}
-                setInputValue={chats.setInputValue}
-                onSubmitText={chats.handleSubmitText}
-                isAssistantThinking={chats.isAssistantThinking}
-                reflectionActive={chats.gibbsActive && !chats.gibbsComplete}
-                gibbsGenerating={chats.gibbsGenerating}
-                isLastStep={chats.gibbsStep >= GIBBS_STEP_COUNT}
-                nextStageLabel={
-                  chats.gibbsStep >= GIBBS_STEP_COUNT ? null : getGibbsStep(chats.gibbsStep + 1).label
-                }
-                onReflect={chats.submitReflection}
-                onAsk={chats.submitQuestion}
-                onContinue={chats.continueStage}
-                onClarify={() => void chats.askClarifying()}
-                activeChatMessages={chats.activeChatMessages}
-                includedSourcesCount={sources.includedSources.length}
-                chatModel={appSettings?.chat_model ?? null}
-                installedModels={installedModels}
-                isOllamaReachable={isOllamaReachable}
-                isSavingChatModel={isSavingChatModel}
-                onChangeChatModel={handleChangeChatModel}
-              />
+              {showReflectionInput ? (
+                <ChatInput
+                  inputValue={chats.inputValue}
+                  setInputValue={chats.setInputValue}
+                  onSubmitText={chats.handleSubmitText}
+                  isAssistantThinking={chats.isAssistantThinking}
+                  reflectionActive={chats.gibbsActive && !chats.gibbsComplete}
+                  gibbsGenerating={chats.gibbsGenerating}
+                  isLastStep={chats.gibbsStep >= GIBBS_STEP_COUNT}
+                  nextStageLabel={
+                    chats.gibbsStep >= GIBBS_STEP_COUNT ? null : getGibbsStep(chats.gibbsStep + 1).label
+                  }
+                  onReflect={chats.submitReflection}
+                  onAsk={chats.submitQuestion}
+                  onContinue={chats.continueStage}
+                  onClarify={() => void chats.askClarifying()}
+                  activeChatMessages={chats.activeChatMessages}
+                  includedSourcesCount={sources.includedSources.length}
+                  chatModel={appSettings?.chat_model ?? null}
+                  installedModels={installedModels}
+                  isOllamaReachable={isOllamaReachable}
+                  isSavingChatModel={isSavingChatModel}
+                  onChangeChatModel={handleChangeChatModel}
+                />
+              ) : showReflectionStartPane ? (
+                <div className="bg-background p-6">
+                  <div className="mx-auto flex max-w-2xl flex-col items-center gap-3 rounded-xl border border-dashed px-6 py-10 text-center">
+                    <Sparkles className="h-6 w-6 text-emerald-600" />
+                    <div>
+                      <p className="text-sm font-medium">Reflect on your entries</p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        A guided Gibbs cycle walks you through it. You can still ask your sources
+                        anything from inside a reflection.
+                      </p>
+                    </div>
+                    <button
+                      onClick={startReflectionFlow}
+                      className="mt-1 inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-700"
+                    >
+                      <Sparkles className="h-4 w-4" />
+                      Begin reflection
+                    </button>
+                  </div>
+                </div>
+              ) : null}
             </>
           )}
 

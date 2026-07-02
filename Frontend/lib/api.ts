@@ -96,6 +96,8 @@ export interface SourceRecord {
   summary_html: string | null
   status: SourceStatus
   created_at: string
+  // Set when this source was created via "Duplicate as Note": the source it was forked from.
+  origin_source_id: number | null
 }
 
 export interface SourceTag {
@@ -537,7 +539,7 @@ export const api = {
       throw error
     })
   },
-  patchSource(sourceId: number, fields: { text?: string; text_html?: string; summary?: string; summary_html?: string; filename?: string; created_at?: string }) {
+  patchSource(sourceId: number, fields: { text?: string; text_html?: string; summary?: string; summary_html?: string; filename?: string; created_at?: string; origin_source_id?: number }) {
     return request<SourceRecord>(`/source/${sourceId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -839,4 +841,25 @@ export const api = {
     void run()
     return () => controller.abort()
   },
+}
+
+// Create a fully-editable text note (a text-type source) seeded from an existing
+// source's content, leaving the original untouched. Backs "Duplicate as Note".
+export async function duplicateSourceAsNote(sourceId: number, name?: string): Promise<SourceRecord> {
+  const full = await api.getSourceById(sourceId)
+  const html = full.text_html ?? undefined
+  const plain = full.text ?? (await api.getSourceText(sourceId)) ?? ""
+  if (!plain.trim() && !(html ?? "").trim()) {
+    throw new Error("This source has no text to duplicate yet.")
+  }
+  // Mirror handleSaveNote: when there's rich HTML, send it as both text and html so
+  // the backend keeps it for display and derives the plain text used for RAG.
+  const created = await api.uploadTextSource(html ?? plain, true, html)
+  const baseName = (name ?? full.filename ?? "source").trim() || "source"
+  // Rename and record lineage back to the original in one patch.
+  try {
+    return await api.patchSource(created.id, { filename: `Copy of ${baseName}`, origin_source_id: sourceId })
+  } catch {
+    return created
+  }
 }

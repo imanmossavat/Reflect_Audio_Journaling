@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState } from "react"
-import {EllipsisVerticalIcon, Mic, Pencil, Trash2, Type, Play, Filter, X, File as FileIcon, RefreshCw } from "lucide-react"
+import {EllipsisVerticalIcon, Mic, Pencil, Trash2, Type, Play, Filter, X, File as FileIcon, RefreshCw, Copy } from "lucide-react"
 import Link from "next/link"
 import { Checkbox } from "@/components/ui/checkbox"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
@@ -20,6 +20,7 @@ interface SourceListPanelProps {
   onDeleteSource: (id: string) => Promise<void>
   onRenameSource: (id: string, name: string) => Promise<void>
   onRetryProcessing: (id: string) => Promise<void>
+  onDuplicateAsNote: (id: string, name?: string) => Promise<void>
 }
 
 export function SourceListPanel({
@@ -32,6 +33,7 @@ export function SourceListPanel({
   onDeleteSource,
   onRenameSource,
   onRetryProcessing,
+  onDuplicateAsNote,
 }: SourceListPanelProps) {
   const [retryingId, setRetryingId] = useState<string | null>(null)
 
@@ -415,6 +417,14 @@ export function SourceListPanel({
                         >
                           <Pencil className="h-3.5 w-3.5" />
                           Rename
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onSelect={() => void onDuplicateAsNote(source.id, source.name)}
+                          disabled={isInProgress || isAnyFailure}
+                          className="gap-2"
+                        >
+                          <Copy className="h-3.5 w-3.5" />
+                          Duplicate as Note
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onSelect={() => void onDeleteSource(source.id)}

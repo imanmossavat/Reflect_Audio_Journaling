@@ -3,11 +3,7 @@
 import { Heart, Phone, MessageCircle, AlertTriangle, X } from "lucide-react"
 import type { SafetyKind, AppLanguage } from "@/lib/api"
 
-// IMPORTANT: these are crisis/support resources — the contact details are hard-coded and
-// human-curated on purpose (never model-generated, so a number can't be hallucinated).
-// ⚠️ Verify the numbers below against the official sources before shipping:
-//   - 113 Zelfmoordpreventie: 0800-0113 (free, 24/7) / 113.nl
-//   - de Luisterlijn (general listening line): 088 0767 000 (24/7)
+// these are crisis/support resources — the contact details are hard-coded
 type Line = { icon: "phone" | "chat" | "alert"; label: string }
 type Copy = { title: string; body: string; lines: Line[]; footer: string; dismiss: string }
 

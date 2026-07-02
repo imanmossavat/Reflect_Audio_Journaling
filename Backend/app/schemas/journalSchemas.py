@@ -68,6 +68,7 @@ class SourcePatchRequest(BaseModel):
     summary_html: str | None = None  # rich HTML for the summary; plain summary derived from it
     filename: str | None = None
     created_at: str | None = None  # ISO 8601 datetime string
+    origin_source_id: int | None = None  # lineage: the source this note was duplicated from
 
 @dataclass  
 class SimpleRecording:

@@ -192,6 +192,7 @@ def update_source_fields(
     filename: Optional[str] = None,
     created_at_str: Optional[str] = None,
     status: Optional[str] = None,
+    origin_source_id: Optional[int] = None,
 ) -> Source:
     if text is not None:
         source.text = text
@@ -207,6 +208,8 @@ def update_source_fields(
         source.created_at = datetime.fromisoformat(created_at_str.replace("Z", "+00:00")).replace(tzinfo=None)
     if status is not None:
         source.status = status
+    if origin_source_id is not None:
+        source.origin_source_id = origin_source_id
     source.edited_at = datetime.utcnow()
     session.add(source)
     session.commit()
@@ -228,6 +231,12 @@ def delete_source(session: Session, source_id: int) -> bool:
     for chat in linked_chats:
         chat.source_id = None
         session.add(chat)
+    # Notes duplicated from this source lose their lineage pointer rather than
+    # dangling at a row that no longer exists.
+    derived = session.exec(select(Source).where(Source.origin_source_id == source_id)).all()
+    for note in derived:
+        note.origin_source_id = None
+        session.add(note)
     session.delete(source)
     session.commit()
     return True

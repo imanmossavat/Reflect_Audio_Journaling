@@ -59,6 +59,9 @@ class Source(SQLModel, table=True):
     # a different granularity from Chunk (semantic chunking for whole-document RAG
     # search); computed at ingest alongside chunking, see app/services/units.py.
     units: Optional[list] = Field(default=None, sa_column=Column(JSON))
+    # If created via "Duplicate as Note", the id of the source it was forked from.
+    # Lets the UI link a note back to its original instead of orphaning the content.
+    origin_source_id: Optional[int] = Field(default=None, foreign_key="source.id")
     status: str = Field(max_length=255, default="not processed")
     created_at: datetime = Field(default_factory=datetime.utcnow)
     edited_at: datetime = Field(default_factory=datetime.utcnow)

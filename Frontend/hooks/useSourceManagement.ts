@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { api, type SourceRecord, PROCESSING_STATUSES } from "@/lib/api"
+import { api, duplicateSourceAsNote, type SourceRecord, PROCESSING_STATUSES } from "@/lib/api"
 import { formatListTimestamp } from "@/lib/utils"
 import type { RawSource, AddSourceMode } from "@/components/home/types"
 import type { OnboardingProfile } from "@/components/onboarding-modal"
@@ -298,6 +298,19 @@ export function useSourceManagement() {
     }
   }
 
+  // Fork a source into a new editable text note (leaves the original untouched).
+  const handleDuplicateAsNote = async (sourceId: string, name?: string) => {
+    try {
+      const created = await duplicateSourceAsNote(Number(sourceId), name)
+      if (created.id > maxSourceIdRef.current) maxSourceIdRef.current = created.id
+      setRawSources((prev) => (prev.some((s) => s.id === String(created.id)) ? prev : [mapBackendSource(created), ...prev].sort(compareSourcesNewestFirst)))
+      setProcessingSources((prev) => new Set([...prev, created.id]))
+      toast("Note created — processing in background.")
+    } catch (error) {
+      toast.error(`Could not duplicate as note: ${error instanceof Error ? error.message : "Unknown error"}`)
+    }
+  }
+
   const handleAddFileSource = async (selectedFile: File | null) => {
     if (!selectedFile || isSavingSource) return
     const validationError = validateUploadFile(selectedFile)
@@ -574,5 +587,6 @@ export function useSourceManagement() {
     handleSaveRecording, handleCloseRecordingPanel,
     handleOnboardingSkip, handleOnboardingSubmit,
     handleDeleteSource, handleRenameSource, handleRetryProcessing,
+    handleDuplicateAsNote,
   }
 }
