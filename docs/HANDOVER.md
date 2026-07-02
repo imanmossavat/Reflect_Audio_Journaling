@@ -531,6 +531,12 @@ Several files in `Backend/app/prompts/` are no longer used in the production flo
 
 ## 13. Gibbs Reflective Cycle — implementation notes
 
+> **STALE (2026-07-02):** this section still describes the deleted
+> `gibbs_facilitator_prompt.py` implementation (removed in commit
+> `41916d3`) as if it were current. Left as-is for now, not corrected here
+> — see `docs/REFLECTION_FLOW_REBUILD_NAVIGATION.md` for the current
+> account and the commit range that replaced it.
+
 The six stages are:
 
 | Step | Key | Label | Purpose |
