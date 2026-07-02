@@ -430,6 +430,95 @@ reproduced bug — recorded so it isn't lost, not treated as fixed or urgent.
 **Fix**: none applied — no reproducible bug to fix. Worth a second look if
 an in-flight-source content editor is ever added.
 
+### 22. The same poll loops from #21 drowned the console in access-log noise — Fixed (logging filter + visibility-gated polling)
+
+**Files**: `Backend/app/logging_config.py`, `Frontend/hooks/useChatManagement.ts`,
+`Frontend/hooks/useSourceManagement.ts`
+
+Separate from #21's data-race question: the three poll loops it describes are
+each independently running in **every open tab**, and every request they make
+produced a standard uvicorn access-log line (`INFO: 127.0.0.1:xxxxx - "GET
+/chats HTTP/1.1" 200 OK`) at INFO level to both console and `logs/app.log`.
+With two or three tabs open — an ordinary dev session, not an edge case — that
+was a `GET /chats` or `GET /sources`/`GET /source/{id}` line every 1-2 seconds
+on average, interleaved with the actual debug output being watched. Pure
+noise: none of these lines carry information a developer doesn't already know
+("the poll fired again"), and they make it materially harder to spot the
+signal (an error, a slow request, a one-off log line) live during debugging.
+
+Not a data-correctness issue and not the same as #21 — #21 is about a
+possible state-clobber bug in the poll's merge logic; this is purely about
+log signal-to-noise. Flagged separately per the review comment that surfaced
+it.
+
+**Fix, part 1 (logging)**: `logging_config.py` now attaches a `logging.Filter`
+to the `uvicorn.access` logger that drops **successful (2xx) GET** requests to
+`/chats`, `/sources` (with or without `?since_id=`), and `/source/{id}` —
+exactly the three polled routes — while leaving every other route, every
+non-GET method, and every non-2xx status (including a failing poll — that's
+real signal) logged exactly as before. See the filter's docstring for why
+it's safe regardless of whether it's installed before or after uvicorn's own
+`configure_logging()` call reconfigures that logger's handlers.
+
+**Fix, part 2 (actual request volume)**: all three `setInterval` poll loops
+(`useChatManagement.ts`'s `/chats` poll, `useSourceManagement.ts`'s `/sources`
+poll and its `processingSources` poll) now skip their tick when
+`document.visibilityState === "hidden"`, and each fires one immediate resync
+on `visibilitychange` back to `"visible"` so a tab you switch back to isn't
+stale for up to 5s. A backgrounded tab — the common case when someone has
+several REFLECT tabs open but is only looking at one — now makes zero polling
+requests instead of one every 2.5-5s. The intervals themselves, their
+cadence, and the "no shared coordination between the two hooks" invariant
+(`Frontend/hooks/CLAUDE.md`) are all unchanged; each effect independently
+decides whether to skip its own tick, so nothing here couples the two hooks
+together.
+
+**Not done**: two or more tabs simultaneously *visible* (e.g. side-by-side
+windows) still each poll independently — this fix only collapses *background*
+tabs to zero, it doesn't add cross-tab leader election. If that residual
+volume ever matters, a `BroadcastChannel` leader-election (only one visible
+tab polls, broadcasts results to the others) or a longer interval with
+backoff would be the next step; neither has been attempted.
+
+---
+
+## New — found handling a live port-8000 conflict (2026-07-02)
+
+### 23. `start.sh` port-8000 auto-recovery — needs live verification
+
+**File**: `start.sh` (`free_stale_port`, called as
+`free_stale_port 8000 "$ROOT/Backend/.venv"` before "Start backend in
+background")
+
+A real run hit the failure this was written to fix: a stale backend from a
+previous `./start.sh` still held port 8000, uvicorn died with "Address
+already in use," and the script pressed on anyway — printing "Both servers
+are starting" while the backend was actually dead. The user had to manually
+`lsof -i :8000` + `kill -9` to recover.
+
+Added `free_stale_port`: kills whatever's on port 8000 only if its command
+line contains this exact checkout's venv path (`$ROOT/Backend/.venv` —
+tightened from an earlier, too-generic `"app.main:app"` match that could
+have false-positived on any other FastAPI project using the same idiomatic
+`app/main.py` layout). If the port is held by something that doesn't match,
+the script now fails fast with the PID/command and a copy-pasteable
+`kill -9 <PID>` instead of limping forward with a dead backend.
+
+Verified so far only against disposable Python socket-listener fixtures on
+scratch ports (both the "ours → auto-kill" and "not ours → leave alone +
+error" branches passed). **Not yet verified** against a real leftover
+`start_backend.py`/uvicorn process in a full end-to-end `./start.sh` run —
+in particular, uvicorn's `--reload` mode forks a `multiprocessing.spawn`
+worker that also binds LISTEN on the port (confirmed via `lsof` during the
+investigation), and the fix's kill-all-pids-in-the-group logic hasn't been
+exercised against that actual topology, nor against the script's `set -e` /
+trap / background-job interactions end-to-end.
+
+**Fix**: not a code fix — a verification task. Reproduce a genuine leftover
+backend on 8000 (e.g. run `./start.sh`, Ctrl+D the terminal instead of
+Ctrl+C, then run `./start.sh` again) and confirm auto-recovery works
+cleanly.
+
 ---
 
 ## Summary table
@@ -457,3 +546,5 @@ an in-flight-source content editor is ever added.
 | 19 | Moderate | **Fixed** | Llama Guard S6 false-positived the support card on ordinary conversation | `services/safety.py` |
 | 20 | Moderate | **Fixed** | Update failures could discard an already-successful reply (3 call sites) | `services/reflectionLoop.py`, `routes/query.py`, `services/generation_registry.py` |
 | 21 | Minor | Open (unconfirmed, no repro) | Three poll loops; one merge path's `content` overwrite is an unconfirmed watch item | `hooks/useChatManagement.ts`, `hooks/useSourceManagement.ts` |
+| 22 | Minor | **Fixed** | Same poll loops flooded uvicorn access logs with noise; also polled while tabs were backgrounded | `app/logging_config.py`, `hooks/useChatManagement.ts`, `hooks/useSourceManagement.ts` |
+| 23 | Moderate | Open (needs live verification) | `start.sh` port-8000 auto-recovery only fixture-tested, not verified against a real leftover backend | `start.sh` |

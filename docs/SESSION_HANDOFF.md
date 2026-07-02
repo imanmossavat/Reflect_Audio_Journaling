@@ -152,6 +152,44 @@ production code touched in this pass — docs and root-level files only.
   and "what gets gotten wrong here" notes, deliberately not repeating the
   root file's content.
 
+## Follow-up (2026-07-02, cont'd) — access-log noise from the poll loops
+
+A code-review comment flagged that the three frontend poll loops documented
+in `docs/ISSUES.md` #21 (`GET /chats` every 5s, `GET /sources` every 5s, `GET
+/source/{id}` every 2.5s while a source is processing — each running
+independently per open tab) were producing a constant stream of uvicorn
+access-log lines at INFO level, on console and in `logs/app.log`. With more
+than one tab open this is effectively continuous noise that buries real
+signal during live debugging. Explicitly separate from #21 itself, which is
+about a possible state-clobber bug in the poll's merge logic, not logging.
+
+**Fix (`docs/ISSUES.md` #22), two parts**:
+
+1. **Logging**: `Backend/app/logging_config.py` now attaches a
+   `logging.Filter` to the `uvicorn.access` logger that drops successful
+   (2xx) `GET` requests to the three polled routes only — every other route,
+   every non-GET method, and every failing poll (a real signal) still logs
+   exactly as before.
+2. **Actual request volume**: the three `setInterval` loops in
+   `useChatManagement.ts`/`useSourceManagement.ts` now skip their tick while
+   `document.visibilityState === "hidden"`, with one immediate resync on
+   `visibilitychange` back to visible. A backgrounded tab now makes zero
+   polling requests instead of one every 2.5-5s — this was the more common
+   case widening #21's race window than multiple simultaneously-*visible*
+   tabs.
+
+What gets logged, concretely, after this change: every non-polling route
+(POST/PATCH/DELETE, SSE stream opens, uploads) at INFO as before; every
+polling GET that fails or returns non-2xx (backend down, 4xx/5xx) at INFO as
+before — a failing poll is real signal, not noise; every successful polling
+GET (`/chats`, `/sources`, `/source/{id}`) is now silent in both console and
+`logs/app.log`. `LOG_LEVEL=DEBUG` (the default) still shows everything else
+this file's noisy-third-party-logger list doesn't already suppress.
+
+**Not done**: two or more *simultaneously visible* tabs (e.g. side-by-side
+windows) still each poll independently — no cross-tab leader election was
+added. See `docs/ISSUES.md` #22's "Not done" note.
+
 ## Not done yet
 
 - **Backfill not actually executed** — only `--dry-run`. Running it for

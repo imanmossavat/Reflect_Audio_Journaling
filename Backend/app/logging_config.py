@@ -1,5 +1,6 @@
 import logging
 import logging.config
+import re
 import warnings
 import sys
 import os
@@ -22,6 +23,34 @@ LOGS_DIR = "logs"
 LOG_FILE = os.path.join(LOGS_DIR, "app.log")
 
 os.makedirs(LOGS_DIR, exist_ok=True)
+
+
+# ============================================================
+# POLLING NOISE FILTER
+# The frontend runs several always-on background poll loops — GET /chats every
+# 5s, GET /sources every 5s, GET /source/{id} every 2.5s while a source is
+# processing — and each open tab runs all of them independently (see
+# docs/ISSUES.md #21). With more than one tab open this floods the console
+# with access-log lines that carry no debugging signal, drowning out the
+# handful of lines that do. Only successful (2xx) polls are dropped — a
+# failing poll is itself useful information and still logs normally.
+# ============================================================
+
+_POLLING_PATHS = re.compile(r"^/(chats|sources|source/\d+)$")
+
+
+class _PollingAccessNoiseFilter(logging.Filter):
+    def filter(self, record: logging.LogRecord) -> bool:
+        # uvicorn's access logger formats records with args
+        # (client_addr, method, full_path, http_version, status_code).
+        args = record.args
+        if not isinstance(args, tuple) or len(args) < 5:
+            return True
+        method, full_path, status_code = args[1], args[2], args[4]
+        if method != "GET" or not str(status_code).startswith("2"):
+            return True
+        path = str(full_path).split("?", 1)[0]
+        return _POLLING_PATHS.match(path) is None
 
 
 # ============================================================
@@ -91,6 +120,14 @@ def setup_logging():
         "numba",                # JIT compilation traces from librosa (one-time, verbose)
     ):
         logging.getLogger(noisy).setLevel(logging.WARNING)
+
+    # Filters attach to the logger object itself, not to whichever handler is
+    # currently wired to it — safe regardless of whether this runs before or
+    # after uvicorn's own configure_logging() call reconfigures
+    # "uvicorn.access"'s handlers (dictConfig never clears a logger's existing
+    # filters unless the config explicitly lists a "filters" key for it, which
+    # uvicorn's default LOGGING_CONFIG does not).
+    logging.getLogger("uvicorn.access").addFilter(_PollingAccessNoiseFilter())
 
     warnings.filterwarnings("ignore", message=".*resume_download.*")
     warnings.filterwarnings("ignore", message=".*use_auth_token.*")

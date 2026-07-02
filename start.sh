@@ -241,6 +241,61 @@ fi
 echo "Running database migrations..."
 uv run --extra "$TORCH_EXTRA" alembic upgrade head
 
+# Free a port automatically if it's held by a leftover REFLECT backend from a
+# previous run (e.g. terminal closed without Ctrl+C). uvicorn's --reload mode
+# forks a worker that inherits the listening socket, so a single leftover run
+# can show up as multiple PIDs on the same port — if any of them look like
+# ours, treat the whole group as ours and kill them all. If none do, it's
+# someone else's process: fail fast with the exact command instead of letting
+# uvicorn die silently while the rest of start.sh presses on.
+free_stale_port() {
+    local port="$1" match="$2"
+    local pids
+    pids=$(lsof -ti ":$port" -sTCP:LISTEN 2>/dev/null || true)
+    [ -z "$pids" ] && return 0
+
+    local ours=false
+    local details=""
+    for pid in $pids; do
+        local cmd
+        cmd=$(ps -p "$pid" -o command= 2>/dev/null || true)
+        details="$details  PID $pid  $cmd"$'\n'
+        if echo "$cmd" | grep -qF "$match"; then
+            ours=true
+        fi
+    done
+
+    if [ "$ours" = true ]; then
+        echo "Port $port is held by a leftover REFLECT backend from a previous run — stopping it."
+        for pid in $pids; do
+            kill "$pid" 2>/dev/null || true
+        done
+        for _ in 1 2 3 4 5; do
+            lsof -ti ":$port" -sTCP:LISTEN &>/dev/null || break
+            sleep 0.3
+        done
+        for pid in $pids; do
+            kill -0 "$pid" 2>/dev/null && kill -9 "$pid" 2>/dev/null
+        done
+    fi
+
+    if lsof -ti ":$port" -sTCP:LISTEN &>/dev/null; then
+        echo "" >&2
+        echo "ERROR: Port $port is already in use and start.sh could not free it automatically:" >&2
+        echo "$details" >&2
+        echo "If it's safe to stop, run: kill -9 <PID>  (or kill -9 $(echo $pids | tr ' ' ' '))" >&2
+        echo "Then re-run ./start.sh." >&2
+        exit 1
+    fi
+}
+
+# Match on this checkout's venv path, not "app.main:app" — that's a generic
+# FastAPI/uvicorn convention (idiomatic app/main.py) that unrelated projects
+# on the same machine could share. sys.executable is always
+# $ROOT/Backend/.venv/bin/python3 for a process started by this repo's own
+# start_backend.py, regardless of TLS flags, so it uniquely identifies "ours."
+free_stale_port 8000 "$ROOT/Backend/.venv"
+
 # 5. Start backend in background
 echo "Starting backend..."
 uv run --extra "$TORCH_EXTRA" python start_backend.py &

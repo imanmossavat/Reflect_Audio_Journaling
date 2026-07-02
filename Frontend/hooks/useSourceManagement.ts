@@ -123,7 +123,7 @@ export function useSourceManagement() {
   }, [])
 
   useEffect(() => {
-    const interval = setInterval(async () => {
+    const pollNewSources = async () => {
       try {
         const newOnes = await api.getSources(maxSourceIdRef.current)
         if (newOnes.length === 0) return
@@ -152,13 +152,27 @@ export function useSourceManagement() {
           })
         }
       } catch { /* ignore transient errors */ }
+    }
+    // Skip the tick while backgrounded (see docs/ISSUES.md #21/#22 — this was the bulk
+    // of the /sources poll traffic across multiple open tabs); resync once on regaining
+    // visibility so a returning tab isn't stale for up to 5s.
+    const interval = setInterval(() => {
+      if (document.visibilityState === "hidden") return
+      void pollNewSources()
     }, 5000)
-    return () => clearInterval(interval)
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") void pollNewSources()
+    }
+    document.addEventListener("visibilitychange", onVisibilityChange)
+    return () => {
+      clearInterval(interval)
+      document.removeEventListener("visibilitychange", onVisibilityChange)
+    }
   }, [])
 
   useEffect(() => {
     if (processingSources.size === 0) return
-    const interval = setInterval(async () => {
+    const pollProcessing = async () => {
       const done: number[] = []
       await Promise.all(
         [...processingSources].map(async (sourceId) => {
@@ -188,8 +202,20 @@ export function useSourceManagement() {
           return next
         })
       }
+    }
+    // Skip the tick while backgrounded — same reasoning as the /sources list poll above.
+    const interval = setInterval(() => {
+      if (document.visibilityState === "hidden") return
+      void pollProcessing()
     }, 2500)
-    return () => clearInterval(interval)
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") void pollProcessing()
+    }
+    document.addEventListener("visibilitychange", onVisibilityChange)
+    return () => {
+      clearInterval(interval)
+      document.removeEventListener("visibilitychange", onVisibilityChange)
+    }
   }, [processingSources])
 
   useEffect(() => {

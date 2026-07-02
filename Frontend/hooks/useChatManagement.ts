@@ -121,8 +121,23 @@ export function useChatManagement({ rawSources, setRawSources, setProcessingSour
     }
 
     void syncChats().finally(() => { if (!cancelled) setIsLoadingChats(false) })
-    const interval = setInterval(() => { void syncChats() }, 5000)
-    return () => { cancelled = true; clearInterval(interval) }
+    // Skip the tick while the tab is backgrounded — a hidden tab has no reason to hit
+    // the backend every 5s, and with several tabs open this was the bulk of the
+    // /chats poll traffic (see docs/ISSUES.md #21/#22). Resync once immediately on
+    // regaining visibility so a returning tab isn't stale for up to 5s.
+    const interval = setInterval(() => {
+      if (document.visibilityState === "hidden") return
+      void syncChats()
+    }, 5000)
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") void syncChats()
+    }
+    document.addEventListener("visibilitychange", onVisibilityChange)
+    return () => {
+      cancelled = true
+      clearInterval(interval)
+      document.removeEventListener("visibilitychange", onVisibilityChange)
+    }
   }, [])
 
   useEffect(() => {
